@@ -8,66 +8,68 @@
     "dark": "#0D9373"
   },
   "favicon": "/favicon.svg",
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": [
-        "index",
-        "quickstart", 
-        "development",
-        "getting-started/installation",
-        "getting-started/quickstart"
-      ]
-    },
-    {
-      "group": "Core Concepts",
-      "pages": [
-        "core-concepts/how-it-works",
-        "core-concepts/project-structure"
-      ]
-    },
-    {
-      "group": "Development Guide",
-      "pages": [
-        "development-guide/creating-components",
-        "development-guide/weaverse-component",
-        "development-guide/component-schema",
-        "development-guide/data-fetching",
-        "development-guide/styling-theming",
-        "development-guide/data-connectors"
-      ]
-    },
-    {
-      "group": "API Reference", 
-      "pages": [
-        "api-reference/introduction",
-        "api-reference/use-weaverse",
-        "api-reference/use-theme-settings",
-        "api-reference/weaverse-client",
-        "api-reference/weaverse-root",
-        "api-reference/with-weaverse",
-        "api-reference/types"
-      ]
-    },
-    {
-      "group": "Features",
-      "pages": [
-        "features/global-sections",
-        "features/navigation-menus",
-        "features/markets-localization",
-        "features/content-security",
-        "features/third-party-integrations"
-      ]
-    },
-    {
-      "group": "Resources",
-      "pages": [
-        "resources/tutorial",
-        "resources/example-components", 
-        "resources/faq"
-      ]
-    }
-  ],
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index",
+          "quickstart",
+          "development",
+          "getting-started/installation",
+          "getting-started/quickstart"
+        ]
+      },
+      {
+        "group": "Core Concepts",
+        "pages": [
+          "core-concepts/how-it-works",
+          "core-concepts/project-structure"
+        ]
+      },
+      {
+        "group": "Development Guide",
+        "pages": [
+          "development-guide/creating-components",
+          "development-guide/weaverse-component",
+          "development-guide/component-schema",
+          "development-guide/data-fetching",
+          "development-guide/styling-theming",
+          "development-guide/data-connectors"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "pages": [
+          "api-reference/introduction",
+          "api-reference/use-weaverse",
+          "api-reference/use-theme-settings",
+          "api-reference/weaverse-client",
+          "api-reference/weaverse-root",
+          "api-reference/with-weaverse",
+          "api-reference/types"
+        ]
+      },
+      {
+        "group": "Features",
+        "pages": [
+          "features/global-sections",
+          "features/navigation-menus",
+          "features/markets-localization",
+          "features/content-security",
+          "features/third-party-integrations"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "resources/tutorial",
+          "resources/example-components",
+          "resources/faq"
+        ]
+      }
+    ]
+  },
   "anchors": [
     {
       "name": "Studio",
