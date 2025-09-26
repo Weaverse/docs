@@ -1,88 +1,90 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Weaverse",
   "colors": {
-    "primary": "#16A34A",
+    "primary": "#0D9373",
     "light": "#07C983",
-    "dark": "#15803D"
+    "dark": "#0D9373"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "index",
+        "quickstart", 
+        "development",
+        "getting-started/installation",
+        "getting-started/quickstart"
+      ]
+    },
+    {
+      "group": "Core Concepts",
+      "pages": [
+        "core-concepts/how-it-works",
+        "core-concepts/project-structure"
+      ]
+    },
+    {
+      "group": "Development Guide",
+      "pages": [
+        "development-guide/creating-components",
+        "development-guide/weaverse-component",
+        "development-guide/component-schema",
+        "development-guide/data-fetching",
+        "development-guide/styling-theming",
+        "development-guide/data-connectors"
+      ]
+    },
+    {
+      "group": "API Reference", 
+      "pages": [
+        "api-reference/introduction",
+        "api-reference/use-weaverse",
+        "api-reference/use-theme-settings",
+        "api-reference/weaverse-client",
+        "api-reference/weaverse-root",
+        "api-reference/with-weaverse",
+        "api-reference/types"
+      ]
+    },
+    {
+      "group": "Features",
+      "pages": [
+        "features/global-sections",
+        "features/navigation-menus",
+        "features/markets-localization",
+        "features/content-security",
+        "features/third-party-integrations"
+      ]
+    },
+    {
+      "group": "Resources",
+      "pages": [
+        "resources/tutorial",
+        "resources/example-components", 
+        "resources/faq"
       ]
     }
-  },
+  ],
+  "anchors": [
+    {
+      "name": "Studio",
+      "url": "https://studio.weaverse.io",
+      "icon": "paintbrush"
+    },
+    {
+      "name": "GitHub", 
+      "url": "https://github.com/weaverse",
+      "icon": "github"
+    },
+    {
+      "name": "Community",
+      "url": "https://discord.gg/weaverse", 
+      "icon": "discord"
+    }
+  ],
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
@@ -91,13 +93,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "mailto:support@weaverse.io"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Studio",
+      "href": "https://studio.weaverse.io"
     }
   },
   "contextual": {
@@ -114,9 +116,9 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/weaverse",
+      "github": "https://github.com/weaverse",
+      "discord": "https://discord.gg/weaverse"
     }
   }
 }
