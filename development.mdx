@@ -1,94 +1,184 @@
 ---
 title: 'Development'
-description: 'Preview changes locally to update your docs'
+description: 'Complete guide to developing themes and components for Weaverse Hydrogen storefronts'
 ---
 
-<Info>
-  **Prerequisites**:
-  - Node.js version 19 or higher
-  - A docs repository with a `docs.json` file
-</Info>
+# Development Guide
 
-Follow these steps to install and run Mintlify on your operating system.
+This comprehensive guide covers everything you need to know to develop themes and components for Weaverse Hydrogen storefronts.
+
+## Prerequisites
+
+Before you start developing with Weaverse, ensure you have:
+
+- **Node.js 18+** installed
+- **Familiarity with React and TypeScript**
+- **Basic knowledge of Shopify Hydrogen**
+- **Understanding of Tailwind CSS** (recommended)
+
+## Development Workflow
+
+<CardGroup cols={2}>
+  <Card title="Environment Setup" icon="gear" href="/docs/development-guide/environment-setup">
+    Configure your development environment, environment variables, and tools.
+  </Card>
+  <Card title="Creating Components" icon="cube" href="/docs/development-guide/creating-components">
+    Learn how to build Weaverse components with proper schemas and TypeScript support.
+  </Card>
+  <Card title="Input Settings" icon="sliders" href="/docs/development-guide/input-settings">
+    Master the configuration system that lets merchants customize your components.
+  </Card>
+  <Card title="Data Fetching" icon="database" href="/docs/development-guide/data-fetching">
+    Implement server-side data loading for sections with Shopify API integration.
+  </Card>
+</CardGroup>
+
+## Quick Start
+
+Get your development environment up and running in minutes:
 
 <Steps>
-<Step title="Install the Mintlify CLI">
+<Step title="Clone or Create Project">
+
+Use the Weaverse CLI to create a new theme:
 
 ```bash
-npm i -g mint
+npx @weaverse/cli@latest create --template=pilot --project-id=your-project-id
 ```
+
+Or clone an existing theme repository:
+
+```bash
+git clone your-theme-repository
+cd your-theme-directory
+```
+
 </Step>
 
-<Step title="Preview locally">
-
-Navigate to your docs directory where your `docs.json` file is located, and run the following command:
+<Step title="Install Dependencies">
 
 ```bash
-mint dev
+npm install
 ```
 
-A local preview of your documentation will be available at `http://localhost:3000`.
+</Step>
+
+<Step title="Configure Environment">
+
+Create a `.env` file with your Weaverse and Shopify credentials:
+
+```bash
+# Core Variables
+SESSION_SECRET="your-session-secret"
+PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
+PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
+WEAVERSE_PROJECT_ID="your-weaverse-project-id"
+
+# Optional: Use demo data during development
+# PUBLIC_STORE_DOMAIN="mock.shop"
+```
+
+</Step>
+
+<Step title="Start Development Server">
+
+```bash
+npm run dev
+```
+
+Your storefront will be available at `http://localhost:3456`
 
 </Step>
 </Steps>
 
-## Custom ports
+## Development Commands
 
-By default, Mintlify uses port 3000. You can customize the port Mintlify runs on by using the `--port` flag. For example, to run Mintlify on port 3333, use this command:
-
+### Core Development
 ```bash
-mint dev --port 3333
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run preview      # Build and start production
 ```
 
-If you attempt to run Mintlify on a port that's already in use, it will use the next available port:
-
-```md
-Port 3000 is already in use. Trying 3001 instead.
-```
-
-## Mintlify versions
-
-Please note that each CLI release is associated with a specific version of Mintlify. If your local preview does not align with the production version, please update the CLI:
-
+### Code Quality
 ```bash
-npm mint update
+npm run typecheck    # TypeScript checking
+npm run lint         # Check code quality
+npm run format       # Format code
 ```
 
-## Validating links
-
-The CLI can assist with validating links in your documentation. To identify any broken links, use the following command:
-
+### Testing
 ```bash
-mint broken-links
+npm run test         # Run tests in watch mode
+npm run test:run     # Run tests once
 ```
 
-## Deployment
+## Quick Start Checklist
 
-If the deployment is successful, you should see the following:
+- [ ] Set up your development environment
+- [ ] Create your first component with schema
+- [ ] Add input settings for customization
+- [ ] Test in Weaverse Studio
+- [ ] Implement proper TypeScript types
+- [ ] Add error boundaries and loading states
 
-<Frame>
-  <img src="/images/checks-passed.png" alt="Screenshot of a deployment confirmation message that says All checks have passed." style={{ borderRadius: '0.5rem' }} />
-</Frame>
+## Best Practices
 
-## Code formatting
+- **Performance**: Keep components lightweight and optimize images
+- **Accessibility**: Follow WCAG guidelines and use semantic HTML
+- **Mobile-First**: Design responsive components from the start
+- **Schema Design**: Create intuitive settings that merchants will understand
+- **Error Handling**: Gracefully handle missing data and API failures
 
-We suggest using extensions on your IDE to recognize and format MDX. If you're a VSCode user, consider the [MDX VSCode extension](https://marketplace.visualstudio.com/items?itemName=unifiedjs.vscode-mdx) for syntax highlighting, and [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) for code formatting.
+## Development Tools
+
+<CardGroup cols={3}>
+  <Card title="Weaverse CLI" icon="terminal" href="/docs/developer-tools/weaverse-cli">
+    Command line interface for creating and managing themes
+  </Card>
+  <Card title="Weaverse SDKs" icon="code" href="/docs/developer-tools/weaverse-sdks">
+    TypeScript SDKs for building components and integrations
+  </Card>
+  <Card title="Weaverse MCP" icon="robot" href="/docs/developer-tools/weaverse-mcp">
+    AI assistant integration for enhanced development workflow
+  </Card>
+</CardGroup>
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title='Error: Could not load the "sharp" module using the darwin-arm64 runtime'>
-
-    This may be due to an outdated version of node. Try the following:
-    1. Remove the currently-installed version of the CLI: `npm remove -g mint`
-    2. Upgrade to Node v19 or higher.
-    3. Reinstall the CLI: `npm i -g mint`
+  <Accordion title="Port 3456 Already in Use">
+    ```bash
+    # Kill any process using port 3456
+    npx kill-port 3456
+    
+    # Or start on a different port
+    npm run dev -- --port 3457
+    ```
+    *Note: If you change the port, update the Preview URL in Weaverse Studio accordingly*
   </Accordion>
 
-  <Accordion title="Issue: Encountering an unknown error">
-  
-    Solution: Go to the root of your device and delete the `~/.mintlify` folder. Then run `mint dev` again.
+  <Accordion title="Environment Variables Not Working">
+    - Ensure `.env` file is in the project root (same level as `package.json`)
+    - Check variable names are exactly correct (case-sensitive)
+    - Restart development server after any `.env` changes
+    - Verify no spaces around the `=` sign in environment variables
+  </Accordion>
+
+  <Accordion title="Studio Preview Not Loading">
+    - Verify development server is running on port 3456
+    - Check that `http://localhost:3456` loads in your browser
+    - Ensure no firewall is blocking port 3456
+    - Try refreshing the Studio page
   </Accordion>
 </AccordionGroup>
 
-Curious about what changed in the latest CLI version? Check out the [CLI changelog](https://www.npmjs.com/package/mintlify?activeTab=versions).
+## Next Steps
+
+Once you've mastered the basics:
+
+- Explore [Advanced Features](/docs/features)
+- Learn about [Styling & Theming](/docs/development-guide/styling-theming)
+- Study the [API Reference](/docs/api-reference)
+- Join the [Developer Community](/docs/community)

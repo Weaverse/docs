@@ -22,32 +22,79 @@ This guide walks you through creating Weaverse components from scratch, covering
 
 ## Component Structure
 
-Every Weaverse component follows this structure:
+Weaverse components are built using modern React patterns with TypeScript. Components can be structured in different ways depending on complexity:
+
+### Single File Components
+
+For simple components, everything can be in one file:
+
+```tsx
+// app/sections/hero-banner.tsx
+import { createSchema } from '@weaverse/hydrogen'
+import { forwardRef } from 'react'
+
+let HeroBanner = forwardRef<HTMLDivElement, any>((props, ref) => {
+  let { title, subtitle, backgroundColor, ...rest } = props
+
+  return (
+    <div
+      ref={ref}
+      style={{ backgroundColor }}
+      className="hero-banner"
+      {...rest}
+    >
+      <h1>{title}</h1>
+      <p>{subtitle}</p>
+    </div>
+  )
+})
+
+HeroBanner.defaultProps = {
+  title: 'Welcome to Our Store',
+  subtitle: 'Discover amazing products',
+  backgroundColor: '#f8f9fa'
+}
+
+export let schema = createSchema({
+  title: 'Hero Banner',
+  type: 'hero-banner',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        { type: 'text', name: 'title', label: 'Title' },
+        { type: 'textarea', name: 'subtitle', label: 'Subtitle' }
+      ]
+    },
+    {
+      group: 'Style',
+      inputs: [
+        { type: 'color', name: 'backgroundColor', label: 'Background Color' }
+      ]
+    }
+  ]
+})
+
+export default HeroBanner
+```
+
+### Multi-File Components
+
+For complex components, separate files for better organization:
 
 ```
-app/sections/my-component/
-├── index.tsx           # Main component file
-├── schema.ts          # Schema definition (optional separate file)
-└── loader.ts          # Data loader (optional separate file)
+app/sections/product-grid/
+├── index.tsx           # Main component
+├── schema.ts          # Schema definition
+├── loader.ts          # Data loading (optional)
+└── components/        # Sub-components (optional)
+    ├── product-card.tsx
+    └── grid-controls.tsx
 ```
 
-Or as a single file:
+## Advanced Component Example
 
-```
-app/sections/my-component.tsx
-```
-
-### Required Exports
-
-Each component file must export:
-
-1. **Default export** - The React component
-2. **schema export** - Component configuration
-3. **loader export** (optional) - Server-side data loading
-
-## Basic Component Example
-
-Here's a simple component following modern React 19 patterns:
+Here's a more complex component with separate schema file and data loading:
 
 ```tsx
 // app/sections/hero-banner/index.tsx
@@ -291,13 +338,33 @@ settings: [
       { type: "video", name: "video", label: "Video" },
       { type: "color", name: "color", label: "Color" },
       { type: "range", name: "opacity", label: "Opacity", configs: { min: 0, max: 100 } },
-      { type: "toggle", name: "enabled", label: "Enable Feature" },
+       { type: "switch", name: "enabled", label: "Enable Feature" },
       { type: "select", name: "layout", label: "Layout", configs: {
         options: [
           { value: "grid", label: "Grid" },
           { value: "list", label: "List" },
         ],
-      }},
+       }},
+       // E-commerce inputs
+       { type: "product", name: "featuredProduct", label: "Featured Product" },
+       { type: "product-list", name: "products", label: "Product List" },
+       { type: "collection", name: "collection", label: "Collection" },
+       { type: "collection-list", name: "collections", label: "Collection List" },
+       { type: "blog", name: "blog", label: "Blog" },
+       // Advanced inputs
+       { type: "datepicker", name: "date", label: "Date" },
+       { type: "position", name: "position", label: "Position" },
+       { type: "map-autocomplete", name: "location", label: "Location" },
+       { type: "metaobject", name: "metaobject", label: "Metaobject" },
+       // Special inputs
+       { type: "toggle-group", name: "alignment", label: "Alignment", configs: {
+         options: [
+           { value: "left", label: "Left", icon: "align-left" },
+           { value: "center", label: "Center", icon: "align-center" },
+           { value: "right", label: "Right", icon: "align-right" },
+         ],
+       }},
+       { type: "swatches", name: "colors", label: "Color Swatches" },
     ],
   },
 ]

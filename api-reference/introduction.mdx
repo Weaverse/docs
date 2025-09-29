@@ -1,33 +1,75 @@
 ---
 title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+description: 'Complete API reference for Weaverse Hydrogen development'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# API Reference
 
-## Welcome
+This section provides comprehensive documentation for all Weaverse Hydrogen APIs, hooks, components, and utilities. Whether you're building custom components, integrating with Shopify, or extending Weaverse functionality, you'll find detailed information here.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Core Concepts
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+Weaverse Hydrogen provides a powerful set of APIs for building visual, drag-and-drop storefronts. The API is organized around several key concepts:
 
-## Authentication
+- **Components**: Reusable UI elements with visual configuration
+- **Hooks**: React hooks for accessing Weaverse state and functionality
+- **Utilities**: Helper functions for common tasks
+- **Types**: TypeScript interfaces and type definitions
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+## Getting Started
+
+<CardGroup cols={2}>
+  <Card title="Components" icon="cube" href="/docs/api-reference/weaverse-root">
+    Core rendering components for Weaverse content
+  </Card>
+  <Card title="Hooks" icon="hook" href="/docs/api-reference/use-weaverse">
+    React hooks for accessing Weaverse functionality
+  </Card>
+  <Card title="Types" icon="code" href="/docs/api-reference/types">
+    TypeScript interfaces and type definitions
+  </Card>
+  <Card title="Utilities" icon="wrench" href="/docs/api-reference/get-selected-product-options">
+    Helper functions for common development tasks
+  </Card>
+</CardGroup>
+
+## Package Structure
+
+Weaverse Hydrogen is distributed as multiple packages:
+
+- **`@weaverse/hydrogen`** - Main package with components, hooks, and utilities
+- **`@weaverse/react`** - Core React rendering engine
+- **`@weaverse/core`** - Low-level Weaverse functionality
+- **`@weaverse/shopify`** - Shopify-specific components and integrations
+
+## Import Patterns
+
+```tsx
+// Core hooks and components
+import { useWeaverse, WeaverseRoot } from '@weaverse/hydrogen'
+
+// Utilities
+import { getSelectedProductOptions, IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen'
+
+// Types
+import type { HydrogenComponent, HydrogenComponentProps } from '@weaverse/hydrogen'
+```
+
+## TypeScript Support
+
+All APIs are fully typed with TypeScript. We recommend enabling strict mode in your `tsconfig.json`:
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true
   }
-]
+}
 ```
+
+## Need Help?
+
+- **[Development Guide](/docs/development-guide)** - Step-by-step development tutorials
+- **[Community](/docs/community)** - Connect with other developers
+- **[FAQ](/docs/resources/faq)** - Common questions and solutions

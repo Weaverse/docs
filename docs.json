@@ -7,65 +7,145 @@
     "light": "#07C983",
     "dark": "#0D9373"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Getting Started",
+        "tab": "Docs",
+        "open": true,
         "pages": [
-          "index",
-          "quickstart",
-          "development",
-          "getting-started/installation",
-          "getting-started/quickstart"
+          {
+            "group": "Getting Started",
+            "pages": [
+              "index",
+              "quickstart", 
+              "development"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "core-concepts/how-it-works",
+              "core-concepts/project-structure"
+            ]
+          },
+           {
+            "group": "Development Guide",
+            "pages": [
+              "development-guide/index",
+              "development-guide/environment-setup",
+              "development-guide/creating-components",
+              "development-guide/input-settings",
+              "development-guide/weaverse-component",
+              "development-guide/component-schema",
+              "development-guide/data-fetching",
+              "development-guide/styling-theming",
+              "development-guide/data-connectors"
+            ]
+          },
+          {
+            "group": "Features",
+            "pages": [
+              "features/global-sections",
+              "features/navigation-menus", 
+              "features/markets-localization",
+              "features/content-security",
+              "features/third-party-integrations"
+            ]
+          },
+          {
+            "group": "Studio Guide",
+            "pages": [
+              "studio-guide/interface-tour"
+            ]
+          }
         ]
       },
       {
-        "group": "Core Concepts",
+        "tab": "API Reference",
+        "open": true,
         "pages": [
-          "core-concepts/how-it-works",
-          "core-concepts/project-structure"
+          {
+            "group": "Introduction",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api-reference/use-weaverse",
+              "api-reference/use-item-instance",
+              "api-reference/use-parent-instance",
+              "api-reference/use-child-instances",
+              "api-reference/use-theme-settings"
+            ]
+          },
+          {
+            "group": "Components",
+            "pages": [
+              "api-reference/weaverse-root",
+              "api-reference/weaverse-client",
+              "api-reference/with-weaverse"
+            ]
+          },
+          {
+            "group": "Utilities & Types",
+            "pages": [
+              "api-reference/get-selected-product-options",
+              "api-reference/images-placeholders",
+              "api-reference/types"
+            ]
+          }
         ]
       },
       {
-        "group": "Development Guide",
+        "tab": "Themes",
+        "open": true,
         "pages": [
-          "development-guide/creating-components",
-          "development-guide/weaverse-component",
-          "development-guide/component-schema",
-          "development-guide/data-fetching",
-          "development-guide/styling-theming",
-          "development-guide/data-connectors"
+          {
+            "group": "Themes & Templates",
+            "pages": [
+              "themes-templates/pilot-theme-overview",
+              "themes-templates/pilot-theme-customization",
+              "themes-templates/pilot-theme-sections"
+            ]
+          },
+          {
+            "group": "Migration Guides",
+            "pages": [
+              "migration-advanced/v5-migration",
+              "migration-advanced/custom-pages",
+              "migration-advanced/custom-templates"
+            ]
+          }
         ]
       },
       {
-        "group": "API Reference",
+        "tab": "Changelog",
+        "open": true,
         "pages": [
-          "api-reference/introduction",
-          "api-reference/use-weaverse",
-          "api-reference/use-theme-settings",
-          "api-reference/weaverse-client",
-          "api-reference/weaverse-root",
-          "api-reference/with-weaverse",
-          "api-reference/types"
-        ]
-      },
-      {
-        "group": "Features",
-        "pages": [
-          "features/global-sections",
-          "features/navigation-menus",
-          "features/markets-localization",
-          "features/content-security",
-          "features/third-party-integrations"
-        ]
-      },
-      {
-        "group": "Resources",
-        "pages": [
-          "resources/tutorial",
-          "resources/example-components",
-          "resources/faq"
+          {
+            "group": "Release Notes",
+            "pages": [
+              "changelog/weaverse-v5-release"
+            ]
+          },
+          {
+            "group": "Community & Resources",
+            "pages": [
+              "resources/tutorial",
+              "resources/example-components", 
+              "resources/faq",
+              "community/community"
+            ]
+          },
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment/docker"
+            ]
+          }
         ]
       }
     ]

@@ -11,9 +11,9 @@ setting provides a specific control, from simple text inputs to complex selector
 
 Input settings are generally composed of standard attributes. We can classify them into two main categories:
 
-- [Basic Inputs](/docs/development-guide/input-settings#basic-inputs)
+- [Basic Inputs](#basic-inputs)
 
-- [Resource Picker Inputs](/docs/development-guide/input-settings#resource-picker-inputs)
+- [Resource Picker Inputs](#resource-picker-inputs)
 
 ### Overview
 
@@ -683,57 +683,7 @@ type WeaverseMetaobject = {
 
 Similar to other resource picker inputs, when selecting a metaobject definition, the preview will automatically revalidate and run the `loader` function. Use the `handle` or `id` of the selected metaobject to fetch the full data from the Storefront API.
 
-### `collection`
 
-The `collection` input provides merchants with an intuitive search and select interface to choose a specific collection from their store.
-
-**Return:** `object` - A `WeaverseCollection` object (type can be imported from `@weaverse/hydrogen` package).
-
-**Example:**
-
-```tsx
-{
-  type: "collection",
-  name: "collection",
-  label: "Collection",
-}
-```
-
-**Output:**
-
-![Collection input example](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/collection-input.webp?v=1743407119)
-
-Similar to the `product` input, the preview will automatically revalidate and run the `loader` function when selecting a collection. Please use the `handle` or `id` of the selected collection to fetch the full collection data.
-
-### `collection-list`
-
-The `collection-list` input provides merchants with an intuitive search and select interface to choose multiple collections from their store.
-
-**Return:** `array` - An array of `WeaverseCollection` object with their respective IDs and handles.
-
-**Example:**
-
-```tsx
-{
-  type: "collection-list",
-  name: "collections",
-  label: "Select collections",
-}
-```
-
-**Output:**
-
-![Collection list input example](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/collection-list-input.webp?v=1743407119)
-
-Similar to the `product` input, the preview will automatically revalidate and run the `loader` function when selecting collections. Please use the `handle` or `id` of the selected collection to fetch the full collection data.
-
-## Querying Storefront Data
-
-After using the Resource Picker inputs, you might notice that the returned data is limited, typically just the `id` and `handle` of the selected resource. In most cases, you'll need more detailed data for your components or routes.
-
-This is where the **Weaverse** client comes in handy. Using its **`storefront.query`** function, you can fetch the full set of data related to your selection from [Shopify's Storefront API](https://shopify.dev/docs/api/storefront).
-
-To learn more about how to effectively fetch and utilize data within Weaverse, refer to our dedicated section on [Data Fetching & Caching](/docs/guides/data-fetching-and-caching#querying-storefront-data-inside-weaverses-component).
 
 ## Resource Picker Inputs
 
@@ -940,4 +890,8 @@ To learn more about how to effectively fetch and utilize data within Weaverse, r
 
 ## Next Steps
 
-Now that you have a solid understanding of Input Settings, let's learn how to render a Weaverse page in the next article: [Rendering a Weaverse Page](/docs/guides/rendering-page).
+Now that you have a solid understanding of Input Settings, you can:
+
+- Learn about [Data Fetching](/development-guide/data-fetching) to work with Shopify data
+- Explore [Component Schemas](/development-guide/component-schema) for advanced configuration
+- Check out [Styling & Theming](/development-guide/styling-theming) for design customization

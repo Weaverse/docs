@@ -1,80 +1,298 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: "5-Minute Quickstart"
+description: "Get a Weaverse Hydrogen storefront running locally in just 5 minutes"
 ---
 
-## Get started in three steps
+# 5-Minute Quickstart
 
-Get your documentation site running locally and make your first customization.
+Get your first Weaverse Hydrogen storefront up and running locally in just 5 minutes. No complex setup, no manual configuration – just install the app and start building.
 
-### Step 1: Set up your local environment
+## What You'll Build
+
+A complete Shopify Hydrogen storefront powered by Weaverse with:
+- **Visual Studio Editor** - Drag-and-drop page builder with live preview
+- **Professional Theme** - Start with Pilot or choose from our theme library
+- **Real-time Editing** - See changes instantly as you customize
+- **Performance Optimized** - Modern React, SSR, and edge-ready architecture
+- **Merchant-friendly** - Anyone can edit content without code
+
+## Prerequisites
+
+Before starting, make sure you have:
+
+- **Node.js 18+** - [Download here](https://nodejs.org/) and verify with `node --version`
+- **A Shopify store** - [Create a development store](https://partners.shopify.com/) (free for testing)
+- **Basic terminal knowledge** - Copy/paste commands (we'll guide you!)
+
+<Note>💡 **New to terminal?** On macOS/Linux open Terminal, on Windows use Command Prompt or PowerShell. You'll only need to copy and paste a few commands!</Note>
+
+## Step 1: Install Weaverse App
 
 <AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
+  <Accordion icon="store" title="Install from Shopify App Store" defaultOpen>
+    1. **Go to Shopify App Store**
+       - Open your Shopify admin panel
+       - Navigate to **Apps** in the sidebar
+       - Search for "Weaverse Hydrogen" or visit [Weaverse on Shopify App Store](https://apps.shopify.com/weaverse)
+
+    2. **Install the App**
+       - Click **Add app** on the Weaverse Hydrogen listing
+       - Review permissions and click **Install app**
+       - The app will be added to your store
+
+    <Tip>The Weaverse app is free to install and includes the visual page builder and theme templates.</Tip>
+   </Accordion>
+</AccordionGroup>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_on_shopify_app_store1.webp?v=1755078035" alt="Weaverse app in Shopify App Store" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+## Step 2: Create Your First Project
+
+<AccordionGroup>
+  <Accordion icon="palette" title="Start New Project" defaultOpen>
+    1. **Open Weaverse Dashboard**
+       - In your Shopify admin, go to **Apps > Weaverse Hydrogen**
+       - You'll see the Weaverse dashboard
+
+    2. **Start New Project**
+       - Click **Get Started** or **Create New Project**
+       - An onboarding modal will appear
+   </Accordion>
+</AccordionGroup>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_new_dashboard.webp?v=1755078172" alt="Weaverse dashboard with Get Started button highlighted" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+## Step 3: Choose Your Theme
+
+<AccordionGroup>
+  <Accordion icon="cube" title="Select a Theme" defaultOpen>
+    1. **Available Themes**
+       - **Pilot Theme** (recommended for beginners) - Complete e-commerce template with product galleries, hero sections, and testimonials
+       - **Naturelle Theme** - Beauty/lifestyle focused design with elegant layouts
+       - **Custom themes** - Browse additional marketplace options
+
+    2. **Theme Selection**
+       - In the onboarding modal, browse available themes
+       - Each theme shows a preview and key features
+       - Click on your preferred theme to select it
+
+    <Note>You can switch themes later, but starting with Pilot is recommended for new users.</Note>
+   </Accordion>
+</AccordionGroup>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_choose_theme_modal.webp?v=1755078289" alt="Theme selection modal showing Pilot, Naturelle, and other themes" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+## Step 4: Quick Setup with CLI
+
+<AccordionGroup>
+  <Accordion icon="rectangle-terminal" title="Run the Generated Command" defaultOpen>
+    1. **Copy the Generated Command**
+       - After selecting your theme, you'll see a custom CLI command
+       - This command is unique to your project and includes your Project ID
+
+    2. **Example Command:**
+    ```bash
+    npx @weaverse/cli@latest create --template=pilot --project-id=v3gf5xxth6j1u3qr2fa4im1x --project-name=my-hydrogen-storefront
+    ```
+
+    3. **Run in Terminal**
+       - Open your terminal/command prompt
+       - Paste and run the command
+       - The setup process will automatically:
+         - ✅ Download the selected theme to your local machine
+         - ✅ Install all dependencies (React, Hydrogen, etc.)
+         - ✅ Update environment variables with your Project ID
+         - ✅ Start the development server
+
+    **Example Terminal Output:**
+    ```bash
+    🚀 Downloading Pilot theme...
+    📦 Installing dependencies...
+    ⚙️  Configuring environment...
+    🔧 Starting development server...
+
+    ✅ Your Weaverse storefront is ready!
+    🌐 Local:    http://localhost:3456
+    📝 Studio:   https://studio.weaverse.io/projects/your-project-id
+    ```
+   </Accordion>
+</AccordionGroup>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_cli_command.webp?v=1755078433" alt="CLI command displayed in modal with copy button" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+## Step 5: Connect Your Store Data
+
+<AccordionGroup>
+  <Accordion icon="store" title="For Paid Shopify Stores (Recommended)" defaultOpen>
+    1. **Install Hydrogen App**
+       - Go to https://apps.shopify.com/hydrogen
+       - Install the **Hydrogen** app (by Shopify)
+       - This creates a Hydrogen sales channel
+
+    2. **Pull Store Environment**
+       ```bash
+       # Make sure you're in your theme folder
+       cd my-hydrogen-storefront
+       
+       # Pull your store's environment variables
+       npx shopify hydrogen env pull
+       ```
+
+    3. **Follow CLI Prompts**
+       - Select your Shopify store
+       - Choose your Hydrogen project
+       - The CLI will automatically update your `.env` file
+
+     4. **Restart Development Server**
+        ```bash
+        npm run dev
+        ```
+   </Accordion>
+
+   <Frame>
+     <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/hydrogen_on_shopify_app_store.webp?v=1755078732" alt="Hydrogen app installation in Shopify App Store" style={{ borderRadius: '0.5rem' }} />
+   </Frame>
+
+  <Accordion icon="wrench" title="For Development/Trial Stores" defaultOpen>
+    1. **Create Storefront API Token**
+       - In Shopify Admin, go to **Apps > Develop apps**
+       - Click **Create an app** 
+       - Name it "Weaverse Storefront"
+       - Alternative: Use the **Headless** app (https://apps.shopify.com/headless) for easier setup
+       - Configure **Storefront API scopes** and enable all permissions
+
+    2. **Update Environment Variables**
+       ```bash
+       # Edit your .env file with:
+       PUBLIC_STORE_DOMAIN=your-store.myshopify.com
+       PUBLIC_STOREFRONT_API_TOKEN=your_generated_token
+       ```
+
+     3. **Restart Development Server**
+        ```bash
+        npm run dev
+        ```
+   </Accordion>
+</AccordionGroup>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/headless_app.webp?v=1755078941" alt="Creating Storefront API token in Shopify admin" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio_loaded.webp?v=1755078572" alt="Weaverse Studio interface with localhost:3456 loaded in preview" style={{ borderRadius: '0.5rem' }} />
+</Frame>
+
+## Step 6: Customize Your Storefront
+
+Now for the fun part! Start customizing your storefront in Weaverse Studio:
+
+<AccordionGroup>
+  <Accordion icon="paintbrush" title="Visual Editing" defaultOpen>
+    **Drag & Drop Sections**
+    - Add new sections from the left panel
+    - Rearrange sections by dragging
+    - Remove sections you don't need
+
+    **Edit Content**
+    - Click on any text to edit inline
+    - Upload your own images through the media manager
+    - Adjust colors, fonts, and spacing using the settings panel
+
+    **Preview Changes**
+    - See changes instantly in the preview iframe
+    - Test on different device sizes with responsive toggles
+     - Use the mobile/tablet/desktop preview modes
+   </Accordion>
+
+   <Frame>
+     <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio_loaded_2.webp?v=1755078650" alt="Studio with section being dragged, text being edited, and device preview toggles" style={{ borderRadius: '0.5rem' }} />
+   </Frame>
+
+   <Accordion icon="palette" title="Brand Customization" defaultOpen>
+    **Update Your Brand**
+    - Replace the default logo with your brand logo
+    - Update the color scheme to match your brand
+    - Customize fonts and typography
+    - Add your brand messaging to hero sections
+
+    **Content Updates**
+    - Update product collections and featured items
+    - Customize navigation menus
+    - Add your social media links
+    - Update contact information and policies
   </Accordion>
 </AccordionGroup>
 
-### Step 2: Deploy your changes
+## Verify Everything Works
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+🎉 **Congratulations!** Let's make sure everything is working perfectly:
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+### ✅ Checklist
+- [ ] Storefront loads at `http://localhost:3456`
+- [ ] Your real products and collections appear
+- [ ] Navigation menus show your store structure  
+- [ ] Search finds your actual products
+- [ ] Cart and checkout process work
+- [ ] Weaverse Studio loads at `https://studio.weaverse.io/projects/your-project-id`
+- [ ] You can edit content and see changes instantly
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+### 🔍 Test Your Store
+1. **Browse Products**: Check that your actual products load with correct images and prices
+2. **Add to Cart**: Test the shopping cart functionality
+3. **Mobile View**: Use browser dev tools to test mobile responsiveness
+ 4. **Studio Editing**: Make a change in Studio and verify it appears immediately
 
-### Step 3: Go live
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_real_store_preview.webp?v=1755079014" alt="Live storefront showing real products with Weaverse Studio editing panel" style={{ borderRadius: '0.5rem' }} />
+</Frame>
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+## Next Steps
 
-## Next steps
-
-Now that you have your docs running, explore these key features:
+🎉 **You're ready to build!** Here's your roadmap to mastering Weaverse:
 
 <CardGroup cols={2}>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
+<Card title="Component Development" icon="wrench" href="/development-guide/creating-components">
+  Learn to build powerful Weaverse components with schemas and settings.
 </Card>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
+<Card title="Input Settings" icon="pen-to-square" href="/development-guide/input-settings">
+  Master component customization options for merchants.
 </Card>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
+<Card title="Studio Interface" icon="palette" href="/studio-guide/interface-tour">
+  Explore the visual builder interface and design tools.
 </Card>
 
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
+<Card title="API Reference" icon="code" href="/api-reference">
+  Complete documentation for hooks, components, and utilities.
+</Card>
+
+</CardGroup>
+
+## Need Help?
+
+<CardGroup cols={2}>
+
+<Card title="FAQ" icon="question" href="/resources/faq">
+  Common questions answered.
+</Card>
+
+<Card title="Community" icon="users" href="/community/community">
+  Connect with other merchants and developers.
 </Card>
 
 </CardGroup>
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Questions?** Check our [FAQ](/resources/faq) or explore more [development guides](/development-guide).
 </Note>
