@@ -16,13 +16,13 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 3. **`PUBLIC_STORE_DOMAIN`**: The domain of the store used to communicate with the Storefront API.
 4. **`PUBLIC_CHECKOUT_DOMAIN`**: The domain of the checkout page (or the original Online Store domain).
 5. **`PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`**: The public access token for the Customer Account API.
-6. **`PUBLIC_CUSTOMER_ACCOUNT_API_URL`**: The API URL for the Customer Account API, format: `https://shopify.com/{SHOP_ID}`.
-7. **`SHOP_ID`**: Your Shopify store ID.
+6. **`SHOP_ID`**: Your Shopify store ID.
 
 ### Weaverse Specific Variables
 1. **`WEAVERSE_PROJECT_ID`**: A unique ID representing your specific **Weaverse** project. You can find this ID inside the Weaverse Studio under **Project Settings**.
 2. **`WEAVERSE_API_KEY`** (optional): Weaverse API Key retrieved from your Weaverse Account settings.
 3. **`WEAVERSE_HOST`** (optional): The host URL for Weaverse services. Default: **`https://studio.weaverse.io`**.
+4. **`WEAVERSE_API_BASE`** (optional): The base URL for Weaverse API services. Default: **`https://api.weaverse.io`**.
 
 ### Optional Variables
 1. **`PUBLIC_STOREFRONT_ID`**: The ID of your storefront.
@@ -32,8 +32,9 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 ### Third-Party Integration Variables
 1. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
 2. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
-3. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
-4. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
+3. **`ALI_REVIEWS_API_KEY`**: API key for AliReviews integration.
+4. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
+5. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
 
 ### Custom Metafields & Metaobjects
 1. **`METAOBJECT_COLORS_TYPE`**: Type identifier for color metaobjects.
@@ -41,12 +42,16 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 
 ## Setting Up Environment Variables
 
-### Using Demo Setup (with `mock.shop`)
+### Using Demo Setup
 
 ```plaintext
-SESSION_SECRET="my-secret-key"
-PUBLIC_STORE_DOMAIN="mock.shop"
-WEAVERSE_PROJECT_ID="weaverse-project-id"
+SESSION_SECRET="foobar"
+PUBLIC_STORE_DOMAIN="weaverse-hydrogen.myshopify.com"
+PUBLIC_STOREFRONT_API_TOKEN="your-demo-storefront-api-token"
+PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
+SHOP_ID="your-shop-id"
+PUBLIC_CHECKOUT_DOMAIN="www.weaverse.dev"
+WEAVERSE_PROJECT_ID="your-weaverse-project-id"
 ```
 
 ### Production Setup
@@ -58,13 +63,13 @@ PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
 PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
-PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://shopify.com/your-shop-id"
 SHOP_ID="your-shop-id"
 
 # Weaverse Variables
 WEAVERSE_PROJECT_ID="your-weaverse-project-id"
 WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional
 WEAVERSE_HOST="https://studio.weaverse.io"  # Optional
+WEAVERSE_API_BASE="https://api.weaverse.io"  # Optional
 
 # Optional Variables
 PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
@@ -73,6 +78,7 @@ PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
 # Third-Party Integrations
 PUBLIC_GOOGLE_GTM_ID="your-gtm-id"  # Optional
 JUDGEME_PRIVATE_API_TOKEN="your-judgeme-token"  # Optional
+ALI_REVIEWS_API_KEY="your-ali-reviews-api-key"  # Optional
 KLAVIYO_PRIVATE_API_TOKEN="your-klaviyo-token"  # Optional
 PUBLIC_SHOPIFY_INBOX_SHOP_ID="your-inbox-shop-id"  # Optional
 
@@ -97,6 +103,7 @@ interface Env extends HydrogenEnv {
   WEAVERSE_PROJECT_ID: string;
   WEAVERSE_API_KEY?: string;
   WEAVERSE_HOST?: string;
+  WEAVERSE_API_BASE?: string;
   
   // Optional Variables
   PUBLIC_STOREFRONT_ID?: string;
@@ -105,6 +112,7 @@ interface Env extends HydrogenEnv {
   // Third-Party Integrations
   PUBLIC_GOOGLE_GTM_ID?: string;
   JUDGEME_PRIVATE_API_TOKEN?: string;
+  ALI_REVIEWS_API_KEY?: string;
   KLAVIYO_PRIVATE_API_TOKEN?: string;
   PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
   
@@ -158,9 +166,11 @@ Access environment variables in your code:
 
 ```tsx
 // In route loaders
-export async function loader({ context }: LoaderArgs) {
+import type { LoaderFunctionArgs } from '@shopify/remix-oxygen'
+
+export async function loader({ context }: LoaderFunctionArgs) {
   const { env } = context;
-  return json({ storeDomain: env.PUBLIC_STORE_DOMAIN });
+  return { storeDomain: env.PUBLIC_STORE_DOMAIN };
 }
 
 // In Weaverse components

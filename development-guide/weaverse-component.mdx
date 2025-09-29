@@ -93,14 +93,13 @@ Every Weaverse component follows a consistent structure:
 4. **Schema**: Export the schema that defines how the component appears in Weaverse Studio
 5. **Export**: Export the component as default
 
-> **Note about `forwardRef`**: While many examples use `forwardRef`, it's actually optional in Weaverse components. It helps pass the ref to the component's DOM element so that Weaverse Editor can render essential UI elements like overlays and toolbars in the editor. However, if you spread all props to your root DOM element (e.g., `<div {...props}>`), Weaverse will automatically detect the DOM element. Additionally, with React 19, `forwardRef` will become less necessary due to improvements in ref handling.
+ > **Note about `forwardRef`**: `forwardRef` is **no longer required** in modern Weaverse components. With React 19 and current Weaverse architecture, you can simply spread props to your root DOM element (e.g., `<div {...props}>`) and Weaverse will automatically handle ref management and editor integration. This makes component code simpler and more straightforward.
 
 ### Basic Component Template
 
 ```tsx
 import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 import { createSchema } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';  // Optional but recommended for now
 
 interface MyComponentProps extends HydrogenComponentProps {
   // Add your custom props here
@@ -108,31 +107,18 @@ interface MyComponentProps extends HydrogenComponentProps {
   description?: string;
 }
 
-// Using forwardRef (recommended approach for React 18)
-const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
+// Modern approach - no forwardRef needed
+function MyComponent(props: MyComponentProps) {
   const { title, description, children, ...rest } = props;
   
   return (
-    <section ref={ref} {...rest}>
+    <section {...rest}>
       {title && <h2>{title}</h2>}
       {description && <p>{description}</p>}
       {children}
     </section>
   );
-});
-
-// Alternative: Without forwardRef (will work if you spread props to root element)
-// function MyComponent(props: MyComponentProps) {
-//   const { title, description, children, ...rest } = props;
-//   
-//   return (
-//     <section {...rest}>  // Make sure to spread remaining props here
-//       {title && <h2>{title}</h2>}
-//       {description && <p>{description}</p>}
-//       {children}
-//     </section>
-//   );
-// }
+}
 
 export let schema = createSchema({
   type: 'my-component',
@@ -187,7 +173,7 @@ interface RelatedProductsProps
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 
-const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, ref) => {
+function RelatedProducts(props: RelatedProductsProps) {
   const { recommended } = useLoaderData<{
     recommended: { nodes: ProductCardFragment[] };
   }>();
@@ -209,7 +195,7 @@ const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, re
 
   if (recommended) {
     return (
-      <Section ref={ref} {...rest}>
+      <Section {...rest}>
         {content && (
           <Heading
             content={content}
@@ -247,8 +233,8 @@ const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, re
     );
   }
   
-  return <section ref={ref} {...rest} />;
-});
+  return <section {...rest} />;
+}
 
 export default RelatedProducts;
 
