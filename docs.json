@@ -153,7 +153,7 @@
   "anchors": [
     {
       "name": "Studio",
-      "url": "https://studio.weaverse.io",
+      "url": "https://studio.weaverse.io/dashboard",
       "icon": "paintbrush"
     },
     {
@@ -163,7 +163,7 @@
     },
     {
       "name": "Community",
-      "url": "https://discord.gg/weaverse", 
+      "url": "https://wvse.cc/weaverse-slack", 
       "icon": "discord"
     }
   ],
@@ -181,7 +181,7 @@
     "primary": {
       "type": "button",
       "label": "Studio",
-      "href": "https://studio.weaverse.io"
+      "href": "https://studio.weaverse.io/dashboard"
     }
   },
   "contextual": {
@@ -200,7 +200,7 @@
     "socials": {
       "x": "https://x.com/weaverse",
       "github": "https://github.com/weaverse",
-      "discord": "https://discord.gg/weaverse"
+      "discord": "https://wvse.cc/weaverse-slack"
     }
   }
 }
