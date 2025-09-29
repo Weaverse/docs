@@ -4,44 +4,60 @@ description: "Understand the architecture and workflow of Weaverse's visual page
 published: true
 ---
 
-# How Weaverse Works
+# Understanding Weaverse Architecture
 
 Weaverse seamlessly integrates with Shopify Hydrogen to provide a visual page building experience without compromising developer control or performance.
 
 ## Architecture Overview
 
+```mermaid
+graph LR
+    A[Weaverse Studio<br/>Visual Editor] <--> B[Your Hydrogen<br/>Application] <--> C[Shopify APIs<br/>Products, Cart, etc.]
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Weaverse      │    │     Your        │    │    Shopify      │
-│    Studio       │◄──►│   Hydrogen      │◄──►│     APIs        │
-│ (Visual Editor) │    │   Application   │    │ (Products, etc) │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+
+**Three-Layer Architecture:**
+
+- **Weaverse Studio**: Visual page builder interface where merchants create and edit content
+- **Your Hydrogen Application**: React Router v7 app with your custom components and business logic  
+- **Shopify APIs**: Product data, cart functionality, and e-commerce operations
 
 ## The Weaverse Workflow
 
 ### 1. Developer Experience
 
 **Code Components Once**
-```typescript
+```tsx
 // You write React components with schemas
-export function ProductCard({ title, price }) {
-  return <div>{title} - {price}</div>
+import { createSchema } from '@weaverse/hydrogen'
+import type { HydrogenComponentProps } from '@weaverse/hydrogen'
+
+interface ProductCardProps extends HydrogenComponentProps {
+  title?: string
+  price?: string
 }
 
-export const schema = {
+function ProductCard({ title, price, ...rest }: ProductCardProps) {
+  return <div {...rest}>{title} - {price}</div>
+}
+
+export default ProductCard
+
+export const schema = createSchema({
   type: 'product-card',
   title: 'Product Card',
   settings: [/* configuration */]
-}
+})
 ```
 
 **Register Components**  
-```typescript
-// Components are registered in your Weaverse config
-export const components = {
-  'product-card': ProductCard,
-}
+```tsx
+// Components are registered in app/weaverse/components.ts
+import * as ProductCard from '~/sections/product-card'
+
+export const components: HydrogenComponent[] = [
+  ProductCard,
+  // other components...
+]
 ```
 
 ### 2. Merchant Experience
@@ -87,8 +103,8 @@ export const components = {
 
 Every Weaverse component includes a schema that defines:
 
-```typescript
-export const schema = {
+```tsx
+export const schema = createSchema({
   type: 'unique-component-name',
   title: 'Human-readable Title',
   settings: [
@@ -104,7 +120,7 @@ export const schema = {
       ]
     }
   ]
-}
+})
 ```
 
 This schema automatically generates:
@@ -165,4 +181,4 @@ Weaverse leverages Hydrogen's architecture:
 
 - Learn about [Project Structure](core-concepts/project-structure)
 - Start building with the [Development Guide](development-guide)
-- Explore the [API Reference](api) for advanced usage
+- Explore the [API Reference](api-reference) for advanced usage

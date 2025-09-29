@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Weaverse",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+    "primary": "#246aff",
+    "light": "#599aff",
+    "dark": "#143ee1"
   },
   "favicon": "/favicon.ico",
   "navigation": {
@@ -53,13 +53,21 @@
               "features/third-party-integrations"
             ]
           },
-          {
-            "group": "Studio Guide",
-            "pages": [
-              "studio-guide/interface-tour"
-            ]
-          }
-        ]
+           {
+             "group": "Studio Guide",
+             "pages": [
+               "studio-guide/interface-tour"
+             ]
+           },
+           {
+             "group": "Deployment",
+             "pages": [
+               "deployment",
+               "oxygen-deployment",
+               "docker-deployment"
+             ]
+           }
+         ]
       },
       {
         "tab": "API Reference",
@@ -121,33 +129,28 @@
           }
         ]
       },
-      {
-        "tab": "Changelog",
-        "open": true,
-        "pages": [
-          {
-            "group": "Release Notes",
-            "pages": [
-              "changelog/weaverse-v5-release"
-            ]
-          },
-          {
-            "group": "Community & Resources",
-            "pages": [
-              "resources/tutorial",
-              "resources/example-components", 
-              "resources/faq",
-              "community/community"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "deployment/docker"
-            ]
-          }
-        ]
-      }
+       {
+         "tab": "Resources",
+         "open": true,
+         "pages": [
+           {
+             "group": "Release Notes",
+             "pages": [
+               "changelog",
+               "changelog/weaverse-v5-release"
+             ]
+           },
+           {
+             "group": "Community & Resources",
+             "pages": [
+               "resources/tutorial",
+               "resources/example-components",
+               "resources/faq",
+               "community/community"
+             ]
+           }
+         ]
+       }
     ]
   },
   "anchors": [

@@ -1,0 +1,348 @@
+---
+title: "Changelog"
+description: "Latest updates, features, and improvements to Weaverse SDK, Studio, and themes."
+published: true
+---
+
+# Weaverse Changelog
+
+Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
+
+## [2025.09.08] - September 8, 2025
+
+### 🎨 Weaverse Studio
+*For users customizing Hydrogen themes in the Weaverse visual editor*
+
+#### ✨ Improvements
+- **🔗 Enhanced Preview URL Management**: Improved preview URL handling system with better type safety and error handling
+  - Optimized preview URL system with server-side initialization for faster loading
+  - Better error handling when preview URLs are not available or malformed
+  - Improved reliability of preview functionality across different theme configurations
+  - Streamlined preview URL setup process with clearer instructions for developers
+
+---
+
+### 🚀 Weaverse Pilot Theme
+*The official Hydrogen starter theme with Weaverse integration*
+
+#### 🎉 New Features
+- **⭐ Enhanced Judge.me Reviews Integration**: Complete review system overhaul with improved reliability
+  - New `JudgemeReviewsBadge` component for better product review display
+  - Improved API data handling with enhanced error management
+  - Better review data fetching and display consistency across product pages
+
+#### ✨ Improvements
+- **🛍️ Modular Product Page Architecture**: Complete refactor of product components for better maintainability
+  - Refactored Main Product Section into focused, reusable components
+  - Enhanced `ProductTitle`, `ProductVendor`, and `ProductPrices` components with cleaner interfaces
+  - Improved component architecture with single-responsibility principle
+  - Streamlined schema configurations for better customization options
+
+- **📦 Enhanced Featured Products**: More flexible product collection options
+  - Added collection-based product selection alongside manual selection
+  - Improved product display flexibility and configuration options
+
+#### 🔧 Technical Improvements
+- **💪 Stronger Type Safety**: Enhanced TypeScript integration and GraphQL type definitions
+- **⚡ Performance Optimizations**: Optimized component rendering and data handling
+
+#### 📦 Version Updates
+- **Pilot Theme**: Updated to v5.7.0
+- **Dependencies**: Latest compatibility with Weaverse SDK and Shopify Hydrogen
+
+---
+
+### 🔧 Weaverse SDKs
+*For developers building Hydrogen themes with Weaverse components*
+
+#### ✨ Improvements
+- **📚 Enhanced Developer Documentation**: Improved setup guides and troubleshooting documentation for better developer onboarding experience
+- **🔧 Better Development Workflow**: Streamlined development commands and clearer project structure guidance for SDK integration
+- **🎯 Improved Code Quality Tools**: Enhanced linting and formatting configurations for more consistent code development
+
+---
+
+## [2025.09] - September 4, 2025
+
+### 🎨 Weaverse Studio
+
+#### 🎉 New Features
+- **📚 Hydrogen Deployment Guide**: Complete step-by-step guide to deploy your Hydrogen storefront to production
+  - Direct links to Shopify Admin settings for seamless configuration
+  - Integrated deployment workflow with clear instructions
+  - Performance optimization guidance for faster storefronts
+  - Self-service deployment reduces support wait times
+
+- **✨ Modernized Dashboard**: Refreshed dashboard experience with improved usability
+  - Cleaner project management interface with quick actions
+  - Real-time changelog to stay updated on new features
+  - Enhanced navigation and project switching
+  - Better visual hierarchy and modern design elements
+
+#### ✨ Improvements
+- **🚀 Enhanced Performance**: Significantly faster loading times across the Studio interface
+- **🎯 Better User Experience**: Streamlined project creation with improved error handling
+- **📱 Improved Mobile Preview**: More accurate mobile preview rendering and styling consistency
+- **🔧 Universal Theme Support**: Enhanced compatibility with all Hydrogen theme versions, including legacy themes
+
+#### 🐛 Bug Fixes
+- **Editor Stability**: Fixed crashes that could occur when working with complex page layouts and nested components
+- **Production Reliability**: Resolved issues that could affect live website performance and loading
+- **API Connection**: Fixed intermittent connection issues that could interrupt editing sessions
+- **Content Loading**: Resolved problems with content files not loading properly in production environments
+
+---
+
+### 🔧 Weaverse SDKs
+
+#### 🎉 New Features
+- **⚡ Modern Caching System**: Upgraded to the latest caching technology for faster website loading
+  - Improved cache strategies for better performance
+  - Enhanced response validation and error handling
+  - Optimized cache key generation for more efficient storage
+
+- **🌐 Flexible Configuration**: More options for configuring your Hydrogen storefront environment
+  - Multiple fallback options for easier setup
+  - Better environment variable handling
+  - Simplified configuration process for developers
+
+#### ✨ Improvements
+- **🚀 Better API Performance**: Enhanced API responses with reduced loading times
+- **🔧 Improved Developer Experience**: Better error messages and debugging capabilities  
+- **📦 Updated Dependencies**: Latest compatibility with Shopify Hydrogen and React Router v7
+- **🎯 Enhanced Build Quality**: Improved code quality tools for more reliable builds
+
+#### 📦 Package Updates
+- **Core SDKs**: All packages updated to v5.4.2 for better consistency and compatibility
+- **Build Tools**: Enhanced development experience with automatic code optimization
+- **Type Safety**: Improved TypeScript support for better development experience
+
+---
+
+### 🚀 Weaverse Pilot Theme
+
+#### ✨ Improvements
+- **📦 Latest SDK Integration**: Updated to v5.6.0 with all new SDK improvements and features
+- **⚡ Enhanced Performance**: Faster loading times from improved caching and optimization
+- **🔧 Better Compatibility**: Full integration with latest Weaverse Studio features
+
+---
+
+## [2025.08.22] - August 22, 2025
+
+### 🎨 Weaverse Studio
+
+#### ✨ Improvements
+- **📊 Enhanced Billing Dashboard**: Improved billing transparency with real-time usage tracking, detailed overage calculations, and cost projections
+- **🎨 Better User Experience**: Continued improvements to Studio interface with faster loading times and better responsiveness
+- **📱 Mobile Preview**: Better mobile preview accuracy and styling consistency for theme development
+
+---
+
+### 🔧 Weaverse SDKs
+
+#### 🎉 New Features
+- **🚀 CLI v4.0.0**: Complete modernization with interactive prompts and better developer experience
+  - Interactive project setup with guided prompts for missing options
+  - Enhanced template descriptions to help choose the right starting point
+  - Improved error handling with actionable feedback
+  - Better project creation output with clear next steps
+
+#### ✨ Improvements
+- **📚 Comprehensive Documentation Overhaul**: Complete reorganization and modernization of all developer guides
+  - Updated API documentation with latest patterns and best practices
+  - Fixed broken internal links across the entire documentation site
+  - Enhanced troubleshooting guides and FAQ updates
+  - Improved navigation and content organization for better developer experience
+
+- **🔧 Enhanced Development Tools**: 
+  - **Biome v2.2.0**: Updated linting configuration with improved rules and performance
+  - **Better TypeScript Integration**: Stricter type safety and improved IDE support for developers
+
+#### 🐛 Bug Fixes
+- **CLI Stability**: Resolved various project creation and template selection issues
+- **Documentation**: Fixed broken cross-references and updated outdated examples
+- **Type Definitions**: Corrected TypeScript configurations for better developer experience
+
+#### 📦 Package Updates
+- **Core SDKs**: All packages synchronized at v5.3.4 for compatibility
+- **CLI**: Updated to v4.0.0 with breaking improvements
+- **Biome Config**: Released v1.6.0 with enhanced linting rules
+
+---
+
+### 🚀 Weaverse Pilot Theme
+
+#### 🎉 New Features
+- **🛍️ Enhanced E-commerce Features**: 
+  - Combined Listings support for intelligent product grouping
+  - Shopify Bundles integration with smart badge detection
+  - Newsletter popup with Klaviyo integration and customizable timing
+  - Enhanced product media zoom and variant selection
+
+#### ✨ Improvements
+- **📱 Better Mobile Experience**: Improved responsive layouts and touch interactions
+- **🎨 Enhanced Product Display**: Better product cards, badges, and cart recommendations
+- **⚡ Performance Optimizations**: Faster loading times and reduced bundle size
+- **🔧 Developer Experience**: Enhanced documentation and setup guides
+
+#### 🐛 Bug Fixes
+- **Build Stability**: Resolved development server and build configuration issues
+- **Type Safety**: Fixed TypeScript definitions and integration issues
+- **Component Reliability**: Improved component state management and error handling
+
+#### 📦 Version Updates
+- **Pilot Theme**: Updated to v5.5.0
+- **Dependencies**: Synchronized with latest Weaverse SDK versions
+- **Build Tools**: Enhanced build process with better error reporting
+
+---
+
+## [2025.08.12] - August 12, 2025
+
+### 🎨 Weaverse Studio
+
+#### 🎉 New Features
+- **🎨 Complete Studio Interface Redesign**: Revolutionary new design system with modern, intuitive interface and streamlined workflows
+- **🤖 Advanced AI Chat System**: Persistent conversations, reliable tool integration, and enhanced development assistance
+- **💰 Enterprise Billing Transparency**: Real-time usage tracking with overage calculations and cost projections
+- **Professional Error Pages**: Beautiful 404 and error handling with clear navigation
+
+#### ✨ Improvements
+- **Enhanced Performance**: Faster loading times and better responsiveness across all Studio features
+- **Improved Mobile Preview**: Better styling and layout consistency for mobile theme previews
+- **Streamlined Navigation**: Simplified app structure with cleaner user flows
+
+#### 🐛 Bug Fixes
+- **AI Chat Reliability**: Fixed deadlock issues that could freeze the AI assistant
+- **Studio Interface**: Resolved UI rendering and interaction issues
+- **Mobile Preview**: Fixed component backgrounds and responsive layouts
+- **Billing Accuracy**: Corrected Growth and Scale plan overage calculations
+
+#### 🔧 Technical Updates
+- **Enhanced Database**: Added AI tool call persistence with proper validation
+- **Improved Testing**: Extensive test coverage for AI persistence and error handling
+- **Better Documentation**: Enhanced API docs and troubleshooting guides
+
+---
+
+## [2025.07.22] - July 22, 2025
+
+### 🎨 Weaverse Studio
+
+#### 🎉 New Features
+- **Brand New Dashboard**: Complete redesign with modern UI for better user experience
+  - Beautiful animated welcome banner
+  - Real-time changelog to stay updated
+  - Improved project management with quick actions
+  - Enhanced navigation and project switching
+  - New billing and usage visualization
+- **AI Assistant (Beta)**: Free AI-powered coding assistant to help build Hydrogen stores faster
+  - Context-aware chat interface with real-time code generation
+  - Multi-mode support: general queries, code generation, and documentation search
+- **Account Management**: New settings page to manage API keys and personal access tokens
+- **Figma Integration**: Import designs directly from Figma with OAuth authentication
+
+#### ✨ Improvements
+- Significantly faster dashboard loading with optimized data fetching
+- Dark mode support across all new components
+- Better error messages and form validation
+
+#### 🐛 Bug Fixes
+- Fixed AI chat interface stability issues
+- Improved authentication and project access validation
+
+---
+
+### 🚀 Weaverse Pilot Theme
+
+#### 🎉 New Features
+- **Quick Shop Modal**: Browse and select product variants without leaving collection pages
+- **Product Bundles Support**: Full Shopify bundles integration with badges and special cart handling
+- **Newsletter Popup**: Smart email capture with customizable timing and Klaviyo integration
+- **Enhanced Product Display**: New zoom functionality, dynamic badges, and improved variant selector
+
+#### ✨ Improvements
+- Switched to Cabin Variable font for better readability
+- Enhanced cart experience with bundle support
+- Added CLAUDE.md coding guidelines
+- Implemented sorted Tailwind classes with Biome
+- Optimized image loading and pagination
+
+#### 🐛 Bug Fixes
+- Fixed quick shop variant selection
+- Corrected logo visibility with transparent headers
+- Fixed pagination links and cart form submissions
+- Improved media zoom responsiveness
+
+---
+
+## [5.0.0] - May 27, 2025
+
+### 🚀 MAJOR RELEASE: React Router v7 Migration
+
+This major release migrates Weaverse Hydrogen from Remix to React Router v7, aligning with [Shopify Hydrogen's May 2025 release](https://hydrogen.shopify.dev/update/may-2025).
+
+### Added
+- **React Router v7 Foundation**: Complete migration to React Router v7 as the core architecture
+- **Enhanced Type Safety**: Improved TypeScript definitions and better type inference
+- **Comprehensive Migration Guide**: Step-by-step documentation for upgrading existing projects
+- **Updated CLI Templates**: Weaverse CLI generates React Router v7 compatible themes by default
+- **Performance Optimizations**: Better tree-shaking and build-time optimizations
+- **Modern Development Experience**: Enhanced hot module replacement and error reporting
+
+### Changed
+- **BREAKING**: Migrated from Remix to React Router v7 architecture
+- **BREAKING**: Updated data loading patterns from Remix loaders to React Router v7 loaders
+- **BREAKING**: Replaced `@shopify/remix-oxygen` dependencies with React Router equivalents
+- **BREAKING**: Updated component APIs and imports to match React Router v7 conventions
+- **BREAKING**: Changed TypeScript module declarations from `@shopify/remix-oxygen` to `react-router`
+- **Dependencies Updated**:
+  - `@shopify/hydrogen`: >=2025.5.0
+  - `react-router`: ^7.0.0
+  - Removed `@shopify/remix-oxygen` dependency
+- **Build Performance**: Faster build times with improved bundling and tree-shaking
+- **Development Experience**: Enhanced hot reloading and clearer error messages
+
+### Deprecated
+- **Remix Integration**: `@weaverse/remix` package is deprecated in favor of React Router v7
+
+### Removed
+- **Remix Dependencies**: Removed all Remix-specific dependencies and code paths
+- **Legacy Loaders**: Removed Remix-style loader patterns
+
+### Migration Guide
+- **Existing Projects**: Follow the [migration guide](migration-advanced/v5-migration) to upgrade to v5
+- **New Projects**: Use `npx @weaverse/cli@latest create` for React Router v7 projects
+- **Theme Compatibility**: All starter themes updated for React Router v7
+
+---
+
+## Contributing to the Changelog
+
+This changelog is automatically maintained using [Changesets](https://github.com/changesets/changesets).
+
+### Adding a changeset
+
+When you make changes that should be included in the changelog:
+
+1. Run `pnpm changeset` to create a new changeset
+2. Select the packages that have been changed
+3. Select the type of change (patch, minor, major)
+4. Write a clear description of your changes
+5. Commit the generated changeset file with your changes
+
+### Types of Changes
+
+- **Added** for new features
+- **Changed** for changes in existing functionality
+- **Deprecated** for soon-to-be removed features
+- **Removed** for now removed features
+- **Fixed** for any bug fixes
+- **Security** in case of vulnerabilities
+
+---
+
+## Release History
+
+For detailed version history and older releases, see our [GitHub Releases](https://github.com/weaverse/weaverse/releases) page.

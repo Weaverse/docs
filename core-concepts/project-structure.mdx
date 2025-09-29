@@ -38,7 +38,11 @@ The Weaverse Hydrogen theme follows a modern Shopify Hydrogen structure, optimiz
 Reusable UI components:
 ```tsx
 // Example: app/components/Button.tsx
-export function Button({ children, className = '', ...props }) {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  children: React.ReactNode
+}
+
+export function Button({ children, className = '', ...props }: ButtonProps) {
   return (
     <button 
       className={`px-4 py-2 bg-primary text-white ${className}`} 
@@ -53,37 +57,20 @@ export function Button({ children, className = '', ...props }) {
 ### `/app/sections`
 Theme sections for Weaverse Studio:
 ```tsx
-// Example: app/sections/Hero.tsx
-import { forwardRef } from 'react';
+// Example: app/sections/hero.tsx
+import { createSchema } from '@weaverse/hydrogen'
+import type { HydrogenComponentProps } from '@weaverse/hydrogen'
 
-export type HeroProps = {
-  heading: string;
-  description: string;
-  className?: string;
-};
+interface HeroProps extends HydrogenComponentProps {
+  heading?: string
+  description?: string
+}
 
-export let schema = {
-  title: 'Hero',
-  type: 'hero',
-  settings: [
-    {
-      group: 'Content',
-      inputs: [
-        { type: 'text', name: 'heading', label: 'Heading' },
-        { type: 'textarea', name: 'description', label: 'Description' }
-      ]
-    }
-  ]
-};
-
-export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
-  let { heading, description, className = '' } = props;
+function Hero(props: HeroProps) {
+  const { heading = 'Welcome', description, ...rest } = props
   
   return (
-    <section 
-      ref={ref}
-      className={`py-12 px-4 max-w-7xl mx-auto ${className}`}
-    >
+    <section {...rest} className="py-12 px-4 max-w-7xl mx-auto">
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
           {heading}
@@ -93,10 +80,24 @@ export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
         </p>
       </div>
     </section>
-  );
-});
+  )
+}
 
-Hero.displayName = 'Hero';
+export default Hero
+
+export const schema = createSchema({
+  title: 'Hero',
+  type: 'hero',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        { type: 'text', name: 'heading', label: 'Heading', defaultValue: 'Welcome' },
+        { type: 'textarea', name: 'description', label: 'Description' }
+      ]
+    }
+  ]
+})
 ```
 
 ### `/app/weaverse`
