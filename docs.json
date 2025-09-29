@@ -173,10 +173,6 @@
   },
   "navbar": {
     "links": [
-      {
-        "label": "Support",
-        "href": "mailto:support@weaverse.io"
-      }
     ],
     "primary": {
       "type": "button",

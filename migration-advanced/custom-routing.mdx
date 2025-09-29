@@ -23,7 +23,7 @@ Weaverse enables this by decoupling the URL structure from the content rendering
 
 The key principle is that the content Weaverse renders is determined by the parameters you pass to the `context.weaverse.loadPage()` function within your Remix route's `loader`, specifically the `type` and `handle` arguments.
 
--   **`type`**: Tells Weaverse *what kind* of content to load (e.g., `'PRODUCT'`, `'COLLECTION'`, `'PAGE'`). See [Rendering Weaverse Pages](/docs/guides/rendering-page#supported-page-types) for a full list of types.
+-   **`type`**: Tells Weaverse *what kind* of content to load (e.g., `'PRODUCT'`, `'COLLECTION'`, `'PAGE'`). See [Rendering Weaverse Pages](guides/rendering-page#supported-page-types) for a full list of types.
 -   **`handle`**: Tells Weaverse *which specific instance* of that content type to load (e.g., the handle of a specific product, collection, or Weaverse custom page).
 
 Custom routing, therefore, involves:
@@ -36,8 +36,8 @@ Weaverse then fetches the appropriate page data based on these parameters, regar
 
 ## Relationship to Custom Pages & Templates
 
--   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/docs/advanced/custom-page) created in Weaverse. You'd create a custom route (e.g., `/guides/$handle.tsx`) and call `loadPage({ type: 'PAGE', handle })` in the loader.
--   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](/docs/advanced/custom-template). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
+-   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](advanced/custom-page) created in Weaverse. You'd create a custom route (e.g., `/guides/$handle.tsx`) and call `loadPage({ type: 'PAGE', handle })` in the loader.
+-   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](advanced/custom-template). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
 
 ---
 
@@ -216,7 +216,7 @@ Now, visiting `/item/your-product-handle` will render the Weaverse product page 
 
 ## Important Considerations
 
--   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, etc.). Refer to the [Supported Page Types](/docs/guides/rendering-page#supported-page-types).
+-   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, etc.). Refer to the [Supported Page Types](guides/rendering-page#supported-page-types).
 -   **Fetch Necessary Shopify Data:** If your custom route replaces a standard route (like product or collection), remember to fetch the corresponding Shopify data in your loader for SEO, analytics, or any components that might need it directly.
 -   **Generating Links:** Linking to these custom routes from within your application (e.g., in navigation or product grids) will require using the correct path (`/item/...`, `/fr/collections-en-vedette/...`) instead of the default Shopify paths. You might need custom link-building logic or helper functions.
 -   **SEO & Sitemaps:** Standard sitemap generation might not automatically include these custom routes. You may need to manually add them to your `sitemap.xml` logic. Ensure canonical URLs are correctly set (perhaps pointing to the standard Shopify URL if preferred, or self-referencing the custom URL if it's the primary one). Consult SEO best practices.
