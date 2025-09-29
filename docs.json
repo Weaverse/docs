@@ -164,7 +164,7 @@
     {
       "name": "Community",
       "url": "https://wvse.cc/weaverse-slack", 
-      "icon": "discord"
+      "icon": "slack"
     }
   ],
   "logo": {
@@ -196,7 +196,7 @@
     "socials": {
       "x": "https://x.com/weaverse",
       "github": "https://github.com/weaverse",
-      "discord": "https://wvse.cc/weaverse-slack"
+      "slack": "https://wvse.cc/weaverse-slack"
     }
   }
 }
