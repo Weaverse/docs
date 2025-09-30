@@ -12,6 +12,11 @@
     "global": {
       "anchors": [
         {
+          "anchor": "Home",
+          "href": "https://weaverse.io",
+          "icon": "house"
+        },
+        {
           "anchor": "Studio",
           "href": "https://studio.weaverse.io/dashboard",
           "icon": "paintbrush"
