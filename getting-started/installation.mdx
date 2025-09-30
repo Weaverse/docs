@@ -1,12 +1,12 @@
 ---
-title: "Installation"
-description: "Install Weaverse for your Shopify Hydrogen project using our app-based workflow or manual methods."
+title: Installation
+description: Install Weaverse for your Shopify Hydrogen project using our app-based workflow or manual methods.
 published: true
 ---
 
-# Installing Weaverse
+# Installation
 
-Get Weaverse installed and running in your Shopify Hydrogen project quickly and easily with our streamlined installation process.
+Get Weaverse installed and running in your Shopify Hydrogen project quickly and easily.
 
 > **🚀 New to Weaverse?** Try our [5-Minute Quickstart](getting-started/quickstart) for the fastest setup experience.
 
@@ -118,32 +118,17 @@ After installation:
 
 After installation, you can start building custom sections. Here's a simple example:
 
-```tsx
-// app/sections/hero.tsx
-import { createSchema } from '@weaverse/hydrogen';
-import type { HydrogenComponentProps } from '@weaverse/hydrogen';
+```typescript
+// app/sections/Hero.tsx
+import { forwardRef } from 'react';
 
-interface HeroProps extends HydrogenComponentProps {
-  heading?: string;
-  description?: string;
-}
+export type HeroProps = {
+  heading: string;
+  description: string;
+  className?: string;
+};
 
-function Hero(props: HeroProps) {
-  const { heading = 'Welcome', description, ...rest } = props;
-  
-  return (
-    <section {...rest} className="py-12 px-4 max-w-7xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold">{heading}</h1>
-        <p className="mt-6 text-lg text-gray-600">{description}</p>
-      </div>
-    </section>
-  );
-}
-
-export default Hero;
-
-export const schema = createSchema({
+export let schema = {
   title: 'Hero Section',
   type: 'hero',
   settings: [
@@ -155,20 +140,33 @@ export const schema = createSchema({
       ]
     }
   ]
+};
+
+export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
+  let { heading, description, className = '' } = props;
+  
+  return (
+    <section ref={ref} className={`py-12 px-4 max-w-7xl mx-auto ${className}`}>
+      <div className="text-center">
+        <h1 className="text-4xl font-bold">{heading}</h1>
+        <p className="mt-6 text-lg text-gray-600">{description}</p>
+      </div>
+    </section>
+  );
 });
 ```
 
 ## Development Workflow
 
-1. **Create component** in `app/sections/` 
-2. **Define schema** with configurable properties using `createSchema()`
-3. **Register in** `app/weaverse/components.ts`
+1. **Create component** in `app/sections/` or `app/components/`
+2. **Define schema** with configurable properties
+3. **Register in** `weaverse.config.ts`
 4. **Test in Studio** at `https://studio.weaverse.io/projects/your-project-id`
 
 ## Next Steps
 
 1. **[Core Concepts](core-concepts)** - Understand how Weaverse works
-2. **[Development Guide](development-guide)** - Build custom sections
-3. **[API Reference](api-reference)** - Complete API documentation
+2. **[Development Guide](/development-guide/index)** - Build custom sections
+3. **[API Reference](/api-reference/introduction)** - Complete API documentation
 
-Need help? Check our [FAQ](resources/faq) or [Community](community).
+Need help? Check our [FAQ](resources/faq) or [Community](/community/community).

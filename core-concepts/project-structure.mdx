@@ -1,6 +1,6 @@
 ---
-title: "Project Structure"
-description: "Essential guide to Weaverse Hydrogen theme structure"
+title: Project Structure
+description: 'Essential guide to Weaverse Hydrogen theme structure'
 published: true
 ---
 
@@ -38,11 +38,7 @@ The Weaverse Hydrogen theme follows a modern Shopify Hydrogen structure, optimiz
 Reusable UI components:
 ```tsx
 // Example: app/components/Button.tsx
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode
-}
-
-export function Button({ children, className = '', ...props }: ButtonProps) {
+export function Button({ children, className = '', ...props }) {
   return (
     <button 
       className={`px-4 py-2 bg-primary text-white ${className}`} 
@@ -57,20 +53,37 @@ export function Button({ children, className = '', ...props }: ButtonProps) {
 ### `/app/sections`
 Theme sections for Weaverse Studio:
 ```tsx
-// Example: app/sections/hero.tsx
-import { createSchema } from '@weaverse/hydrogen'
-import type { HydrogenComponentProps } from '@weaverse/hydrogen'
+// Example: app/sections/Hero.tsx
+import { forwardRef } from 'react';
 
-interface HeroProps extends HydrogenComponentProps {
-  heading?: string
-  description?: string
-}
+export type HeroProps = {
+  heading: string;
+  description: string;
+  className?: string;
+};
 
-function Hero(props: HeroProps) {
-  const { heading = 'Welcome', description, ...rest } = props
+export let schema = {
+  title: 'Hero',
+  type: 'hero',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        { type: 'text', name: 'heading', label: 'Heading' },
+        { type: 'textarea', name: 'description', label: 'Description' }
+      ]
+    }
+  ]
+};
+
+export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
+  let { heading, description, className = '' } = props;
   
   return (
-    <section {...rest} className="py-12 px-4 max-w-7xl mx-auto">
+    <section 
+      ref={ref}
+      className={`py-12 px-4 max-w-7xl mx-auto ${className}`}
+    >
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
           {heading}
@@ -80,24 +93,10 @@ function Hero(props: HeroProps) {
         </p>
       </div>
     </section>
-  )
-}
+  );
+});
 
-export default Hero
-
-export const schema = createSchema({
-  title: 'Hero',
-  type: 'hero',
-  settings: [
-    {
-      group: 'Content',
-      inputs: [
-        { type: 'text', name: 'heading', label: 'Heading', defaultValue: 'Welcome' },
-        { type: 'textarea', name: 'description', label: 'Description' }
-      ]
-    }
-  ]
-})
+Hero.displayName = 'Hero';
 ```
 
 ### `/app/weaverse`
@@ -246,10 +245,10 @@ npm run preview
 
 ## Next Steps
 
-- [Development Guide](development-guide) - Build custom components and sections
-- [API Reference](api) - Learn about Weaverse APIs and utilities
-- [Deployment](deployment) - Deploy your theme to production
+- [Development Guide](/development-guide/index) - Build custom components and sections
+- [API Reference](/api-reference/introduction) - Learn about Weaverse APIs and utilities
+- [Deployment](/deployment) - Deploy your theme to production
 
-Need help? Check our [Community](community) or [FAQ](resources/faq).
+Need help? Check our [Community](/community/community) or [FAQ](/resources/faq).
 
 ---

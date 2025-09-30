@@ -1,12 +1,12 @@
 ---
-title: "Weaverse Hydrogen Component"
-description: "Learn how to build powerful, customizable components for your Weaverse Hydrogen theme."
+title: Weaverse Hydrogen Component
+description: Learn how to build powerful, customizable components for your Weaverse Hydrogen theme.
 published: true
 ---
 
-# Building Weaverse Hydrogen Components
+# Weaverse Hydrogen Components
 
-Weaverse Components are the building blocks of your Hydrogen theme. They combine React's component model with Weaverse's powerful schema system to create customizable, performant sections for your storefront. This comprehensive guide covers how to create, configure, and optimize Weaverse components for maximum flexibility and performance.
+Weaverse Components are the building blocks of your Hydrogen theme. They combine React's component model with Weaverse's powerful schema system to create customizable, performant sections for your storefront. This guide provides a comprehensive overview of how to create, configure, and optimize Weaverse components.
 
 ## Getting Started
 
@@ -73,17 +73,18 @@ Every Weaverse component follows a consistent structure:
 
 1. **Imports**: Import necessary types and utilities from Weaverse and React
 2. **Interface**: Define the component's props interface
-3. **Component**: Create the component using modern React function component syntax
+3. **Component**: Create the component (with or without `forwardRef`, see note below)
 4. **Schema**: Export the schema that defines how the component appears in Weaverse Studio
 5. **Export**: Export the component as default
 
- > **Note about `forwardRef`**: `forwardRef` is **no longer required** in modern Weaverse components. With React 19 and current Weaverse architecture, you can simply spread props to your root DOM element (e.g., `<div {...props}>`) and Weaverse will automatically handle ref management and editor integration. This makes component code simpler and more straightforward.
+> **Note about `forwardRef`**: While many examples use `forwardRef`, it's actually optional in Weaverse components. It helps pass the ref to the component's DOM element so that Weaverse Editor can render essential UI elements like overlays and toolbars in the editor. However, if you spread all props to your root DOM element (e.g., `<div {...props}>`), Weaverse will automatically detect the DOM element. Additionally, with React 19, `forwardRef` will become less necessary due to improvements in ref handling.
 
 ### Basic Component Template
 
 ```tsx
 import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 import { createSchema } from '@weaverse/hydrogen';
+import { forwardRef } from 'react';  // Optional but recommended for now
 
 interface MyComponentProps extends HydrogenComponentProps {
   // Add your custom props here
@@ -91,18 +92,31 @@ interface MyComponentProps extends HydrogenComponentProps {
   description?: string;
 }
 
-// Modern approach - no forwardRef needed
-function MyComponent(props: MyComponentProps) {
+// Using forwardRef (recommended approach for React 18)
+const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
   const { title, description, children, ...rest } = props;
   
   return (
-    <section {...rest}>
+    <section ref={ref} {...rest}>
       {title && <h2>{title}</h2>}
       {description && <p>{description}</p>}
       {children}
     </section>
   );
-}
+});
+
+// Alternative: Without forwardRef (will work if you spread props to root element)
+// function MyComponent(props: MyComponentProps) {
+//   const { title, description, children, ...rest } = props;
+//   
+//   return (
+//     <section {...rest}>  // Make sure to spread remaining props here
+//       {title && <h2>{title}</h2>}
+//       {description && <p>{description}</p>}
+//       {children}
+//     </section>
+//   );
+// }
 
 export let schema = createSchema({
   type: 'my-component',
@@ -132,7 +146,7 @@ export default MyComponent;
 ### Key Elements
 
 1. **HydrogenComponentProps**: Base props interface that all Weaverse components extend
-2. **Props spreading**: Always spread remaining props to root DOM element to enable Weaverse editor integration
+2. **forwardRef**: Used to properly pass refs through the component tree (optional if props are spread correctly)
 3. **type property in schema**: Unique identifier for the component (must be unique across all components)
 4. **settings**: Defines the UI controls in Weaverse Studio
 5. **children prop**: Components can render child components or elements
@@ -144,7 +158,7 @@ For more complex components, you may need to handle data loading, custom styling
 ```tsx
 import { Await, useLoaderData } from "@remix-run/react";
 import { createSchema } from "@weaverse/hydrogen";
-import { Suspense } from "react";
+import { Suspense, forwardRef } from "react";
 import type { ProductCardFragment } from "storefront-api.generated";
 import Heading, { type HeadingProps, headingInputs } from "~/components/heading";
 import { ProductCard } from "~/components/product/product-card";
@@ -157,7 +171,7 @@ interface RelatedProductsProps
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 
-function RelatedProducts(props: RelatedProductsProps) {
+const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, ref) => {
   const { recommended } = useLoaderData<{
     recommended: { nodes: ProductCardFragment[] };
   }>();
@@ -179,7 +193,7 @@ function RelatedProducts(props: RelatedProductsProps) {
 
   if (recommended) {
     return (
-      <Section {...rest}>
+      <Section ref={ref} {...rest}>
         {content && (
           <Heading
             content={content}
@@ -217,8 +231,8 @@ function RelatedProducts(props: RelatedProductsProps) {
     );
   }
   
-  return <section {...rest} />;
-}
+  return <section ref={ref} {...rest} />;
+});
 
 export default RelatedProducts;
 
@@ -522,7 +536,7 @@ Weaverse components can define their own loaders, which fetch data specifically 
 ```tsx
 // app/sections/featured-product/index.tsx
 import type { ComponentLoaderArgs, HydrogenComponentProps } from '@weaverse/hydrogen';
-import React from 'react';
+import { forwardRef } from 'react';
 import { PRODUCT_QUERY } from '~/graphql/queries';
 
 interface FeaturedProductData {
@@ -548,7 +562,7 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
 
 type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
 
-function FeaturedProduct(props: FeaturedProductProps) {
+const FeaturedProduct = forwardRef<HTMLElement, FeaturedProductProps>((props, ref) => {
   const { loaderData, productHandle, ...rest } = props;
   const product = loaderData?.product;
   
@@ -557,13 +571,13 @@ function FeaturedProduct(props: FeaturedProductProps) {
   }
   
   return (
-    <section {...rest}>
+    <section ref={ref} {...rest}>
       <h2>{product.title}</h2>
       <p>{product.description}</p>
       {/* Product details */}
     </section>
   );
-}
+});
 
 export default FeaturedProduct;
 
@@ -766,23 +780,23 @@ For more details, see [Hydrogen Documentation on Caching](https://shopify.dev/do
 import { ImageWithTextContent } from './content';
 import { ImageWithTextImage } from './image';
 
-function ImageWithText(props: ImageWithTextProps) {
+const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>((props, ref) => {
   return (
-    <section {...props}>
+    <section ref={ref}>
       <ImageWithTextContent />
       <ImageWithTextImage />
     </section>
   );
-}
+});
 
 // Child component (content.tsx)
-function ImageWithTextContent(props: ImageWithTextContentProps) {
+const ImageWithTextContent = forwardRef<HTMLDivElement, ImageWithTextContentProps>((props, ref) => {
   return (
-    <div {...props}>
+    <div ref={ref}>
       {props.children}
     </div>
   );
-}
+});
 
 export let schema = createSchema({
   type: "image-with-text--content",
@@ -1058,7 +1072,7 @@ This pattern works particularly well for components with multiple configurable a
   - Utilize TypeScript's utility types for prop manipulation
 
 - **Follow React's Best Practices**
-  - Always spread props to root elements: `<div {...props}>`
+  - Always use `forwardRef` for all components
   - Separate component logic from presentation
   - Extract reusable UI elements into smaller components
   - Use composition over inheritance
@@ -1075,16 +1089,16 @@ This pattern works particularly well for components with multiple configurable a
 import { useState, useReducer } from 'react';
 
 // Simple state management with useState
-function SimpleComponent(props: SimpleComponentProps) {
+const SimpleComponent = forwardRef<HTMLElement, SimpleComponentProps>((props, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
-    <section {...props}>
+    <section ref={ref}>
       <button onClick={() => setIsOpen(!isOpen)}>Toggle</button>
       {isOpen && <div>Content</div>}
     </section>
   );
-}
+});
 
 // Complex state management with useReducer
 function reducer(state, action) {
@@ -1098,17 +1112,17 @@ function reducer(state, action) {
   }
 }
 
-function ComplexComponent(props: ComplexComponentProps) {
+const ComplexComponent = forwardRef<HTMLElement, ComplexComponentProps>((props, ref) => {
   const [state, dispatch] = useReducer(reducer, { count: 0 });
   
   return (
-    <section {...props}>
+    <section ref={ref}>
       Count: {state.count}
       <button onClick={() => dispatch({ type: 'increment' })}>+</button>
       <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
     </section>
   );
-}
+});
 ```
 
 ### 4. Error Handling
@@ -1126,15 +1140,15 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
   );
 };
 
-function SafeComponent(props: SafeComponentProps) {
+const SafeComponent = forwardRef<HTMLElement, SafeComponentProps>((props, ref) => {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
-      <section {...props}>
+      <section ref={ref}>
         {/* Component content */}
       </section>
     </ErrorBoundary>
   );
-}
+});
 ```
 
 ### 5. Accessibility
@@ -1146,11 +1160,12 @@ function SafeComponent(props: SafeComponentProps) {
   - Provide sufficient color contrast
 
 ```tsx
-function AccessibleComponent(props: AccessibleComponentProps) {
+const AccessibleComponent = forwardRef<HTMLElement, AccessibleComponentProps>((props, ref) => {
   const { ariaLabel, ariaDescribedby, ...rest } = props;
   
   return (
     <section 
+      ref={ref} 
       role="region"
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedby}
@@ -1207,7 +1222,7 @@ function AccessibleComponent(props: AccessibleComponentProps) {
 
 ```tsx
 // Add debug logging
-function DebugComponent(props: DebugComponentProps) {
+const DebugComponent = forwardRef<HTMLElement, DebugComponentProps>((props, ref) => {
   console.log('Props:', props);
   
   // Track re-renders
@@ -1222,11 +1237,11 @@ function DebugComponent(props: DebugComponentProps) {
   }, [props.specificProp]);
   
   return (
-    <section {...props}>
+    <section ref={ref}>
       {/* Component content */}
     </section>
   );
-}
+});
 ```
 
 ### Development Environment Setup
@@ -1244,7 +1259,7 @@ For effective debugging:
 - Learn about [Component Schema](development-guide/component-schema) for advanced schema configuration
 - Explore [Data Fetching](development-guide/data-fetching) for more data integration patterns
 - See [Example Components](guides/example-components) for inspiration and reference implementations
-- Join our [Community](community) for support and sharing best practices
+- Join our [Community](/community/community) for support and sharing best practices
 
 ## Conclusion
 

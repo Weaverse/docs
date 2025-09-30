@@ -1,6 +1,6 @@
 ---
-title: "Types"
-description: "TypeScript interfaces and types for Weaverse Hydrogen development."
+title: Types
+description: TypeScript interfaces and types for Weaverse Hydrogen development.
 published: true
 ---
 
@@ -16,7 +16,7 @@ Defines a component module that can be registered with Weaverse.
 
 ```typescript
 interface HydrogenComponent<T extends HydrogenComponentProps = any> {
-  default: ForwardRefExoticComponent<T> | ((props: T) => React.JSX.Element);
+  default: ForwardRefExoticComponent<T>;
   schema: HydrogenComponentSchema;
   loader?: (args: ComponentLoaderArgs) => Promise<unknown>;
 }
@@ -350,8 +350,8 @@ declare module '@shopify/hydrogen' {
 
 ## Related
 
-- [WeaverseHydrogenRoot](api-reference/weaverse-hydrogen-root) - The main component that uses these types
-- [WeaverseClient](api-reference/weaverse-client) - Client for fetching Weaverse content
+- [WeaverseHydrogenRoot](api/weaverse-hydrogen-root) - The main component that uses these types
+- [WeaverseClient](api/weaverse-client) - Client for fetching Weaverse content
 
 ### Component Schema
 

@@ -9,10 +9,28 @@
   },
   "favicon": "/favicon.ico",
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Studio",
+          "href": "https://studio.weaverse.io/dashboard",
+          "icon": "paintbrush"
+        },
+        {
+          "anchor": "GitHub", 
+          "href": "https://github.com/weaverse",
+          "icon": "github"
+        },
+        {
+          "anchor": "Community",
+          "href": "https://wvse.cc/weaverse-slack", 
+          "icon": "slack"
+        }
+      ]
+    },
     "tabs": [
       {
         "tab": "Docs",
-        "open": true,
         "pages": [
           {
             "group": "Getting Started",
@@ -71,7 +89,6 @@
       },
       {
         "tab": "API Reference",
-        "open": true,
         "pages": [
           {
             "group": "Introduction",
@@ -109,7 +126,6 @@
       },
       {
         "tab": "Themes",
-        "open": true,
         "pages": [
           {
             "group": "Themes & Templates",
@@ -131,7 +147,6 @@
       },
        {
          "tab": "Resources",
-         "open": true,
          "pages": [
            {
              "group": "Release Notes",
@@ -151,25 +166,8 @@
            }
          ]
        }
-    ]
+     ]
   },
-  "anchors": [
-    {
-      "name": "Studio",
-      "url": "https://studio.weaverse.io/dashboard",
-      "icon": "paintbrush"
-    },
-    {
-      "name": "GitHub", 
-      "url": "https://github.com/weaverse",
-      "icon": "github"
-    },
-    {
-      "name": "Community",
-      "url": "https://wvse.cc/weaverse-slack", 
-      "icon": "slack"
-    }
-  ],
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
