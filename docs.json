@@ -70,10 +70,25 @@
             "group": "Features",
             "pages": [
               "features/global-sections",
-              "features/navigation-menus", 
+              "features/navigation-menus",
               "features/markets-localization",
               "features/content-security",
               "features/third-party-integrations"
+            ]
+          },
+          {
+            "group": "Developer Tools",
+            "pages": [
+              "developer-tools/weaverse-cli",
+              "developer-tools/weaverse-sdks",
+              "developer-tools/weaverse-mcp"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/index",
+              "guides/rendering-page"
             ]
           },
            {
@@ -143,9 +158,12 @@
           {
             "group": "Migration Guides",
             "pages": [
+              "migration-advanced/index",
               "migration-advanced/v5-migration",
+              "migration-advanced/existing-hydrogen-integration",
               "migration-advanced/custom-pages",
-              "migration-advanced/custom-templates"
+              "migration-advanced/custom-templates",
+              "migration-advanced/custom-routing"
             ]
           }
         ]

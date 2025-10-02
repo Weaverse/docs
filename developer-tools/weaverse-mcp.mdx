@@ -1,80 +1,144 @@
 ---
 title: "Weaverse MCP"
-description: "The Weaverse MCP server enhances AI assistants by providing tools to search Weaverse documentation for accurate, contextual help."
+description: "Connect AI tools to Weaverse documentation using the Model Context Protocol for accurate, contextual assistance"
 published: true
 ---
 
-The Weaverse MCP (Model Context Protocol) server enables AI assistants like Claude and GitHub Copilot to search Weaverse documentation directly, delivering accurate, context-aware assistance for developers working with Weaverse products.
+# Weaverse MCP
 
-[![Install MCP Server](https://cursor.com/deeplink/mcp-install-dark.svg)](https://cursor.com/install-mcp?name=weaverse-mcp&config=eyJjb21tYW5kIjoibnB4IC15IEB3ZWF2ZXJzZS9tY3AifQ%3D%3D)
+Access Weaverse documentation and knowledge directly through your favorite AI tools with the Weaverse MCP server.
 
-## What is an MCP?
+## About MCP Servers
 
-MCP stands for Model Context Protocol - a protocol that allows AI assistants to access external tools and data sources. By implementing the MCP protocol, Weaverse provides AI models with direct access to our documentation, enabling them to give precise, up-to-date answers about Weaverse functionality.
+The Model Context Protocol (MCP) is an open protocol that creates standardized connections between AI applications and external services, like documentation. The Weaverse MCP server enables AI assistants like Claude, Cursor, and others to search Weaverse documentation directly, delivering accurate, context-aware assistance for developers working with Weaverse products.
 
-## Setup
+Your MCP server exposes tools for AI applications to search the Weaverse knowledge base and find relevant information, code examples, API references, and implementation guides.
 
-You can run the Weaverse MCP server easily using npx:
+## Accessing the Weaverse MCP Server
 
-```txt data-line-numbers=false
-npx -y @weaverse/mcp@latest
+The Weaverse MCP server is automatically hosted at:
+
+```
+https://docs.weaverse.io/mcp
 ```
 
-The server will start locally and listen for requests from compatible AI assistants.
+This HTTP-based server is always available and requires no installation or setup. Simply connect your AI tools to this URL to start accessing Weaverse documentation.
 
-## Integration with AI Assistants
+<Note>
+  The MCP server is publicly available and automatically generated from the Weaverse documentation.
+</Note>
 
-### Cursor
+## Connecting to AI Tools
 
-To integrate Weaverse MCP with Cursor, add the following configuration to your Cursor settings:
+Connect the Weaverse MCP server to your preferred AI development tools:
 
-1. Open Cursor and go to Settings (⚙️) > Extensions
-2. Select "MCPs" from the sidebar
-3. Add a new MCP with the following configuration:
+<Tabs>
+  <Tab title="Contextual Menu">
+    The easiest way to connect is using the contextual menu available on any documentation page:
 
-```json data-line-numbers=false
-{
-  "mcpServers": {
-    "weaverse-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@weaverse/mcp"
-      ]
+    1. Click the contextual menu icon (three dots) at the top of any page
+    2. Select one of the following options:
+       - **Copy MCP server URL** - Copies `https://docs.weaverse.io/mcp` to clipboard
+       - **Connect to Cursor** - Automatically installs the MCP server in Cursor
+       - **Connect to VS Code** - Automatically installs the MCP server in VS Code
+
+    This one-click integration automatically configures your development environment.
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    To manually connect to Claude Desktop:
+
+    1. Open Claude Desktop settings
+    2. Locate the MCP configuration file:
+       - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+       - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+    3. Add the Weaverse MCP server configuration:
+
+    ```json
+    {
+      "mcpServers": {
+        "weaverse": {
+          "url": "https://docs.weaverse.io/mcp"
+        }
+      }
     }
-  }
-}
-```
+    ```
 
-After saving, restart Cursor and the Weaverse MCP will be available to your AI assistant.
+    4. Restart Claude Desktop
+    5. The Weaverse MCP tools will now be available in your conversations
+  </Tab>
 
-### Claude Desktop
+  <Tab title="Claude Code">
+    Claude Code automatically supports MCP servers through configuration:
 
-To integrate with Claude Desktop:
+    1. Add the server URL to your Claude Code settings
+    2. Enter: `https://docs.weaverse.io/mcp`
+    3. The Weaverse documentation will be accessible in your coding sessions
 
-1. Open Claude Desktop settings
-2. Navigate to the MCP configuration section
-3. Add the same configuration as shown above
-4. Restart Claude Desktop
+    Refer to the [Claude Code MCP guide](https://docs.anthropic.com/en/docs/build-with-claude/mcp) for detailed setup instructions.
+  </Tab>
 
-Refer to the Claude Desktop MCP guide for specific details on accessing and modifying the settings file.
+  <Tab title="Cursor">
+    To configure Cursor manually:
+
+    1. Open Cursor Settings (⌘/Ctrl + ,)
+    2. Navigate to **Extensions** > **MCPs**
+    3. Add a new MCP server with:
+       - **Name**: `weaverse`
+       - **URL**: `https://docs.weaverse.io/mcp`
+
+    Or use the contextual menu "Connect to Cursor" option for automatic setup.
+  </Tab>
+
+  <Tab title="VS Code">
+    To configure VS Code:
+
+    1. Install an MCP-compatible extension (e.g., Continue, Cody)
+    2. Add the Weaverse MCP server in your extension settings:
+       - **Server URL**: `https://docs.weaverse.io/mcp`
+
+    Or use the contextual menu "Connect to VS Code" option for automatic setup.
+  </Tab>
+</Tabs>
 
 ## Available Tools
 
-The Weaverse MCP server currently provides the following tool:
+The Weaverse MCP server provides the following tool:
 
-| Tool Name            | Description                                               |
-| -------------------- | --------------------------------------------------------- |
-| search_weaverse_docs | Search Weaverse.io documentation for specific information |
+<Card title="SearchWeaverse" icon="magnifying-glass">
+  Search across the Weaverse knowledge base to find relevant information, code examples, API references, and implementation guides.
+
+  **Use when you need to**:
+  - Answer questions about Weaverse features
+  - Find specific documentation or code examples
+  - Understand how features work
+  - Locate API references and implementation details
+  - Troubleshoot issues
+
+  **Returns**: Contextual content with titles and direct links to documentation pages
+</Card>
 
 ## Common Use Cases
 
 The Weaverse MCP is particularly useful for:
 
-- **Learning about Weaverse components**: Ask about specific Weaverse components and get documentation directly
-- **Troubleshooting errors**: Share error messages to receive relevant documentation
-- **Implementation guidance**: Get step-by-step instructions for implementing Weaverse features
-- **API reference**: Query specific API endpoints, parameters, and return values
+<CardGroup cols={2}>
+  <Card title="Component Development" icon="cube">
+    Ask about creating custom Weaverse components, schema definitions, and input settings
+  </Card>
+
+  <Card title="API Integration" icon="plug">
+    Query specific API hooks, component props, and utility functions
+  </Card>
+
+  <Card title="Troubleshooting" icon="wrench">
+    Share error messages to receive relevant documentation and solutions
+  </Card>
+
+  <Card title="Implementation Guidance" icon="map">
+    Get step-by-step instructions for implementing Weaverse features
+  </Card>
+</CardGroup>
 
 ### Example Queries
 
@@ -82,54 +146,104 @@ Here are some example questions you can ask your AI assistant with the Weaverse 
 
 ```
 How do I set up a new Weaverse Hydrogen theme?
-What props does the ProductMedia component accept?
-How can I customize the slideshow component in Weaverse?
-What are the options for the collection-list element?
+
+What's the difference between 'settings' and 'inspector' in component schemas?
+
+How do I use the createSchema() function?
+
+Show me examples of the useWeaverse hook
+
+What are the available input types for component settings?
+
+How do I implement data fetching in a Weaverse section?
+
+What props does the WeaverseRoot component accept?
 ```
 
 ## How It Works
 
-When you ask a question about Weaverse, the AI assistant:
+When you ask a question about Weaverse in your AI tool:
 
-1. Recognizes that your question is about Weaverse
-2. Calls the Weaverse MCP server with your query
-3. The MCP server searches the Weaverse documentation
-4. Relevant documentation is returned to the AI assistant
-5. The AI assistant formulates a response based on the documentation
+1. **Recognition**: The AI assistant recognizes your question is about Weaverse
+2. **Query**: It calls the Weaverse MCP server with your query
+3. **Search**: The MCP server searches the Weaverse documentation using the SearchWeaverse tool
+4. **Return**: Relevant documentation with links is returned to the AI assistant
+5. **Response**: The AI formulates an accurate response based on official documentation
 
-This process ensures that responses are accurate and based on official Weaverse documentation.
-
-## Troubleshooting
-
-### Common Issues
-
-**MCP Not Responding**
-- Ensure the MCP server is running (you should see a confirmation in your terminal)
-- Check that you've configured your AI assistant correctly
-- Verify your network connection
-
-**Irrelevant Results**
-- Be specific in your queries
-- Include relevant Weaverse terms like component names or specific features
-- Try rephrasing your question
-
-**Installation Problems**
-- Make sure you have Node.js version 16 or higher installed
-- Check for any error messages in your terminal
-- Try running with the `--verbose` flag: `npx -y @weaverse/mcp@latest --verbose`
+This process ensures responses are accurate and based on the latest Weaverse documentation.
 
 ## Benefits
 
-- **Accurate Information**: AI assistants can access up-to-date Weaverse documentation
-- **Contextual Responses**: Get answers tailored to Weaverse's specific implementation and ecosystem
-- **Reduced Development Time**: Quick access to accurate documentation means less time spent searching for answers
-- **Seamless Integration**: Works with popular AI coding assistants with minimal configuration
+<CardGroup cols={2}>
+  <Card title="Always Accurate" icon="check">
+    AI assistants access the most up-to-date Weaverse documentation
+  </Card>
 
-## Future Enhancements
+  <Card title="Context-Aware" icon="brain">
+    Get answers tailored to Weaverse's specific implementation and ecosystem
+  </Card>
 
-The Weaverse team is actively working on expanding MCP capabilities to include:
+  <Card title="Instant Setup" icon="bolt">
+    No installation required - just connect and start using
+  </Card>
 
-- Additional search filters and options
-- Code example generation for common Weaverse patterns
-- Theme setup assistance and troubleshooting
-- Integration with project-specific configuration 
+  <Card title="Seamless Integration" icon="link">
+    Works with Claude, Cursor, VS Code, and other MCP-compatible tools
+  </Card>
+</CardGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="MCP server not responding" icon="circle-exclamation">
+    - Verify your internet connection
+    - Check that the URL is exactly: `https://docs.weaverse.io/mcp`
+    - Ensure your AI tool's MCP configuration is correct
+    - Try disconnecting and reconnecting the MCP server
+  </Accordion>
+
+  <Accordion title="Getting irrelevant results" icon="magnifying-glass">
+    - Be specific in your queries
+    - Include Weaverse-specific terms (e.g., "createSchema", "WeaverseRoot", "input settings")
+    - Mention the specific feature or component you're asking about
+    - Try rephrasing your question with more context
+  </Accordion>
+
+  <Accordion title="Connection issues" icon="plug">
+    - Verify the MCP server URL is correctly configured
+    - Restart your AI tool after adding the configuration
+    - Check your tool's MCP documentation for setup requirements
+    - Ensure your firewall allows connections to docs.weaverse.io
+  </Accordion>
+
+  <Accordion title="Tools not showing up" icon="tools">
+    - Confirm the MCP server is connected in your tool's settings
+    - Restart your AI application
+    - Check that your tool supports HTTP-based MCP servers
+    - Verify you're using a compatible version of your AI tool
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Weaverse CLI" icon="terminal" href="/developer-tools/weaverse-cli">
+    Learn about the Weaverse CLI for project setup and theme scaffolding
+  </Card>
+
+  <Card title="Weaverse SDKs" icon="code" href="/developer-tools/weaverse-sdks">
+    Explore the Weaverse SDKs for building custom components
+  </Card>
+
+  <Card title="API Reference" icon="book" href="/api-reference/introduction">
+    Browse the complete Weaverse API documentation
+  </Card>
+
+  <Card title="Development Guide" icon="wrench" href="/development-guide/index">
+    Start building with Weaverse Hydrogen themes
+  </Card>
+</CardGroup>
+
+<Note>
+  The Weaverse MCP server is continuously updated as documentation evolves, ensuring your AI tools always have access to the latest information.
+</Note>
