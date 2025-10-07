@@ -1,140 +1,160 @@
 ---
 title: Data Connectors
-description: Learn how to use data connectors to dynamically insert data into text content using template syntax.
+description: Bind dynamic data to your components without writing code - just like Shopify's theme customizer dynamic sources.
 published: true
 ---
 
 # Data Connectors
 
-Data connectors allow you to dynamically insert data from your Weaverse application into text content using a simple template syntax. This feature enables rich, dynamic content that automatically updates when your data changes.
+Connect your components to dynamic data from your Shopify store - product titles, prices, collection names, and more. Update once in the visual editor, and your content stays fresh automatically.
 
-## Overview
+## Using Data Connectors in Studio
 
-Data connectors use the `{{path}}` syntax to reference data from various sources in your application. The system automatically resolves these placeholders with actual values from your data context, making it easy to create dynamic content without complex JavaScript logic.
+<Note>
+No coding required! Click the database icon above any text field to visually select your data source.
+</Note>
 
-## Template Syntax
+<Frame>
+  <video
+    autoPlay
+    muted
+    loop
+    playsInline
+    src="https://cdn.shopify.com/videos/c/o/v/59cbe901dbf44f45a3e164839e2036ec.mp4"
+  >
+    Your browser does not support the video tag.
+  </video>
+</Frame>
 
-### Basic Syntax
+### How It Works
 
-Use double curly braces to wrap data paths:
+1. **Click the database icon** (🔗) above any text, textarea, or richtext field
+2. **Browse available data** from your store (products, collections, pages, shop info)
+3. **Select what you need** - we'll generate the code automatically
+4. **See it live** - preview updates instantly
 
-```html
-<!-- Simple property access -->
-<h1>{{root.shop.name}}</h1>
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Database_icon_above_text_input.webp?v=1759811641" alt="Database icon above text input" />
+</Frame>
 
-<!-- Nested object access -->
-<p>{{routes/product.product.title}}</p>
+### Example: Product Title
 
-<!-- Array indexing -->
-<span>{{routes/product.product.images[0].altText}}</span>
+Instead of typing code, just:
+- Click the database icon
+- Navigate: **Current Page** → **Product** → **Title**
+- Done! The product title appears automatically
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Data_selector_showing_available_options.webp?v=1759811656" alt="Data selector showing available options" />
+</Frame>
+
+### Available Data Sources
+
+**Shop Data**: Store name, currency, domain (from root loader)
+**Current Page**: Product/collection/page details for the active page (from route loaders)
+**Route Data**: Specific page routes in your theme (from route loaders)
+**Custom Data**: Any data you return from your loader functions - third-party APIs, custom integrations, computed values
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/Real-time_preview_of_connected_data.webp?v=1759811624" alt="Real-time preview of connected data" />
+</Frame>
+
+## How Data Connectors Work
+
+Data connectors pull information from your Hydrogen/React Router **loader functions**. This means developers can customize what data is available by modifying loaders.
+
+### Adding Custom Data Sources
+
+Want to connect to third-party APIs? Just add the data to your route loader:
+
+```tsx
+// app/routes/product.$handle.tsx
+export async function loader({ params }: LoaderFunctionArgs) {
+  let product = await getProduct(params.handle)
+
+  // Add custom data from any API
+  let reviews = await fetch(`https://reviews-api.com/product/${params.handle}`)
+    .then(res => res.json())
+
+  let customData = await fetch('https://your-api.com/data')
+    .then(res => res.json())
+
+  return {
+    product,
+    reviews,        // Now available in Studio!
+    customData      // This too!
+  }
+}
 ```
 
-### Supported Data Sources
+Once you add data to your loader, **it automatically appears in Weaverse Studio's data selector** - no extra configuration needed. Users can then visually bind to `{{routes/product.reviews.rating}}` or `{{routes/product.customData.value}}` without writing code.
 
-Data connectors can access data from multiple contexts:
+### Where Data Comes From
 
-#### Root Data (`root.*`)
-Access global application data:
+| Loader Type | Studio Path | Example |
+|-------------|-------------|---------|
+| Root loader | `root.*` | `{{root.shop.name}}` |
+| Route loader | `routes/[route].*` | `{{routes/product.product.title}}` |
+| Custom loader data | `routes/[route].*` | `{{routes/product.yourCustomData}}` |
+
+<Tip>
+Any data returned from your loader functions is automatically available in the visual data selector. Add third-party integrations, custom APIs, or computed data - users can bind to it instantly.
+</Tip>
+
+## Template Syntax (For Developers)
+
+<Note>
+Using Studio's visual interface? Skip this section - the syntax is auto-generated for you.
+</Note>
+
+Data connectors use `{{path}}` syntax to reference data:
+
 ```html
+<!-- Shop info -->
 {{root.shop.name}}
-{{root.shop.domain}}
-{{root.user.name}}
-```
 
-#### Route Data (`routes/*`)
-Access data specific to the current route:
-```html
-<!-- Simple routes -->
+<!-- Product data -->
 {{routes/product.product.title}}
+{{routes/product.product.price}}
+
+<!-- Images -->
+{{routes/product.product.images[0].url}}
+
+<!-- Collection -->
 {{routes/collection.collection.title}}
-
-<!-- Complex routes with special characters -->
-{{routes/($locale)._index.weaverseData.page.name}}
-{{routes/($locale).blogs.$blogHandle.article.title}}
-{{routes/($locale).collections.$collectionHandle.products.$productHandle.product.price}}
 ```
 
-#### Current Route Data (`current.*`)
-Access data for the currently active route:
-```html
-{{current.product.title}}
-{{current.collection.description}}
-```
+### Data Source Patterns
 
-#### Parent Route Data (`parent.*`)
-Access data from parent routes in nested layouts:
-```html
-{{parent.collection.title}}
-{{parent.blog.title}}
-```
+| Pattern | Use For | Example |
+|---------|---------|---------|
+| `root.*` | Global shop data | `{{root.shop.currency}}` |
+| `routes/product.*` | Product pages | `{{routes/product.product.title}}` |
+| `routes/collection.*` | Collection pages | `{{routes/collection.collection.title}}` |
+| `current.*` | Current page | `{{current.product.price}}` |
 
-### Complex Route Patterns
+### Complex Routes
 
-Weaverse supports complex Remix route patterns with special characters:
-
-| Pattern | Example | Description |
-|---------|---------|-------------|
-| Parentheses | `routes/($locale)` | Optional route segments |
-| Dollar signs | `routes/$handle` | Dynamic route parameters |
-| Dots | `routes/blogs.$handle` | Nested route segments |
-| Mixed patterns | `routes/($locale).blogs.$blogHandle.$articleHandle` | Complex nested routes |
-
-### Array Access
-
-Access array elements using bracket notation:
+For routes with parameters:
 
 ```html
-<!-- First image -->
-<img src="{{routes/product.product.images[0].url}}" alt="{{routes/product.product.images[0].altText}}" />
+<!-- Localized homepage -->
+{{routes/($locale)._index.weaverseData.page.title}}
 
-<!-- Second breadcrumb -->
-<span>{{routes/($locale).blogs.$blogHandle.$articleHandle.breadcrumbs[1].label}}</span>
+<!-- Blog article -->
+{{routes/($locale).blogs.$blogHandle.$articleHandle.article.title}}
+
+<!-- Product with locale -->
+{{routes/($locale).products.$handle.product.price}}
 ```
 
-## Usage in Components
+## Using in Component Code
 
-### Rich Text Inputs
-
-Data connectors work seamlessly with rich text inputs:
+Add data connectors to your component schema:
 
 ```tsx
-// In your component schema
-{
-  type: "richtext",
-  name: "content",
-  label: "Content",
-  defaultValue: "<h1>Welcome to {{root.shop.name}}</h1><p>Check out our featured product: {{routes/product.product.title}}</p>"
-}
-```
+import { createSchema } from '@weaverse/hydrogen'
 
-### Text Inputs
-
-Use in any text input field:
-
-```tsx
-// Component settings
-{
-  type: "text",
-  name: "heading",
-  label: "Page Heading",
-  defaultValue: "{{routes/($locale)._index.weaverseData.page.title}}"
-}
-```
-
-### Dynamic Content in Components
-
-```tsx
-function ProductCard({ data }: ProductCardProps) {
-  return (
-    <div className="product-card">
-      <h3>{data.title}</h3>
-      <p>{data.description}</p>
-      <span className="price">${data.price}</span>
-    </div>
-  )
-}
-
-// Schema with data connectors
 export let schema = createSchema({
   type: 'product-card',
   title: 'Product Card',
@@ -146,207 +166,118 @@ export let schema = createSchema({
       defaultValue: '{{routes/product.product.title}}'
     },
     {
-      type: 'richtext',
-      name: 'description',
-      label: 'Description',
-      defaultValue: '{{routes/product.product.description}}'
-    },
-    {
       type: 'text',
       name: 'price',
       label: 'Price',
       defaultValue: '${{routes/product.product.price}}'
+    },
+    {
+      type: 'richtext',
+      name: 'description',
+      label: 'Description',
+      defaultValue: '{{routes/product.product.description}}'
     }
   ]
 })
 ```
 
-## Data Resolution Priority
+Then use in your component:
 
-When multiple data sources could match a path, Weaverse follows this priority order:
-
-1. **Specific Route Keys**: Exact route matches take precedence
-2. **Longest Match**: More specific routes beat general ones
-3. **Priority Routes**: `root`, `routes/product`, `routes/collection` are checked first
-4. **Fallback Search**: Searches all available routes if no exact match
-
-## Error Handling
-
-Data connectors are designed to be resilient:
-
-- **Missing Data**: If a path doesn't exist, the original `{{path}}` placeholder is preserved
-- **Invalid Paths**: Malformed paths are left unchanged
-- **Circular References**: Protected against infinite loops with circular reference detection
-- **Type Safety**: Values are sanitized to prevent XSS attacks
-
-## Performance Features
-
-### Caching
-
-Data connectors include intelligent caching:
-
-- **Template Caching**: Compiled templates are cached for reuse
-- **Route Parsing Caching**: Route pattern resolution is cached with LRU eviction
-- **Fallback Caching**: Common lookup patterns are cached to improve performance
-
-### Batch Processing
-
-When processing multiple templates, data connectors:
-
-- Parse all templates in a single pass
-- Cache intermediate results
-- Minimize redundant lookups
-
-## Best Practices
-
-### 1. Use Specific Routes
-
-Prefer specific route paths over generic fallbacks:
-
-```html
-<!-- ✅ Good: Specific route -->
-{{routes/($locale)._index.weaverseData.page.title}}
-
-<!-- ❌ Avoid: Generic fallback -->
-{{page.title}}
+```tsx
+function ProductCard({ title, price, description }: ProductCardProps) {
+  return (
+    <div className="product-card">
+      <h3>{title}</h3>
+      <p className="price">{price}</p>
+      <div dangerouslySetInnerHTML={{ __html: description }} />
+    </div>
+  )
+}
 ```
 
-### 2. Handle Missing Data
+## Extending with Third-Party Data
 
-Always consider fallback content:
+### Example: Adding Product Reviews
+
+```tsx
+// app/routes/product.$handle.tsx
+import { getProduct } from '~/lib/shopify'
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  let product = await getProduct(params.handle)
+
+  // Fetch reviews from Judge.me, Yotpo, or any review service
+  let reviewsData = await fetch(
+    `https://judge.me/api/reviews?product=${product.id}`
+  ).then(res => res.json())
+
+  return {
+    product,
+    reviews: {
+      average: reviewsData.average_rating,
+      count: reviewsData.total_reviews,
+      items: reviewsData.reviews
+    }
+  }
+}
+```
+
+Now in Studio, users can visually select:
+- `{{routes/product.reviews.average}}` → Shows "4.5"
+- `{{routes/product.reviews.count}}` → Shows "127 reviews"
+- `{{routes/product.reviews.items[0].text}}` → First review text
+
+No code required for users - they just click and select from the visual interface.
+
+### Example: Adding Custom API Data
+
+```tsx
+// app/routes/_index.tsx
+export async function loader() {
+  // Fetch from your backend, CMS, or any API
+  let announcement = await fetch('https://your-cms.com/announcement')
+    .then(res => res.json())
+
+  let featuredContent = await fetch('https://your-api.com/featured')
+    .then(res => res.json())
+
+  return {
+    weaverseData: await getWeaverseData(),
+    announcement,      // Available as {{routes/_index.announcement.text}}
+    featuredContent    // Available as {{routes/_index.featuredContent.title}}
+  }
+}
+```
+
+## Quick Tips
+
+### ✅ Best Practices
 
 ```html
-<!-- ✅ Good: With fallback -->
-{{routes/product.product.title || 'Product Title'}}
-
-<!-- ❌ Avoid: No fallback -->
+<!-- Use specific paths -->
 {{routes/product.product.title}}
+
+<!-- Not generic ones -->
+{{product.title}}
 ```
 
-### 3. Use Appropriate Data Sources
+### 🐛 Troubleshooting
 
-Choose the right data context for your needs:
+**Data not showing?**
+- Check the path exists on that page type
+- Verify you're on the correct page (e.g., product page for product data)
+- Use Studio's visual picker to verify the correct path
 
-```html
-<!-- Global data -->
-{{root.shop.currency}}
+**Seeing `{{...}}` in output?**
+- The data path doesn't exist or isn't loaded yet
+- Check your route matches the data source
 
-<!-- Route-specific data -->
-{{routes/product.product.price}}
+### 🔒 Security
 
-<!-- Current page data -->
-{{current.page.title}}
-```
+Data connectors automatically sanitize output to prevent XSS attacks. Your content is safe.
 
-### 4. Performance Considerations
+## Related Docs
 
-- Cache expensive data transformations
-- Use batch processing for multiple connectors
-- Avoid deep nesting in frequently accessed paths
-
-## Advanced Usage
-
-### Conditional Content
-
-Combine with component logic for conditional rendering:
-
-```tsx
-function HeroSection({ data }: HeroSectionProps) {
-  const title = data.title || '{{routes/($locale)._index.weaverseData.page.title}}'
-  const subtitle = data.subtitle || '{{root.shop.description}}'
-
-  return (
-    <section className="hero">
-      <h1>{title}</h1>
-      <p>{subtitle}</p>
-    </section>
-  )
-}
-```
-
-### Dynamic URLs
-
-Create dynamic links using data connectors:
-
-```tsx
-function Breadcrumb({ data }: BreadcrumbProps) {
-  return (
-    <nav aria-label="breadcrumb">
-      {data.breadcrumbs.map((crumb, index) => (
-        <a key={index} href={crumb.url}>
-          {crumb.label}
-        </a>
-      ))}
-    </nav>
-  )
-}
-
-// Schema with dynamic breadcrumb data
-{
-  type: 'richtext',
-  name: 'breadcrumbText',
-  label: 'Breadcrumb Text',
-  defaultValue: '<a href="/">Home</a> > <a href="{{routes/($locale).blogs.$blogHandle.url}}">{{routes/($locale).blogs.$blogHandle.blog.title}}</a> > {{routes/($locale).blogs.$blogHandle.$articleHandle.article.title}}'
-}
-```
-
-## Migration Guide
-
-### From Static Content
-
-Replace hardcoded values with data connectors:
-
-```html
-<!-- Before: Static content -->
-<h1>My Awesome Store</h1>
-<p>Welcome to our online shop!</p>
-
-<!-- After: Dynamic content -->
-<h1>{{root.shop.name}}</h1>
-<p>{{routes/($locale)._index.weaverseData.page.description}}</p>
-```
-
-### From JavaScript Interpolation
-
-Replace complex JavaScript with simple templates:
-
-```tsx
-// Before: JavaScript interpolation
-<h1>{shop.name || 'Default Shop'}</h1>
-
-// After: Data connector
-<h1>{{root.shop.name}}</h1>
-```
-
-## Troubleshooting
-
-### Common Issues
-
-**Placeholders not resolving:**
-- Check that the data path exists in your data context
-- Verify route keys match your application structure
-- Ensure data is loaded before component rendering
-
-**Performance issues:**
-- Review caching configuration
-- Check for excessive template processing
-- Consider batching multiple connectors
-
-**XSS concerns:**
-- Data connectors automatically sanitize HTML output
-- Rich text inputs handle HTML safely
-- Avoid inserting unsanitized user data
-
-### Debug Tips
-
-1. **Check Data Context**: Log your component's data context to verify available paths
-2. **Test Routes**: Use browser dev tools to inspect route data structure
-3. **Validate Syntax**: Ensure proper `{{path}}` syntax without typos
-4. **Monitor Performance**: Use browser performance tools to identify bottlenecks
-
-## Related Documentation
-
-- [Component Schema](development-guide/component-schema) - Define component settings
-- [Input Settings](development-guide/input-settings) - Configure input types
-- [Data Fetching](development-guide/data-fetching) - Load component data
-- [Creating Components](development-guide/creating-components) - Build custom components
+- [Component Schema](/development-guide/component-schema) - Define component settings
+- [Input Settings](/development-guide/input-settings) - Configure input types
+- [Creating Components](/development-guide/creating-components) - Build components
