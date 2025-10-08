@@ -8,6 +8,12 @@
     "dark": "#1e40af"
   },
   "favicon": "/favicon.ico",
+  "integrations": {
+    "posthog": {
+      "apiKey": "phc_BnZAhY8ELZCZukEErb6ab9T7txSsMolcgGIIhMj5oSP",
+      "apiHost": "https://posthog.weaverse.io"
+    }
+  },
   "navigation": {
     "global": {
       "anchors": [
