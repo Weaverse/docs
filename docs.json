@@ -104,6 +104,12 @@
              ]
            },
            {
+             "group": "Troubleshooting",
+             "pages": [
+               "troubleshooting/preview-errors"
+             ]
+           },
+           {
              "group": "Deployment",
              "pages": [
                "deployment",

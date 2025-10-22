@@ -1,0 +1,356 @@
+---
+title: "Preview Connection Errors"
+description: "Troubleshooting guide for Weaverse Studio preview connection issues"
+---
+
+# Preview Connection Errors
+
+When working with Weaverse Studio, you may encounter preview connection errors that prevent the live preview from loading. This guide helps you quickly diagnose and resolve these issues.
+
+## Common Error Types
+
+### CONNECTION_TIMEOUT
+
+**Symptom**: Preview shows "Unable to connect to preview server" after waiting 5+ seconds.
+
+**Common Causes**:
+- Development server not running
+- Server running on wrong port
+- Firewall blocking connection
+- Network connectivity issues
+
+**Quick Fixes**:
+
+1. **Start your development server**
+   ```bash
+   npm run dev
+   # or
+   pnpm dev
+   # or
+   yarn dev
+   ```
+
+2. **Check the server is running on the correct port**
+   - Default port: `3456`
+   - Verify in your terminal output: `Server running on http://localhost:3456`
+   - Check project settings in Weaverse Studio for configured preview URL
+
+3. **Verify network connectivity**
+   - Try opening the preview URL directly in your browser
+   - Check if localhost resolves: `ping localhost`
+   - Ensure no VPN/proxy interfering with local connections
+
+4. **Check firewall settings**
+   - Allow Node.js through your firewall
+   - Temporarily disable firewall to test (macOS: System Settings → Network → Firewall)
+   - Whitelist port 3456 in your security software
+
+<Tip>**Quick Test**: Open `http://localhost:3456` in your browser. If it loads, the server is running correctly and the issue is with Studio configuration.</Tip>
+
+---
+
+### NO_WEAVERSE_CONTENT
+
+**Symptom**: Preview loads but shows "We couldn't find Weaverse content on this page."
+
+**Common Causes**:
+- Weaverse components not installed in theme
+- Wrong page selected (non-Weaverse page)
+- Theme not properly configured
+- Missing `@weaverse/hydrogen` package
+
+**Quick Fixes**:
+
+1. **Verify Weaverse is installed in your theme**
+   ```bash
+   # Check package.json includes:
+   npm list @weaverse/hydrogen
+   ```
+
+2. **Ensure page is a Weaverse-enabled route**
+   - Check if the page uses Weaverse components
+   - Navigate to a known Weaverse page (e.g., homepage)
+   - Verify route file includes Weaverse setup with `loadPage()` and `<WeaverseContent />`
+
+3. **Check component registration**
+   - Ensure all Weaverse components are properly registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in Pilot template)
+   - Use namespace imports: `import * as ComponentName from "~/sections/component"`
+   - Restart dev server after adding new components
+
+4. **Verify correct page type**
+   - Ensure you're using a supported Weaverse page type: `PRODUCT`, `COLLECTION`, `PAGE`, `BLOG`, `ARTICLE`, `INDEX`, or `CUSTOM`
+   - Some pages (search, cart, account) may not use Weaverse at all - they use native Shopify components instead
+   - Check loader uses correct type: `weaverse.loadPage({ type: "PRODUCT", handle })`
+
+5. **Reinstall Weaverse packages**
+   ```bash
+   npm install @weaverse/hydrogen@latest
+   # or
+   pnpm add @weaverse/hydrogen@latest
+   ```
+
+<Note>If you just created a new page, make sure it's using the Weaverse page template and has Weaverse components configured. See the [Rendering Weaverse Pages guide](/guides/rendering-page) for complete implementation details.</Note>
+
+---
+
+### INVALID_URL
+
+**Symptom**: Preview shows "Invalid preview URL" immediately.
+
+**Common Causes**:
+- Malformed URL in project settings
+- Missing protocol (http/https)
+- Invalid characters in URL
+- Localhost URL when expecting production
+
+**Quick Fixes**:
+
+1. **Check project preview URL settings**
+   - Go to Project Settings in Weaverse Studio
+   - Verify preview URL format: `http://localhost:3456` (development)
+   - Ensure no trailing slash or extra characters
+
+2. **Validate URL format**
+   - Must include protocol: `http://` or `https://`
+   - Use `localhost` not `127.0.0.1` for local development
+   - Check for typos in domain name
+
+3. **Reset preview URL**
+   - Delete current preview URL
+   - Enter fresh URL: `http://localhost:3456`
+   - Save and refresh Studio
+
+---
+
+### AUTH_REQUIRED
+
+**Symptom**: Preview shows "Authentication required" or login prompt.
+
+**Common Causes**:
+- Password-protected development server
+- Shopify authentication required
+- Proxy/VPN requiring credentials
+- Corporate network restrictions
+
+**Quick Fixes**:
+
+1. **Remove password protection temporarily**
+   - Disable HTTP authentication in development
+   - Check for `.htaccess` or auth middleware
+   - Ensure dev server allows unauthenticated requests
+
+2. **Configure Shopify authentication**
+   - Ensure valid session tokens
+   - Check Shopify app credentials
+   - Verify OAuth flow is working
+
+3. **Bypass network restrictions**
+   - Test on different network (mobile hotspot)
+   - Whitelist localhost in corporate firewall
+   - Contact IT if on restricted network
+
+---
+
+### CORS_ERROR
+
+**Symptom**: Browser console shows CORS policy errors.
+
+**Common Causes**:
+- Missing CORS headers in development server
+- Incorrect origin configuration
+- Browser security restrictions
+- Proxy/middleware blocking requests
+
+**Quick Fixes**:
+
+1. **Configure Content Security Policy (CSP)**
+
+   Weaverse requires proper CSP configuration to allow iframe embedding. Update your `entry.server.tsx`:
+
+   ```typescript
+   // entry.server.tsx
+   import { createContentSecurityPolicy } from "@shopify/hydrogen";
+   import { getWeaverseCsp } from "~/weaverse/csp";
+
+   export default async function handleRequest(request, responseStatusCode, responseHeaders, remixContext, context) {
+     const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+       ...getWeaverseCsp(request, context),
+       shop: {
+         checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
+         storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
+       },
+     });
+
+     // Use Report-Only mode for development
+     responseHeaders.set("Content-Security-Policy-Report-Only", header);
+     // ...
+   }
+   ```
+
+2. **Verify Weaverse hosts are allowed**
+
+   Check your CSP configuration includes Weaverse domains:
+
+   ```typescript
+   // ~/weaverse/csp.ts (or similar)
+   export function getWeaverseCsp(request: Request, context: AppLoadContext) {
+     let weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
+
+     return {
+       defaultSrc: [...weaverseHosts],
+       connectSrc: [...weaverseHosts],
+       styleSrc: weaverseHosts,
+       frameAncestors: ["*"], // Required for Studio embedding
+     };
+   }
+   ```
+
+3. **Enable CORS for local development**
+   ```typescript
+   // vite.config.ts
+   server: {
+     cors: true,
+     // or more specific:
+     cors: {
+       origin: ['https://studio.weaverse.io', 'https://*.weaverse.io'],
+       credentials: true
+     }
+   }
+   ```
+
+4. **Restart development server**
+   - Stop server (Ctrl+C)
+   - Clear cache: `rm -rf .cache`
+   - Restart: `npm run dev`
+
+<Note>See the [Content Security Policy guide](/features/content-security) for complete CSP configuration details and best practices.</Note>
+
+<Warning>**Production Note**: Never use `cors: true` in production. Configure specific origins for your Weaverse Studio domain. Use `Content-Security-Policy-Report-Only` during development to monitor violations before enforcing.</Warning>
+
+---
+
+## Advanced Troubleshooting
+
+### Check Browser Console
+
+1. Open browser DevTools (F12 or Cmd+Option+I)
+2. Go to **Console** tab
+3. Look for red error messages
+4. Copy error messages for support
+
+### Network Inspector
+
+1. Open DevTools → **Network** tab
+2. Refresh preview
+3. Look for failed requests (red status)
+4. Check request/response headers
+5. Note status codes (404, 500, etc.)
+
+### Verify RPC Communication
+
+The preview uses PostMessage/RPC for Studio communication:
+
+```javascript
+// Check if Weaverse is loaded in preview
+window.weaverseStudio?.version // Should return version number
+```
+
+### Clear Studio Cache
+
+1. In Weaverse Studio, press **Cmd+Shift+R** (Mac) or **Ctrl+Shift+R** (Windows)
+2. This forces a hard refresh and clears cached preview state
+
+### Test with Different Browser
+
+- Try Chrome, Firefox, Safari
+- Disable browser extensions
+- Use incognito/private mode
+- **Brave Browser Users**: Disable "Shields" (ad blocker) for Studio domain
+  - Click the shield icon in the address bar
+  - Turn off "Shields" for `studio.weaverse.io` and your preview domain
+  - Brave's aggressive ad/tracker blocking can interfere with iframe communication
+
+---
+
+## Getting Help
+
+If you've tried all troubleshooting steps and still experiencing issues:
+
+1. **Check System Status**
+   - Visit [status.weaverse.io](https://status.weaverse.io) for known issues
+
+2. **Community Support**
+   - Join [Weaverse Discord](https://discord.gg/weaverse)
+   - Search [GitHub Discussions](https://github.com/weaverse/discussions)
+
+3. **Contact Support**
+   - Email: support@weaverse.io
+   - Include:
+     - Error type from preview overlay
+     - Browser and OS version
+     - Node.js version (`node --version`)
+     - Package versions from `package.json`
+     - Console error messages (screenshots)
+
+---
+
+## Prevention Tips
+
+### Development Best Practices
+
+1. **Always run dev server before opening Studio**
+   ```bash
+   npm run dev
+   ```
+
+2. **Keep packages updated**
+   ```bash
+   npm update @weaverse/hydrogen
+   ```
+
+3. **Use recommended Node.js version**
+   - Node.js 18+ (LTS recommended)
+   - Check with `node --version`
+
+4. **Monitor terminal output**
+   - Watch for server errors
+   - Note the actual port being used
+   - Check for build warnings
+
+### Common Configuration
+
+**Recommended `vite.config.ts` for preview:**
+
+```typescript
+import { defineConfig } from 'vite'
+
+export default defineConfig({
+  server: {
+    port: 3456,
+    cors: true,
+    host: 'localhost',
+    strictPort: false, // Try next port if 3456 is busy
+  },
+})
+```
+
+**Recommended project settings:**
+
+- **Preview URL**: `http://localhost:3456`
+- **Auto-reload**: Enabled
+- **HTTPS**: Disabled for local development
+
+---
+
+## Related Resources
+
+- [Development Setup Guide](/getting-started/development)
+- [Weaverse Configuration Reference](/api-reference/weaverse-config)
+- [Theme Development Guide](/development-guide/themes)
+- [Component Registration](/development-guide/components)
+
+---
+
+<Note>
+**Still having issues?** The preview error overlay in Weaverse Studio provides real-time troubleshooting suggestions specific to your error type. Click the **Documentation** button in the error overlay for context-specific help.
+</Note>
