@@ -63,8 +63,329 @@ Weaverse supports the following page types:
 - **`ARTICLE`** - Individual blog post pages
 
 #### Special Pages
-- **`INDEX`** - Homepage  
+- **`INDEX`** - Homepage
 - **`CUSTOM`** - Custom pages created in Weaverse Studio (no specific handle needed)
+
+## Working with Locales
+
+Weaverse provides flexible localization support, allowing you to serve content in multiple languages and markets. Understanding how locale detection works is key to implementing internationalization correctly.
+
+### Locale Format
+
+Weaverse uses the standard `language-country` format for locales:
+
+**Format:** `language-country` (lowercase, hyphen-separated)
+- **Language:** ISO 639-1 code (2 letters, e.g., `sv`, `en`, `fr`)
+- **Country:** ISO 3166-1 alpha-2 code (2 letters, e.g., `se`, `us`, `ca`)
+
+**Examples:**
+- `en-us` - English in United States
+- `sv-se` - Swedish (`sv`) in Sweden (`se`)
+- `fr-ca` - French (`fr`) in Canada (`ca`)
+- `de-de` - German (`de`) in Germany (`de`)
+- `ja-jp` - Japanese (`ja`) in Japan (`jp`)
+
+<Note>
+**Important:** Always use lowercase with hyphen separator. Formats like `en_US`, `en-US`, or `EN-us` are not supported.
+</Note>
+
+### Locale Detection Methods
+
+Weaverse provides three methods for detecting the current locale, with a clear priority order:
+
+#### 1. Explicit locale Parameter (Recommended)
+
+The most reliable method is to explicitly pass the `locale` parameter to `loadPage()`:
+
+```typescript
+// app/routes/products.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { productHandle } = params;
+  const { weaverse } = context;
+
+  // Explicitly specify the locale
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+    locale: "sv-se", // Load Swedish content
+  });
+
+  return { weaverseData };
+}
+```
+
+**When to use explicit locale:**
+- Custom routing logic determines the locale
+- Loading content for a different locale than the current page
+- Background jobs or server-side processes without request context
+- Cross-locale content comparison or translation workflows
+
+#### 2. Path Prefix Detection (Deprecated)
+
+<Warning>
+This method is deprecated and may be removed in a future version. Use explicit `locale` parameter for new implementations.
+</Warning>
+
+Weaverse can extract locale from the URL path prefix:
+
+```typescript
+// URL: /sv-se/products/jacket
+// Automatically detects locale: "sv-se"
+
+const weaverseData = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: productHandle,
+  // locale auto-detected from path: /sv-se/...
+});
+```
+
+#### 3. Auto-detection from context.storefront.i18n (Default)
+
+When no explicit `locale` parameter is provided, Weaverse reads from Hydrogen's storefront context:
+
+```typescript
+// Relies on Hydrogen's i18n configuration
+const weaverseData = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: productHandle,
+  // Automatically uses context.storefront.i18n.pathPrefix
+});
+
+// Behind the scenes:
+// const pathPrefix = context.storefront.i18n.pathPrefix; // e.g., "/sv-se"
+// const locale = pathPrefix.slice(1); // "sv-se"
+```
+
+### Basic Locale Usage
+
+#### Auto-Detection Example
+
+```typescript
+// app/routes/($locale).products.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { productHandle } = params;
+  const { weaverse, storefront } = context;
+
+  // Weaverse automatically detects locale from context.storefront.i18n
+  const [{ product }, weaverseData] = await Promise.all([
+    storefront.query(PRODUCT_QUERY, {
+      variables: { handle: productHandle }
+    }),
+    weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      // locale auto-detected
+    }),
+  ]);
+
+  return { product, weaverseData };
+}
+```
+
+#### Explicit Locale Example
+
+```typescript
+// app/routes/products.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { productHandle } = params;
+  const { weaverse } = context;
+
+  // Determine locale from custom logic
+  const locale = determineLocaleFromRequest(context.request);
+
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+    locale, // Explicitly pass locale
+  });
+
+  return { weaverseData, locale };
+}
+
+function determineLocaleFromRequest(request: Request): string {
+  // Custom logic: subdomain, header, cookie, etc.
+  const url = new URL(request.url);
+  const subdomain = url.hostname.split(".")[0];
+
+  const localeMap: Record<string, string> = {
+    "se": "sv-se",
+    "fr": "fr-fr",
+    "de": "de-de",
+  };
+
+  return localeMap[subdomain] || "en-us";
+}
+```
+
+### Advanced Locale Scenarios
+
+#### Loading Multiple Locales
+
+Load content in different locales simultaneously for comparison or translation workflows:
+
+```typescript
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+  const { productHandle } = params;
+
+  // Load same product in multiple locales
+  const [englishData, frenchData, swedishData] = await Promise.all([
+    weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: "en-us",
+    }),
+    weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: "fr-ca",
+    }),
+    weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: "sv-se",
+    }),
+  ]);
+
+  return { englishData, frenchData, swedishData };
+}
+```
+
+#### Dynamic Locale Selection
+
+```typescript
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+  let locale = "en-us"; // default
+
+  // Priority 1: URL parameter
+  if (params.locale && isValidLocale(params.locale)) {
+    locale = params.locale.toLowerCase();
+  }
+  // Priority 2: User preference cookie
+  else if (request.headers.get("cookie")?.includes("locale=")) {
+    const cookieLocale = getCookieValue(request, "locale");
+    if (cookieLocale && isValidLocale(cookieLocale)) {
+      locale = cookieLocale;
+    }
+  }
+  // Priority 3: Accept-Language header
+  else {
+    const acceptLanguage = request.headers.get("accept-language");
+    locale = parseAcceptLanguageHeader(acceptLanguage) || "en-us";
+  }
+
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale,
+  });
+
+  return { weaverseData, locale };
+}
+```
+
+### Locale Fallback Behavior
+
+When a requested locale doesn't exist, Weaverse provides fallback content:
+
+**Current Behavior:**
+- If the specified locale doesn't exist, Weaverse falls back to `en-us` content
+- This ensures users always see content, even if localization is incomplete
+
+**Example:**
+```typescript
+// Request Swedish content
+const data = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: "jacket",
+  locale: "sv-se",
+});
+
+// If sv-se doesn't exist:
+// → Falls back to en-us content
+// → Returns en-us page data
+```
+
+<Tip>
+**Coming Soon:** Smart fallback will try language matches before falling back to the default (e.g., try `sv-*` for `sv-se` request before falling back to `en-us`).
+</Tip>
+
+### Best Practices for Localization
+
+<AccordionGroup>
+  <Accordion title="Use Explicit locale Parameter" icon="hand-pointer">
+    For maximum reliability and control, always explicitly pass the `locale` parameter:
+    ```typescript
+    const weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: determinedLocale, // Explicit is better
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Validate Locale Format" icon="spell-check">
+    Ensure locales are properly formatted before passing to `loadPage()`:
+    ```typescript
+    function normalizeLocale(input: string): string {
+      return input.toLowerCase().trim().replace("_", "-");
+    }
+
+    const locale = normalizeLocale(params.locale || "en-us");
+    ```
+  </Accordion>
+
+  <Accordion title="Handle Missing Locales Gracefully" icon="shield-halved">
+    Check if the returned content matches the requested locale:
+    ```typescript
+    const weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: requestedLocale,
+    });
+
+    if (weaverseData?.page?.locale !== requestedLocale) {
+      console.warn(`Locale ${requestedLocale} not found, using fallback`);
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Cache Per Locale" icon="database">
+    Configure caching strategies to account for locale variations:
+    ```typescript
+    const weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale,
+      strategy: {
+        maxAge: 3600, // Cache for 1 hour per locale
+        staleWhileRevalidate: 86400,
+      },
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Related Localization Documentation
+
+<CardGroup cols={2}>
+  <Card title="Advanced Localization Guide" icon="globe" href="/guides/localization-advanced">
+    Comprehensive technical guide covering locale detection, multi-project architecture, and advanced scenarios
+  </Card>
+
+  <Card title="Markets & Localization" icon="store" href="/features/markets-localization">
+    Studio workflow for creating and managing localized content in Weaverse
+  </Card>
+
+  <Card title="WeaverseClient API" icon="code" href="/api-reference/weaverse-client">
+    Complete API reference for loadPage() including all locale parameters
+  </Card>
+
+  <Card title="Custom Routing" icon="route" href="/migration-advanced/custom-routing">
+    Implementing custom URL structures with localization support
+  </Card>
+</CardGroup>
 
 ### Routes Without Weaverse Integration
 

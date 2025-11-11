@@ -41,89 +41,69 @@
     },
     "tabs": [
       {
-        "tab": "Docs",
+        "tab": "Get Started",
         "pages": [
           {
-            "group": "Getting Started",
+            "group": "Introduction",
             "pages": [
               "index",
-              "quickstart", 
-              "development"
-            ]
-          },
-          {
-            "group": "Core Concepts",
-            "pages": [
+              "quickstart",
               "core-concepts/how-it-works",
               "core-concepts/project-structure"
             ]
           },
-           {
-            "group": "Development Guide",
+          {
+            "group": "Studio Guide",
             "pages": [
-              "development-guide/index",
-              "development-guide/environment-setup",
+              "studio-guide/interface-tour"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Develop",
+        "pages": [
+          {
+            "group": "Environment",
+            "pages": [
+              "development-guide/environment-setup"
+            ]
+          },
+          {
+            "group": "Building Components",
+            "pages": [
               "development-guide/creating-components",
+              "development-guide/component-schema",
               "development-guide/input-settings",
               "development-guide/weaverse-component",
-              "development-guide/component-schema",
-              "development-guide/data-fetching",
               "development-guide/styling-theming",
+              "development-guide/data-fetching",
               "development-guide/data-connectors"
             ]
           },
           {
-            "group": "Features",
+            "group": "Advanced Guides",
             "pages": [
-              "features/global-sections",
-              "features/navigation-menus",
-              "features/markets-localization",
-              "features/content-security",
-              "features/third-party-integrations"
+              "guides/rendering-page",
+              "guides/localization-advanced",
+              "guides/multi-project-architecture"
             ]
           },
           {
-            "group": "Developer Tools",
+            "group": "Tools & CLI",
             "pages": [
               "developer-tools/weaverse-cli",
               "developer-tools/weaverse-sdks",
               "developer-tools/weaverse-mcp"
             ]
-          },
-          {
-            "group": "Guides",
-            "pages": [
-              "guides/index",
-              "guides/rendering-page"
-            ]
-          },
-           {
-             "group": "Studio Guide",
-             "pages": [
-               "studio-guide/interface-tour"
-             ]
-           },
-           {
-             "group": "Troubleshooting",
-             "pages": [
-               "troubleshooting/preview-errors"
-             ]
-           },
-           {
-             "group": "Deployment",
-             "pages": [
-               "deployment",
-               "oxygen-deployment",
-               "docker-deployment"
-             ]
-           }
-         ]
+          }
+        ]
       },
       {
         "tab": "API Reference",
         "pages": [
           {
-            "group": "Introduction",
+            "group": "Overview",
             "pages": [
               "api-reference/introduction"
             ]
@@ -157,10 +137,43 @@
         ]
       },
       {
-        "tab": "Themes",
+        "tab": "Features",
         "pages": [
           {
-            "group": "Themes & Templates",
+            "group": "Content Management",
+            "pages": [
+              "features/global-sections",
+              "features/navigation-menus",
+              "features/third-party-integrations"
+            ]
+          },
+          {
+            "group": "Internationalization",
+            "pages": [
+              "features/markets-localization"
+            ]
+          },
+          {
+            "group": "Security",
+            "pages": [
+              "features/content-security"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Deploy",
+        "pages": [
+          {
+            "group": "Deployment",
+            "pages": [
+              "deployment",
+              "oxygen-deployment",
+              "docker-deployment"
+            ]
+          },
+          {
+            "group": "Themes",
             "pages": [
               "themes-templates/pilot-theme-overview",
               "themes-templates/pilot-theme-customization",
@@ -168,7 +181,7 @@
             ]
           },
           {
-            "group": "Migration Guides",
+            "group": "Migration",
             "pages": [
               "migration-advanced/index",
               "migration-advanced/v5-migration",
@@ -180,28 +193,34 @@
           }
         ]
       },
-       {
-         "tab": "Resources",
-         "pages": [
-           {
-             "group": "Release Notes",
-             "pages": [
-               "changelog",
-               "changelog/weaverse-v5-release"
-             ]
-           },
-           {
-             "group": "Community & Resources",
-             "pages": [
-               "resources/tutorial",
-               "resources/example-components",
-               "resources/faq",
-               "community/community"
-             ]
-           }
-         ]
-       }
-     ]
+      {
+        "tab": "Help",
+        "pages": [
+          {
+            "group": "Resources",
+            "pages": [
+              "resources/faq",
+              "resources/tutorial",
+              "resources/example-components"
+            ]
+          },
+          {
+            "group": "Troubleshooting",
+            "pages": [
+              "troubleshooting/preview-errors"
+            ]
+          },
+          {
+            "group": "Community & Updates",
+            "pages": [
+              "community/community",
+              "changelog/index",
+              "changelog/weaverse-v5-release"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",

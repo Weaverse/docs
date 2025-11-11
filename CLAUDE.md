@@ -12,15 +12,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Configuration**: `docs.json` (Mintlify schema)
 - **Content Format**: MDX (Markdown with JSX components)
 - **Deployment**: Mintlify hosting with GitHub integration
+- **Version Control**: Git with automatic deployment from main branch
+
+## Quick Reference
+
+### Most Common Tasks
+
+**Preview docs locally**:
+```bash
+mint dev  # Run from docs/ directory, opens http://localhost:3000
+```
+
+**Add new documentation page**:
+1. Create `.mdx` file in appropriate directory with frontmatter
+2. Update `docs.json` navigation (file path without `.mdx` extension)
+3. Test with `mint dev`
+
+**Update navigation**:
+- Edit `docs.json` navigation array
+- Restart `mint dev` to see changes
+- File paths omit `.mdx` extension
+
+**Fix 404 errors**:
+- Verify file exists at correct path
+- Check `docs.json` includes the page in navigation
+- Ensure frontmatter is valid
 
 ## Development Commands
 
 ### Local Development
 ```bash
-# Install Mintlify CLI globally
+# Install Mintlify CLI globally (required first time only)
 npm i -g mint
 
 # Start local preview server (runs on http://localhost:3000)
+# MUST be run from directory containing docs.json
 mint dev
 
 # Update to latest Mintlify CLI version
@@ -29,9 +55,12 @@ mint update
 
 ### Content Validation
 ```bash
-# Check that docs.json is valid
-# Run mint dev - it will validate the config on startup
+# Validate docs.json configuration
+# mint dev validates on startup and shows errors
 mint dev
+
+# Check for broken links (manual review of navigation)
+# Review docs.json navigation matches actual file structure
 ```
 
 ## Project Structure
@@ -85,19 +114,39 @@ The `docs.json` file controls:
 - Light: `#599aff`
 - Dark: `#1e40af`
 
-**Navigation Tabs**:
-1. **Docs** - Main documentation (Getting Started, Core Concepts, Development Guide, Features, Deployment)
-2. **API Reference** - Hooks, Components, Utilities, Types
-3. **Themes** - Templates and migration guides
-4. **Resources** - Release notes, tutorials, FAQ, community
+**Navigation Structure**:
+The `navigation` object in `docs.json` uses this hierarchy:
+```json
+{
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Tab Name",
+        "pages": [
+          {
+            "group": "Group Name",
+            "pages": ["file-path", "folder/file-path"]
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
-**Important**: When adding new pages, you MUST update `docs.json` navigation array. Pages won't appear until they're listed in the navigation structure.
+**Navigation Tabs**:
+1. **Docs** - Main documentation (Getting Started, Core Concepts, Development Guide, Features, Developer Tools, Guides, Studio Guide, Troubleshooting, Deployment)
+2. **API Reference** - Introduction, Hooks, Components, Utilities & Types
+3. **Themes** - Themes & Templates, Migration Guides
+4. **Resources** - Release Notes, Community & Resources
+
+**Critical Rule**: When adding new pages, you MUST update `docs.json` navigation array. Pages won't appear until they're listed in the navigation structure. File paths in navigation omit the `.mdx` extension.
 
 ## Content Guidelines
 
 ### MDX Frontmatter
 
-All `.mdx` files should include frontmatter:
+All `.mdx` files MUST include frontmatter with title and description:
 
 ```yaml
 ---
@@ -106,6 +155,8 @@ description: "Page description for SEO and previews"
 published: true  # Optional, defaults to true
 ---
 ```
+
+**Critical**: Pages without frontmatter will cause errors or not render properly.
 
 ### Mintlify Components
 
@@ -220,27 +271,37 @@ npm run typecheck
 
 ## Common Documentation Patterns
 
+### Critical Two-Step Workflow for New Pages
+
+**IMPORTANT**: New pages require BOTH file creation AND navigation update:
+
+1. **Create the `.mdx` file** with frontmatter in appropriate directory
+2. **Update `docs.json`** navigation array to include the new page path
+
+Files without navigation entries will show 404 errors. Navigation entries without files will cause build errors.
+
 ### When Adding New API Documentation
 
-1. Create file in `api-reference/`
-2. Add frontmatter with title and description
-3. Update `docs.json` navigation under appropriate API group
-4. Follow existing structure:
+1. Create file in `api-reference/` with frontmatter
+2. **Update `docs.json`** navigation under `"API Reference"` tab → appropriate group
+3. Follow existing structure:
    - Introduction/description
    - Import example
    - Usage example
    - Parameters/props table
    - Return value
    - Full example
+4. Test locally with `mint dev` and verify page appears in navigation
 
 ### When Adding New Guide
 
 1. Create file in appropriate directory (`development-guide/`, `features/`, etc.)
-2. Add frontmatter
-3. Update `docs.json` navigation
+2. Add frontmatter with title and description
+3. **Update `docs.json`** navigation under appropriate tab and group
 4. Use CardGroup for navigation to related content
 5. Include code examples with syntax highlighting
 6. Add troubleshooting section if applicable
+7. Test locally to verify navigation and content
 
 ### Cross-Referencing
 
@@ -261,11 +322,14 @@ Use relative paths for internal links:
 
 ### Critical Rules
 
-- **Navigation Updates**: Always update `docs.json` when adding new pages
-- **Component Names**: Use `settings` not `inspector` in all documentation
-- **Code Accuracy**: Verify code examples match current SDK versions
-- **Mintlify Syntax**: Use Mintlify components, not raw HTML where possible
-- **Links**: Use relative paths for internal links, absolute for external
+- **Two-Step Page Creation**: Always create `.mdx` file AND update `docs.json` navigation
+- **Navigation Updates**: Restart `mint dev` after any `docs.json` changes
+- **Component Names**: Use `settings` not `inspector` in all Weaverse documentation
+- **Code Accuracy**: Verify code examples match current SDK versions (see Package Versions section)
+- **Mintlify Syntax**: Use Mintlify components (Card, Accordion, etc.) not raw HTML
+- **Links**: Use relative paths for internal links (e.g., `/api-reference/introduction`), absolute for external
+- **File Paths**: Navigation paths omit `.mdx` extension (use `"index"` not `"index.mdx"`)
+- **Frontmatter Required**: All `.mdx` files must include title and description
 
 ### Page Types Referenced
 
@@ -290,11 +354,12 @@ Changes deploy automatically:
 
 ### Local Development Tips
 
-- `mint dev` must be run from directory containing `docs.json`
+- `mint dev` must be run from directory containing `docs.json` (the docs/ directory)
 - Preview runs on `http://localhost:3000`
-- Hot reload enabled for `.mdx` file changes
-- Restart required for `docs.json` changes
+- Hot reload enabled for `.mdx` file changes (auto-refresh browser)
+- **Restart required** for `docs.json` navigation changes
 - 404 errors indicate missing navigation entry or incorrect file path
+- Check terminal for build errors and warnings
 
 ## Style Guidelines
 
@@ -305,21 +370,40 @@ Changes deploy automatically:
 - Prefer numbered steps for sequential instructions
 - Use bullet points for feature lists and options
 
-## Common Issues
+## Common Issues & Troubleshooting
 
 **Page Shows 404**:
-- Verify file exists at correct path
-- Check `docs.json` navigation includes the page
-- Ensure MDX frontmatter is valid
+1. Verify file exists at correct path relative to docs directory
+2. Check `docs.json` navigation includes the page path (without `.mdx` extension)
+3. Ensure MDX frontmatter is valid (title and description required)
+4. Restart `mint dev` if navigation was just updated
+5. Check terminal for build errors
 
 **Navigation Not Updating**:
-- Restart `mint dev` after `docs.json` changes
-- Clear browser cache
+1. **Restart `mint dev`** after any `docs.json` changes (required)
+2. Clear browser cache (Ctrl/Cmd + Shift + R)
+3. Verify JSON syntax is valid (no trailing commas, proper quotes)
+4. Check terminal for validation errors
 
 **Component Not Rendering**:
-- Verify Mintlify component syntax
-- Check for unclosed tags
-- Ensure proper JSX structure
+1. Verify Mintlify component syntax matches examples above
+2. Check for unclosed tags (all components must be properly closed)
+3. Ensure proper JSX structure (components must be on their own lines)
+4. Common mistake: mixing MDX with HTML tags - use Mintlify components
+5. Check terminal for JSX parsing errors
+
+**Build Errors**:
+1. Check terminal output for specific error messages
+2. Verify all referenced files in navigation actually exist
+3. Ensure no duplicate page paths in navigation
+4. Validate frontmatter YAML syntax (check indentation, quotes)
+5. Test syntax highlighting language codes are valid
+
+**Images Not Loading**:
+1. Verify image URL is accessible (test in browser)
+2. Use Shopify CDN URLs: `https://cdn.shopify.com/s/files/1/0838/0052/3057/files/`
+3. Wrap images in `<Frame>` component for consistent styling
+4. Include `alt` attribute for accessibility
 
 ## External References
 

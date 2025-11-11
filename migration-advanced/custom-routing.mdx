@@ -214,6 +214,161 @@ Now, visiting `/item/your-product-handle` will render the Weaverse product page 
 
 ---
 
+## Custom Routing with Localization
+
+Custom routes can be combined with Weaverse's localization features to support multi-locale storefronts with custom URL structures.
+
+### Explicit Locale in Custom Routes
+
+When implementing custom routes, you can explicitly pass the `locale` parameter to `loadPage()` to ensure the correct localized content is loaded:
+
+```typescript
+// app/routes/($locale).item.$productHandle.tsx
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+  let { productHandle } = params;
+
+  // Extract locale from URL parameter or determine from request
+  let locale = params.locale?.toLowerCase() || "en-us";
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+    locale, // Explicitly specify locale for custom route
+  });
+
+  if (!weaverseData) {
+    throw new Response("Product not found", { status: 404 });
+  }
+
+  return { weaverseData, locale };
+}
+```
+
+### Localized Custom URL Patterns
+
+Create locale-specific custom routes with different URL structures per market:
+
+```typescript
+// Swedish store: /vara/:productHandle (Swedish for "item")
+// app/routes/($locale).vara.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale: "sv-se", // Swedish content
+  });
+
+  return { weaverseData };
+}
+```
+
+```typescript
+// French store: /article/:productHandle (French for "item")
+// app/routes/($locale).article.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale: "fr-ca", // French Canadian content
+  });
+
+  return { weaverseData };
+}
+```
+
+### Dynamic Locale Selection in Custom Routes
+
+Combine custom routing with dynamic locale detection:
+
+```typescript
+// app/routes/promo.$campaignHandle.tsx
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Determine locale from subdomain, cookie, or header
+  let locale = determineLocaleFromRequest(request);
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PAGE",
+    handle: params.campaignHandle,
+    locale, // Use dynamically determined locale
+  });
+
+  return { weaverseData, locale };
+}
+
+function determineLocaleFromRequest(request: Request): string {
+  let url = new URL(request.url);
+  let subdomain = url.hostname.split(".")[0];
+
+  let localeMap: Record<string, string> = {
+    "se": "sv-se",
+    "fr": "fr-ca",
+    "de": "de-de",
+  };
+
+  return localeMap[subdomain] || "en-us";
+}
+```
+
+### Multi-Project Custom Routing
+
+For top-level domain or subdomain-based localization, combine custom routing with multi-project architecture:
+
+```typescript
+// server.ts or weaverse initialization
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+  projectId: () => {
+    let origin = new URL(request.url).origin;
+
+    // Route to different projects based on domain
+    if (origin === "https://mystore.se") {
+      return "project-sweden-123";
+    } else if (origin === "https://mystore.fr") {
+      return "project-france-456";
+    }
+
+    return process.env.WEAVERSE_PROJECT_ID;
+  },
+});
+
+// app/routes/vara.$productHandle.tsx (Swedish custom route)
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Project already determined by WeaverseClient initialization
+  // Optionally override at route level
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    // projectId automatically set based on domain
+  });
+
+  return { weaverseData };
+}
+```
+
+**Benefits:**
+- Completely different URL structures per market (e.g., `/vara/` for Swedish, `/item/` for English)
+- Independent theme settings and page structures per project
+- Support for top-level domains (mystore.se, mystore.fr) without complex routing
+
+<Tip>
+See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)** for comprehensive documentation on multi-project routing, including advanced routing patterns, A/B testing, and multi-brand storefronts.
+</Tip>
+
+---
+
 ## Important Considerations
 
 -   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, etc.). Refer to the [Supported Page Types](/guides/rendering-page#supported-page-types).

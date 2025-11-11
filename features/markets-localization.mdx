@@ -105,11 +105,154 @@ After integrating the `CountrySelector` component and configuring the theme sche
 
 ### Benefits of Markets/Localization
 
-Using Weaverse’s localization capabilities, you can:
+Using Weaverse's localization capabilities, you can:
 - Deliver market-specific content while maintaining a global default version.
 - Easily manage and update localized content for specific markets.
 - Preview localized storefronts to ensure alignment with audience preferences.
 - Revert localized pages to default content when necessary.
+
+## Technical Implementation
+
+While the Studio workflow above covers the visual management of localized content, understanding the technical implementation helps developers customize and extend localization functionality.
+
+### How Locale Detection Works
+
+Weaverse automatically determines the current locale through your theme's i18n configuration and Hydrogen's storefront context. The `loadPage()` function uses this information to fetch the appropriate localized content.
+
+**Connection between theme schema and loadPage():**
+
+```typescript
+// Your theme schema i18n config
+export let themeSchema: HydrogenThemeSchema = {
+  i18n: {
+    urlStructure: "url-path",
+    shopLocales: [
+      {
+        language: "en",
+        country: "US",
+        pathPrefix: "",
+        label: "English (US)",
+      },
+      {
+        language: "sv",
+        country: "SE",
+        pathPrefix: "sv-se",
+        label: "Svenska",
+      },
+    ],
+  },
+};
+
+// In your route loader
+export async function loader({ context }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Weaverse automatically detects locale from context.storefront.i18n
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+    // locale auto-detected from pathPrefix (e.g., "sv-se")
+  });
+
+  return { weaverseData };
+}
+```
+
+### Explicit Locale Control
+
+For advanced use cases, you can explicitly specify the locale in `loadPage()`:
+
+```typescript
+// Explicitly load Swedish content
+let weaverseData = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: productHandle,
+  locale: "sv-se", // Override auto-detection
+});
+```
+
+**When to use explicit locale:**
+- Custom routing logic determines locale
+- Loading content for a different locale than the current page
+- Background jobs or admin tools
+- Cross-locale content comparison
+
+<Tip>
+See the [Advanced Localization Guide](/guides/localization-advanced) for complete technical details on locale detection methods and the `locale` parameter.
+</Tip>
+
+### Locale Format Standards
+
+Weaverse uses the standard `language-country` format (lowercase, hyphen-separated):
+
+- **Format:** `language-country` (e.g., `sv-se`, `fr-ca`, `de-de`)
+- **Language:** ISO 639-1 code (2 letters)
+- **Country:** ISO 3166-1 alpha-2 code (2 letters)
+
+**Examples:**
+- `sv-se` - Swedish (`sv`) in Sweden (`se`)
+- `fr-ca` - French (`fr`) in Canada (`ca`)
+- `en-gb` - English (`en`) in United Kingdom (`gb`)
+
+### Limitations of Single-Project Approach
+
+While the single-project approach works well for most use cases, it has some limitations:
+
+- **No per-locale theme settings:** Global theme settings (colors, fonts, layouts) apply to all locales
+- **URL structure constraints:** Best with `url-path` structure (`/sv-se/...`); limited support for subdomains or top-level domains
+- **Shared page routing:** All locales share the same page structure and navigation
+
+### Alternative: Multi-Project Architecture
+
+For advanced localization requirements, Weaverse supports a multi-project approach where each market or locale has its own dedicated project.
+
+**When to use multi-project:**
+- Different branding or theme settings per market
+- Top-level domain structure (mystore.se, mystore.fr)
+- Market-specific page structures
+- A/B testing different configurations
+
+**Setup example:**
+
+```typescript
+// server.ts or weaverse initialization
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+  projectId: () => {
+    let origin = request.url.origin;
+
+    if (origin === "https://mystore.se") {
+      return "project-sweden-123"; // Swedish market project
+    } else if (origin === "https://mystore.fr") {
+      return "project-france-456"; // French market project
+    } else {
+      return "project-default-789"; // Default market
+    }
+  },
+});
+```
+
+**Multi-project workflow:**
+1. Create your original project and develop your storefront
+2. Duplicate the project in Weaverse Studio for each market/locale
+3. Customize each project independently (content, theme settings, pages)
+4. Use `projectId` logic to route to the appropriate project based on domain or custom criteria
+5. Import/export content between projects as needed for coordination
+
+**Benefits of multi-project:**
+- Independent global theme settings per market
+- Different page structures and navigation per locale
+- Support for any URL structure (top-level domains, subdomains, custom routing)
+- Complete Studio isolation per market
+- A/B testing and staged rollouts
+
+<Note>
+See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)** for comprehensive documentation on multi-project setup, including A/B testing, multi-brand storefronts, advanced routing patterns, and step-by-step migration guides.
+</Note>
 
 ## Conclusion
 

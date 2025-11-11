@@ -68,7 +68,7 @@ class WeaverseClient {
   // Methods
   fetchWithCache<T>(url: string, options?: RequestInit & { strategy?: AllCacheOptions }): Promise<T>;
   loadThemeSettings(strategy?: AllCacheOptions): Promise<HydrogenThemeSettings>;
-  loadPage(params?: { type?: PageType, locale?: string, handle?: string, strategy?: AllCacheOptions }): Promise<WeaverseLoaderData | null>;
+  loadPage(params?: { type?: PageType, locale?: string, handle?: string, projectId?: string, strategy?: AllCacheOptions }): Promise<WeaverseLoaderData | null>;
   execComponentLoader(item: HydrogenComponentData): Promise<HydrogenComponentData>;
   generateFallbackPage(message: string): HydrogenPageData;
 }
@@ -154,53 +154,230 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 ### loadPage
 
-Loads a page's data from Weaverse, including running component loaders.
+Loads a page's data from Weaverse, including running component loaders and handling localization.
 
 ```typescript
 loadPage(params?: {
   type?: PageType,
   locale?: string,
   handle?: string,
+  projectId?: string,
   strategy?: AllCacheOptions
 }): Promise<WeaverseLoaderData | null>
 ```
 
 **Parameters:**
-- `params` - Object containing:
-  - `type?: PageType` - Type of page ('INDEX', 'PRODUCT', etc.)
-  - `locale?: string` - Locale for the page
-  - `handle?: string` - Handle/slug for the page
-  - `strategy?: AllCacheOptions` - Caching strategy
+
+<AccordionGroup>
+  <Accordion title="type?: PageType" icon="file" defaultOpen>
+    Page type identifier determining the kind of content to load.
+
+    **Supported types:**
+    - `'INDEX'` - Homepage
+    - `'PRODUCT'` - Product detail pages
+    - `'COLLECTION'` - Collection/category pages
+    - `'PAGE'` - Custom pages created in Weaverse Studio
+    - `'BLOG'` - Blog listing pages
+    - `'ARTICLE'` - Individual blog post pages
+    - `'CUSTOM'` - Dynamic custom pages
+
+    **Default:** Inferred from route context if not specified.
+
+    **Required:** For most page types except INDEX and CUSTOM.
+  </Accordion>
+
+  <Accordion title="locale?: string" icon="globe">
+    Locale identifier for loading localized content.
+
+    **Format:** `language-country` (lowercase, hyphen-separated)
+    - Language: ISO 639-1 code (2 letters, e.g., `sv`, `en`, `fr`)
+    - Country: ISO 3166-1 alpha-2 code (2 letters, e.g., `se`, `us`, `ca`)
+
+    **Examples:**
+    - `"en-us"` - English in United States
+    - `"sv-se"` - Swedish (sv) in Sweden (se)
+    - `"fr-ca"` - French (fr) in Canada (ca)
+    - `"de-de"` - German (de) in Germany (de)
+
+    **Detection priority when not provided:**
+    1. Path prefix from URL (deprecated)
+    2. Auto-detection from `context.storefront.i18n.pathPrefix`
+
+    **Fallback:** If the specified locale doesn't exist, falls back to `en-us` (smart fallback coming in future release).
+
+    **When to use explicit locale:**
+    - Custom routing logic determines locale
+    - Loading content for different locale than current page
+    - Background jobs without request context
+    - Cross-locale content comparison
+
+    See [Advanced Localization Guide](/guides/localization-advanced) for complete details.
+  </Accordion>
+
+  <Accordion title="handle?: string" icon="tag">
+    Page handle/slug identifier for specific content.
+
+    **Required for:**
+    - `PRODUCT` - Product handle (e.g., `"classic-varsity-jacket"`)
+    - `COLLECTION` - Collection handle (e.g., `"summer-collection"`)
+    - `PAGE` - Custom page handle from Studio
+    - `BLOG` - Blog handle
+    - `ARTICLE` - Article handle
+
+    **Not used for:**
+    - `INDEX` - Homepage (no handle needed)
+    - `CUSTOM` - Dynamic custom pages (URL determines content)
+
+    **Format:** URL-friendly slug (lowercase, hyphens, no spaces)
+  </Accordion>
+
+  <Accordion title="projectId?: string" icon="folder-tree">
+    Weaverse project ID for multi-project architectures.
+
+    **Default:** Value from `WEAVERSE_PROJECT_ID` environment variable
+
+    **When to use:**
+    - Multi-brand storefronts sharing infrastructure
+    - Different projects per market or locale
+    - A/B testing different project configurations
+    - Staging vs production project separation
+
+    **Example use case:** Domain-based project selection
+    ```typescript
+    let projectId = origin === "https://store.se"
+      ? "project-sweden-123"
+      : "project-default-456";
+
+    let data = await weaverse.loadPage({ type: "INDEX", projectId });
+    ```
+
+    **Important:** Set up `projectId` in WeaverseClient initialization for automatic domain-based routing. Route-level override is available for special cases.
+
+    See [Multi-Project Architecture Guide](/guides/multi-project-architecture) for comprehensive implementation details, including A/B testing, multi-brand setups, and step-by-step migration guides.
+  </Accordion>
+
+  <Accordion title="strategy?: AllCacheOptions" icon="database">
+    Caching strategy configuration for the page data request.
+
+    **Options:**
+    - `maxAge` - Cache duration in seconds
+    - `staleWhileRevalidate` - Serve stale content while revalidating
+    - `sMaxAge` - Shared cache (CDN) duration
+
+    **Example:**
+    ```typescript
+    strategy: {
+      maxAge: 3600,              // Cache for 1 hour
+      staleWhileRevalidate: 86400 // Serve stale for 24h while updating
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
 
 **Returns:**
-- `Promise<WeaverseLoaderData | null>` - Page data object or null if not found
+- `Promise<WeaverseLoaderData | null>` - Page data object or `null` if not found
 
-**Example:**
+**Examples:**
 
-```typescript
-// In a route loader
-export async function loader({ context, request, params }: LoaderFunctionArgs) {
-  const { weaverse } = context;
-  
-  const pageData = await weaverse.loadPage({
-    type: 'PRODUCT',
-    handle: params.handle,
-    strategy: {
-      maxAge: 60,
-      staleWhileRevalidate: 600
-    }
+<CodeGroup>
+```typescript Basic Usage
+// Auto-detects locale from context.storefront.i18n
+export async function loader({ context, params }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
   });
-  
-  if (!pageData) {
-    throw new Response('Page not found', { status: 404 });
-  }
-  
-  return json({
-    weaverseData: pageData,
-    // other data
-  });
+
+  return { weaverseData };
 }
 ```
+
+```typescript With Explicit Locale
+// Load Swedish content explicitly
+export async function loader({ context, params }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale: "sv-se", // Swedish (sv) in Sweden (se)
+  });
+
+  return { weaverseData };
+}
+```
+
+```typescript Cross-Locale Loading
+// Load content in multiple locales
+export async function loader({ context, params }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+  let { productHandle } = params;
+
+  let [englishData, frenchData, swedishData] = await Promise.all([
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "en-us" }),
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "fr-ca" }),
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "sv-se" }),
+  ]);
+
+  return { englishData, frenchData, swedishData };
+}
+```
+
+```typescript Multi-Project Setup
+// Load from different project based on domain
+export async function loader({ context, request, params }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+  let origin = new URL(request.url).origin;
+
+  // Determine project by domain
+  let projectId = origin === "https://mystore.se"
+    ? "project-sweden-123"
+    : "project-default-456";
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    projectId, // Override default project
+  });
+
+  return { weaverseData };
+}
+```
+
+```typescript Complete Example
+// All parameters with error handling
+export async function loader({ context, request, params }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Determine locale from custom logic
+  let locale = params.locale?.toLowerCase() || "en-us";
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale,
+    strategy: {
+      maxAge: 3600,              // Cache for 1 hour
+      staleWhileRevalidate: 86400 // Stale-while-revalidate for 24h
+    }
+  });
+
+  if (!weaverseData) {
+    throw new Response("Page not found", { status: 404 });
+  }
+
+  return { weaverseData, locale };
+}
+```
+</CodeGroup>
+
+**Related:**
+- [Rendering Weaverse Pages](/guides/rendering-page) - Complete guide to page rendering
+- [Advanced Localization](/guides/localization-advanced) - Locale detection and multi-project setup
+- [Multi-Project Architecture](/guides/multi-project-architecture) - A/B testing, multi-brand, and advanced routing
+- [Markets & Localization](/features/markets-localization) - Studio workflow for localized content
 
 ### execComponentLoader
 
@@ -234,5 +411,5 @@ generateFallbackPage(message: string): HydrogenPageData
 
 ## Related
 
-- [useWeaverse](api/use-weaverse) - Hook for accessing Weaverse instance client-side
+- [useWeaverse](/api-reference/use-weaverse) - Hook for accessing Weaverse instance client-side
 - [Data Fetching and Caching](/development-guide/data-fetching) - Advanced guide on data fetching

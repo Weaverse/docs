@@ -156,7 +156,188 @@ If you want a custom page to act as your homepage, ensure your index route (`($l
 
 ---
 
-> **Note:** Custom pages created in Weaverse are **not automatically included** in your store’s sitemap (e.g., `sitemap.xml`) yet. To ensure they appear in your sitemap for SEO, you need to manually add them in your sitemap route (e.g., `sitemap.$type.$page[.xml].tsx`). Automatic inclusion will be supported in a future release.
+> **Note:** Custom pages created in Weaverse are **not automatically included** in your store's sitemap (e.g., `sitemap.xml`) yet. To ensure they appear in your sitemap for SEO, you need to manually add them in your sitemap route (e.g., `sitemap.$type.$page[.xml].tsx`). Automatic inclusion will be supported in a future release.
+
+---
+
+## Custom Pages with Localization
+
+Custom pages support Weaverse's localization features, allowing you to create locale-specific custom pages for different markets.
+
+### Creating Localized Custom Pages
+
+In Weaverse Studio, you can create localized versions of custom pages using the country selector, just like with other page types. See the [Markets & Localization guide](/features/markets-localization) for Studio workflow details.
+
+### Loading Localized Custom Pages
+
+#### Auto-Detection (Default)
+
+Custom pages automatically detect the locale from Hydrogen's i18n context:
+
+```tsx
+// app/routes/($locale).$.tsx
+export async function loader({ context }: LoaderFunctionArgs) {
+  let weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    // locale auto-detected from context.storefront.i18n
+  });
+
+  if (!weaverseData?.page?.id || weaverseData.page.id.includes("fallback")) {
+    throw new Response(null, { status: 404 });
+  }
+
+  return { weaverseData };
+}
+```
+
+#### Explicit Locale Parameter
+
+For custom routing logic or when you need to explicitly specify the locale:
+
+```tsx
+// app/routes/about.tsx
+export async function loader({ context, request }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Determine locale from custom logic
+  let locale = determineLocaleFromRequest(request);
+
+  let weaverseData = await weaverse.loadPage({
+    type: "CUSTOM",
+    locale, // Explicitly specify locale
+  });
+
+  if (!weaverseData) {
+    throw new Response("Page not found", { status: 404 });
+  }
+
+  return { weaverseData, locale };
+}
+
+function determineLocaleFromRequest(request: Request): string {
+  // Custom logic: subdomain, cookie, header, etc.
+  let url = new URL(request.url);
+  let subdomain = url.hostname.split(".")[0];
+
+  let localeMap: Record<string, string> = {
+    "se": "sv-se",
+    "fr": "fr-ca",
+    "de": "de-de",
+  };
+
+  return localeMap[subdomain] || "en-us";
+}
+```
+
+### Locale-Specific Custom Page Routes
+
+Create dedicated routes for locale-specific custom pages:
+
+```tsx
+// app/routes/om-oss.tsx (Swedish "About Us")
+export async function loader({ context }: LoaderFunctionArgs) {
+  let weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    locale: "sv-se", // Load Swedish version
+  });
+
+  if (!weaverseData) {
+    throw new Response("Page not found", { status: 404 });
+  }
+
+  return { weaverseData };
+}
+
+export default function AboutSe() {
+  return <WeaverseContent />;
+}
+```
+
+```tsx
+// app/routes/a-propos.tsx (French "About Us")
+export async function loader({ context }: LoaderFunctionArgs) {
+  let weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    locale: "fr-ca", // Load French Canadian version
+  });
+
+  if (!weaverseData) {
+    throw new Response("Page not found", { status: 404 });
+  }
+
+  return { weaverseData };
+}
+
+export default function AboutFr() {
+  return <WeaverseContent />;
+}
+```
+
+### Loading Multiple Locale Versions
+
+For translation workflows or content comparison:
+
+```tsx
+export async function loader({ context }: LoaderFunctionArgs) {
+  let { weaverse } = context;
+
+  // Load same custom page in multiple locales
+  let [englishPage, frenchPage, swedishPage] = await Promise.all([
+    weaverse.loadPage({ type: "CUSTOM", locale: "en-us" }),
+    weaverse.loadPage({ type: "CUSTOM", locale: "fr-ca" }),
+    weaverse.loadPage({ type: "CUSTOM", locale: "sv-se" }),
+  ]);
+
+  return { englishPage, frenchPage, swedishPage };
+}
+```
+
+### Multi-Project Custom Pages
+
+For complex multi-market scenarios, use the multi-project approach:
+
+```tsx
+// server.ts or weaverse initialization
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+  projectId: () => {
+    let origin = new URL(request.url).origin;
+
+    if (origin === "https://mystore.se") {
+      return "project-sweden-123"; // Swedish project with Swedish custom pages
+    } else if (origin === "https://mystore.fr") {
+      return "project-france-456"; // French project with French custom pages
+    }
+
+    return process.env.WEAVERSE_PROJECT_ID;
+  },
+});
+
+// app/routes/about.tsx
+export async function loader({ context }: LoaderFunctionArgs) {
+  let weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM",
+    // projectId automatically determined by domain
+    // Each project has its own custom pages
+  });
+
+  return { weaverseData };
+}
+```
+
+**Benefits of multi-project for custom pages:**
+- Completely different custom page structure per market
+- Independent theme settings and global sections
+- Market-specific page routing and navigation
+- No shared content between markets
+
+<Tip>
+See [Advanced Localization Guide](/guides/localization-advanced) for complete details on locale detection, multi-project architecture, and advanced scenarios.
+</Tip>
 
 ---
 
@@ -235,6 +416,7 @@ export default function CustomPage({ weaverseData, cmsData }: { weaverseData: an
 
 ## Next Steps & Resources
 
+- For multi-market or multi-brand custom pages, see [Multi-Project Architecture Guide](/guides/multi-project-architecture)
 - Explore [Weaverse Documentation](https://docs.weaverse.io)
 - Learn more about [Hydrogen Routing](https://shopify.dev/docs/custom-storefronts/hydrogen/routing)
 - Review [Shopify Navigation](https://help.shopify.com/manual/online-store/menus-and-links)

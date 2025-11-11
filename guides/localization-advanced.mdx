@@ -1,0 +1,650 @@
+---
+title: "Advanced Localization Guide"
+description: "Comprehensive technical guide for implementing multi-locale storefronts with Weaverse, including locale detection mechanisms, fallback behavior, and multi-project approaches."
+published: true
+---
+
+# Advanced Localization Guide
+
+This guide provides comprehensive technical documentation for implementing localization in your Weaverse Hydrogen storefront, covering locale detection mechanisms, the `locale` parameter, multi-project architectures, and best practices.
+
+## Overview
+
+Weaverse provides flexible localization support through multiple detection methods and configuration options. Understanding these mechanisms helps you choose the right approach for your storefront's needs.
+
+### What You'll Learn
+
+- Locale format standards and conventions
+- Three methods for locale detection and their priorities
+- Using the `locale` parameter in `loadPage()`
+- Locale fallback behavior and handling missing locales
+- Multi-project architecture for advanced localization needs
+- Best practices and troubleshooting
+
+## Locale Format Standards
+
+Weaverse uses the standard `language-country` format for locale identifiers.
+
+### Format Specification
+
+**Pattern:** `language-country` (lowercase, hyphen-separated)
+
+- **Language code:** ISO 639-1 (2-letter lowercase)
+- **Country code:** ISO 3166-1 alpha-2 (2-letter lowercase)
+- **Separator:** Hyphen (`-`)
+
+### Common Examples
+
+| Locale | Language | Country | Description |
+|--------|----------|---------|-------------|
+| `en-us` | English (en) | United States (us) | English in the United States |
+| `en-gb` | English (en) | United Kingdom (gb) | English in the United Kingdom |
+| `fr-ca` | French (fr) | Canada (ca) | French in Canada |
+| `fr-fr` | French (fr) | France (fr) | French in France |
+| `sv-se` | Swedish (sv) | Sweden (se) | Swedish in Sweden |
+| `de-de` | German (de) | Germany (de) | German in Germany |
+| `ja-jp` | Japanese (ja) | Japan (jp) | Japanese in Japan |
+| `es-es` | Spanish (es) | Spain (es) | Spanish in Spain |
+| `es-mx` | Spanish (es) | Mexico (mx) | Spanish in Mexico |
+
+<Note>
+**Important:** Weaverse requires the exact lowercase hyphen-separated format. Formats like `en_US`, `en-US`, or `EN-us` are not supported and may cause locale detection to fail.
+</Note>
+
+## Locale Detection Methods
+
+Weaverse provides three methods for detecting the current locale, with a clear priority order.
+
+### Detection Priority
+
+When `loadPage()` is called, Weaverse determines the locale using this priority:
+
+1. **Explicit `locale` parameter** (highest priority)
+2. **Path prefix detection** (deprecated, may be removed in future)
+3. **Auto-detection from `context.storefront.i18n`** (default fallback)
+
+### Method 1: Explicit locale Parameter (Recommended)
+
+The most reliable and recommended approach is to explicitly pass the `locale` parameter to `loadPage()`.
+
+```typescript
+// app/routes/products.$productHandle.tsx
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { productHandle } = params;
+  const { weaverse } = context;
+
+  // Explicitly specify the locale
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+    locale: "sv-se", // Swedish content in Sweden
+  });
+
+  return { weaverseData };
+}
+```
+
+**When to use:**
+- You have custom routing logic that determines locale
+- Loading content for a different locale than the current page
+- Background jobs or server-side processes without request context
+- Testing or previewing locale-specific content
+- You want explicit control over locale selection
+
+**Benefits:**
+- Complete control over locale selection
+- No ambiguity about which locale is being loaded
+- Works in any context (routes, background jobs, utilities)
+- Future-proof as other methods may be deprecated
+
+### Method 2: Path Prefix Detection (Deprecated)
+
+<Warning>
+This method is deprecated and may be removed in a future version. Use explicit `locale` parameter instead for new implementations.
+</Warning>
+
+Weaverse can extract locale from the URL path prefix.
+
+```typescript
+// URL: /sv-se/products/jacket
+// Automatically detects locale: "sv-se"
+
+const weaverseData = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: productHandle,
+  // locale auto-detected from path: /sv-se/...
+});
+```
+
+**How it works:**
+- Parses the first segment of the URL path
+- Validates it matches the `language-country` format
+- Uses it as the locale if valid
+
+**Limitations:**
+- Requires specific URL structure
+- May conflict with custom routing
+- Being phased out in favor of explicit parameters
+
+### Method 3: Auto-detection from context.storefront.i18n (Default)
+
+When no `locale` parameter is provided and path prefix detection fails, Weaverse reads locale from Hydrogen's storefront context.
+
+```typescript
+// Relies on Hydrogen's i18n configuration
+const weaverseData = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: productHandle,
+  // Automatically uses context.storefront.i18n.pathPrefix
+});
+```
+
+**How it works:**
+```typescript
+// Behind the scenes:
+const pathPrefix = context.storefront.i18n.pathPrefix; // e.g., "/sv-se"
+const detectedLocale = pathPrefix.slice(1); // "sv-se"
+```
+
+**Requirements:**
+- Hydrogen storefront must be configured with i18n
+- `context.storefront.i18n.pathPrefix` must be set
+- Theme schema must include i18n configuration
+
+**When this works well:**
+- Standard Hydrogen i18n setup
+- URL structure matches Shopify's locale routing
+- No complex custom routing logic
+
+## Using the locale Parameter
+
+### Basic Usage
+
+```typescript
+import type { LoaderFunctionArgs } from "react-router";
+
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale: "fr-ca", // Load French Canadian content
+  });
+
+  return { weaverseData };
+}
+```
+
+### Dynamic Locale Selection
+
+```typescript
+export async function loader({ params, context, request }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+
+  // Determine locale based on custom logic
+  let locale = "en-us"; // default
+
+  if (params.locale) {
+    locale = params.locale.toLowerCase();
+  } else if (request.headers.get("accept-language")) {
+    locale = parseAcceptLanguage(request.headers.get("accept-language"));
+  }
+
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale, // Use dynamically determined locale
+  });
+
+  return { weaverseData };
+}
+```
+
+### Cross-Locale Content Loading
+
+Load content from multiple locales simultaneously:
+
+```typescript
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+  const { productHandle } = params;
+
+  // Load same product in multiple locales
+  const [englishData, frenchData, swedishData] = await Promise.all([
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "en-us" }),
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "fr-ca" }),
+    weaverse.loadPage({ type: "PRODUCT", handle: productHandle, locale: "sv-se" }),
+  ]);
+
+  return { englishData, frenchData, swedishData };
+}
+```
+
+## Locale Fallback Behavior
+
+Understanding how Weaverse handles missing locales is important for reliable internationalization.
+
+### Current Behavior
+
+<Note>
+**Current Implementation:** If the requested locale doesn't exist, Weaverse falls back to `en-us` content.
+</Note>
+
+```typescript
+// Request Swedish content
+const data = await weaverse.loadPage({
+  type: "PRODUCT",
+  handle: "jacket",
+  locale: "sv-se",
+});
+
+// If sv-se doesn't exist:
+// → Falls back to en-us content
+// → Returns en-us page data
+```
+
+### Planned Future Behavior
+
+<Tip>
+**Coming Soon:** Smart fallback will try language matches before falling back to the default.
+</Tip>
+
+Planned fallback priority:
+1. **Exact locale match:** Try requested locale (e.g., `sv-se`)
+2. **Language match:** Try any locale with same language (e.g., `sv-*`)
+3. **Default locale:** Use default from theme schema
+4. **Final fallback:** Use `en-us` as last resort
+
+```typescript
+// Future behavior example:
+// Request: locale: "sv-se" (Swedish in Sweden)
+//
+// Fallback chain:
+// 1. Try sv-se (exact match)
+// 2. Try sv-fi (Swedish in Finland - language match)
+// 3. Try defaultLocale from theme schema
+// 4. Try en-us (final fallback)
+```
+
+### Handling Fallback in Your Code
+
+```typescript
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { weaverse } = context;
+  const requestedLocale = params.locale || "en-us";
+
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale: requestedLocale,
+  });
+
+  // Check if fallback occurred (optional)
+  if (weaverseData?.page?.locale !== requestedLocale) {
+    console.warn(`Locale ${requestedLocale} not found, using fallback`);
+  }
+
+  return { weaverseData, requestedLocale };
+}
+```
+
+## Single-Project Localization
+
+### How It Works
+
+The standard approach uses one Weaverse project with theme schema i18n configuration:
+
+```typescript
+// schema.server.ts
+import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+
+export let themeSchema: HydrogenThemeSchema = {
+  i18n: {
+    urlStructure: "url-path",
+    shopLocales: [
+      {
+        language: "en",
+        country: "US",
+        pathPrefix: "",
+        label: "English (US)",
+      },
+      {
+        language: "sv",
+        country: "SE",
+        pathPrefix: "sv-se",
+        label: "Svenska",
+      },
+      {
+        language: "fr",
+        country: "CA",
+        pathPrefix: "fr-ca",
+        label: "Français (Canada)",
+      },
+    ],
+  },
+};
+```
+
+### Limitations
+
+While single-project localization works well for many use cases, it has some limitations:
+
+- **No per-locale theme settings:** Global theme settings (colors, fonts, layout options) apply to all locales
+- **URL structure constraints:** Best with `url-path` structure; `subdomain` and `top-level-domain` have limited support
+- **Studio domain sync:** No automatic domain-based locale switching in Studio
+- **Shared page structure:** All locales share the same page routing and structure
+
+### When Single-Project Works Well
+
+- Content translation is the primary need
+- All markets use the same theme and branding
+- URL structure follows path-based locales (`/en-us`, `/fr-ca`)
+- Centralized content management is preferred
+
+## Multi-Project Architecture
+
+For advanced localization needs and complex use cases, Weaverse supports a multi-project approach where each market, brand, or variant has its own dedicated project.
+
+<Note>
+**Looking for comprehensive multi-project guidance?** This section covers multi-project basics for localization. For complete documentation including A/B testing, multi-brand storefronts, advanced routing patterns, and step-by-step migration guides, see the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)**.
+</Note>
+
+### When to Use Multi-Project for Localization
+
+Consider multi-project architecture for localization when you need:
+
+- **Different theme settings per market:** Unique colors, fonts, layouts for each locale
+- **Market-specific page structures:** Different pages, navigation, or content organization
+- **Domain-based localization:** Top-level domains (mystore.se, mystore.fr) or subdomains (se.mystore.com)
+- **Team isolation:** Separate teams managing different market projects
+
+### Basic Setup Example
+
+Configure `WeaverseClient` with a `projectId` function that determines which project to use based on domain:
+
+```typescript
+// app/lib/weaverse/weaverse.server.ts
+import { WeaverseClient } from "@weaverse/hydrogen";
+
+export function createWeaverseClient(args: CreateWeaverseClientArgs) {
+  let { hydrogenContext, request, cache, themeSchema, components } = args;
+
+  return new WeaverseClient({
+    ...hydrogenContext,
+    request,
+    cache,
+    themeSchema,
+    components,
+    projectId: () => {
+      let origin = new URL(request.url).origin;
+
+      const projectMap: Record<string, string> = {
+        "https://mystore.se": process.env.WEAVERSE_PROJECT_SWEDEN!,
+        "https://mystore.fr": process.env.WEAVERSE_PROJECT_FRANCE!,
+        "https://mystore.de": process.env.WEAVERSE_PROJECT_GERMANY!,
+      };
+
+      return projectMap[origin] || process.env.WEAVERSE_PROJECT_ID!;
+    },
+  });
+}
+```
+
+### Learn More
+
+For comprehensive multi-project documentation, including:
+
+- **A/B testing and experimentation** - Traffic splitting, variant assignment, analytics
+- **Multi-brand storefronts** - Subdomain routing, brand-specific themes
+- **Advanced routing patterns** - Path-based, query parameter, header-based, and hybrid routing
+- **Complete Studio workflow** - Project duplication, content management
+- **Step-by-step migration guide** - Migrating from single to multi-project (6 phases)
+- **Performance optimization** - Caching strategies, CDN configuration
+- **Troubleshooting** - Common issues and solutions
+
+See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)**.
+
+## Best Practices
+
+### Performance Considerations
+
+<Accordion title="Caching Strategies" icon="gauge-high">
+  **Locale-specific caching:**
+  ```typescript
+  export async function loader({ params, context }: LoaderFunctionArgs) {
+    let locale = params.locale || "en-us";
+
+    let weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: params.productHandle,
+      locale,
+      strategy: {
+        maxAge: 3600, // Cache for 1 hour
+        swr: 86400, // Stale-while-revalidate for 24 hours
+      },
+    });
+
+    return { weaverseData };
+  }
+  ```
+</Accordion>
+
+<Accordion title="Parallel Loading" icon="arrows-split-up-and-left">
+  **Load Shopify and Weaverse data in parallel:**
+  ```typescript
+  let [shopifyData, weaverseData] = await Promise.all([
+    storefront.query(PRODUCT_QUERY, { variables }),
+    weaverse.loadPage({ type: "PRODUCT", handle, locale }),
+  ]);
+  ```
+</Accordion>
+
+<Accordion title="Minimize Cross-Locale Requests" icon="minimize">
+  Only load additional locales when absolutely necessary:
+  ```typescript
+  // ❌ Avoid: Loading all locales on every request
+  let allLocales = await Promise.all(
+    LOCALES.map(locale => weaverse.loadPage({ type: "PRODUCT", handle, locale }))
+  );
+
+  // ✅ Better: Load only the needed locale
+  let currentLocaleData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle,
+    locale: currentLocale,
+  });
+  ```
+</Accordion>
+
+### Code Organization
+
+```typescript
+// utils/locale.ts
+export const SUPPORTED_LOCALES = [
+  { code: "en-us", language: "en", country: "US", label: "English (US)" },
+  { code: "fr-ca", language: "fr", country: "CA", label: "Français (Canada)" },
+  { code: "sv-se", language: "sv", country: "SE", label: "Svenska" },
+] as const;
+
+export type LocaleCode = typeof SUPPORTED_LOCALES[number]["code"];
+
+export function isValidLocale(code: string): code is LocaleCode {
+  return SUPPORTED_LOCALES.some(locale => locale.code === code);
+}
+
+export function normalizeLocale(input: string): LocaleCode {
+  let normalized = input.toLowerCase().trim();
+  return isValidLocale(normalized) ? normalized : "en-us";
+}
+
+// Use in loaders:
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  let locale = normalizeLocale(params.locale || "en-us");
+
+  let weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: params.productHandle,
+    locale,
+  });
+
+  return { weaverseData };
+}
+```
+
+## Troubleshooting
+
+### Locale Not Detected Correctly
+
+**Symptoms:**
+- Wrong locale content displayed
+- Fallback to en-us when shouldn't
+- Locale detection inconsistent
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Use Explicit locale Parameter" icon="hand-pointer">
+    Don't rely on auto-detection. Explicitly pass the locale:
+    ```typescript
+    let weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      locale: determinedLocale, // Explicitly set
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Verify Locale Format" icon="spell-check">
+    Ensure locale is lowercase with hyphen:
+    ```typescript
+    // ❌ Wrong formats
+    locale: "en_US"  // underscore
+    locale: "en-US"  // uppercase
+    locale: "EN-us"  // mixed case
+
+    // ✅ Correct format
+    locale: "en-us"  // lowercase with hyphen
+    ```
+  </Accordion>
+
+  <Accordion title="Check Theme Schema Configuration" icon="gear">
+    Verify theme schema i18n matches your locale:
+    ```typescript
+    i18n: {
+      shopLocales: [
+        {
+          language: "sv",
+          country: "SE",
+          pathPrefix: "sv-se", // Must match locale format
+        },
+      ],
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Validate context.storefront.i18n" icon="magnifying-glass">
+    Check that Hydrogen's i18n is properly configured:
+    ```typescript
+    console.log("pathPrefix:", context.storefront.i18n.pathPrefix);
+    console.log("language:", context.storefront.i18n.language);
+    console.log("country:", context.storefront.i18n.country);
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Fallback Behavior Unexpected
+
+**Problem:** Page falls back to en-us when locale content should exist.
+
+**Checklist:**
+1. Verify locale content exists in Weaverse Studio
+2. Check locale format matches exactly (lowercase, hyphen)
+3. Confirm page is published for that locale
+4. Test with explicit locale parameter to rule out detection issues
+5. Check browser console and network tab for errors
+
+### Multi-Project Routing Issues
+
+**Symptoms:**
+- Wrong project content displayed
+- Project switching not working
+- projectId not being applied
+
+**Solutions:**
+
+<AccordionGroup>
+  <Accordion title="Debug projectId Function" icon="bug">
+    Add logging to see which project is selected:
+    ```typescript
+    projectId: () => {
+      let origin = request.url.origin;
+      let selectedId = determineProject(origin);
+      console.log(`Origin: ${origin} → Project: ${selectedId}`);
+      return selectedId;
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Verify Project IDs" icon="key">
+    Ensure project IDs match exactly:
+    - Check Weaverse Studio for correct project ID
+    - Verify no typos in project ID strings
+    - Confirm WEAVERSE_PROJECT_ID environment variable if used
+  </Accordion>
+
+  <Accordion title="Test Route-Level Override" icon="rotate">
+    Try explicit projectId in loadPage to isolate issue:
+    ```typescript
+    let weaverseData = await weaverse.loadPage({
+      type: "PRODUCT",
+      handle: productHandle,
+      projectId: "known-working-project-id", // Explicit test
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Content Not Syncing Between Projects
+
+**Problem:** Updates in one project don't appear in other projects.
+
+**Important:** Each project is independent. Content must be manually synced using Weaverse's import/export features.
+
+**Workflow:**
+1. Export content from source project in Weaverse Studio
+2. Import into target project(s)
+3. Customize translated content as needed
+4. Repeat for each project requiring the update
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Markets & Localization" icon="globe" href="/features/markets-localization">
+    Studio workflow for creating localized pages
+  </Card>
+
+  <Card title="Rendering Pages" icon="file-code" href="/guides/rendering-page">
+    loadPage() usage and page rendering fundamentals
+  </Card>
+
+  <Card title="Custom Routing" icon="route" href="/migration-advanced/custom-routing">
+    Custom URL structures with localization
+  </Card>
+
+  <Card title="WeaverseClient API" icon="code" href="/api-reference/weaverse-client">
+    Complete API reference for loadPage() and parameters
+  </Card>
+</CardGroup>
+
+## Summary
+
+Weaverse provides flexible localization through:
+
+1. **Three detection methods** with clear priority: explicit locale parameter (recommended), path prefix detection (deprecated), and auto-detection from context
+2. **Standard locale format**: `language-country` (lowercase, hyphen-separated)
+3. **Fallback behavior**: Currently defaults to en-us, smart fallback coming soon
+4. **Two architectural approaches**: Single-project for simpler needs, multi-project for advanced requirements
+5. **Complete control**: Explicit parameters provide full control over locale and project selection
+
+Choose the approach that best fits your storefront's complexity and requirements, and always use explicit locale parameters for the most reliable behavior.
