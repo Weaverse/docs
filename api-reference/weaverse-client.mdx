@@ -260,15 +260,20 @@ loadPage(params?: {
     Caching strategy configuration for the page data request.
 
     **Options:**
-    - `maxAge` - Cache duration in seconds
-    - `staleWhileRevalidate` - Serve stale content while revalidating
-    - `sMaxAge` - Shared cache (CDN) duration
+    - `mode?` - Cache control mode: `'public'`, `'private'`, `'no-cache'`, `'no-store'`, `'must-revalidate'`
+    - `maxAge?` - Cache duration in seconds
+    - `staleWhileRevalidate?` - Serve stale content while revalidating in seconds
+    - `sMaxAge?` - Shared cache (CDN) duration in seconds
+    - `staleIfError?` - Serve stale content if error occurs in seconds
 
     **Example:**
     ```typescript
     strategy: {
-      maxAge: 3600,              // Cache for 1 hour
-      staleWhileRevalidate: 86400 // Serve stale for 24h while updating
+      mode: "public",
+      maxAge: 3600, // Cache for 1 hour
+      staleWhileRevalidate: 86400, // Serve stale for 24h while updating
+      sMaxAge: 7200, // CDN cache for 2 hours
+      staleIfError: 604800, // Serve stale for 7 days if error
     }
     ```
   </Accordion>

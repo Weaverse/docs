@@ -420,8 +420,9 @@ See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)
       handle: params.productHandle,
       locale,
       strategy: {
+        mode: "public",
         maxAge: 3600, // Cache for 1 hour
-        swr: 86400, // Stale-while-revalidate for 24 hours
+        staleWhileRevalidate: 86400, // Serve stale for 24 hours while revalidating
       },
     });
 

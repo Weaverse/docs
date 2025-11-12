@@ -1285,8 +1285,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     type: "PRODUCT",
     handle: params.productHandle,
     strategy: {
+      mode: "public",
       maxAge: 3600, // Cache for 1 hour
-      swr: 86400,   // Stale-while-revalidate for 24 hours
+      staleWhileRevalidate: 86400, // Serve stale for 24 hours while revalidating
     },
   });
 
@@ -1731,8 +1732,9 @@ Production:   project-prod-sweden, project-prod-france, etc.
 let weaverseData = await weaverse.loadPage({
   type: "INDEX",
   strategy: {
-    maxAge: 3600,      // 1 hour
-    swr: 86400,        // 24 hours stale-while-revalidate
+    mode: "public",
+    maxAge: 3600, // 1 hour
+    staleWhileRevalidate: 86400, // 24 hours stale-while-revalidate
   },
 });
 ```
