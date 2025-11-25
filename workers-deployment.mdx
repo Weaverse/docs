@@ -1,9 +1,10 @@
 ---
 title: "Deploying to Cloudflare Workers"
 description: "Deploy your Hydrogen storefront to Cloudflare Workers for fast, globally distributed hosting"
-icon: "cloudflare"
 published: true
 ---
+
+import { Note, Warning, Tip } from "@components/Callout";
 
 # Deploying to Cloudflare Workers
 
@@ -46,17 +47,17 @@ Install the Cloudflare Vite plugin, which is essential for building your applica
 npm install @cloudflare/vite-plugin
 ```
 
-:::note
+<Note>
 All dependencies should be installed before proceeding with the deployment steps.
-:::
+</Note>
 
 ## Configuration Overview
 
 Your project includes optimized configurations for Cloudflare Workers deployment. Here's what you need to know about the key configuration files.
 
-:::note
+<Note>
 These configurations are pre-optimized for Cloudflare Workers. You typically won't need to modify them unless you have specific requirements.
-:::
+</Note>
 
 ### React Router Configuration
 
@@ -143,13 +144,13 @@ Environment variables are managed through `wrangler.json`. Update the following 
 }
 ```
 
-:::note
+<Note>
 Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding virtual routes during the build process, which can cause deployment issues.
-:::
+</Note>
 
-:::warning
+<Warning>
 Never commit real secrets to version control. For production deployments, consider using Cloudflare's encrypted environment variables or secrets management.
-:::
+</Warning>
 
 ### 3. Update Project Configuration
 
@@ -227,9 +228,9 @@ npm run cf-dev
 
 This starts a local development server on port 8787 that accurately simulates the Cloudflare Workers runtime, allowing you to verify your application works correctly before deployment.
 
-:::tip
+<Tip>
 Always test locally before deploying to production to catch potential issues early.
-:::
+</Tip>
 
 ### 4. Run Pre-deployment Validation
 
@@ -260,9 +261,9 @@ wrangler deploy
 
 Upon successful deployment, Wrangler will provide you with your live application URL.
 
-:::success
+<Note>
 Your storefront is now live on Cloudflare Workers! The deployment URL will be displayed in your terminal.
-:::
+</Note>
 
 ## Post-Deployment Verification
 
@@ -278,9 +279,9 @@ wrangler tail
 
 This command streams live logs from your deployed application, helping you identify and debug any issues.
 
-:::note
+<Note>
 Keep the log tail running during your initial testing to catch any runtime errors immediately.
-:::
+</Note>
 
 ### Configure Custom Domain (Optional)
 
@@ -293,9 +294,9 @@ To use your own domain instead of the default Workers subdomain:
 5. Find the **Domains & Routes** section
 6. Add your custom domain(s) and configure routing rules
 
-:::tip
+<Tip>
 Ensure your domain's DNS is properly configured to point to Cloudflare before adding it to your worker.
-:::
+</Tip>
 
 ## Troubleshooting
 
@@ -340,13 +341,13 @@ wrangler deployments list
 wrangler deployments rollback <deployment-id>
 ```
 
-:::warning
+<Warning>
 Rolling back will immediately redirect all traffic to the previous deployment. Ensure you test thoroughly before rolling back in production.
-:::
+</Warning>
 
-:::note
+<Note>
 If you encounter persistent issues not covered in this guide, don't hesitate to reach out to our community or support team for assistance.
-:::
+</Note>
 
 ## Additional Resources
 
