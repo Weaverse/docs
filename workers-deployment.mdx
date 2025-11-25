@@ -1,0 +1,367 @@
+---
+title: "Deploying to Cloudflare Workers"
+description: "Deploy your Hydrogen storefront to Cloudflare Workers for fast, globally distributed hosting"
+icon: "cloudflare"
+---
+
+# Deploying to Cloudflare Workers
+
+This comprehensive guide walks you through deploying your Hydrogen storefront to Cloudflare Workers, providing a fast, globally distributed hosting solution for your e-commerce site.
+
+## Quick Start
+
+For experienced users, here's the condensed deployment process:
+
+```bash
+# Install dependencies
+npm install
+
+# Authenticate with Cloudflare
+wrangler auth login
+
+# Build and deploy
+npm run build
+npm run check
+npm run deploy
+```
+
+Continue reading for detailed instructions and troubleshooting.
+
+## Prerequisites
+
+Before you begin, ensure you have the following:
+
+- **Node.js**: Version 20.0.0 or higher
+- **Cloudflare Account**: Sign up at [cloudflare.com](https://cloudflare.com) if you haven't already
+- **Wrangler CLI**: Install globally with `npm install -g wrangler`
+- **Shopify Store**: Active Shopify store with Storefront API access
+- **Weaverse Project**: Configured Weaverse project for your storefront
+
+### Required Dependencies
+
+Install the Cloudflare Vite plugin, which is essential for building your application for the Cloudflare Workers runtime:
+
+```bash
+npm install @cloudflare/vite-plugin
+```
+
+:::note
+All dependencies should be installed before proceeding with the deployment steps.
+:::
+
+## Configuration Overview
+
+Your project includes optimized configurations for Cloudflare Workers deployment. Here's what you need to know about the key configuration files.
+
+:::note
+These configurations are pre-optimized for Cloudflare Workers. You typically won't need to modify them unless you have specific requirements.
+:::
+
+### React Router Configuration
+
+The `react-router.config.ts` file is configured for server-side rendering (SSR) deployment:
+
+```typescript
+import type { Config } from "@react-router/dev/config";
+
+export default {
+  appDirectory: "app",
+  buildDirectory: "dist",
+  ssr: true,
+  future: {
+    unstable_viteEnvironmentApi: true,
+  },
+} satisfies Config;
+```
+
+**Key settings for Cloudflare deployment:**
+- `ssr: true` - Enables server-side rendering for optimal performance
+- `unstable_viteEnvironmentApi: true` - Required for Vite's environment API integration
+
+### Vite Configuration
+
+The `vite.config.ts` file includes Cloudflare-specific plugins and build optimizations:
+
+```typescript
+import { cloudflare } from "@cloudflare/vite-plugin";
+
+export default defineConfig({
+  plugins: [
+    hydrogen(),
+    reactRouter(),
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    // oxygen(), // Commented out for Cloudflare deployment
+    tsconfigPaths(),
+    tailwindcss(),
+  ],
+  build: {
+    assetsInlineLimit: 0, // Strict CSP compliance
+  },
+  // ... additional SSR optimizations
+});
+```
+
+**Cloudflare-specific configurations:**
+- `@cloudflare/vite-plugin` with SSR environment configuration
+- `assetsInlineLimit: 0` ensures Content-Security-Policy compliance
+- Oxygen deployment plugin is commented out (not needed for Cloudflare)
+
+## Environment Setup
+
+### 1. Authenticate with Cloudflare
+
+Begin by authenticating your Wrangler CLI with your Cloudflare account:
+
+```bash
+wrangler auth login
+```
+
+This command will open your browser for authentication. Follow the prompts to log in to your Cloudflare account.
+
+### 2. Configure Environment Variables
+
+Environment variables are managed through `wrangler.json`. Update the following variables with your actual production values:
+
+```json
+{
+  "vars": {
+    "NODE_ENV": "production",
+    "WEAVERSE_HOST": "https://studio.weaverse.io",
+    "SESSION_SECRET": "your-secure-session-secret",
+    "JUDGEME_PUBLIC_TOKEN": "your-judgeme-public-token",
+    "JUDGEME_PRIVATE_API_TOKEN": "your-judgeme-private-api-token",
+    "KLAVIYO_PRIVATE_API_TOKEN": "your-klaviyo-private-api-token",
+    "STORE_EMAIL": "your-store-email@domain.com",
+    "WEAVERSE_PROJECT_ID": "your-weaverse-project-id",
+    "PUBLIC_STOREFRONT_API_TOKEN": "your-shopify-storefront-api-token",
+    "PUBLIC_STORE_DOMAIN": "your-shopify-store.myshopify.com",
+    "PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID": "your-customer-account-api-client-id",
+    "SHOP_ID": "your-shop-id",
+    "PUBLIC_CUSTOMER_ACCOUNT_API_URL": "https://shopify.com/your-shop-id"
+  }
+}
+```
+
+:::note
+Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding virtual routes during the build process, which can cause deployment issues.
+:::
+
+:::warning
+Never commit real secrets to version control. For production deployments, consider using Cloudflare's encrypted environment variables or secrets management.
+:::
+
+### 3. Update Project Configuration
+
+Verify your `wrangler.json` has the correct project name and settings:
+
+```json
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "your-project-name",
+  "main": "./server.ts",
+  "compatibility_date": "2025-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true
+}
+```
+
+Update the `name` field with your desired project name, which will become part of your deployment URL.
+
+## Available Scripts
+
+Your project includes several npm scripts specifically designed for Cloudflare Workers deployment:
+
+```json
+{
+  "scripts": {
+    "cf-typegen": "wrangler types && react-router typegen",
+    "check": "tsc && react-router build && wrangler deploy --dry-run",
+    "deploy": "wrangler deploy",
+    "cf-dev": "wrangler dev --port 8787"
+  }
+}
+```
+
+**Script Reference:**
+- `cf-typegen` - Generates TypeScript types for Cloudflare Workers and React Router
+- `check` - Performs comprehensive validation: TypeScript checking, React Router build, and dry-run deployment
+- `deploy` - Deploys your application to Cloudflare Workers
+- `cf-dev` - Runs the application locally in the Cloudflare Workers environment for testing
+
+## Deployment Steps
+
+Follow these steps to deploy your storefront to Cloudflare Workers:
+
+### 1. Install Dependencies
+
+Install all project dependencies:
+
+```bash
+npm install
+```
+
+### 2. Build the Application
+
+Build your application for production deployment:
+
+```bash
+npm run build
+```
+
+This command performs several important tasks:
+- Generates GraphQL types from your queries
+- Builds the application bundle optimized for production
+- Prepares assets for the Cloudflare Workers runtime environment
+
+### 3. Test Locally (Optional but Recommended)
+
+Before deploying to production, test your application locally in the Cloudflare Workers environment:
+
+```bash
+npm run cf-dev
+```
+
+This starts a local development server on port 8787 that accurately simulates the Cloudflare Workers runtime, allowing you to verify your application works correctly before deployment.
+
+:::tip
+Always test locally before deploying to production to catch potential issues early.
+:::
+
+### 4. Run Pre-deployment Validation
+
+Execute comprehensive pre-deployment checks to catch potential issues:
+
+```bash
+npm run check
+```
+
+This validation script performs:
+- TypeScript type checking to ensure code quality
+- React Router build validation
+- Cloudflare Workers dry-run deployment to identify configuration problems
+
+### 5. Deploy to Production
+
+Deploy your application to Cloudflare Workers:
+
+```bash
+npm run deploy
+```
+
+Alternatively, you can deploy directly using Wrangler:
+
+```bash
+wrangler deploy
+```
+
+Upon successful deployment, Wrangler will provide you with your live application URL.
+
+:::success
+Your storefront is now live on Cloudflare Workers! The deployment URL will be displayed in your terminal.
+:::
+
+## Post-Deployment Verification
+
+After successful deployment, Wrangler will display your application's live URL (typically `https://your-project-name.your-subdomain.workers.dev`).
+
+### Monitor Deployment Status
+
+Monitor your deployment in real-time and check for any runtime errors:
+
+```bash
+wrangler tail
+```
+
+This command streams live logs from your deployed application, helping you identify and debug any issues.
+
+:::note
+Keep the log tail running during your initial testing to catch any runtime errors immediately.
+:::
+
+### Configure Custom Domain (Optional)
+
+To use your own domain instead of the default Workers subdomain:
+
+1. Access your [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Navigate to **Workers & Pages**
+3. Select your deployed worker
+4. Go to the **Settings** tab
+5. Find the **Domains & Routes** section
+6. Add your custom domain(s) and configure routing rules
+
+:::tip
+Ensure your domain's DNS is properly configured to point to Cloudflare before adding it to your worker.
+:::
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Build Failures**
+   - Verify Node.js version 20.0.0 or higher is installed
+   - Ensure all dependencies are installed: `npm install`
+   - Check for TypeScript errors: `npm run typecheck`
+
+2. **Environment Variables**
+   - Double-check all required variables are set in `wrangler.json`
+   - Verify variable names match exactly (case-sensitive)
+   - Ensure sensitive values are properly escaped
+
+3. **Session Secret**
+   - Generate a secure, random string for `SESSION_SECRET`
+   - Use at least 32 characters for security
+   - Never reuse secrets across environments
+
+4. **Shopify API Configuration**
+   - Verify your Storefront API token has correct permissions
+   - Confirm your store domain and Shop ID are accurate
+   - Check that Customer Account API is properly configured
+
+### Performance Optimization
+
+- **Observability**: Enable in `wrangler.json` for production monitoring
+- **Source Maps**: Upload source maps for better error tracking
+- **Caching**: Leverage Cloudflare's caching features for static assets
+- **Analytics**: Monitor performance with Cloudflare's analytics dashboard
+
+### Deployment Rollback
+
+If you need to rollback to a previous deployment:
+
+```bash
+# List all deployments
+wrangler deployments list
+
+# Rollback to a specific deployment
+wrangler deployments rollback <deployment-id>
+```
+
+:::warning
+Rolling back will immediately redirect all traffic to the previous deployment. Ensure you test thoroughly before rolling back in production.
+:::
+
+:::note
+If you encounter persistent issues not covered in this guide, don't hesitate to reach out to our community or support team for assistance.
+:::
+
+## Additional Resources
+
+### Official Documentation
+
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/) - Comprehensive guide to Cloudflare Workers
+- [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/) - Complete command reference
+- [Shopify Hydrogen Deployment Guide](https://shopify.dev/custom-storefronts/hydrogen/deployment) - Hydrogen-specific deployment information
+
+### Weaverse Resources
+
+- [Weaverse Documentation](https://weaverse.io/docs) - Learn more about Weaverse platform features
+- [Weaverse Community](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) - Get help from the community
+
+### Support
+
+If you encounter issues not covered in this guide:
+- Join our [Slack Community](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) for real-time support
+- Contact [Weaverse Support](https://weaverse.io/support) for enterprise assistance
