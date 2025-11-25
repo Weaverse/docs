@@ -169,7 +169,8 @@
             "pages": [
               "deployment",
               "oxygen-deployment",
-              "docker-deployment"
+              "docker-deployment",
+              "workers-deployment"
             ]
           },
           {
