@@ -1,33 +1,12 @@
 ---
-title: "Deploying to Cloudflare Workers"
+title: "Deploy to Cloudflare Workers"
 description: "Deploy your Hydrogen storefront to Cloudflare Workers for fast, globally distributed hosting"
 published: true
 ---
 
-import { Note, Warning, Tip } from "@components/Callout";
-
-# Deploying to Cloudflare Workers
+# Deploying Weaverse theme with Cloudflare Workers
 
 This comprehensive guide walks you through deploying your Hydrogen storefront to Cloudflare Workers, providing a fast, globally distributed hosting solution for your e-commerce site.
-
-## Quick Start
-
-For experienced users, here's the condensed deployment process:
-
-```bash
-# Install dependencies
-npm install
-
-# Authenticate with Cloudflare
-wrangler auth login
-
-# Build and deploy
-npm run build
-npm run check
-npm run deploy
-```
-
-Continue reading for detailed instructions and troubleshooting.
 
 ## Prerequisites
 
@@ -85,7 +64,9 @@ export default {
 The `vite.config.ts` file includes Cloudflare-specific plugins and build optimizations:
 
 ```typescript
+...
 import { cloudflare } from "@cloudflare/vite-plugin";
+...
 
 export default defineConfig({
   plugins: [
@@ -110,22 +91,21 @@ export default defineConfig({
 
 ## Environment Setup
 
-### 1. Authenticate with Cloudflare
+### 1. Configure wrangler.json
 
-Begin by authenticating your Wrangler CLI with your Cloudflare account:
-
-```bash
-wrangler auth login
-```
-
-This command will open your browser for authentication. Follow the prompts to log in to your Cloudflare account.
-
-### 2. Configure Environment Variables
-
-Environment variables are managed through `wrangler.json`. Update the following variables with your actual production values:
+Your `wrangler.json` file manages both project configuration and environment variables. Update it with your production values:
 
 ```json
 {
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "your-project-name",
+  "main": "./server.ts",
+  "compatibility_date": "2025-10-08",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "enabled": true
+  },
+  "upload_source_maps": true,
   "vars": {
     "NODE_ENV": "production",
     "WEAVERSE_HOST": "https://studio.weaverse.io",
@@ -144,6 +124,13 @@ Environment variables are managed through `wrangler.json`. Update the following 
 }
 ```
 
+**Key configuration fields:**
+- `name` - Your project name (becomes part of deployment URL)
+- `main` - Entry point for your worker
+- `compatibility_date` - Cloudflare Workers runtime compatibility
+- `observability` - Enable production monitoring
+- `upload_source_maps` - Better error tracking in production
+
 <Note>
 Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding virtual routes during the build process, which can cause deployment issues.
 </Note>
@@ -152,26 +139,6 @@ Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding 
 Never commit real secrets to version control. For production deployments, consider using Cloudflare's encrypted environment variables or secrets management.
 </Warning>
 
-### 3. Update Project Configuration
-
-Verify your `wrangler.json` has the correct project name and settings:
-
-```json
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "your-project-name",
-  "main": "./server.ts",
-  "compatibility_date": "2025-10-08",
-  "compatibility_flags": ["nodejs_compat"],
-  "observability": {
-    "enabled": true
-  },
-  "upload_source_maps": true
-}
-```
-
-Update the `name` field with your desired project name, which will become part of your deployment URL.
-
 ## Available Scripts
 
 Your project includes several npm scripts specifically designed for Cloudflare Workers deployment:
@@ -179,6 +146,7 @@ Your project includes several npm scripts specifically designed for Cloudflare W
 ```json
 {
   "scripts": {
+    /// other scripts...
     "cf-typegen": "wrangler types && react-router typegen",
     "check": "tsc && react-router build && wrangler deploy --dry-run",
     "deploy": "wrangler deploy",
@@ -197,7 +165,17 @@ Your project includes several npm scripts specifically designed for Cloudflare W
 
 Follow these steps to deploy your storefront to Cloudflare Workers:
 
-### 1. Install Dependencies
+### 1. Authenticate with Cloudflare
+
+Begin by authenticating your Wrangler CLI with your Cloudflare account:
+
+```bash
+wrangler login
+```
+
+This command will open your browser for authentication. Follow the prompts to log in to your Cloudflare account.
+
+### 2. Install Dependencies
 
 Install all project dependencies:
 
@@ -205,7 +183,7 @@ Install all project dependencies:
 npm install
 ```
 
-### 2. Build the Application
+### 3. Build the Application
 
 Build your application for production deployment:
 
@@ -218,7 +196,7 @@ This command performs several important tasks:
 - Builds the application bundle optimized for production
 - Prepares assets for the Cloudflare Workers runtime environment
 
-### 3. Test Locally (Optional but Recommended)
+### 4. Test Locally (Optional but Recommended)
 
 Before deploying to production, test your application locally in the Cloudflare Workers environment:
 
@@ -232,7 +210,7 @@ This starts a local development server on port 8787 that accurately simulates th
 Always test locally before deploying to production to catch potential issues early.
 </Tip>
 
-### 4. Run Pre-deployment Validation
+### 5. Run Pre-deployment Validation
 
 Execute comprehensive pre-deployment checks to catch potential issues:
 
@@ -245,7 +223,7 @@ This validation script performs:
 - React Router build validation
 - Cloudflare Workers dry-run deployment to identify configuration problems
 
-### 5. Deploy to Production
+### 6. Deploy to Production
 
 Deploy your application to Cloudflare Workers:
 
@@ -296,6 +274,31 @@ To use your own domain instead of the default Workers subdomain:
 
 <Tip>
 Ensure your domain's DNS is properly configured to point to Cloudflare before adding it to your worker.
+</Tip>
+
+### Connect Git Repository for Automatic Deployments
+
+Enable automatic deployments whenever you push changes to your Git repository:
+
+1. Access your [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. Navigate to **Workers & Pages**
+3. Select your deployed worker application
+4. Go to the **Settings** tab
+5. Find the **Builds** section
+6. Click **Connect** in Git repository
+7. Authorize Cloudflare to access your GitHub, GitLab, or Bitbucket account
+8. Select your repository and branch (typically `main` or `master`)
+9. Configure build settings:
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+   - **Root directory**: Leave empty unless your project is in a subdirectory
+
+<Note>
+Once connected, Cloudflare will automatically deploy your application whenever you push commits to the configured branch.
+</Note>
+
+<Tip>
+You can configure different branches for staging and production environments by setting up multiple Workers with different Git branch configurations.
 </Tip>
 
 ## Troubleshooting
