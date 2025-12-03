@@ -8,6 +8,145 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+## [2025.11.30] - November 30, 2025
+
+### 🎨 Weaverse Studio
+*Project Hierarchy, Enhanced Dashboard, and Infrastructure Upgrades*
+
+#### 🎉 New Features
+
+- **🏗️ Project Hierarchy & Variants**: Create multiple versions of your store with automatic content inheritance
+  - Build seasonal storefronts, A/B test layouts, or support multiple markets from one parent project
+  - Content automatically flows from parent to variants with option to override specific pages
+  - Visual badges clearly show variant relationships in project cards
+  - Quick variant switcher for easy navigation between versions
+
+- **📊 Enhanced Dashboard Experience**: Complete dashboard redesign with better organization
+  - New horizontal card layout with improved information density and visual hierarchy
+  - Search and filter functionality to quickly find projects
+  - Sort options for better project organization
+  - Variant badges and parent project indicators at a glance
+
+- **🤖 Improved AI Assistant**: More reliable AI chat for building your store
+  - Faster response times and better suggestions
+  - Improved context understanding for more relevant help
+  - Enhanced reliability when assisting with theme development
+
+#### ✨ Improvements
+
+- **🌍 Locale Enhancements**: Better internationalization support
+  - Improved locale selector with clearer UI
+  - Enhanced fallback logic for page assignments
+  - Better article search for multi-language stores
+  - Fixed locale detection and validation
+
+#### 🐛 Bug Fixes
+
+- **🔧 Project Configuration**: Fixed null theme handling in project validation
+- **📝 Content Management**: Improved page assignment locale handling
+- **🔒 Security**: Improved Shopify mandatory GDPR webhooks for compliance
+- **💾 Data Persistence**: Better error handling in variant creation and updates
+
+---
+
+### 🔧 Weaverse SDKs
+*Multi-project architecture support and performance optimizations*
+
+#### 🎉 New Features
+
+- **🏗️ Multi-Project Architecture**: Full support for project hierarchy
+  - SDK packages support inheritance metadata in API responses
+  - Enhanced HydrogenPageAssignment type with variant information
+  - Improved type safety for parent-child project relationships
+
+#### ✨ Improvements
+
+- **⚡ WeaverseClient Optimization**: Major refactor for better maintainability
+  - Enhanced caching strategy with improved fallback page behavior
+  - Better localhost detection for local development
+  - Optimized type safety and error handling
+  - Clearer code structure for easier maintenance
+
+- **🔧 Build Configuration**: Enhanced development experience
+  - Updated Biome configuration to v5.6.2 with improved linter rules
+  - Better dependency management across packages
+  - Enhanced @weaverse/schema integration (v0.7.3)
+  - Fixed multi-project test assertions
+
+- **📦 Package Updates**: Synchronized releases across ecosystem
+  - Core packages: v5.7.0 → v5.9.0
+  - React package: v5.7.0 → v5.9.0
+  - Hydrogen package: v5.7.0 → v5.9.0
+  - Shopify package: v5.7.0 → v5.9.0 (archived, no longer maintained)
+  - Schema package: v0.7.3 (independently versioned)
+
+#### 🐛 Bug Fixes
+
+- **🔄 API Response Handling**: Restored fallback page behavior for invalid responses
+- **✅ Schema Validation**: Improved integration with @weaverse/schema package
+- **🏗️ Multi-Project Support**: Enhanced test coverage and validation
+
+---
+
+### 🚀 Weaverse Pilot Theme
+*Enhanced cart experience and better input components*
+
+#### 🎉 New Features
+
+- **🛒 Complete Cart Overhaul**: Enhanced shopping cart functionality
+  - Discount code handling with apply/remove functionality
+  - Gift card redemption support in cart summary
+  - Cart note functionality for special instructions
+  - Improved loading states with better user feedback
+
+- **💳 Cart Summary Improvements**: Better discount and pricing display
+  - Redesigned discount code display with clear messaging
+  - Gift card management with add/remove capabilities
+  - Clearer pricing breakdown with taxes and discounts
+  - Enhanced button spinner animations
+
+#### ✨ Improvements
+
+- **🎯 Input Components**: Consistent form design system
+  - Updated input and textarea styles across theme
+  - Enhanced quantity inputs with better validation
+  - Restructured CSS with default styles for inputs
+  - Improved form validation and error states
+
+- **🔧 Route Handling**: Better error page experience
+  - Added catch-all route for 404 handling
+  - Improved error page user experience
+
+- **📦 Dependencies**: Updated to latest SDK versions
+  - @weaverse/hydrogen: v5.9.0
+  - @weaverse/schema: v2.3.6
+  - Enhanced Biome configuration with @weaverse/biome
+  - Updated React Router to v7.9.6
+
+#### 📦 Version Update
+- **Pilot Theme**: v7.1.1 with enhanced cart and form improvements
+
+---
+
+### 📚 Documentation
+*New deployment guides and enhanced resources*
+
+#### 🎉 New Features
+
+- **☁️ Cloudflare Workers Deployment Guide**: Complete step-by-step guide for deploying Pilot theme to Cloudflare Workers
+  - Comprehensive configuration instructions for React Router and Vite
+  - Environment setup with wrangler.json best practices
+  - Pre-deployment validation and testing workflows
+  - Custom domain configuration and Git-based auto-deployment
+  - Troubleshooting guide and performance optimization tips
+
+#### ✨ Improvements
+- **📖 Enhanced Guides**: Better caching strategy documentation
+- **🗂️ Navigation Updates**: Improved documentation structure
+- **✅ Critical Guidelines**: Added important development notes
+
+---
+
 ## [2025.10.31] - October 31, 2025
 
 ### 🎨 Weaverse Studio
