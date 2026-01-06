@@ -611,29 +611,6 @@ intuitive directional arrows.
 
 ![Position input example](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_position_input.png?v=1722416367)
 
-### `swatches`
-
-The **`swatches`** input provides merchants with a color palette selection interface, allowing them to choose from predefined color options.
-
-**Return**: `string` - The selected color value in hex format.
-
-**Example:**
-```tsx
-{
-  type: "swatches",
-  label: "Color palette",
-  name: "colorPalette",
-  configs: {
-    options: [
-      { value: "#FF0000", label: "Red" },
-      { value: "#00FF00", label: "Green" },
-      { value: "#0000FF", label: "Blue" }
-    ]
-  },
-  defaultValue: "#FF0000"
-}
-```
-
 ### `blog`
 
 The `blog` input provides merchants with an intuitive search and select interface to choose a specific blog from their store.
