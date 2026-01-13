@@ -8,6 +8,73 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+## [2026.1.10] - January 10, 2026
+
+### 🎨 Weaverse Studio
+*Enhanced developer experience with new Shopify integration features and studio improvements*
+
+#### 🎉 New Features
+
+- **🔌 Shopify Admin API Proxy**: Powerful new API integration for advanced Shopify functionality
+  - New `/api/admin-graphql` endpoint with built-in rate limiting and caching
+  - Proper error handling for reliable Shopify Admin API requests
+  - Enhanced proxy caching layer for improved performance
+  - Complete type definitions for type-safe development
+
+- **🔐 Optional Scopes Authorization**: Enhanced permission management for Shopify apps
+  - Visual UI for managing Shopify app permissions with selectable scopes
+  - Authorization flow via `admin.shopify.com` for secure access control
+  - Granular control over app capabilities and store access
+  - Revamped account settings interface with scope management
+
+- **🎨 Maison Theme**: New professional theme option for Hydrogen storefronts
+  - Modern design with enhanced visual appeal
+  - Optimized performance and improved integrations
+  - Production-ready with full Weaverse Studio support
+
+#### ✨ Improvements
+
+- **🏗️ Studio Architecture Overhaul**: Complete restructuring for better maintainability
+  - Restructured studio modules and features for clearer organization
+  - Improved import paths with better modularity
+  - Enhanced dashboard editor with new data binding hooks
+  - Refined component structures for optimal performance
+
+- **📊 Dashboard Enhancements**: Cleaner interface and better user experience
+  - Updated dashboard routes with improved navigation
+  - Removed unused dependencies and hooks for faster loading
+  - Enhanced error handling components with better feedback
+  - Optimized consent and binding context management
+
+- **🛠️ Development Workflow**: Improved local development experience
+  - Custom Shopify app runner with tunnel support (`shopify-runner.mjs`)
+  - Updated dev configuration files (`shopify.app.dev.toml`, `shopify.web.toml`)
+  - Enhanced documentation with Bun-based setup instructions
+  - New rate limiting documentation for API proxy
+
+#### 📦 Deprecations
+
+- **🗂️ Sections App Deprecated**: Legacy sections app functionality removed
+  - Migrate to component-based architecture for better flexibility
+  - Improved theme development workflow with modern patterns
+
+---
+
+### 🚀 Weaverse Pilot Theme
+*Maintenance updates and code quality improvements*
+
+#### ✨ Improvements
+
+- **🔧 Code Quality**: Enhanced Tailwind class organization with Biome
+  - Updated package dependencies for better compatibility
+  - Fixed package lock file inconsistencies
+  - Improved build stability and performance
+
+#### 📦 Version Update
+- **Pilot Theme**: v7.1.2 with maintenance updates and optimizations
+
+---
+
 ## [2025.11.30] - November 30, 2025
 
 ### 🎨 Weaverse Studio
