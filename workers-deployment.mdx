@@ -93,7 +93,7 @@ export default defineConfig({
 
 ### 1. Configure wrangler.json
 
-Your `wrangler.json` file manages both project configuration and environment variables. Update it with your production values:
+Your `wrangler.json` file manages project configuration. Update it with your project details:
 
 ```json
 {
@@ -102,25 +102,11 @@ Your `wrangler.json` file manages both project configuration and environment var
   "main": "./server.ts",
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
+  "keep_vars": true,
   "observability": {
     "enabled": true
   },
-  "upload_source_maps": true,
-  "vars": {
-    "NODE_ENV": "production",
-    "WEAVERSE_HOST": "https://studio.weaverse.io",
-    "SESSION_SECRET": "your-secure-session-secret",
-    "JUDGEME_PUBLIC_TOKEN": "your-judgeme-public-token",
-    "JUDGEME_PRIVATE_API_TOKEN": "your-judgeme-private-api-token",
-    "KLAVIYO_PRIVATE_API_TOKEN": "your-klaviyo-private-api-token",
-    "STORE_EMAIL": "your-store-email@domain.com",
-    "WEAVERSE_PROJECT_ID": "your-weaverse-project-id",
-    "PUBLIC_STOREFRONT_API_TOKEN": "your-shopify-storefront-api-token",
-    "PUBLIC_STORE_DOMAIN": "your-shopify-store.myshopify.com",
-    "PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID": "your-customer-account-api-client-id",
-    "SHOP_ID": "your-shop-id",
-    "PUBLIC_CUSTOMER_ACCOUNT_API_URL": "https://shopify.com/your-shop-id"
-  }
+  "upload_source_maps": true
 }
 ```
 
@@ -128,15 +114,43 @@ Your `wrangler.json` file manages both project configuration and environment var
 - `name` - Your project name (becomes part of deployment URL)
 - `main` - Entry point for your worker
 - `compatibility_date` - Cloudflare Workers runtime compatibility
+- `keep_vars` - Preserve existing environment variables upon deployment
 - `observability` - Enable production monitoring
 - `upload_source_maps` - Better error tracking in production
+
+### 2. Configure Environment Variables
+
+Create a `.dev.vars` file in your project root to manage your environment variables securely.
+
+```text
+NODE_ENV=production
+WEAVERSE_HOST=https://studio.weaverse.io
+SESSION_SECRET=your-secure-session-secret
+JUDGEME_PUBLIC_TOKEN=your-judgeme-public-token
+JUDGEME_PRIVATE_API_TOKEN=your-judgeme-private-api-token
+KLAVIYO_PRIVATE_API_TOKEN=your-klaviyo-private-api-token
+STORE_EMAIL=your-store-email@domain.com
+WEAVERSE_PROJECT_ID=your-weaverse-project-id
+PUBLIC_STOREFRONT_API_TOKEN=your-shopify-storefront-api-token
+PUBLIC_STORE_DOMAIN=your-shopify-store.myshopify.com
+PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=your-customer-account-api-client-id
+SHOP_ID=your-shop-id
+PUBLIC_CUSTOMER_ACCOUNT_API_URL=https://shopify.com/your-shop-id
+```
+
+**Pushing Variables:**
+To securely upload your secrets to Cloudflare, run the following command:
+
+```bash
+npx wrangler secret bulk .dev.vars
+```
 
 <Note>
 Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding virtual routes during the build process, which can cause deployment issues.
 </Note>
 
 <Warning>
-Never commit real secrets to version control. For production deployments, consider using Cloudflare's encrypted environment variables or secrets management.
+Make sure to add `.dev.vars` to your `.gitignore` file to prevent committing sensitive information to version control.
 </Warning>
 
 ## Available Scripts
@@ -311,7 +325,7 @@ You can configure different branches for staging and production environments by 
    - Check for TypeScript errors: `npm run typecheck`
 
 2. **Environment Variables**
-   - Double-check all required variables are set in `wrangler.json`
+   - Verify all required variables are uploaded using `wrangler secret bulk .dev.vars`
    - Verify variable names match exactly (case-sensitive)
    - Ensure sensitive values are properly escaped
 
