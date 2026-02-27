@@ -1,258 +1,245 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Weaverse",
-  "colors": {
-    "primary": "#246aff",
-    "light": "#599aff",
-    "dark": "#1e40af"
-  },
-  "favicon": "/favicon.ico",
-  "integrations": {
-    "posthog": {
-      "apiKey": "phc_BnZAhY8ELZCZukEErb6ab9T7txSsMolcgGIIhMj5oSP",
-      "apiHost": "https://posthog.weaverse.io"
-    }
-  },
-  "navigation": {
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Home",
-          "href": "https://weaverse.io",
-          "icon": "house"
-        },
-        {
-          "anchor": "Studio",
-          "href": "https://studio.weaverse.io/dashboard",
-          "icon": "paintbrush"
-        },
-        {
-          "anchor": "GitHub", 
-          "href": "https://github.com/weaverse",
-          "icon": "github"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://wvse.cc/weaverse-slack", 
-          "icon": "slack"
-        }
-      ]
-    },
-    "tabs": [
-      {
-        "tab": "Get Started",
-        "pages": [
-          {
-            "group": "Introduction",
-            "pages": [
-              "index",
-              "quickstart",
-              "core-concepts/how-it-works",
-              "core-concepts/project-structure"
-            ]
-          },
-          {
-            "group": "Studio Guide",
-            "pages": [
-              "studio-guide/interface-tour"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Develop",
-        "pages": [
-          {
-            "group": "Environment",
-            "pages": [
-              "development-guide/environment-setup"
-            ]
-          },
-          {
-            "group": "Building Components",
-            "pages": [
-              "development-guide/creating-components",
-              "development-guide/component-schema",
-              "development-guide/input-settings",
-              "development-guide/weaverse-component",
-              "development-guide/styling-theming",
-              "development-guide/data-fetching",
-              "development-guide/data-connectors"
-            ]
-          },
-          {
-            "group": "Advanced Guides",
-            "pages": [
-              "guides/rendering-page",
-              "guides/localization-advanced",
-              "guides/multi-project-architecture"
-            ]
-          },
-          {
-            "group": "Tools & CLI",
-            "pages": [
-              "developer-tools/weaverse-cli",
-              "developer-tools/weaverse-sdks",
-              "developer-tools/weaverse-mcp"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API Reference",
-        "pages": [
-          {
-            "group": "Overview",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Hooks",
-            "pages": [
-              "api-reference/use-weaverse",
-              "api-reference/use-item-instance",
-              "api-reference/use-parent-instance",
-              "api-reference/use-child-instances",
-              "api-reference/use-theme-settings"
-            ]
-          },
-          {
-            "group": "Components",
-            "pages": [
-              "api-reference/weaverse-root",
-              "api-reference/weaverse-client",
-              "api-reference/with-weaverse"
-            ]
-          },
-          {
-            "group": "Utilities & Types",
-            "pages": [
-              "api-reference/get-selected-product-options",
-              "api-reference/images-placeholders",
-              "api-reference/types"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Features",
-        "pages": [
-          {
-            "group": "Content Management",
-            "pages": [
-              "features/global-sections",
-              "features/navigation-menus",
-              "features/third-party-integrations"
-            ]
-          },
-          {
-            "group": "Internationalization",
-            "pages": [
-              "features/markets-localization"
-            ]
-          },
-          {
-            "group": "Security",
-            "pages": [
-              "features/content-security"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Deploy",
-        "pages": [
-          {
-            "group": "Deployment",
-            "pages": [
-              "deployment",
-              "oxygen-deployment",
-              "docker-deployment",
-              "workers-deployment"
-            ]
-          },
-          {
-            "group": "Themes",
-            "pages": [
-              "themes-templates/pilot-theme-overview",
-              "themes-templates/pilot-theme-customization",
-              "themes-templates/pilot-theme-sections"
-            ]
-          },
-          {
-            "group": "Migration",
-            "pages": [
-              "migration-advanced/index",
-              "migration-advanced/v5-migration",
-              "migration-advanced/existing-hydrogen-integration",
-              "migration-advanced/custom-pages",
-              "migration-advanced/custom-templates",
-              "migration-advanced/custom-routing"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Help",
-        "pages": [
-          {
-            "group": "Resources",
-            "pages": [
-              "resources/faq",
-              "resources/tutorial",
-              "resources/example-components"
-            ]
-          },
-          {
-            "group": "Troubleshooting",
-            "pages": [
-              "troubleshooting/preview-errors"
-            ]
-          },
-          {
-            "group": "Community & Updates",
-            "pages": [
-              "community/community",
-              "changelog/index",
-              "changelog/weaverse-v5-release"
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Studio",
-      "href": "https://studio.weaverse.io/dashboard"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/WeaverseIO",
-      "github": "https://github.com/weaverse",
-      "slack": "https://wvse.cc/weaverse-slack"
-    }
-  }
+	"$schema": "https://mintlify.com/docs.json",
+	"theme": "mint",
+	"name": "Weaverse",
+	"colors": {
+		"primary": "#246aff",
+		"light": "#599aff",
+		"dark": "#1e40af"
+	},
+	"favicon": "/favicon.ico",
+	"integrations": {
+		"posthog": {
+			"apiKey": "phc_BnZAhY8ELZCZukEErb6ab9T7txSsMolcgGIIhMj5oSP",
+			"apiHost": "https://posthog.weaverse.io"
+		}
+	},
+	"navigation": {
+		"global": {
+			"anchors": [
+				{
+					"anchor": "Home",
+					"href": "https://weaverse.io",
+					"icon": "house"
+				},
+				{
+					"anchor": "Studio",
+					"href": "https://studio.weaverse.io/dashboard",
+					"icon": "paintbrush"
+				},
+				{
+					"anchor": "GitHub",
+					"href": "https://github.com/weaverse",
+					"icon": "github"
+				},
+				{
+					"anchor": "Community",
+					"href": "https://wvse.cc/weaverse-slack",
+					"icon": "slack"
+				}
+			]
+		},
+		"tabs": [
+			{
+				"tab": "Get Started",
+				"pages": [
+					{
+						"group": "Introduction",
+						"pages": [
+							"index",
+							"quickstart",
+							"core-concepts/how-it-works",
+							"core-concepts/project-structure"
+						]
+					},
+					{
+						"group": "Studio Guide",
+						"pages": ["studio-guide/interface-tour"]
+					}
+				]
+			},
+			{
+				"tab": "Development Guides",
+				"pages": [
+					{
+						"group": "Environment",
+						"pages": ["development-guide/environment-setup"]
+					},
+					{
+						"group": "Building Components",
+						"pages": [
+							"development-guide/creating-components",
+							"development-guide/component-schema",
+							"development-guide/input-settings",
+							"development-guide/weaverse-component",
+							"development-guide/styling-theming",
+							"development-guide/data-fetching",
+							"development-guide/data-connectors"
+						]
+					},
+					{
+						"group": "Advanced Guides",
+						"pages": [
+							"guides/rendering-page",
+							"guides/localization-advanced",
+							"guides/multi-project-architecture"
+						]
+					},
+					{
+						"group": "Tools & CLI",
+						"pages": [
+							"developer-tools/weaverse-cli",
+							"developer-tools/weaverse-sdks",
+							"developer-tools/weaverse-mcp"
+						]
+					}
+				]
+			},
+			{
+				"tab": "API References",
+				"pages": [
+					{
+						"group": "Overview",
+						"pages": ["api-reference/introduction"]
+					},
+					{
+						"group": "Hooks",
+						"pages": [
+							"api-reference/use-weaverse",
+							"api-reference/use-item-instance",
+							"api-reference/use-parent-instance",
+							"api-reference/use-child-instances",
+							"api-reference/use-theme-settings"
+						]
+					},
+					{
+						"group": "Components",
+						"pages": [
+							"api-reference/weaverse-root",
+							"api-reference/weaverse-client",
+							"api-reference/with-weaverse"
+						]
+					},
+					{
+						"group": "Utilities & Types",
+						"pages": [
+							"api-reference/get-selected-product-options",
+							"api-reference/images-placeholders",
+							"api-reference/types"
+						]
+					}
+				]
+			},
+			{
+				"tab": "Features",
+				"pages": [
+					{
+						"group": "Content Management",
+						"pages": [
+							"features/global-sections",
+							"features/navigation-menus",
+							"features/third-party-integrations"
+						]
+					},
+					{
+						"group": "Internationalization",
+						"pages": ["features/markets-localization"]
+					},
+					{
+						"group": "Security",
+						"pages": ["features/content-security"]
+					}
+				]
+			},
+			{
+				"tab": "Deployment",
+				"pages": [
+					{
+						"group": "Deployment",
+						"pages": [
+							"deployment",
+							"oxygen-deployment",
+							"docker-deployment",
+							"workers-deployment"
+						]
+					},
+					{
+						"group": "Themes",
+						"pages": [
+							"themes-templates/pilot-theme-overview",
+							"themes-templates/pilot-theme-customization",
+							"themes-templates/pilot-theme-sections"
+						]
+					},
+					{
+						"group": "Migration",
+						"pages": [
+							"migration-advanced/index",
+							"migration-advanced/v5-migration",
+							"migration-advanced/existing-hydrogen-integration",
+							"migration-advanced/custom-pages",
+							"migration-advanced/custom-templates",
+							"migration-advanced/custom-routing"
+						]
+					}
+				]
+			},
+			{
+				"tab": "Help Center",
+				"pages": [
+					{
+						"group": "Resources",
+						"pages": [
+							"resources/faq",
+							"resources/tutorial",
+							"resources/example-components"
+						]
+					},
+					{
+						"group": "Troubleshooting",
+						"pages": ["troubleshooting/preview-errors"]
+					},
+					{
+						"group": "Community & Updates",
+						"pages": [
+							"community/community",
+							"changelog/index",
+							"changelog/weaverse-v5-release"
+						]
+					}
+				]
+			}
+		]
+	},
+	"logo": {
+		"light": "/logo/light.svg",
+		"dark": "/logo/dark.svg"
+	},
+	"navbar": {
+		"links": [],
+		"primary": {
+			"type": "button",
+			"label": "Studio",
+			"href": "https://studio.weaverse.io/dashboard"
+		}
+	},
+	"contextual": {
+		"options": [
+			"copy",
+			"view",
+			"chatgpt",
+			"claude",
+			"perplexity",
+			"mcp",
+			"cursor",
+			"vscode"
+		]
+	},
+	"footer": {
+		"socials": {
+			"x": "https://x.com/WeaverseIO",
+			"github": "https://github.com/weaverse",
+			"slack": "https://wvse.cc/weaverse-slack"
+		}
+	}
 }
