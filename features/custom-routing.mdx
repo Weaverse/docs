@@ -36,8 +36,8 @@ Weaverse then fetches the appropriate page data based on these parameters, regar
 
 ## Relationship to Custom Pages & Templates
 
--   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/migration-advanced/custom-pages) created in Weaverse. You'd create a custom route (e.g., `/guides/$handle.tsx`) and call `loadPage({ type: 'PAGE', handle })` in the loader.
--   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](/migration-advanced/custom-templates). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
+-   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/features/custom-pages) created in Weaverse. You'd create a custom route (e.g., `/guides/$handle.tsx`) and call `loadPage({ type: 'PAGE', handle })` in the loader.
+-   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](/features/custom-templates). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
 
 ---
 
