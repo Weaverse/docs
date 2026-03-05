@@ -145,10 +145,18 @@
 						"group": "Internationalization",
 						"pages": ["features/markets-localization"]
 					},
-					{
-						"group": "Security",
-						"pages": ["features/content-security"]
-					}
+				{
+					"group": "Security",
+					"pages": ["features/content-security"]
+				},
+				{
+					"group": "Custom Pages & Routing",
+					"pages": [
+						"features/custom-pages",
+						"features/custom-templates",
+						"features/custom-routing"
+					]
+				}
 				]
 			},
 			{
@@ -176,10 +184,7 @@
 						"pages": [
 							"migration-advanced/index",
 							"migration-advanced/v5-migration",
-							"migration-advanced/existing-hydrogen-integration",
-							"migration-advanced/custom-pages",
-							"migration-advanced/custom-templates",
-							"migration-advanced/custom-routing"
+						"migration-advanced/existing-hydrogen-integration"
 						]
 					}
 				]
@@ -235,6 +240,20 @@
 			"vscode"
 		]
 	},
+	"redirects": [
+		{
+			"source": "/migration-advanced/custom-pages",
+			"destination": "/features/custom-pages"
+		},
+		{
+			"source": "/migration-advanced/custom-templates",
+			"destination": "/features/custom-templates"
+		},
+		{
+			"source": "/migration-advanced/custom-routing",
+			"destination": "/features/custom-routing"
+		}
+	],
 	"footer": {
 		"socials": {
 			"x": "https://x.com/WeaverseIO",
