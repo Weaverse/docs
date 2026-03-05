@@ -172,19 +172,24 @@
 						]
 					},
 					{
-						"group": "Themes",
-						"pages": [
-							"themes-templates/pilot-theme-overview",
-							"themes-templates/pilot-theme-customization",
-							"themes-templates/pilot-theme-sections"
-						]
-					},
-					{
 						"group": "Migration",
 						"pages": [
 							"migration-advanced/index",
 							"migration-advanced/v5-migration",
-						"migration-advanced/existing-hydrogen-integration"
+							"migration-advanced/existing-hydrogen-integration"
+						]
+					}
+				]
+			},
+			{
+				"tab": "Hydrogen Themes",
+				"pages": [
+					{
+						"group": "Hydrogen Themes",
+						"pages": [
+							"hydrogen-themes/pilot-theme-overview",
+							"hydrogen-themes/pilot-theme-customization",
+							"hydrogen-themes/pilot-theme-sections"
 						]
 					}
 				]
@@ -252,6 +257,10 @@
 		{
 			"source": "/migration-advanced/custom-routing",
 			"destination": "/features/custom-routing"
+		},
+		{
+			"source": "/themes-templates/:slug*",
+			"destination": "/hydrogen-themes/:slug*"
 		}
 	],
 	"footer": {
