@@ -168,7 +168,8 @@
 							"deployment",
 							"oxygen-deployment",
 							"docker-deployment",
-							"workers-deployment"
+							"workers-deployment",
+							"dns-setup"
 						]
 					},
 					{
