@@ -1,0 +1,129 @@
+---
+title: "Custom Domain & DNS Setup"
+description: "Connect your custom domain to a Shopify Hydrogen storefront with proper DNS configuration."
+---
+
+After deploying your Hydrogen storefront, you'll need to connect a custom domain so customers can access your store at your own URL (e.g., `yourdomain.com`). This guide walks through adding the domain in Shopify, pointing it to your Hydrogen app, and configuring DNS records.
+
+<Note>
+  This guide uses **Cloudflare** as the DNS provider for examples, but the same DNS records apply to any provider (GoDaddy, Namecheap, Route 53, etc.). The key difference is where you create the records and how you disable proxying.
+</Note>
+
+## Prerequisites
+
+- A deployed Hydrogen storefront (via [Oxygen](/oxygen-deployment), [Docker](/docker-deployment), or [Cloudflare Workers](/workers-deployment))
+- A registered domain name
+- Access to your domain's DNS management panel
+
+## Step 1 — Add Domain in Shopify Admin
+
+<Steps>
+  <Step title="Open domain settings">
+    Go to **Shopify Admin** → **Settings** → **Domains**.
+  </Step>
+  <Step title="Connect your domain">
+    Click **Connect existing domain** and enter your domain (e.g., `yourdomain.com`).
+  </Step>
+</Steps>
+
+<Frame>
+  <img
+    src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/shopify-hydrogen-domain-setup.png?v=1773648656"
+    alt="Shopify Admin - Connect existing domain"
+  />
+</Frame>
+
+## Step 2 — Point Domain to Hydrogen
+
+Once the domain appears in your domain list:
+
+<Steps>
+  <Step title="Select your domain">
+    Click on your domain name in the domains list.
+  </Step>
+  <Step title="Change the target">
+    Change the target from **Online Store** to your **Hydrogen** storefront.
+  </Step>
+</Steps>
+
+<Warning>
+  This step is critical. If the domain still points to the Online Store, visitors will see the Liquid theme instead of your Hydrogen app.
+</Warning>
+
+## Step 3 — Configure DNS Records
+
+Log in to your DNS provider's dashboard and create the following records:
+
+### Root Domain
+
+| Field  | Value                    |
+| ------ | ------------------------ |
+| Type   | `CNAME`                  |
+| Name   | `@`                      |
+| Target | `shops.myshopify.com`    |
+| Proxy  | **OFF** (DNS only)       |
+
+### WWW Subdomain
+
+| Field  | Value                    |
+| ------ | ------------------------ |
+| Type   | `CNAME`                  |
+| Name   | `www`                    |
+| Target | `shops.myshopify.com`    |
+| Proxy  | **OFF** (DNS only)       |
+
+<Warning>
+  **Cloudflare users**: Make sure the orange cloud icon is **turned OFF** (grey cloud / DNS only). Shopify needs direct access to your domain to provision the SSL certificate. If the proxy is enabled, SSL provisioning will fail.
+</Warning>
+
+<Note>
+  Some DNS providers don't support `CNAME` records on the root domain (`@`). In that case, look for an **ALIAS** or **ANAME** record type, which serves the same purpose. Check your provider's documentation for details.
+</Note>
+
+## Step 4 — Verify the Connection
+
+After updating your DNS records:
+
+<Steps>
+  <Step title="Wait for propagation">
+    DNS changes typically take **5–30 minutes** to propagate, though in some cases it can take up to 48 hours.
+  </Step>
+  <Step title="Verify in Shopify">
+    Go back to **Shopify Admin** → **Settings** → **Domains** and check that your domain shows as **Connected**.
+  </Step>
+  <Step title="SSL certificate">
+    Shopify will **automatically provision** an SSL certificate for your domain. This may take a few additional minutes after DNS verification completes.
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Domain shows as 'Not connected' in Shopify">
+    - Double-check that both `CNAME` records (`@` and `www`) point to `shops.myshopify.com`
+    - Ensure DNS proxy is disabled (Cloudflare users: grey cloud, not orange)
+    - Wait up to 48 hours for full DNS propagation
+    - Try removing and re-adding the domain in Shopify
+  </Accordion>
+  <Accordion title="SSL certificate not provisioning">
+    - Verify that Cloudflare proxy is **OFF** (DNS only / grey cloud). This is the most common cause
+    - Ensure no conflicting `A` records exist for the same domain
+    - Check that your domain registrar hasn't locked DNS changes
+    - Wait up to 24 hours — Shopify retries SSL provisioning periodically
+  </Accordion>
+  <Accordion title="Site shows Liquid theme instead of Hydrogen">
+    - Go to **Shopify Admin** → **Settings** → **Domains** → click your domain
+    - Confirm the target is set to your **Hydrogen** storefront, not **Online Store**
+  </Accordion>
+  <Accordion title="ERR_TOO_MANY_REDIRECTS error">
+    - This usually happens when Cloudflare's SSL mode is set to **Flexible**
+    - Change Cloudflare SSL/TLS mode to **Full** or **Full (Strict)**
+    - Alternatively, disable Cloudflare proxy entirely (recommended for Shopify domains)
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+- **[Deployment Overview](/deployment)** — Review all deployment options
+- **[Oxygen Deployment](/oxygen-deployment)** — Deploy to Shopify's official hosting platform
+- **[Content Security](/features/content-security)** — Configure security headers for your storefront
