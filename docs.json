@@ -206,8 +206,11 @@
 						]
 					},
 					{
-						"group": "Troubleshooting",
-						"pages": ["troubleshooting/preview-errors"]
+"group": "Troubleshooting",
+					"pages": [
+						"troubleshooting/preview-errors",
+						"troubleshooting/component-not-selectable"
+					]
 					},
 					{
 						"group": "Community & Updates",
