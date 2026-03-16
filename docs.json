@@ -167,6 +167,7 @@
 						"pages": [
 							"deployment",
 							"oxygen-deployment",
+							"custom-domain-setup",
 							"docker-deployment",
 							"workers-deployment"
 						]
