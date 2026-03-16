@@ -169,7 +169,7 @@
 							"oxygen-deployment",
 							"docker-deployment",
 							"workers-deployment",
-							"dns-setup"
+							"custom-domain-and-dns-setup"
 						]
 					},
 					{
