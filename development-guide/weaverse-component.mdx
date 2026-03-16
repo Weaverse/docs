@@ -1197,6 +1197,10 @@ const AccessibleComponent = forwardRef<HTMLElement, AccessibleComponentProps>((p
    - **Check for syntax errors** in the component or schema
    - **Verify the component is exported correctly** (both default export and schema)
 
+2. **Component not selectable in Studio**
+   - Usually caused by not spreading `...rest` onto the root DOM element, or returning `null`
+   - See the [Component Not Selectable](/troubleshooting/component-not-selectable) troubleshooting guide for detailed fixes
+
 2. **Schema not updating**
    - **Clear browser cache** and refresh the page
    - **Restart development server** to reload all components
