@@ -145,18 +145,18 @@
 						"group": "Internationalization",
 						"pages": ["features/markets-localization"]
 					},
-				{
-					"group": "Security",
-					"pages": ["features/content-security"]
-				},
-				{
-					"group": "Custom Pages & Routing",
-					"pages": [
-						"features/custom-pages",
-						"features/custom-templates",
-						"features/custom-routing"
-					]
-				}
+					{
+						"group": "Security",
+						"pages": ["features/content-security"]
+					},
+					{
+						"group": "Custom Pages & Routing",
+						"pages": [
+							"features/custom-pages",
+							"features/custom-templates",
+							"features/custom-routing"
+						]
+					}
 				]
 			},
 			{
@@ -207,7 +207,10 @@
 					},
 					{
 						"group": "Troubleshooting",
-						"pages": ["troubleshooting/preview-errors"]
+						"pages": [
+							"troubleshooting/preview-errors",
+							"troubleshooting/component-not-selectable"
+						]
 					},
 					{
 						"group": "Community & Updates",

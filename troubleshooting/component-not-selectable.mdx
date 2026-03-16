@@ -1,0 +1,289 @@
+---
+title: "Component Not Selectable"
+description: "Fix components that appear in preview but cannot be selected or edited in Weaverse Studio."
+---
+
+# Component Not Selectable
+
+You may encounter a situation where your component renders correctly in the preview, but you **cannot click to select it** in Weaverse Studio. The section appears in the left panel's section list but clicking it or clicking directly on the preview does nothing — the settings panel stays empty.
+
+This is commonly referred to as a **"ghost section"** and Studio will display a warning on the affected item:
+
+<Frame>
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/component-not-selectable.png?v=1773633163" alt="Weaverse Studio showing a warning icon on a component that is not selectable, with a hover popup explaining the issue" />
+</Frame>
+
+## Why This Happens
+
+Weaverse Studio identifies components in the preview by looking for a `data-wv-id` attribute on the DOM element. This attribute is automatically included in the props that Weaverse passes to your component.
+
+There are **two main causes** for this issue:
+
+1. **Props not spread correctly** — the `data-wv-id` attribute is in the props but never reaches the DOM
+2. **Component returns `null`** — no DOM element is rendered at all, so there's nothing for Studio to find
+
+## How to Fix
+
+### Cause 1: Props Not Spread Correctly
+
+When your component **doesn't spread the remaining props** (`...rest`) onto its root DOM element, the `data-wv-id` attribute never reaches the DOM. Studio can see the component exists in the data layer, but it cannot find the corresponding element in the preview.
+
+<Steps>
+  <Step title="Destructure your custom props from the rest">
+    Separate your component-specific props and `children` from everything else using the spread operator:
+
+    ```tsx
+    function MySection(props: MySectionProps) {
+      const { heading, description, children, ...rest } = props;
+      // ...
+    }
+    ```
+  </Step>
+  <Step title="Spread the remaining props onto the root DOM element">
+    Pass `...rest` to the outermost HTML element. This ensures `data-wv-id` and all other Weaverse-internal attributes reach the DOM:
+
+    ```tsx
+    function MySection(props: MySectionProps) {
+      const { heading, description, children, ...rest } = props;
+
+      return (
+        <section {...rest}>
+          <h2>{heading}</h2>
+          <p>{description}</p>
+          {children}
+        </section>
+      );
+    }
+    ```
+  </Step>
+  <Step title="Restart the development server">
+    After making changes, restart your dev server to pick up the updated component:
+
+    ```bash
+    npm run dev
+    ```
+  </Step>
+</Steps>
+
+#### Before & After
+
+<CodeGroup>
+  ```tsx Wrong highlight={4,8}
+  // app/sections/my-section/index.tsx
+  function MySection(props: MySectionProps) {
+    // Only destructured custom props — rest of props are lost
+    const { heading, description } = props;
+
+    return (
+      // data-wv-id and other Weaverse props are lost
+      <section>
+        <h2>{heading}</h2>
+        <p>{description}</p>
+      </section>
+    );
+  }
+  ```
+
+  ```tsx Correct highlight={4,8}
+  // app/sections/my-section/index.tsx
+  function MySection(props: MySectionProps) {
+    // Capture everything else with ...rest
+    const { heading, description, children, ...rest } = props;
+
+    return (
+      // Spread ...rest — this includes data-wv-id
+      <section {...rest}>
+        <h2>{heading}</h2>
+        <p>{description}</p>
+        {children}
+      </section>
+    );
+  }
+  ```
+</CodeGroup>
+
+If you're using `forwardRef`, the same rule applies — spread `...rest` and pass the `ref`:
+
+```tsx
+import { forwardRef } from "react";
+
+const MySection = forwardRef<HTMLElement, MySectionProps>((props, ref) => {
+  const { heading, description, children, ...rest } = props;
+
+  return (
+    <section ref={ref} {...rest}>
+      <h2>{heading}</h2>
+      <p>{description}</p>
+      {children}
+    </section>
+  );
+});
+
+export default MySection;
+```
+
+<Note>
+With React 19, `forwardRef` becomes less necessary. If you spread all props (including `ref`) onto the root element, Weaverse can detect the DOM element automatically. See the [Weaverse Component guide](/development-guide/weaverse-component) for more details.
+</Note>
+
+---
+
+### Cause 2: Component Returns `null`
+
+If your component conditionally returns `null`, **no DOM element is rendered at all**. Without a DOM element, there's no place for the `data-wv-id` attribute to exist, and Studio cannot locate or select the component.
+
+This commonly happens when components guard against missing data.
+
+<Steps>
+  <Step title="Find the early return">
+    Look for any `return null` statements in your component, especially conditional guards at the top:
+
+    ```tsx
+    function FeaturedProduct(props: FeaturedProductProps) {
+      const { loaderData, children, ...rest } = props;
+      const product = loaderData?.product;
+
+      // This is the problem — no DOM element when product is missing
+      if (!product) {
+        return null;
+      }
+
+      return (
+        <section {...rest}>
+          <h2>{product.title}</h2>
+          {children}
+        </section>
+      );
+    }
+    ```
+  </Step>
+  <Step title="Always render a root element with props spread">
+    Replace the `return null` with an empty self-closing element that spreads `...rest`:
+
+    ```tsx
+    function FeaturedProduct(props: FeaturedProductProps) {
+      const { loaderData, children, ...rest } = props;
+      const product = loaderData?.product;
+
+      if (!product) {
+        return <section {...rest} />;
+      }
+
+      return (
+        <section {...rest}>
+          <h2>{product.title}</h2>
+          {children}
+        </section>
+      );
+    }
+    ```
+  </Step>
+  <Step title="Restart the development server">
+    After making changes, restart your dev server to pick up the updated component:
+
+    ```bash
+    npm run dev
+    ```
+  </Step>
+</Steps>
+
+#### Before & After
+
+<CodeGroup>
+  ```tsx Wrong highlight={5}
+  function FeaturedProduct(props: FeaturedProductProps) {
+    const { loaderData, children, ...rest } = props;
+    const product = loaderData?.product;
+
+    if (!product) return null;
+
+    return (
+      <section {...rest}>
+        <h2>{product.title}</h2>
+        {children}
+      </section>
+    );
+  }
+  ```
+
+  ```tsx Correct highlight={5}
+  function FeaturedProduct(props: FeaturedProductProps) {
+    const { loaderData, children, ...rest } = props;
+    const product = loaderData?.product;
+
+    if (!product) return <section {...rest} />;
+
+    return (
+      <section {...rest}>
+        <h2>{product.title}</h2>
+        {children}
+      </section>
+    );
+  }
+  ```
+</CodeGroup>
+
+<Warning>
+**Never return `null` from a Weaverse component.** Always render at least a root element with `{...rest}` so Studio can identify and select it. Use conditional rendering _inside_ the root element instead.
+</Warning>
+
+#### Common Patterns That Cause This
+
+<AccordionGroup>
+  <Accordion title="Early returns for missing data" icon="database">
+    Watch out for any conditional return before the root element:
+
+    ```tsx
+    // All of these prevent the root element from rendering
+    if (!data) return null;
+    if (items.length === 0) return null;
+    if (!isEnabled) return null;
+    if (loading) return null;
+    ```
+
+    Instead, move the condition inside the root element:
+
+    ```tsx
+    return (
+      <section {...rest}>
+        {!data ? <Placeholder /> : <Content data={data} />}
+      </section>
+    );
+    ```
+  </Accordion>
+
+  <Accordion title="Returning null from a ternary" icon="code">
+    This is a subtler version of the same problem:
+
+    ```tsx
+    // Wrong
+    return isVisible ? (
+      <section {...rest}>{children}</section>
+    ) : null;
+
+    // Correct
+    return (
+      <section {...rest}>
+        {isVisible ? children : null}
+      </section>
+    );
+    ```
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Checklist
+
+If a component is not selectable in Studio, verify:
+
+- [ ] The component **never returns `null`** — return an empty element with `{...rest}` instead
+- [ ] The component destructures custom props and captures `...rest`
+- [ ] `...rest` is spread onto the **root DOM element**
+- [ ] The development server has been restarted after changes
+
+## Related Resources
+
+- [Creating Components](/development-guide/creating-components)
+- [Weaverse Component](/development-guide/weaverse-component)
+- [Preview Connection Errors](/troubleshooting/preview-errors)
