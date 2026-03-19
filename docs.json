@@ -167,10 +167,9 @@
 						"pages": [
 							"deployment",
 							"oxygen-deployment",
-							"custom-domain-setup",
+							"custom-domain-and-dns-setup",
 							"docker-deployment",
-							"workers-deployment",
-							"custom-domain-and-dns-setup"
+							"workers-deployment"
 						]
 					},
 					{
