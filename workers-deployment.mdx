@@ -118,6 +118,19 @@ Your `wrangler.json` file manages project configuration. Update it with your pro
 - `observability` - Enable production monitoring
 - `upload_source_maps` - Better error tracking in production
 
+<Tip>
+If your Cloudflare account is associated with multiple accounts (e.g., personal and organization), add the `account_id` field to your `wrangler.json` to specify which account to deploy to:
+
+```json
+{
+  "account_id": "<your-cloudflare-account-id>",
+  ...
+}
+```
+
+You can find your Account ID in the [Cloudflare Dashboard](https://dash.cloudflare.com) under **Workers & Pages** → **Overview** (right sidebar).
+</Tip>
+
 ### 2. Configure Environment Variables
 
 Create a `.dev.vars` file in your project root to manage your environment variables securely.
