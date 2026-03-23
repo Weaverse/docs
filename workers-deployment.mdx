@@ -50,14 +50,14 @@ export default {
   buildDirectory: "dist",
   ssr: true,
   future: {
-    unstable_viteEnvironmentApi: true,
+    v8_viteEnvironmentApi: true,
   },
 } satisfies Config;
 ```
 
 **Key settings for Cloudflare deployment:**
 - `ssr: true` - Enables server-side rendering for optimal performance
-- `unstable_viteEnvironmentApi: true` - Required for Vite's environment API integration
+- `v8_viteEnvironmentApi: true` - Enables support for the [Vite Environment API](https://reactrouter.com/upgrading/future#futurev8_viteenvironmentapi) (requires Vite 6+)
 
 ### Vite Configuration
 
