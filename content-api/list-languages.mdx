@@ -1,0 +1,112 @@
+---
+title: "List Languages"
+description: "List all languages configured for a project"
+published: true
+---
+
+# List Languages
+
+```
+GET /api/v1/content/projects/:projectId/languages
+```
+
+Returns all languages configured for a project, including locale codes, display names, and which language is the default. Use this endpoint to discover available locales before requesting translated content.
+
+## Authentication
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "code": "en-us",
+      "name": "English (US)",
+      "isDefault": true
+    },
+    {
+      "code": "fr-fr",
+      "name": "French (France)",
+      "isDefault": false
+    },
+    {
+      "code": "vi-vn",
+      "name": "Vietnamese",
+      "isDefault": false
+    }
+  ]
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `"list"` |
+| `data` | array | Array of language objects |
+| `data[].code` | string | Locale code (e.g., `en-us`, `fr-fr`). Use this value as the `locale` parameter in other endpoints. |
+| `data[].name` | string | Human-readable language name |
+| `data[].isDefault` | boolean | Whether this is the project's default language. The default language is listed first. |
+
+<Tip>
+  Pass the `code` value as the `locale` query parameter to:
+  - [Get Page](/content-api/get-page) — get translated page content
+  - [Get Theme Settings](/content-api/get-theme-settings) — get static translations
+</Tip>
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `INVALID_PARAMS` | 400 | Missing `projectId` |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/languages"
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const res = await fetch(
+      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/languages`,
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
+    )
+    const { data: languages } = await res.json()
+
+    // Build locale switcher
+    const defaultLocale = languages.find((l) => l.isDefault)?.code
+    const availableLocales = languages.map((l) => l.code)
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    res = requests.get(
+        f"https://studio.weaverse.io/api/v1/content/projects/{project_id}/languages",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+    )
+    languages = res.json()["data"]
+    default_locale = next(l["code"] for l in languages if l["isDefault"])
+    ```
+  </Tab>
+</Tabs>

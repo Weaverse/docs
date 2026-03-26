@@ -1,6 +1,6 @@
 ---
 title: "Get Theme Settings"
-description: "Retrieve theme configuration and design tokens for a project"
+description: "Retrieve theme configuration and static translations for a project"
 published: true
 ---
 
@@ -11,6 +11,8 @@ GET /api/v1/content/projects/:projectId/theme-settings
 ```
 
 Returns the theme configuration for a project, including design tokens, colors, typography, and other global styling settings configured in the Weaverse Studio editor.
+
+When the `locale` query parameter is provided, also returns `staticTranslations` — the resolved static text translations for that locale (e.g., cart labels, button text, navigation strings).
 
 ## Authentication
 
@@ -24,7 +26,15 @@ Returns the theme configuration for a project, including design tokens, colors, 
 |-----------|------|----------|-------------|
 | `projectId` | string | Yes | The project ID |
 
+## Query parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `locale` | string | No | Locale code (e.g., `fr-fr`, `vi-vn`). When provided, includes `staticTranslations` in the response. Tries exact match first, then falls back to language prefix (e.g., `fr`). |
+
 ## Response
+
+### Without locale
 
 ```json
 {
@@ -56,6 +66,35 @@ Returns the theme configuration for a project, including design tokens, colors, 
 }
 ```
 
+### With locale
+
+```
+GET /projects/:projectId/theme-settings?locale=fr-fr
+```
+
+```json
+{
+  "object": "theme_settings",
+  "projectId": "clx1abc23def456ghij",
+  "theme": {
+    "colorSchemes": { "..." : "..." },
+    "typography": { "..." : "..." }
+  },
+  "staticTranslations": {
+    "cart": {
+      "title": "Panier",
+      "empty": {
+        "message": "Votre panier est vide"
+      }
+    },
+    "product": {
+      "addToCart": "Ajouter au panier",
+      "soldOut": "Rupture de stock"
+    }
+  }
+}
+```
+
 ### Response fields
 
 | Field | Type | Description |
@@ -63,9 +102,14 @@ Returns the theme configuration for a project, including design tokens, colors, 
 | `object` | string | Always `"theme_settings"` |
 | `projectId` | string | The project ID |
 | `theme` | object | Theme configuration object |
+| `staticTranslations` | object | Nested translation keys with resolved values for the requested locale. Only present when `locale` query parameter is provided. Uses translated value when available, falls back to default value. |
 
 <Tip>
   The `theme` object shape varies per project and depends on how theme settings are configured in the Weaverse Studio. Use the response data to apply consistent styling across your frontend.
+</Tip>
+
+<Tip>
+  Use the [List Languages](/content-api/list-languages) endpoint to discover available locales before requesting translations.
 </Tip>
 
 ## Errors
@@ -83,23 +127,32 @@ Returns the theme configuration for a project, including design tokens, colors, 
 <Tabs>
   <Tab title="cURL">
     ```bash
+    # Without locale
     curl -H "Authorization: Bearer YOUR_API_KEY" \
       "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/theme-settings"
+
+    # With locale
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/theme-settings?locale=fr-fr"
     ```
   </Tab>
   <Tab title="TypeScript">
     ```typescript
+    const locale = 'fr-fr'
     const res = await fetch(
-      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/theme-settings`,
+      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/theme-settings?locale=${locale}`,
       { headers: { Authorization: `Bearer ${API_KEY}` } }
     )
-    const { theme } = await res.json()
+    const { theme, staticTranslations } = await res.json()
 
     // Apply theme tokens
     document.documentElement.style.setProperty(
       '--color-primary',
       theme.colorSchemes?.primary?.accent ?? '#246aff'
     )
+
+    // Use translations
+    const cartTitle = staticTranslations?.cart?.title ?? 'Cart'
     ```
   </Tab>
   <Tab title="Python">
@@ -109,9 +162,11 @@ Returns the theme configuration for a project, including design tokens, colors, 
     res = requests.get(
         f"https://studio.weaverse.io/api/v1/content/projects/{project_id}/theme-settings",
         headers={"Authorization": f"Bearer {API_KEY}"},
+        params={"locale": "fr-fr"},
     )
     data = res.json()
     theme = data["theme"]
+    translations = data.get("staticTranslations", {})
     ```
   </Tab>
 </Tabs>

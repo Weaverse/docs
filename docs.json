@@ -143,7 +143,8 @@
 							"content-api/list-projects",
 							"content-api/list-pages",
 							"content-api/get-page",
-							"content-api/get-theme-settings"
+							"content-api/get-theme-settings",
+							"content-api/list-languages"
 						]
 					}
 				]
