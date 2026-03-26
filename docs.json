@@ -153,6 +153,13 @@
 				"tab": "Features",
 				"pages": [
 					{
+						"group": "APIs",
+						"pages": [
+							"features/api-access",
+							"features/admin-api-proxy"
+						]
+					},
+					{
 						"group": "Content Management",
 						"pages": [
 							"features/global-sections",

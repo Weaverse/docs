@@ -1,0 +1,68 @@
+---
+title: "API Access"
+description: "Overview of Weaverse's two APIs — Content API for page data and Admin API Proxy for Shopify GraphQL"
+published: true
+---
+
+# API Access
+
+Weaverse provides two APIs for accessing your store and content data from external applications:
+
+| API | Type | Purpose |
+|-----|------|---------|
+| [Content API](/content-api/overview) | Read-only REST | Pages, theme settings, translations, languages |
+| [Admin API Proxy](/features/admin-api-proxy) | Shopify GraphQL passthrough | Products, orders, metaobjects, themes |
+
+## Authentication
+
+Both APIs share the same **token system**. Generate tokens from **Dashboard → Settings** in the Weaverse Studio.
+
+Pass your token via the `Authorization` header:
+
+```bash
+Authorization: Bearer YOUR_API_KEY
+```
+
+Each token is scoped to a single Weaverse shop. The Admin API Proxy additionally supports **scope management** to control which Shopify resources the token can access.
+
+## Content API
+
+The Content API is a read-only REST API for accessing Weaverse-managed content:
+
+- **Pages** — retrieve page content and section data
+- **Theme settings** — read global theme configuration
+- **Languages** — list available translations
+- **Projects** — enumerate projects for the shop
+
+**Base URL:**
+
+```
+https://studio.weaverse.io/api/v1/content
+```
+
+See the [Content API documentation](/content-api/overview) for endpoints, response formats, and query parameters.
+
+## Admin API Proxy
+
+The Admin API Proxy forwards Shopify Admin GraphQL queries through Weaverse, so you don't need to manage Shopify credentials directly:
+
+- **Products & collections** — query catalog data
+- **Metaobjects** — read custom data structures
+- **Themes & files** — access theme assets and uploaded files
+- **Orders & customers** — available with optional scopes
+
+**Endpoint:**
+
+```
+POST https://studio.weaverse.io/api/admin-graphql
+```
+
+See the [Admin API Proxy documentation](/features/admin-api-proxy) for request format, scopes, rate limits, and examples.
+
+## Best Practices
+
+- **One token per integration** — if a token is compromised, revoke it without disrupting other integrations
+- **Use descriptive names** — label tokens by integration (e.g., "Mobile App - Production", "CMS Sync") for easy identification
+- **Monitor `lastAccess`** — review token activity in Dashboard → Settings to detect stale or unauthorized usage
+- **Principle of least privilege** — for Admin API Proxy, only enable the scopes your integration actually needs
+- **Keep tokens server-side** — never embed API tokens in client-side JavaScript or mobile app bundles
