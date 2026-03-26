@@ -64,7 +64,7 @@ List endpoints (`/projects` and `/pages`) use **cursor-based pagination**.
 {
   "object": "list",
   "data": [ ... ],
-  "nextCursor": "Y2x4MWFiYzIzZGVmNDU2"
+  "nextCursor": "Y2x4MWFiYzIzZGVmNDU2Z2hpag=="
 }
 ```
 
@@ -80,7 +80,7 @@ curl -H "Authorization: Bearer $KEY" \
 
 # Next page (use nextCursor from previous response)
 curl -H "Authorization: Bearer $KEY" \
-  "https://studio.weaverse.io/api/v1/content/projects?limit=10&after=Y2x4MWFiYzIzZGVmNDU2"
+  "https://studio.weaverse.io/api/v1/content/projects?limit=10&after=Y2x4MWFiYzIzZGVmNDU2Z2hpag=="
 ```
 
 ## Error handling
@@ -164,7 +164,7 @@ async function fetchPage(projectId: string, type: string, handle: string) {
 }
 
 // Usage
-const page = await fetchPage('proj-123', 'PRODUCT', 'blue-shirt')
+const page = await fetchPage('clx1abc23def456ghij', 'PRODUCT', 'blue-shirt')
 console.log(page.items) // Array of section components
 ```
 

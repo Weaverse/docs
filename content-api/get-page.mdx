@@ -47,19 +47,19 @@ If no assignment is found after all fallbacks, a `404` is returned.
 ```json
 {
   "object": "page",
-  "id": "page_xyz789",
+  "id": "clz5wxy12abc345defg",
   "type": "PRODUCT",
   "handle": "blue-shirt",
   "locale": "en-us",
   "items": [
     {
-      "id": "root",
+      "id": "019503a2-c4b6-7c9d-8e3f-1a2b3c4d5e6f",
       "type": "root",
       "data": {},
-      "children": [{ "id": "hero-section" }, { "id": "product-info" }]
+      "children": [{ "id": "01950b17-d8a3-7f1e-9c4b-2d6e8f0a1b3c" }, { "id": "01950c4e-a1b2-7d3f-8e9c-4a5b6c7d8e9f" }]
     },
     {
-      "id": "hero-section",
+      "id": "01950b17-d8a3-7f1e-9c4b-2d6e8f0a1b3c",
       "type": "hero-banner",
       "data": {
         "title": "Summer Collection",
@@ -71,7 +71,7 @@ If no assignment is found after all fallbacks, a `404` is returned.
       "children": null
     },
     {
-      "id": "product-info",
+      "id": "01950c4e-a1b2-7d3f-8e9c-4a5b6c7d8e9f",
       "type": "product-details",
       "data": {
         "showPrice": true,
@@ -84,7 +84,7 @@ If no assignment is found after all fallbacks, a `404` is returned.
   "updatedAt": "2026-03-20T10:30:00.000Z",
   "meta": {
     "inherited": false,
-    "sourceProjectId": "proj-123",
+    "sourceProjectId": "clx1abc23def456ghij",
     "depth": 0
   }
 }
@@ -139,11 +139,11 @@ Each item in the `items` array represents a page section or component:
     ```bash
     # Get the homepage
     curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://studio.weaverse.io/api/v1/content/projects/proj-123/pages/INDEX/default"
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/INDEX/default"
 
     # Get a product page with locale
     curl -H "Authorization: Bearer YOUR_API_KEY" \
-      "https://studio.weaverse.io/api/v1/content/projects/proj-123/pages/PRODUCT/blue-shirt?locale=fr-fr"
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/PRODUCT/blue-shirt?locale=fr-fr"
     ```
   </Tab>
   <Tab title="TypeScript">
@@ -169,10 +169,10 @@ Each item in the `items` array represents a page section or component:
     }
 
     // Get homepage content
-    const homepage = await getPage('proj-123', 'INDEX', 'default')
+    const homepage = await getPage('clx1abc23def456ghij', 'INDEX', 'default')
 
     // Get localized product page
-    const productPage = await getPage('proj-123', 'PRODUCT', 'blue-shirt', 'fr-fr')
+    const productPage = await getPage('clx1abc23def456ghij', 'PRODUCT', 'blue-shirt', 'fr-fr')
 
     // Render items
     for (const item of homepage.items) {
@@ -195,10 +195,10 @@ Each item in the `items` array represents a page section or component:
         return res.json()
 
     # Get homepage
-    homepage = get_page("proj-123", "INDEX", "default")
+    homepage = get_page("clx1abc23def456ghij", "INDEX", "default")
 
     # Get localized product page
-    product = get_page("proj-123", "PRODUCT", "blue-shirt", "fr-fr")
+    product = get_page("clx1abc23def456ghij", "PRODUCT", "blue-shirt", "fr-fr")
     ```
   </Tab>
 </Tabs>
