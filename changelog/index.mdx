@@ -8,6 +8,37 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+## [2026.3.26] - March 26, 2026
+
+### Content API v1
+*Read-only REST API for accessing Weaverse content from external applications*
+
+#### New Features
+
+- **Content API**: New authenticated REST API for headless content access
+  - `GET /api/v1/content/projects` — list all projects in your shop
+  - `GET /api/v1/content/projects/:projectId/pages` — list page assignments with type/locale filtering
+  - `GET /api/v1/content/projects/:projectId/pages/:type/:handle` — get full page content with component items
+  - `GET /api/v1/content/projects/:projectId/theme-settings` — get theme design tokens
+  - `GET /api/v1/content/openapi.json` — OpenAPI 3.1 specification
+
+- **API Key Authentication**: Bearer token authentication scoped per shop
+  - Cached token validation (5-minute TTL) for fast lookups
+  - Per-shop access control prevents cross-tenant data leakage
+
+- **Usage Tracking**: Billing-integrated API metering
+  - API hits share the same billing pool as storefront page views (1 request = 1 page view)
+  - Non-blocking tracking with zero latency impact on responses
+
+- **Cursor-Based Pagination**: Efficient pagination for list endpoints
+  - Base64-encoded cursors for stable iteration
+  - Configurable page size (default 50, max 100)
+
+- **Locale Fallback**: Automatic locale resolution for page content
+  - Falls back from requested locale to project default to English
+
+See the [Content API documentation](/content-api/overview) for full details and code examples.
+
 ## [2026.2.5] - February 5, 2026
 
 ### Weaverse Studio

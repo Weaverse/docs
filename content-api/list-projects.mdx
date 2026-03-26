@@ -1,0 +1,103 @@
+---
+title: "List Projects"
+description: "Retrieve all Weaverse projects belonging to your shop"
+published: true
+---
+
+# List Projects
+
+```
+GET /api/v1/content/projects
+```
+
+Returns a paginated list of all projects in your shop.
+
+## Authentication
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `50` | Number of projects to return (max `100`) |
+| `after` | string | — | Cursor for pagination (from `nextCursor`) |
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "clx1abc23def456",
+      "name": "My Storefront",
+      "parentProjectId": null,
+      "createdAt": "2026-01-15T08:30:00.000Z"
+    },
+    {
+      "id": "clx2ghi78jkl901",
+      "name": "Holiday Campaign",
+      "parentProjectId": "clx1abc23def456",
+      "createdAt": "2026-02-20T14:15:00.000Z"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `"list"` |
+| `data` | array | Array of project objects |
+| `data[].id` | string | Project ID |
+| `data[].name` | string | Project display name |
+| `data[].parentProjectId` | string \| null | Parent project ID (for child projects) |
+| `data[].createdAt` | string \| null | ISO 8601 creation timestamp |
+| `nextCursor` | string \| null | Cursor for the next page, `null` if no more results |
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `INVALID_PARAMS` | 400 | Invalid cursor value |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # List first 10 projects
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects?limit=10"
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const res = await fetch(
+      'https://studio.weaverse.io/api/v1/content/projects?limit=10',
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
+    )
+    const { data: projects, nextCursor } = await res.json()
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    res = requests.get(
+        "https://studio.weaverse.io/api/v1/content/projects",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+        params={"limit": 10},
+    )
+    data = res.json()
+    projects = data["data"]
+    ```
+  </Tab>
+</Tabs>

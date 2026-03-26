@@ -1,0 +1,186 @@
+---
+title: "Content API"
+description: "Read-only REST API for accessing Weaverse page content, theme settings, and project data from external applications"
+published: true
+---
+
+# Content API
+
+The Weaverse Content API is a read-only REST API that lets you access your page content, theme settings, and project data from any application — headless frontends, mobile apps, static site generators, or custom integrations.
+
+<Note>
+  The Content API is currently **read-only** (GET requests). Write endpoints are planned for a future release.
+</Note>
+
+## Base URL
+
+```
+https://studio.weaverse.io/api/v1/content
+```
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | [`/projects`](/content-api/list-projects) | List all projects |
+| `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
+| `GET` | [`/projects/:projectId/pages/:type/:handle`](/content-api/get-page) | Get page content |
+| `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
+| `GET` | `/openapi.json` | OpenAPI 3.1 specification |
+
+## Authentication
+
+All endpoints (except `/openapi.json`) require a **Content API key**. Pass it via the `Authorization` header:
+
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://studio.weaverse.io/api/v1/content/projects
+```
+
+<Warning>
+  A `?apiKey=` query parameter fallback exists for development, but tokens in query strings appear in server and CDN logs. **Always use the `Authorization` header in production.**
+</Warning>
+
+### Obtaining an API key
+
+Content API keys are provisioned per shop. Contact the Weaverse team or generate one from the Weaverse Studio dashboard (coming soon).
+
+### Scoping
+
+Each API key is scoped to a single Weaverse shop. Requests can only access projects that belong to that shop. Attempting to access another shop's project returns a `403 Forbidden` error.
+
+## Pagination
+
+List endpoints (`/projects` and `/pages`) use **cursor-based pagination**.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `limit` | integer | `50` | Items per page (max `100`) |
+| `after` | string | — | Cursor from a previous response's `nextCursor` |
+
+### Paginated response shape
+
+```json
+{
+  "object": "list",
+  "data": [ ... ],
+  "nextCursor": "Y2x4MWFiYzIzZGVmNDU2"
+}
+```
+
+- `nextCursor` is `null` when there are no more results.
+- Pass `nextCursor` as the `after` parameter to fetch the next page.
+
+### Example: iterating through pages
+
+```bash
+# First page
+curl -H "Authorization: Bearer $KEY" \
+  "https://studio.weaverse.io/api/v1/content/projects?limit=10"
+
+# Next page (use nextCursor from previous response)
+curl -H "Authorization: Bearer $KEY" \
+  "https://studio.weaverse.io/api/v1/content/projects?limit=10&after=Y2x4MWFiYzIzZGVmNDU2"
+```
+
+## Error handling
+
+All errors follow a consistent envelope:
+
+```json
+{
+  "object": "error",
+  "code": "ERROR_CODE",
+  "message": "Human-readable description",
+  "status": 400
+}
+```
+
+### Error codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | Valid key, but no access to this resource |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `PAGE_NOT_FOUND` | 404 | Page assignment not found (after locale fallback) |
+| `INVALID_PARAMS` | 400 | Malformed request parameters or cursor |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Usage tracking & billing
+
+Every authenticated API request counts toward your plan's usage quota. API hits share the same billing pool as storefront page views:
+
+- **1 API request = 1 page view hit**
+- Usage is tracked per project and appears in your billing dashboard
+- Tracking is non-blocking — it never slows down API responses
+- The `/openapi.json` endpoint is public and **not** tracked
+
+<Tip>
+  Monitor your API usage in the Weaverse Studio billing dashboard to avoid unexpected overages.
+</Tip>
+
+## Quick start
+
+<Steps>
+  <Step title="Get your API key">
+    Obtain a Content API key from your Weaverse Studio dashboard.
+  </Step>
+  <Step title="List your projects">
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      https://studio.weaverse.io/api/v1/content/projects
+    ```
+  </Step>
+  <Step title="Fetch page content">
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/PROJECT_ID/pages/INDEX/default"
+    ```
+  </Step>
+  <Step title="Render in your app">
+    Use the returned `items` array to render page sections in any frontend framework.
+  </Step>
+</Steps>
+
+## TypeScript example
+
+```typescript
+const BASE = 'https://studio.weaverse.io/api/v1/content'
+const API_KEY = process.env.WEAVERSE_API_KEY
+
+async function fetchPage(projectId: string, type: string, handle: string) {
+  const res = await fetch(
+    `${BASE}/projects/${projectId}/pages/${type}/${handle}`,
+    { headers: { Authorization: `Bearer ${API_KEY}` } }
+  )
+
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(`[${error.code}] ${error.message}`)
+  }
+
+  return res.json()
+}
+
+// Usage
+const page = await fetchPage('proj-123', 'PRODUCT', 'blue-shirt')
+console.log(page.items) // Array of section components
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="List Projects" icon="folder" href="/content-api/list-projects">
+    Retrieve all projects in your shop
+  </Card>
+  <Card title="List Pages" icon="file-lines" href="/content-api/list-pages">
+    Browse page assignments in a project
+  </Card>
+  <Card title="Get Page Content" icon="cube" href="/content-api/get-page">
+    Fetch full page data with component items
+  </Card>
+  <Card title="Get Theme Settings" icon="palette" href="/content-api/get-theme-settings">
+    Retrieve theme design tokens and configuration
+  </Card>
+</CardGroup>

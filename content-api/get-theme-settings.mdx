@@ -1,0 +1,117 @@
+---
+title: "Get Theme Settings"
+description: "Retrieve theme configuration and design tokens for a project"
+published: true
+---
+
+# Get Theme Settings
+
+```
+GET /api/v1/content/projects/:projectId/theme-settings
+```
+
+Returns the theme configuration for a project, including design tokens, colors, typography, and other global styling settings configured in the Weaverse Studio editor.
+
+## Authentication
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+
+## Response
+
+```json
+{
+  "object": "theme_settings",
+  "projectId": "proj-123",
+  "theme": {
+    "colorSchemes": {
+      "primary": {
+        "background": "#ffffff",
+        "foreground": "#1a1a1a",
+        "accent": "#246aff"
+      },
+      "secondary": {
+        "background": "#f5f5f5",
+        "foreground": "#333333",
+        "accent": "#10b981"
+      }
+    },
+    "typography": {
+      "headingFont": "Inter",
+      "bodyFont": "Inter",
+      "baseSize": 16
+    },
+    "layout": {
+      "maxWidth": 1280,
+      "containerPadding": 24
+    }
+  }
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `"theme_settings"` |
+| `projectId` | string | The project ID |
+| `theme` | object | Theme configuration object |
+
+<Tip>
+  The `theme` object shape varies per project and depends on how theme settings are configured in the Weaverse Studio. Use the response data to apply consistent styling across your frontend.
+</Tip>
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `INVALID_PARAMS` | 400 | Missing `projectId` |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/proj-123/theme-settings"
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const res = await fetch(
+      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/theme-settings`,
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
+    )
+    const { theme } = await res.json()
+
+    // Apply theme tokens
+    document.documentElement.style.setProperty(
+      '--color-primary',
+      theme.colorSchemes?.primary?.accent ?? '#246aff'
+    )
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    res = requests.get(
+        f"https://studio.weaverse.io/api/v1/content/projects/{project_id}/theme-settings",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+    )
+    data = res.json()
+    theme = data["theme"]
+    ```
+  </Tab>
+</Tabs>

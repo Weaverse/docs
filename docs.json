@@ -131,6 +131,24 @@
 				]
 			},
 			{
+				"tab": "Content API",
+				"pages": [
+					{
+						"group": "Overview",
+						"pages": ["content-api/overview"]
+					},
+					{
+						"group": "Endpoints",
+						"pages": [
+							"content-api/list-projects",
+							"content-api/list-pages",
+							"content-api/get-page",
+							"content-api/get-theme-settings"
+						]
+					}
+				]
+			},
+			{
 				"tab": "Features",
 				"pages": [
 					{

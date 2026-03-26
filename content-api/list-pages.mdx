@@ -1,0 +1,132 @@
+---
+title: "List Pages"
+description: "Retrieve page assignments for a project, with optional type and locale filtering"
+published: true
+---
+
+# List Pages
+
+```
+GET /api/v1/content/projects/:projectId/pages
+```
+
+Returns a paginated list of page assignments in a project. Each assignment maps a page type + handle + locale to a page.
+
+## Authentication
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `type` | string | — | Filter by page type (see valid values below) |
+| `locale` | string | — | Filter by locale code (e.g., `en-us`, `fr-fr`) |
+| `limit` | integer | `50` | Number of results to return (max `100`) |
+| `after` | string | — | Cursor for pagination (from `nextCursor`) |
+
+### Valid page types
+
+`INDEX`, `PRODUCT`, `COLLECTION`, `PAGE`, `BLOG`, `ARTICLE`, `SEARCH`, `404`, `PASSWORD`, `CART`, `CUSTOM`
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "pa_abc123",
+      "type": "PRODUCT",
+      "handle": "blue-shirt",
+      "locale": "en-us",
+      "pageId": "page_xyz789"
+    },
+    {
+      "id": "pa_def456",
+      "type": "INDEX",
+      "handle": "default",
+      "locale": "en-us",
+      "pageId": "page_home01"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `"list"` |
+| `data` | array | Array of page assignment objects |
+| `data[].id` | string | Page assignment ID |
+| `data[].type` | string | Page type (e.g., `PRODUCT`, `INDEX`) |
+| `data[].handle` | string | Page handle (e.g., product handle, `default`) |
+| `data[].locale` | string | Locale code |
+| `data[].pageId` | string | Associated page ID |
+| `nextCursor` | string \| null | Cursor for the next page |
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `INVALID_PARAMS` | 400 | Invalid type filter or cursor value |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # List all pages in a project
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/proj-123/pages"
+
+    # Filter by type
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/proj-123/pages?type=PRODUCT"
+
+    # Filter by locale
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/proj-123/pages?locale=fr-fr&limit=20"
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const projectId = 'proj-123'
+    const params = new URLSearchParams({ type: 'PRODUCT', limit: '20' })
+
+    const res = await fetch(
+      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/pages?${params}`,
+      { headers: { Authorization: `Bearer ${API_KEY}` } }
+    )
+    const { data: pages, nextCursor } = await res.json()
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    project_id = "proj-123"
+    res = requests.get(
+        f"https://studio.weaverse.io/api/v1/content/projects/{project_id}/pages",
+        headers={"Authorization": f"Bearer {API_KEY}"},
+        params={"type": "PRODUCT", "limit": 20},
+    )
+    data = res.json()
+    pages = data["data"]
+    ```
+  </Tab>
+</Tabs>
