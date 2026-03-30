@@ -54,9 +54,7 @@
 					},
 					{
 						"group": "Studio Guide",
-						"pages": [
-							"studio-guide/interface-tour"
-						]
+						"pages": ["studio-guide/interface-tour"]
 					}
 				]
 			},
@@ -65,9 +63,7 @@
 				"pages": [
 					{
 						"group": "Environment",
-						"pages": [
-							"development-guide/environment-setup"
-						]
+						"pages": ["development-guide/environment-setup", "development-guide/design-mode"]
 					},
 					{
 						"group": "Building Components",
@@ -104,9 +100,7 @@
 				"pages": [
 					{
 						"group": "Overview",
-						"pages": [
-							"api-reference/introduction"
-						]
+						"pages": ["api-reference/introduction"]
 					},
 					{
 						"group": "Hooks",
@@ -141,9 +135,7 @@
 				"pages": [
 					{
 						"group": "Overview",
-						"pages": [
-							"content-api/overview"
-						]
+						"pages": ["content-api/overview"]
 					},
 					{
 						"group": "Endpoints",
@@ -162,16 +154,11 @@
 				"pages": [
 					{
 						"group": "Why Weaverse",
-						"pages": [
-							"features/why-weaverse-for-hydrogen"
-						]
+						"pages": ["features/why-weaverse-for-hydrogen"]
 					},
 					{
 						"group": "APIs",
-						"pages": [
-							"features/api-access",
-							"features/admin-api-proxy"
-						]
+						"pages": ["features/api-access", "features/admin-api-proxy"]
 					},
 					{
 						"group": "Content Management",
@@ -183,9 +170,7 @@
 					},
 					{
 						"group": "Internationalization",
-						"pages": [
-							"features/markets-localization"
-						]
+						"pages": ["features/markets-localization"]
 					},
 					{
 						"group": "Security & Privacy",

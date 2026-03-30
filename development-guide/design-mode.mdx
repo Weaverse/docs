@@ -1,0 +1,129 @@
+---
+title: "Studio vs. Live Environment"
+description: "Learn how to detect whether your Hydrogen storefront is running inside Weaverse Studio (design mode) or in the live production environment."
+---
+
+# Studio vs. Live Environment
+
+When your Hydrogen storefront is loaded inside Weaverse Studio for editing, it runs in **design mode**. Knowing which environment you're in lets you conditionally show placeholder content, disable certain behaviors (like analytics), or adapt the UI for the editor experience.
+
+## Server-Side Detection
+
+When Studio loads your storefront in its iframe, it appends query parameters to the URL — including `isDesignMode=true`. You can inspect this in your route loaders or middleware to branch server-side logic accordingly.
+
+```ts
+// app/routes/$.tsx (or any route loader)
+export async function loader({ request, context }: LoaderFunctionArgs) {
+  let url = new URL(request.url);
+  let isDesignMode = url.searchParams.get("isDesignMode") === "true";
+
+  if (isDesignMode) {
+    // Skip analytics, use placeholder data, adjust CSP, etc.
+  }
+
+  // ...
+}
+```
+
+<Note>
+  Other Weaverse-related query parameters (e.g. `weaverseHost`, `weaverse_design_mode`) may also be present. The canonical check for design mode is `isDesignMode=true`.
+</Note>
+
+### CSP Configuration
+
+A common server-side use case is opening `frame-ancestors` in your Content Security Policy so Studio can embed your storefront in its iframe:
+
+```ts
+// app/entry.server.tsx or csp.ts
+let url = new URL(request.url);
+let isDesignMode = url.searchParams.get("isDesignMode") === "true";
+
+if (isDesignMode) {
+  updatedCsp.frameAncestors = ["*"];
+}
+```
+
+See the [Content Security Policy](/features/content-security) guide for full CSP setup details.
+
+## Client-Side Detection
+
+On the client, you can get the design mode status directly from the Weaverse instance using the `useWeaverse` hook:
+
+```tsx
+import { useWeaverse } from "@weaverse/hydrogen";
+
+export function MyComponent() {
+  let weaverse = useWeaverse();
+  let isDesignMode = weaverse.isDesignMode;
+
+  return (
+    <div>
+      {isDesignMode ? (
+        <p>Editing in Studio — showing placeholder content</p>
+      ) : (
+        <p>Live storefront content</p>
+      )}
+    </div>
+  );
+}
+```
+
+The `isDesignMode` property is `true` when the storefront is rendered inside the Studio editor, and `false` (or `undefined`) in the live environment.
+
+## Common Use Cases
+
+### Show placeholder content in the editor
+
+When a component requires user-configured data (e.g. a selected product), show a helpful prompt in Studio instead of an empty state:
+
+```tsx
+import { useWeaverse } from "@weaverse/hydrogen";
+
+function FeaturedProduct({ loaderData }: FeaturedProductProps) {
+  let { isDesignMode } = useWeaverse();
+  let product = loaderData?.product;
+
+  if (!product) {
+    return isDesignMode ? (
+      <div className="p-8 text-center border border-dashed">
+        Select a product in the settings panel
+      </div>
+    ) : null;
+  }
+
+  return <div>{/* render product */}</div>;
+}
+```
+
+### Disable analytics in the editor
+
+Prevent Studio preview traffic from polluting your analytics:
+
+```ts
+// In a route loader
+let isDesignMode = url.searchParams.get("isDesignMode") === "true";
+
+if (!isDesignMode) {
+  // Track page view
+  analytics.page({ url: request.url });
+}
+```
+
+### Conditionally disable interactions
+
+Some interactive behaviors (e.g. carousels auto-playing, forms submitting) may be undesirable while editing:
+
+```tsx
+let { isDesignMode } = useWeaverse();
+
+<Carousel autoPlay={!isDesignMode} />
+```
+
+## Summary
+
+| Context | How to detect |
+|---|---|
+| Server (loader/middleware) | `url.searchParams.get("isDesignMode") === "true"` |
+| Client (React component) | `useWeaverse().isDesignMode` |
+
+Both methods are reliable and can be used together — server-side for request-level branching (CSP, analytics, data fetching), and client-side for UI-level conditionals inside components.
