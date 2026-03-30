@@ -1,0 +1,204 @@
+---
+title: "Get Page"
+description: "Retrieve full page content with component items for a specific page type and handle"
+published: true
+---
+
+# Get Page
+
+```
+GET /api/v1/content/projects/:projectId/pages/:type/:handle
+```
+
+Returns the full page content including all component items. This is the primary endpoint for rendering Weaverse pages in external applications.
+
+## Authentication
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+| `type` | string | Yes | Page type (e.g., `INDEX`, `PRODUCT`, `COLLECTION`) |
+| `handle` | string | Yes | Page handle (e.g., `default`, `blue-shirt`) |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `locale` | string | `""` | Locale code for localized content (e.g., `en-us`, `fr-fr`) |
+
+### Locale fallback
+
+When a page is not found for the requested locale, the API falls back in order:
+
+1. Requested locale (e.g., `fr-fr`)
+2. Project's default locale
+3. English default
+
+If no assignment is found after all fallbacks, a `404` is returned.
+
+## Response
+
+```json
+{
+  "object": "page",
+  "id": "clz5wxy12abc345defg",
+  "type": "PRODUCT",
+  "handle": "blue-shirt",
+  "locale": "en-us",
+  "items": [
+    {
+      "id": "019503a2-c4b6-7c9d-8e3f-1a2b3c4d5e6f",
+      "type": "root",
+      "data": {},
+      "children": [{ "id": "01950b17-d8a3-7f1e-9c4b-2d6e8f0a1b3c" }, { "id": "01950c4e-a1b2-7d3f-8e9c-4a5b6c7d8e9f" }]
+    },
+    {
+      "id": "01950b17-d8a3-7f1e-9c4b-2d6e8f0a1b3c",
+      "type": "hero-banner",
+      "data": {
+        "title": "Summer Collection",
+        "subtitle": "New arrivals for the season",
+        "backgroundImage": "https://cdn.shopify.com/...",
+        "buttonText": "Shop Now",
+        "buttonLink": "/collections/summer"
+      },
+      "children": null
+    },
+    {
+      "id": "01950c4e-a1b2-7d3f-8e9c-4a5b6c7d8e9f",
+      "type": "product-details",
+      "data": {
+        "showPrice": true,
+        "showVariants": true,
+        "layout": "two-column"
+      },
+      "children": null
+    }
+  ],
+  "updatedAt": "2026-03-20T10:30:00.000Z",
+  "meta": {
+    "inherited": false,
+    "sourceProjectId": "clx1abc23def456ghij",
+    "depth": 0
+  }
+}
+```
+
+### Response fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `"page"` |
+| `id` | string \| null | Page ID |
+| `type` | string | Page type |
+| `handle` | string | Page handle |
+| `locale` | string | Resolved locale |
+| `items` | array | Array of component items (see below) |
+| `updatedAt` | string \| null | ISO 8601 timestamp of last update |
+| `meta` | object | Metadata about content inheritance |
+| `meta.inherited` | boolean | Whether this page was inherited from a parent project |
+| `meta.sourceProjectId` | string | Project that owns this page content |
+| `meta.depth` | number | Inheritance depth (0 = own content) |
+
+### Item structure
+
+Each item in the `items` array represents a page section or component:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Unique item ID |
+| `type` | string | Component type identifier (e.g., `hero-banner`, `product-details`) |
+| `data` | object | Component settings and content configured in the editor |
+| `children` | JSON \| null | Child item references for nested layouts (passed through from the database as-is; `null` when the item has no children) |
+
+<Tip>
+  The `items` array is a flat list. Use the `children` field on each item to reconstruct the component tree. The item with `type: "root"` is the tree's entry point.
+</Tip>
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `PAGE_NOT_FOUND` | 404 | No page found for this type/handle (after locale fallback) |
+| `INVALID_PARAMS` | 400 | Missing `projectId`, `type`, or `handle` |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
+
+## Examples
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    # Get the homepage
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/INDEX/default"
+
+    # Get a product page with locale
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/PRODUCT/blue-shirt?locale=fr-fr"
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    async function getPage(
+      projectId: string,
+      type: string,
+      handle: string,
+      locale?: string
+    ) {
+      const params = locale ? `?locale=${locale}` : ''
+      const res = await fetch(
+        `https://studio.weaverse.io/api/v1/content/projects/${projectId}/pages/${type}/${handle}${params}`,
+        { headers: { Authorization: `Bearer ${API_KEY}` } }
+      )
+
+      if (!res.ok) {
+        const error = await res.json()
+        throw new Error(`[${error.code}] ${error.message}`)
+      }
+
+      return res.json()
+    }
+
+    // Get homepage content
+    const homepage = await getPage('clx1abc23def456ghij', 'INDEX', 'default')
+
+    // Get localized product page
+    const productPage = await getPage('clx1abc23def456ghij', 'PRODUCT', 'blue-shirt', 'fr-fr')
+
+    // Render items
+    for (const item of homepage.items) {
+      console.log(`${item.type}: ${JSON.stringify(item.data)}`)
+    }
+    ```
+  </Tab>
+  <Tab title="Python">
+    ```python
+    import requests
+
+    def get_page(project_id, page_type, handle, locale=None):
+        params = {"locale": locale} if locale else {}
+        res = requests.get(
+            f"https://studio.weaverse.io/api/v1/content/projects/{project_id}/pages/{page_type}/{handle}",
+            headers={"Authorization": f"Bearer {API_KEY}"},
+            params=params,
+        )
+        res.raise_for_status()
+        return res.json()
+
+    # Get homepage
+    homepage = get_page("clx1abc23def456ghij", "INDEX", "default")
+
+    # Get localized product page
+    product = get_page("clx1abc23def456ghij", "PRODUCT", "blue-shirt", "fr-fr")
+    ```
+  </Tab>
+</Tabs>

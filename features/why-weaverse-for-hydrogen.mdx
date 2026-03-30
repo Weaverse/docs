@@ -1,0 +1,173 @@
+---
+title: "Why Weaverse for Hydrogen"
+description: "Technical advantages of using Weaverse as your visual page builder for Shopify Hydrogen storefronts."
+published: true
+---
+
+# Why Weaverse for Hydrogen
+
+If you're evaluating page builders or CMS solutions for a Shopify Hydrogen storefront, this page outlines the technical advantages that make Weaverse a purpose-built choice — and where alternatives might be a better fit.
+
+## Component Loader Pattern
+
+Every Weaverse section component can define its own `loader` function that runs **server-side** before the page is sent to the browser. This means each section independently fetches exactly the data it needs — no monolithic data layer, no prop-drilling from a top-level route.
+
+**How it works:**
+
+- Each section exports a `loader` that receives the Weaverse context and component settings
+- The loader fetches data from Shopify's Storefront API, third-party services, or any external API
+- Data is returned as `loaderData` props — fully server-rendered in the initial HTML
+- Built-in `fetchWithCache` utility applies [Hydrogen caching strategies](https://shopify.dev/docs/storefronts/headless/hydrogen/caching) (`CacheShort`, `CacheLong`, `CacheCustom`) to every request
+
+**What this enables:**
+
+| Capability | Benefit |
+|-----------|---------|
+| Per-section data fetching | Only fetch what each section needs — no over-fetching |
+| Server-side rendering | Content is in the initial HTML — fast and SEO-friendly |
+| Hydrogen caching built-in | Fine-grained cache control per data source |
+| Parallel loading | Independent sections fetch data simultaneously |
+
+<Tip>
+  For implementation details and code examples, see the [Section Data Fetching](/development-guide/data-fetching) guide.
+</Tip>
+
+## Server-Side Third-Party Data
+
+Weaverse's loader pattern extends to **any** third-party service — product reviews, search engines, recommendation APIs, loyalty programs — all fetched server-side and rendered in the initial HTML response.
+
+This is a significant architectural difference from traditional approaches:
+
+| Approach | Data Fetching | SEO | Performance | API Key Security |
+|----------|--------------|-----|-------------|-----------------|
+| **Weaverse (SSR loaders)** | Server-side via `fetchWithCache` | Content in initial HTML | No client-side waterfall | Keys stay on server |
+| **Client-side JS injection** | Browser fetches after page load | Not indexed until JS runs | Layout shift, slower TTI | Keys exposed in bundle |
+| **Custom middleware** | Separate server layer | Depends on implementation | Extra network hop | Secure, but more infra |
+
+With Weaverse, integrating a reviews API like Judge.me or Ali Reviews is the same pattern as fetching Shopify data — write a loader, return the data, render it server-side. No script tags, no layout shifts, no SEO gaps.
+
+<Tip>
+  See real-world integration examples in the [Third-Party Integration](/features/third-party-integrations) guide.
+</Tip>
+
+## Infrastructure and Reliability
+
+Weaverse is built on a multi-layered infrastructure designed for global availability and resilience.
+
+### Store Hosting — Shopify Oxygen
+
+Your Hydrogen storefront runs on [Shopify Oxygen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments), Shopify's edge hosting platform:
+
+- **Global CDN** with edge locations worldwide
+- **Automatic scaling** — handles traffic spikes without configuration
+- **Shopify-backed SLA** — your store's availability is backed by Shopify's infrastructure
+
+### Weaverse Platform — Multi-Region on Fly.io
+
+The Weaverse platform (Studio, APIs, content delivery) runs on [Fly.io](https://fly.io) with servers in multiple regions:
+
+- **US** (primary)
+- **EU** (Europe)
+- **Australia** (Asia-Pacific)
+
+Requests are routed to the nearest region for minimal latency.
+
+### Edge Caching — Cloudflare Workers
+
+A [Cloudflare Workers](https://workers.cloudflare.com/) caching layer sits in front of Weaverse APIs:
+
+- API responses cached at the edge for **up to 24 hours**
+- Reduces origin load and improves response times globally
+- **Resilience**: even if Weaverse origin servers experience downtime, your store continues serving cached content
+
+<Note>
+  Monitor platform status at [status.weaverse.io](https://status.weaverse.io/).
+</Note>
+
+### Architecture Overview
+
+```
+[Browser] → [Shopify Oxygen CDN] → [Your Hydrogen App]
+                                         ↓
+                                   [Cloudflare Workers Cache]
+                                         ↓
+                                   [Weaverse API (Fly.io)]
+                                   US | EU | Australia
+```
+
+## Shopify-Native Advantages
+
+Because Weaverse builds **on top of** Shopify Hydrogen rather than replacing it, every native Shopify capability works out of the box — no rebuilding required.
+
+| Capability | With Weaverse on Hydrogen | With a General CMS |
+|-----------|--------------------------|-------------------|
+| **Checkout** | Shopify's native checkout — no rebuild | Must integrate separately |
+| **B2B pricing** | Works via Storefront API context | Must build custom pricing layer |
+| **Shopify Functions** | Discounts, shipping, payment customizations — native | Not available or requires custom integration |
+| **Customer Accounts** | Hydrogen's built-in customer account API | Must build auth and account management |
+| **Cart** | Shopify cart API — optimistic updates, line items | Must build cart from scratch |
+| **Shopify Apps** | Compatible with the Shopify app ecosystem | Limited or no compatibility |
+| **Markets & Localization** | Multi-currency, multi-language via Shopify Markets | Must build i18n and currency handling |
+
+The key insight: with a general-purpose CMS, you gain content flexibility but **lose the entire Shopify commerce layer** — checkout, cart, B2B, customer accounts — and must rebuild it. With Weaverse, you get visual page building and content management while keeping everything Shopify provides.
+
+## Content API
+
+Weaverse provides a [Content API](/content-api/overview) — a read-only REST API that lets you access your page content, theme settings, and project data from **any application**.
+
+**What this means:**
+
+- Fetch Weaverse-managed content from a mobile app, a second storefront, or any custom frontend
+- Content is not locked to Shopify's rendering layer
+- Use the same visual editor (Weaverse Studio) to manage content that renders across platforms
+
+```bash
+# Fetch page content from any application
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  "https://studio.weaverse.io/api/v1/content/projects/PROJECT_ID/pages/INDEX/default"
+```
+
+This positions Weaverse as more than a Shopify page builder — it's a content platform that happens to have deep, native Shopify integration.
+
+<Tip>
+  Explore the full [Content API documentation](/content-api/overview) for endpoints, authentication, and examples.
+</Tip>
+
+## When to Consider Alternatives
+
+Weaverse is purpose-built for Shopify Hydrogen. But if your needs extend significantly beyond Shopify, other tools may be a better fit.
+
+**Consider a general-purpose headless CMS (Sanity, Contentful, Strapi) when:**
+
+- You need to manage content across **multiple platforms** that aren't Shopify (e.g., a custom React app, a mobile app, and a marketing site — all from one CMS)
+- Your content model is highly complex and **not tied to e-commerce** (e.g., editorial publishing, documentation, multi-tenant content)
+- You need **write APIs and workflows** for content creation (approval flows, scheduled publishing, granular roles)
+
+**Choose Weaverse when:**
+
+- You're building on **Shopify Hydrogen** and want to keep the full Shopify commerce stack
+- You need a **visual page builder** that merchants can use without developer involvement
+- You want **server-side data fetching** for third-party integrations without building custom middleware
+- You need your store to run on **Shopify Oxygen** with Shopify-grade infrastructure
+- You want a **single tool** that handles page building, content management, and Hydrogen component development
+
+<Warning>
+  This isn't an either/or decision in all cases. Some teams use Weaverse for their Shopify storefront while using a separate CMS for non-Shopify content. The key question is: **where is your storefront running?** If it's Hydrogen, Weaverse is built for it.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="5-Minute Quickstart" icon="rocket" href="/quickstart">
+    Get a Weaverse Hydrogen project running in minutes.
+  </Card>
+  <Card title="Data Fetching Guide" icon="database" href="/development-guide/data-fetching">
+    Learn the component loader pattern in depth.
+  </Card>
+  <Card title="Third-Party Integrations" icon="plug" href="/features/third-party-integrations">
+    See real-world integration examples with reviews, analytics, and more.
+  </Card>
+  <Card title="Content API" icon="code" href="/content-api/overview">
+    Access your content from any application via REST API.
+  </Card>
+</CardGroup>

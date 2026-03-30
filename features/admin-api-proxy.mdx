@@ -1,0 +1,206 @@
+---
+title: "Shopify Admin API Proxy"
+description: "Proxy Shopify Admin GraphQL queries through Weaverse with token-based authentication and scope management"
+published: true
+---
+
+# Shopify Admin API Proxy
+
+The Admin API Proxy lets you execute Shopify Admin GraphQL queries through Weaverse without managing Shopify credentials directly. Weaverse authenticates your request with a Content API token, then forwards the query to the correct Shopify store using the app's existing OAuth credentials.
+
+## Overview
+
+Use the Admin API Proxy when you need Shopify Admin data outside of a Hydrogen storefront:
+
+- **Third-party CMS** — pull product data, metaobjects, or theme info into a headless CMS
+- **Mobile apps** — query Shopify without embedding Admin API credentials in a client app
+- **Custom frontends** — access store data from Next.js, Astro, or any framework
+- **Internal tools** — build dashboards or automation that reads Shopify data
+
+<Note>
+  This is a **passthrough proxy** — your GraphQL query is forwarded to Shopify's Admin API as-is. Weaverse does not transform the query or cache the response.
+</Note>
+
+## Authentication
+
+The proxy uses the same **Content API tokens** as the [Content API](/content-api/overview). Pass your token in the `Authorization` header:
+
+```bash
+Authorization: Bearer YOUR_API_KEY
+```
+
+Create and manage tokens from **Dashboard → Settings** in the Weaverse Studio.
+
+## Endpoint
+
+```
+POST https://studio.weaverse.io/api/admin-graphql
+```
+
+## Request Format
+
+Send a JSON body with a `query` field and an optional `variables` field:
+
+```bash
+curl -X POST https://studio.weaverse.io/api/admin-graphql \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "{ shop { name } }",
+    "variables": {}
+  }'
+```
+
+### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `query` | `string` | Yes | A Shopify Admin GraphQL query or mutation |
+| `variables` | `object` | No | Variables referenced in the query |
+
+## Rate Limits
+
+The proxy enforces **1,000 requests per hour** per token.
+
+Rate limit headers are included on every response:
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests per window (1000) |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the window resets |
+| `Retry-After` | Seconds to wait (only on `429` responses) |
+
+<Warning>
+  When you receive a `429 Too Many Requests` response, back off for the duration specified in the `Retry-After` header. Repeated violations may result in temporary token suspension.
+</Warning>
+
+## Scopes
+
+Admin API Proxy scopes control which Shopify resources your token can access. Manage scopes from **Dashboard → Settings** alongside your API keys.
+
+### Required Scopes
+
+These scopes are granted by default when you enable the Admin API Proxy:
+
+| Scope | Description |
+|-------|-------------|
+| `read_content` | Read Shopify content (articles, blogs, pages) |
+| `read_files` | Read uploaded files |
+| `write_files` | Upload and manage files |
+| `read_metaobject_definitions` | Read metaobject definitions and entries |
+| `read_products` | Read products, variants, and collections |
+| `read_themes` | Read theme data |
+| `write_themes` | Modify theme assets |
+
+### Optional Scopes
+
+Request additional scopes if your integration needs them:
+
+| Scope | Description |
+|-------|-------------|
+| `read_orders` | Read order data |
+| `read_customers` | Read customer data |
+| `read_inventory` | Read inventory levels |
+| `read_shipping` | Read shipping and fulfillment data |
+
+<Note>
+  Only request scopes your integration actually needs. Additional scopes require approval and may affect your app's permissions review.
+</Note>
+
+## Examples
+
+### Query Shop Name
+
+```bash
+curl -X POST https://studio.weaverse.io/api/admin-graphql \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "{ shop { name primaryDomain { url } } }"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "shop": {
+      "name": "My Store",
+      "primaryDomain": {
+        "url": "https://my-store.myshopify.com"
+      }
+    }
+  }
+}
+```
+
+### Query Products
+
+```bash
+curl -X POST https://studio.weaverse.io/api/admin-graphql \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "query GetProducts($first: Int!) { products(first: $first) { edges { node { id title handle status } } } }",
+    "variables": { "first": 5 }
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "data": {
+    "products": {
+      "edges": [
+        {
+          "node": {
+            "id": "gid://shopify/Product/123456789",
+            "title": "Classic T-Shirt",
+            "handle": "classic-t-shirt",
+            "status": "ACTIVE"
+          }
+        }
+      ]
+    }
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired API token",
+  "status": 401
+}
+```
+
+## Error Handling
+
+| Status | Cause | Action |
+|--------|-------|--------|
+| `401 Unauthorized` | Invalid, expired, or missing token | Check your API key and regenerate if needed |
+| `403 Forbidden` | Token lacks required scope | Add the necessary scope in Dashboard → Settings |
+| `429 Too Many Requests` | Rate limit exceeded | Back off using the `Retry-After` header value |
+| `500 Internal Server Error` | Shopify returned an error or is unavailable | Retry with exponential backoff; check [Shopify Status](https://www.shopifystatus.com/) |
+| `504 Gateway Timeout` | Query exceeded the 15-second timeout | Simplify your query or reduce the requested data |
+
+<Note>
+  All proxied requests have a **15-second timeout**. Complex queries requesting large datasets may need to be paginated or simplified.
+</Note>
+
+## Security Best Practices
+
+<Warning>
+  **Never expose API tokens in client-side code.** Browser source, network tabs, and bundled JavaScript are all visible to end users. Always call the proxy from a server or serverless function.
+</Warning>
+
+- **Rotate tokens regularly** — regenerate tokens periodically and after any suspected compromise
+- **Minimize scopes** — only request the scopes your integration needs (principle of least privilege)
+- **Use one token per integration** — if one integration is compromised, revoke its token without affecting others
+- **Monitor usage** — check `lastAccess` timestamps in Dashboard → Settings to detect stale or unauthorized tokens
+- **Secure your server** — ensure the backend making proxy calls is itself authenticated and access-controlled

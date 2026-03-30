@@ -54,7 +54,9 @@
 					},
 					{
 						"group": "Studio Guide",
-						"pages": ["studio-guide/interface-tour"]
+						"pages": [
+							"studio-guide/interface-tour"
+						]
 					}
 				]
 			},
@@ -63,7 +65,9 @@
 				"pages": [
 					{
 						"group": "Environment",
-						"pages": ["development-guide/environment-setup"]
+						"pages": [
+							"development-guide/environment-setup"
+						]
 					},
 					{
 						"group": "Building Components",
@@ -100,7 +104,9 @@
 				"pages": [
 					{
 						"group": "Overview",
-						"pages": ["api-reference/introduction"]
+						"pages": [
+							"api-reference/introduction"
+						]
 					},
 					{
 						"group": "Hooks",
@@ -131,8 +137,42 @@
 				]
 			},
 			{
+				"tab": "Content API",
+				"pages": [
+					{
+						"group": "Overview",
+						"pages": [
+							"content-api/overview"
+						]
+					},
+					{
+						"group": "Endpoints",
+						"pages": [
+							"content-api/list-projects",
+							"content-api/list-pages",
+							"content-api/get-page",
+							"content-api/get-theme-settings",
+							"content-api/list-languages"
+						]
+					}
+				]
+			},
+			{
 				"tab": "Features",
 				"pages": [
+					{
+						"group": "Why Weaverse",
+						"pages": [
+							"features/why-weaverse-for-hydrogen"
+						]
+					},
+					{
+						"group": "APIs",
+						"pages": [
+							"features/api-access",
+							"features/admin-api-proxy"
+						]
+					},
 					{
 						"group": "Content Management",
 						"pages": [
@@ -143,11 +183,16 @@
 					},
 					{
 						"group": "Internationalization",
-						"pages": ["features/markets-localization"]
+						"pages": [
+							"features/markets-localization"
+						]
 					},
 					{
-						"group": "Security",
-						"pages": ["features/content-security"]
+						"group": "Security & Privacy",
+						"pages": [
+							"features/content-security",
+							"features/cookie-consent-banner"
+						]
 					},
 					{
 						"group": "Custom Pages & Routing",
@@ -167,9 +212,9 @@
 						"pages": [
 							"deployment",
 							"oxygen-deployment",
+							"custom-domain-and-dns-setup",
 							"docker-deployment",
-							"workers-deployment",
-							"custom-domain-and-dns-setup"
+							"workers-deployment"
 						]
 					},
 					{
