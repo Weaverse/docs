@@ -50,14 +50,14 @@ export default {
   buildDirectory: "dist",
   ssr: true,
   future: {
-    unstable_viteEnvironmentApi: true,
+    v8_viteEnvironmentApi: true,
   },
 } satisfies Config;
 ```
 
 **Key settings for Cloudflare deployment:**
 - `ssr: true` - Enables server-side rendering for optimal performance
-- `unstable_viteEnvironmentApi: true` - Required for Vite's environment API integration
+- `v8_viteEnvironmentApi: true` - Enables support for the [Vite Environment API](https://reactrouter.com/upgrading/future#futurev8_viteenvironmentapi) (requires Vite 6+)
 
 ### Vite Configuration
 
@@ -117,6 +117,19 @@ Your `wrangler.json` file manages project configuration. Update it with your pro
 - `keep_vars` - Preserve existing environment variables upon deployment
 - `observability` - Enable production monitoring
 - `upload_source_maps` - Better error tracking in production
+
+<Tip>
+If your Cloudflare account is associated with multiple accounts (e.g., personal and organization), add the `account_id` field to your `wrangler.json` to specify which account to deploy to:
+
+```json
+{
+  "account_id": "<your-cloudflare-account-id>",
+  ...
+}
+```
+
+You can find your Account ID in the [Cloudflare Dashboard](https://dash.cloudflare.com) under **Workers & Pages** → **Overview** (right sidebar).
+</Tip>
 
 ### 2. Configure Environment Variables
 
