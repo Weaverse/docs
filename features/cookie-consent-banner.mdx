@@ -1,0 +1,262 @@
+---
+title: Cookie Consent Banner
+description: How to properly configure Shopify's cookie consent banner in Weaverse Hydrogen storefronts, including setup, troubleshooting, and GDPR/privacy compliance.
+published: true
+---
+
+# Cookie Consent Banner
+
+Shopify provides a built-in **cookie consent banner** that helps your store comply with privacy regulations like GDPR, CCPA, and ePrivacy. In Hydrogen storefronts, this banner requires specific configuration to work correctly because the standard Liquid-based initialization is not available.
+
+This guide walks you through the complete setup, common pitfalls, and how to verify the banner is working.
+
+## How It Works
+
+Shopify's cookie consent system consists of two parts:
+
+1. **Customer Privacy API** (`consent-tracking-api.js`) — Manages visitor consent state and cookies
+2. **Privacy Banner** (`storefront-banner.js`) — The visible UI that collects consent from visitors
+
+In a Hydrogen storefront, these scripts are loaded by the `<Analytics.Provider>` component. The banner's appearance and behavior (text, regions, position) are configured in **Shopify Admin** under **Settings → Customer privacy**.
+
+<Note>
+  The banner configuration (text, regions, theme) is managed entirely in Shopify Admin — not in your Hydrogen code. Your code only needs to pass the correct credentials.
+</Note>
+
+## Setup
+
+### Step 1: Configure the Consent Object in Your Root Loader
+
+In your root loader's critical data function (typically `app/.server/root.ts`), include a `consent` object with the required fields:
+
+```typescript
+import { getShopAnalytics } from "@shopify/hydrogen";
+
+export async function loadCriticalData({ request, context }: LoaderFunctionArgs) {
+  const { storefront, env } = context;
+
+  return {
+    // ... other data
+    shop: getShopAnalytics({
+      storefront,
+      publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
+    }),
+    consent: {
+      checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
+      storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
+      withPrivacyBanner: true,
+      // Localize the banner based on the visitor's market
+      country: storefront.i18n.country,
+      language: storefront.i18n.language,
+    },
+  };
+}
+```
+
+<Warning>
+  The `storefrontAccessToken` must be your **public** Storefront API token (32 characters). Never use a private/admin API token (starts with `shpat_`).
+</Warning>
+
+### Step 2: Pass Consent to Analytics.Provider
+
+In your root layout (`app/root.tsx`), pass the `consent` object to Shopify's `<Analytics.Provider>`:
+
+```tsx
+import { Analytics } from "@shopify/hydrogen";
+
+export function RootLayout({ children }: { children: React.ReactNode }) {
+  const data = useRouteLoaderData<RootLoader>("root");
+
+  return (
+    <html>
+      <body>
+        {data ? (
+          <Analytics.Provider
+            cart={data.cart}
+            shop={data.shop}
+            consent={data.consent}
+          >
+            {/* Your app content */}
+          </Analytics.Provider>
+        ) : (
+          children
+        )}
+      </body>
+    </html>
+  );
+}
+```
+
+### Step 3: Pre-initialize the Storefront Access Token
+
+This is the **critical step** that most setups miss. The banner script (`storefront-banner.js`) loads and self-initializes before React hydrates. It looks for `window.Shopify.storefrontAccessToken` to authenticate with the Storefront API — but in Hydrogen, this value is normally only available after hydration.
+
+**You must inject the token in an inline script** so it's available before the banner script executes:
+
+```tsx
+export function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = useNonce();
+  const data = useRouteLoaderData<RootLoader>("root");
+
+  return (
+    <html>
+      <head>
+        {/* Pre-initialize Shopify object with access token */}
+        <script
+          nonce={nonce}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{
+            __html: `window.Shopify = window.Shopify || {};${
+              data?.consent?.storefrontAccessToken
+                ? ` window.Shopify.storefrontAccessToken = "${data.consent.storefrontAccessToken}";`
+                : ""
+            }`,
+          }}
+        />
+      </head>
+      <body>{/* ... */}</body>
+    </html>
+  );
+}
+```
+
+<Tip>
+  The `suppressHydrationWarning` attribute is needed because this script's output differs between server and client renders, which is expected and harmless.
+</Tip>
+
+### Step 4: Configure the Banner in Shopify Admin
+
+1. Go to **Shopify Admin → Settings → Customer privacy**
+2. Under **Cookie banner**, click **Set up** or **Edit**
+3. Configure:
+   - **Banner position** — Bottom center, bottom left, etc.
+   - **Banner text** — Customize the consent message
+   - **Button labels** — Accept, Decline, Manage preferences
+   - **Region visibility** — Select which countries see the banner
+   - **Theme** — Light or dark, custom colors
+4. Click **Save**
+
+### Step 5: Set Up Environment Variables
+
+Ensure these variables are set in your `.env` file and deployment environment:
+
+```bash
+PUBLIC_STORE_DOMAIN=your-store.myshopify.com
+PUBLIC_STOREFRONT_API_TOKEN=your-32-character-public-token
+PUBLIC_CHECKOUT_DOMAIN=checkout.your-domain.com
+```
+
+<Note>
+  The `PUBLIC_CHECKOUT_DOMAIN` should be your custom checkout domain (e.g., `checkout.yourdomain.com`). If you don't have a custom domain, use your `.myshopify.com` domain.
+</Note>
+
+## Verifying the Banner Works
+
+### Preview Mode
+
+Add `?preview_privacy_banner=1` to any page URL to force the banner to display regardless of region or prior consent:
+
+```
+https://your-store.com/?preview_privacy_banner=1
+```
+
+This is useful for testing during development. Without this parameter, the banner only appears for visitors in configured regions who haven't yet given consent.
+
+### Checklist
+
+Use this checklist to verify your setup:
+
+- [ ] `consent.withPrivacyBanner` is set to `true` in the root loader
+- [ ] `storefrontAccessToken` is a valid 32-character public token
+- [ ] `checkoutDomain` is correctly set
+- [ ] `window.Shopify.storefrontAccessToken` is injected via inline `<script>` in `<head>`
+- [ ] Banner appears with `?preview_privacy_banner=1`
+- [ ] Banner appears for visitors in configured regions (without preview param)
+- [ ] Accepting/declining sets the `_tracking_consent` cookie
+- [ ] `window.Shopify.customerPrivacy` is not null after page load
+
+### Browser Console Check
+
+Open DevTools and verify the privacy API initialized:
+
+```javascript
+// Should return an object with consent methods
+window.Shopify.customerPrivacy
+
+// Should return a boolean
+window.Shopify.customerPrivacy.shouldShowBanner()
+
+// Should return the current consent state
+window.Shopify.customerPrivacy.currentVisitorConsent()
+```
+
+## Troubleshooting
+
+### "Error initializing banner: Missing access token"
+
+**Cause:** The banner script loaded before `window.Shopify.storefrontAccessToken` was set.
+
+**Fix:** Add the inline `<script>` in Step 3 to pre-initialize the token in `<head>` before the banner script loads.
+
+### "Could not find liquid access token"
+
+**Cause:** This is a harmless warning. The banner script first checks for a Liquid-based token (used in traditional Shopify themes). In Hydrogen, this path doesn't exist, so the script falls back to the Storefront API path.
+
+**Resolution:** This warning can be safely ignored as long as the Storefront API token is correctly configured.
+
+### Banner Shows in Preview Mode but Not in Production
+
+**Cause:** The banner's `init()` function failed silently because it couldn't find the access token during initial load. With `?preview_privacy_banner=1`, the script forces initialization and bypasses this check.
+
+**Fix:** Ensure Step 3 is implemented — the inline script must inject `window.Shopify.storefrontAccessToken` before React hydrates.
+
+### `window.Shopify.customerPrivacy` is null
+
+**Cause:** The banner script failed to initialize, which means it never set up the Customer Privacy API. This prevents the banner from showing and analytics consent from working.
+
+**Fix:** This is almost always caused by the missing access token. Follow Step 3.
+
+### Banner Doesn't Show for Specific Regions
+
+**Cause:** The region visibility configuration in Shopify Admin may not include the visitor's country.
+
+**Fix:** Go to **Shopify Admin → Settings → Customer privacy → Cookie banner** and verify the region visibility list includes the target countries.
+
+### React Hydration Error (#418) Alongside Banner Errors
+
+**Cause:** A hydration mismatch between server-rendered HTML and client-rendered output. This is separate from the banner issue but often appears together.
+
+**Resolution:** Use `suppressHydrationWarning` on the inline script tag (as shown in Step 3). For other hydration errors, check that your components render the same content on server and client.
+
+## How the Banner Initialization Flow Works
+
+Understanding the initialization sequence helps with debugging:
+
+```
+1. Server renders HTML with inline <script>:
+   window.Shopify = {}
+   window.Shopify.storefrontAccessToken = "abc123..."
+
+2. Browser loads storefront-banner.js (from Shopify CDN)
+   → Finds window.Shopify.storefrontAccessToken ✓
+   → Calls Storefront API to get consent cookies
+   → Calls Storefront API to get banner configuration
+   → Sets window.Shopify.customerPrivacy
+   → Sets window.privacyBanner
+
+3. React hydrates → Analytics.Provider mounts
+   → useCustomerPrivacy hook detects both APIs loaded
+   → Calls privacyBanner.loadBanner(config)
+   → Banner renders with correct localization
+
+4. Visitor interacts with banner
+   → Consent collected → _tracking_consent cookie set
+   → Analytics events fire based on consent
+```
+
+## Further Reading
+
+- [Shopify Customer Privacy API](https://shopify.dev/docs/api/customer-privacy)
+- [Shopify Hydrogen Analytics](https://shopify.dev/docs/storefronts/headless/hydrogen/analytics)
+- [Content Security Policy in Weaverse](/features/content-security)
+- [Third-party Integrations](/features/third-party-integrations)

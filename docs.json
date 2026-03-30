@@ -188,9 +188,10 @@
 						]
 					},
 					{
-						"group": "Security",
+						"group": "Security & Privacy",
 						"pages": [
-							"features/content-security"
+							"features/content-security",
+							"features/cookie-consent-banner"
 						]
 					},
 					{
