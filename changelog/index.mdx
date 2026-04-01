@@ -11,36 +11,7 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 ## [2026.4.1] - April 1, 2026
 
 ### Weaverse Studio
-*Vite 8 upgrade, RPC performance improvements, and bug fixes*
-
-#### Improvements
-
-- **Vite 8 + Rolldown Migration**: Upgraded bundler from esbuild/Rollup to Rolldown/Oxc via Vite 8.0.3 and `@vitejs/plugin-react` 6.0.1
-  - Switched to Vite 8's built-in `resolve.tsconfigPaths` — removed `vite-tsconfig-paths` plugin
-  - Added `allowStudioCrossOriginPlugin` to handle Vite 8's new CORS security middleware for the Studio bridge script loaded in cross-origin preview iframes
-  - Migrated `animate-loading` to `@weaverse/animate-loading@2.2.0` with proper ESM/CJS dual output via tsup, replacing the broken UMD-only package under Rolldown
-
-- **RPC Call Coalescing**: Eliminated editor lag caused by continuous UI inputs (color picker, range slider) firing ~200 cross-iframe `postMessage` round-trips per second
-  - New `createRAFCoalescer` utility caps RPC dispatch to 1 per animation frame (~60/sec) while keeping editor-side signal updates immediate
-  - Applied to `updateThemeSettings`, `updateItemData`, and `updateThemeSchema` hot paths
-
-- **Dependency Upgrades**: Bumped Bun to 1.3.11 and updated project dependencies
-
-#### Bug Fixes
-
-- **Localization Reset**: Fixed a critical bug where resetting a localized page could delete the original default page instead of only the localized clone
-  - Added server-side guard to refuse deleting pages without a non-default locale assignment
-  - Fixed frontend race condition where `Editor.currentPageId` could point to the original page before the preview iframe synced
-
-- **Fetch Cleanup**: Fixed optional chaining for abort controller during cleanup to prevent errors on unmount
-- **Race Conditions**: Fixed race conditions in fetch cleanup paths and updated AI model versions
-
----
-
-## [2026.3.31] - March 31, 2026
-
-### Weaverse Studio
-*Ghost section detection, auth guards, and multi-store session isolation*
+*Multi-store session isolation, ghost section detection, Vite 8 upgrade, and bug fixes*
 
 #### New Features
 
@@ -56,16 +27,32 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - Tooltip explains possible causes and links to documentation
   - Detection happens at selection time for better performance — no upfront DOM scanning during outline building
 
+#### Improvements
+
+- **Vite 8 + Rolldown Migration**: Upgraded bundler from esbuild/Rollup to Rolldown/Oxc via Vite 8.0.3 and `@vitejs/plugin-react` 6.0.1
+  - Switched to Vite 8's built-in `resolve.tsconfigPaths` — removed `vite-tsconfig-paths` plugin
+  - Added `allowStudioCrossOriginPlugin` to handle Vite 8's new CORS security middleware for the Studio bridge script loaded in cross-origin preview iframes
+  - Migrated `animate-loading` to `@weaverse/animate-loading@2.2.0` with proper ESM/CJS dual output via tsup, replacing the broken UMD-only package under Rolldown
+
+- **RPC Call Coalescing**: Eliminated editor lag caused by continuous UI inputs (color picker, range slider) firing ~200 cross-iframe `postMessage` round-trips per second
+  - New `createRAFCoalescer` utility caps RPC dispatch to 1 per animation frame (~60/sec) while keeping editor-side signal updates immediate
+  - Applied to `updateThemeSettings`, `updateItemData`, and `updateThemeSchema` hot paths
+
+- **Dependency Upgrades**: 48 packages upgraded with Biome 2.4.9 compatibility fixes, Bun bumped to 1.3.11
+
 #### Bug Fixes
+
+- **Localization Reset**: Fixed a critical bug where resetting a localized page could delete the original default page instead of only the localized clone
+  - Added server-side guard to refuse deleting pages without a non-default locale assignment
+  - Fixed frontend race condition where `Editor.currentPageId` could point to the original page before the preview iframe synced
 
 - **Translation API Security**: Added authentication guards to all 13 `/api/translation/*` endpoints that previously had zero authentication
   - Endpoints with `projectId` now use `requireProjectAccess` (auth + project ownership check)
   - ID-only endpoints use `requireAuth`
   - Public storefront-facing CORS endpoint (`static.ts`) intentionally left unauthenticated
 
-#### Improvements
-
-- **Dependency Upgrades**: 48 packages upgraded with Biome 2.4.9 compatibility fixes
+- **Fetch Cleanup**: Fixed optional chaining for abort controller during cleanup to prevent errors on unmount
+- **Race Conditions**: Fixed race conditions in fetch cleanup paths and updated AI model versions
 
 ---
 
