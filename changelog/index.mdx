@@ -8,6 +8,38 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+## [2026.3.31] - March 31, 2026
+
+### Weaverse Studio
+*Ghost section detection, auth guards, and multi-store session isolation*
+
+#### New Features
+
+- **Multi-Store Session Isolation**: Agencies can now work with multiple Weaverse storefronts simultaneously in the same browser
+  - Session cookie stores a `shops` map per store handle — no more overwriting when switching stores
+  - Store-scoped URLs follow the familiar Shopify Admin pattern (`/store/{store_handle}/...`)
+  - OAuth flow adds stores additively to the session map without disrupting existing ones
+  - **Store Switcher UI**: New store switcher in the dashboard topbar replaces the old profile dropdown
+  - Legacy `/dashboard/*` and `/projects/:id` URLs auto-redirect to the correct store-scoped path
+
+- **Component Detectability Warning**: Studio now shows a warning when a component exists in data but can't be found in the DOM
+  - Muted gray info icon appears on the selected outline item when `data-wv-id` is missing (e.g. `{...props}` not spread or component returns `null`)
+  - Tooltip explains possible causes and links to documentation
+  - Detection happens at selection time for better performance — no upfront DOM scanning during outline building
+
+#### Bug Fixes
+
+- **Translation API Security**: Added authentication guards to all 13 `/api/translation/*` endpoints that previously had zero authentication
+  - Endpoints with `projectId` now use `requireProjectAccess` (auth + project ownership check)
+  - ID-only endpoints use `requireAuth`
+  - Public storefront-facing CORS endpoint (`static.ts`) intentionally left unauthenticated
+
+#### Improvements
+
+- **Dependency Upgrades**: 48 packages upgraded with Biome 2.4.9 compatibility fixes
+
+---
+
 ## [2026.3.26] - March 26, 2026
 
 ### Content API v1
