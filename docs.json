@@ -82,7 +82,8 @@
 						"pages": [
 							"guides/rendering-page",
 							"guides/localization-advanced",
-							"guides/multi-project-architecture"
+							"guides/multi-project-architecture",
+							"development-guide/customer-account-local-dev"
 						]
 					},
 					{
