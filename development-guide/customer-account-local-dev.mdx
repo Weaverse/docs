@@ -1,0 +1,142 @@
+---
+title: "Customer Account API Local Development"
+description: "How to set up and run your Hydrogen storefront locally with Customer Account API support using the Pilot theme."
+---
+
+# Customer Account API Local Development
+
+The Customer Account API requires OAuth 2.0 flows with HTTPS callback URLs — which means `localhost` won't work out of the box. This guide walks you through running the Pilot theme locally with full Customer Account API support using the `--customer-account-push` flag, which creates a Cloudflare tunnel automatically.
+
+## Prerequisites
+
+- A Shopify store with the **Hydrogen sales channel** installed
+- Your Shopify account must have **full access to apps** or **access to the Hydrogen channel** on that store
+- Customer accounts enabled in your Shopify admin (see [Step 1 below](#step-1-enable-customer-accounts))
+
+---
+
+## Step 1: Enable Customer Accounts
+
+The Customer Account API requires Shopify's new customer accounts to be active on your store.
+
+1. From your Shopify admin, go to **Settings > Customer accounts**
+2. Under **Accounts in online store and checkout**, click **Edit**
+3. Select **Customer accounts**
+4. Click **Save**
+
+---
+
+## Step 2: Clean Up the CLI Project Link
+
+If you have an existing `.shopify/project.json`, delete it first:
+
+```bash
+rm .shopify/project.json
+```
+
+<Warning>
+  If this file points to a store where your account lacks Hydrogen channel access, all `shopify hydrogen` commands will fail with an `ACCESS_DENIED` error — including `shopify hydrogen link` itself — making it impossible to switch stores without deleting this file first.
+</Warning>
+
+---
+
+## Step 3: Link to the Correct Store
+
+```bash
+shopify hydrogen link
+```
+
+When prompted, select the store that has the **Hydrogen sales channel** installed. This regenerates `.shopify/project.json` pointing to the correct store.
+
+---
+
+## Step 4: Update Your `.env`
+
+Make sure these variables in `.env` match the store you just linked:
+
+```env
+PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=shp_xxxxx
+PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
+PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
+PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
+SHOP_ID=your-shop-id
+```
+
+You can find all these values in the Shopify admin under **Settings > Apps and sales channels > Hydrogen > Storefront**.
+
+---
+
+## Step 5: Start the Dev Server
+
+```bash
+nr dev:ca
+```
+
+This runs the following command under the hood:
+
+```bash
+shopify hydrogen dev --codegen --port 3456 --customer-account-push
+```
+
+The `--customer-account-push` flag spins up a **Cloudflare tunnel** that forwards the OAuth redirect callbacks from Shopify to your local machine over HTTPS.
+
+Once started, your terminal will print a tunnel URL like:
+
+```
+https://xxxxx.trycloudflare.com
+```
+
+---
+
+## Step 6: Update the Customer Account API Application Setup
+
+The tunnel URL needs to be registered in your Shopify store's Customer Account API settings so Shopify knows where to redirect after login/logout.
+
+1. Go to **Shopify Admin > Settings > Customer accounts**
+2. Find the **Customer Account API** section and open **Application setup**
+3. Update the following fields with your tunnel URL:
+
+| Field | Value |
+|---|---|
+| **Login URI** | `https://xxxxx.trycloudflare.com/account/login` |
+| **JavaScript origin(s)** | `https://xxxxx.trycloudflare.com` |
+| **Logout URI** | `https://xxxxx.trycloudflare.com` |
+| **Redirect URI(s)** | `https://xxxxx.trycloudflare.com/account/authorize` |
+
+<Warning>
+  The tunnel URL changes every time you restart the dev server. You'll need to update these fields each time you restart.
+</Warning>
+
+---
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="`ACCESS_DENIED` error on any `shopify hydrogen` command">
+    Your `.shopify/project.json` is pointing to a store where you don't have Hydrogen channel access. Delete it and re-link:
+
+    ```bash
+    rm .shopify/project.json
+    shopify hydrogen link
+    ```
+  </Accordion>
+
+  <Accordion title="Port already in use">
+    The dev server defaults to port `3456`. If it's taken, it will try the next available port. To free up the port manually:
+
+    ```bash
+    lsof -ti:3456 | xargs kill -9
+    ```
+  </Accordion>
+
+  <Accordion title="Customer account login not working">
+    Double-check that the tunnel URL registered in the **Customer Account API application setup** exactly matches the one printed in your terminal. Even a trailing slash difference will cause the OAuth flow to fail.
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+- Read the [Customer Account API reference](https://shopify.dev/docs/api/customer) for available queries and mutations
+- Follow the [Using Customer Account API with Hydrogen](https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/hydrogen) tutorial from Shopify
