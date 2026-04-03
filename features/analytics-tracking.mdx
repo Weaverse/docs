@@ -1,0 +1,432 @@
+---
+title: Analytics & Conversion Tracking
+description: How to set up GA4, Google Tag Manager, and third-party conversion tracking across your Hydrogen storefront and Shopify checkout.
+published: true
+---
+
+# Analytics & Conversion Tracking
+
+Setting up analytics and conversion tracking in a headless Hydrogen store requires understanding that your site spans **two separate environments** — each with different tracking capabilities.
+
+This guide covers everything you need to know to get complete, accurate tracking across your entire customer journey.
+
+## Architecture: Two Environments
+
+When you build with Hydrogen + Weaverse, your store runs on two separate systems:
+
+| | Hydrogen Storefront | Shopify Checkout + Thank You |
+|---|---|---|
+| **URL** | `yourstore.com` | `checkout.shopify.com` or custom checkout domain |
+| **What it serves** | Home, products, collections, cart, blog | Checkout, order confirmation, order status |
+| **Your code runs?** | ✅ Yes — full control | ❌ No — Shopify-hosted |
+| **GTM loaded?** | ✅ Yes (if you added it) | ❌ No — GTM from Hydrogen does NOT carry over |
+| **Tracking method** | Standard GTM/web pixels | Shopify Customer Events (Custom Pixels) |
+
+<Warning>
+This is the most common source of missing tracking data. GTM or analytics scripts loaded in your Hydrogen code **do not run** on Shopify-hosted checkout and thank-you pages. They are completely separate environments.
+</Warning>
+
+## Part 1: Tracking on the Hydrogen Storefront
+
+Your Hydrogen storefront (home, products, collections, cart, etc.) is a standard web application — you can load any analytics script just like a regular website.
+
+### Option A: Google Tag Manager (Recommended)
+
+GTM gives you a centralized tag management layer without modifying code for every new tracking pixel.
+
+#### Setup
+
+Add the GTM script to your root layout (`app/root.tsx`):
+
+```tsx
+// app/root.tsx
+export function Layout({ children }: { children: React.ReactNode }) {
+  const nonce = useNonce();
+
+  return (
+    <html lang="en">
+      <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        {/* GTM - Add to <head> */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+            new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+            j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+            'https://www.googletagmanager.com/gtm.js?id='+i+dl;var n=d.querySelectorAll('[nonce]');
+            n.length&&j.setAttribute('nonce',n[0].nonce||'');f.parentNode.insertBefore(j,f);
+            })(window,document,'script','dataLayer','GTM-XXXXXXX');`,
+          }}
+        />
+      </head>
+      <body>
+        {/* GTM noscript fallback - Add right after <body> */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-XXXXXXX"
+            height="0"
+            width="0"
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
+        {children}
+      </body>
+    </html>
+  );
+}
+```
+
+Replace `GTM-XXXXXXX` with your actual GTM container ID.
+
+<Note>
+If you have [Content Security Policy](/features/content-security) enabled, add `www.googletagmanager.com` and `www.google-analytics.com` to your script-src directives.
+</Note>
+
+#### Pushing Page Views and Events
+
+GTM automatically tracks page views if you've configured a GA4 tag with the "All Pages" trigger. For custom events, push to the dataLayer from your components:
+
+```tsx
+// Example: Product detail page view
+useEffect(() => {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'view_item',
+    ecommerce: {
+      items: [{
+        item_id: product.id,
+        item_name: product.title,
+        price: product.price,
+        currency: product.currencyCode,
+      }]
+    }
+  });
+}, [product]);
+```
+
+### Option B: Direct GA4 Script
+
+If you don't need GTM, you can load gtag.js directly:
+
+```tsx
+// In <head>
+<script
+  async
+  nonce={nonce}
+  src={`https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX`}
+/>
+<script
+  nonce={nonce}
+  dangerouslySetInnerHTML={{
+    __html: `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX');
+    `,
+  }}
+/>
+```
+
+Replace `G-XXXXXXXXXX` with your GA4 Measurement ID.
+
+## Part 2: Tracking on Checkout & Thank-You Page
+
+This is where most headless stores have a gap. Since checkout and the thank-you page are hosted by Shopify, you **cannot** inject GTM or analytics scripts directly.
+
+### Shopify Custom Pixels
+
+Shopify provides a **Customer Events** system (also called Custom Pixels) as the only supported way to track events on checkout and post-purchase pages.
+
+<Warning>
+Shopify deprecated **Additional Scripts** (the old checkout scripts field) in August 2025. Custom Pixels are now the **only supported method**. Do not try to inject scripts via checkout liquid — it will not work.
+</Warning>
+
+#### How Custom Pixels Work
+
+Custom Pixels run in a **sandboxed JavaScript environment** inside Shopify's checkout. They receive events from Shopify's analytics bus and can forward them to external services.
+
+```
+Shopify Checkout/Thank-You Page
+  │
+  ├── Shopify Analytics Bus emits events:
+  │   ├── checkout_started
+  │   ├── checkout_completed  ← purchase event
+  │   ├── payment_info_submitted
+  │   └── ...
+  │
+  └── Custom Pixel receives events
+      └── Forwards to GTM (via dataLayer) or directly to analytics
+```
+
+#### Setup: GTM via Custom Pixel
+
+This approach loads GTM inside the Shopify Custom Pixel sandbox and pushes checkout events to the dataLayer — giving you a unified dataLayer across both Hydrogen and checkout.
+
+##### Step 1: Create the Custom Pixel
+
+1. Go to **Shopify Admin → Settings → Customer Events**
+2. Click **Add custom pixel**
+3. Name it (e.g., "GTM Checkout Tracking")
+4. Set permissions:
+   - `access_consent` — needed for cookie consent gating
+5. Paste the code below and click **Save**
+
+##### Step 2: Custom Pixel Code
+
+```javascript
+// GTM Checkout Tracking - Shopify Custom Pixel
+// Replace GTM-XXXXXXX with your actual GTM container ID
+
+const GTM_ID = 'GTM-XXXXXXX';
+
+// Load GTM in sandbox
+const script = document.createElement('script');
+script.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
+document.head.appendChild(script);
+
+// Initialize dataLayer
+window.dataLayer = window.dataLayer || [];
+
+// Track checkout completed (purchase) events
+analytics.subscribe('checkout_completed', (event) => {
+  const checkout = event.data?.checkout;
+
+  window.dataLayer.push({
+    event: 'purchase',
+    ecommerce: {
+      transaction_id: checkout?.order?.id,
+      value: checkout?.totalPrice?.amount,
+      currency: checkout?.currencyCode,
+      tax: checkout?.totalTax?.amount,
+      shipping: checkout?.shippingLine?.price?.amount,
+      items: checkout?.lineItems?.map((item) => ({
+        item_id: item?.variant?.product?.id,
+        item_name: item?.title,
+        item_variant: item?.variant?.title,
+        price: item?.variant?.price?.amount,
+        quantity: item?.quantity,
+      })),
+    },
+  });
+});
+
+// Optional: Track checkout started
+analytics.subscribe('checkout_started', (event) => {
+  const checkout = event.data?.checkout;
+
+  window.dataLayer.push({
+    event: 'begin_checkout',
+    ecommerce: {
+      value: checkout?.totalPrice?.amount,
+      currency: checkout?.currencyCode,
+      items: checkout?.lineItems?.map((item) => ({
+        item_id: item?.variant?.product?.id,
+        item_name: item?.title,
+        price: item?.variant?.price?.amount,
+        quantity: item?.quantity,
+      })),
+    },
+  });
+});
+
+// Optional: Track payment info submitted
+analytics.subscribe('payment_info_submitted', (event) => {
+  window.dataLayer.push({
+    event: 'add_payment_info',
+  });
+});
+```
+
+##### Step 3: Configure GTM Triggers
+
+In your GTM container, create triggers for the dataLayer events:
+
+1. **Purchase trigger:**
+   - Trigger type: Custom Event
+   - Event name: `purchase`
+
+2. **Begin Checkout trigger:**
+   - Trigger type: Custom Event
+   - Event name: `begin_checkout`
+
+3. **GA4 Purchase tag:**
+   - Tag type: GA4 Event
+   - Event name: `purchase`
+   - Event parameters: map from `ecommerce` dataLayer variables
+   - Trigger: the Purchase trigger above
+
+#### Setup: Direct GA4 via Custom Pixel (No GTM)
+
+If you prefer to send events directly to GA4 without GTM on checkout:
+
+```javascript
+// Direct GA4 - Shopify Custom Pixel
+// Replace G-XXXXXXXXXX with your GA4 Measurement ID
+
+const MEASUREMENT_ID = 'G-XXXXXXXXXX';
+
+// Load gtag.js
+const script = document.createElement('script');
+script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`;
+document.head.appendChild(script);
+
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', MEASUREMENT_ID);
+
+// Track purchase
+analytics.subscribe('checkout_completed', (event) => {
+  const checkout = event.data?.checkout;
+
+  gtag('event', 'purchase', {
+    transaction_id: checkout?.order?.id,
+    value: checkout?.totalPrice?.amount,
+    currency: checkout?.currencyCode,
+    tax: checkout?.totalTax?.amount,
+    shipping: checkout?.shippingLine?.price?.amount,
+    items: checkout?.lineItems?.map((item) => ({
+      item_id: item?.variant?.product?.id,
+      item_name: item?.title,
+      price: item?.variant?.price?.amount,
+      quantity: item?.quantity,
+    })),
+  });
+});
+```
+
+## Part 3: Third-Party Conversion Pixels
+
+For third-party ad platforms (Meta Pixel, Traffic Junky, TikTok Pixel, etc.) that need conversion data from the thank-you page, use the same Custom Pixel approach:
+
+```javascript
+// Example: Traffic Junky conversion pixel via Shopify Custom Pixel
+
+analytics.subscribe('checkout_completed', (event) => {
+  const checkout = event.data?.checkout;
+
+  // Fire the conversion pixel
+  const img = document.createElement('img');
+  img.src = `https://ads.trafficjunky.net/conv?id=YOUR_PIXEL_ID&value=${checkout?.totalPrice?.amount}&currency=${checkout?.currencyCode}&orderId=${checkout?.order?.id}`;
+  img.width = 1;
+  img.height = 1;
+  document.body.appendChild(img);
+});
+```
+
+<Tip>
+You can create **multiple Custom Pixels** — one for GTM, one for Meta, one for Traffic Junky, etc. Each runs independently in its own sandbox.
+</Tip>
+
+## Cookie Consent & Analytics
+
+Analytics tracking on **both** environments is gated by cookie consent. If a visitor hasn't accepted cookies, tracking will be suppressed.
+
+- **Hydrogen storefront:** Your GTM/gtag scripts respect the [Cookie Consent Banner](/features/cookie-consent-banner) state
+- **Shopify checkout:** Custom Pixels have access to `consent.analyticsAllowed` — you can check this before firing events
+
+To make your Custom Pixel consent-aware:
+
+```javascript
+analytics.subscribe('checkout_completed', (event) => {
+  const consent = event.data?.checkout?.consent;
+
+  // Only fire if analytics consent was granted
+  if (!consent?.analyticsAllowed) {
+    console.log('Analytics consent not granted — skipping tracking');
+    return;
+  }
+
+  // ... fire your tracking pixel
+});
+```
+
+For full cookie consent setup, see the [Cookie Consent Banner](/features/cookie-consent-banner) guide.
+
+## Avoiding Duplicate Events
+
+If you have the **Google & YouTube** Shopify channel installed, it already fires GA4 events via its own Web Pixel. Adding a Custom Pixel that also sends GA4 purchase events will cause **duplicate transactions** in your GA4 reports.
+
+### How to Check
+
+1. Go to **Shopify Admin → Settings → Customer Events**
+2. Look for pixels named like "Google Analytics" or created by the Google & YouTube channel
+3. If a Google pixel exists, you have two options:
+
+### Option A: Disable the Google Channel Pixel (Recommended)
+
+Keep your GTM Custom Pixel as the single source of truth:
+
+1. In Customer Events, find the pixel created by the Google & YouTube channel
+2. Click the **⋯** menu → **Disconnect** (this stops the channel's pixel but keeps the app installed)
+
+### Option B: Use Only the Google Channel Pixel
+
+If you don't need GTM on checkout, let the Google & YouTube channel handle GA4 on checkout and thank-you pages. No Custom Pixel needed — just make sure your GA4 property is connected in the channel settings.
+
+<Tip>
+Option A is recommended for most merchants — having one unified tracking setup (GTM everywhere) is easier to debug and maintain.
+</Tip>
+
+## Debugging
+
+### GA4 DebugView (Recommended)
+
+GA4 DebugView shows events in real-time, which is essential for verifying checkout tracking:
+
+1. Install the [GA Debugger Chrome extension](https://chrome.google.com/webstore/detail/google-analytics-debugger)
+2. Enable the extension
+3. Open GA4 → Configure → DebugView
+4. Place a test order — you should see `purchase` events appear in real-time
+
+### GTM Preview Mode
+
+GTM's Tag Assistant / Preview mode **works on your Hydrogen storefront** but has limitations:
+
+- ✅ Works on: home, products, collections, cart
+- ❌ Does not work on: checkout, thank-you page (sandboxed environment)
+- ❌ Does not work on: Shopify's Custom Pixel sandbox
+
+For checkout events, use GA4 DebugView instead.
+
+### Common Issues
+
+#### "No purchase events in GA4"
+
+1. Check cookie consent — if the visitor didn't accept cookies, events are suppressed
+2. Check for ad blockers — they block GA4/GTM requests
+3. Verify the Custom Pixel is **connected** (not just saved) in Customer Events
+4. Use GA4 DebugView to see if events are being sent but not processed
+
+#### "Duplicate purchase events"
+
+See [Avoiding Duplicate Events](#avoiding-duplicate-events) above.
+
+#### "Custom Pixel shows 'Disconnected'"
+
+Go to **Customer Events → [your pixel] → ⋯ → Connect**. Pixels must be explicitly connected after creation.
+
+#### "Events work with cookie consent but not without"
+
+This is expected behavior. Shopify's analytics bus respects consent settings. See [Cookie Consent & Analytics](#cookie-consent--analytics) for handling this in your pixel code.
+
+## Summary
+
+| Tracking Need | Where | Method |
+|---|---|---|
+| Page views, product views, cart activity | Hydrogen storefront | GTM or gtag.js in `root.tsx` |
+| Checkout events, purchase conversion | Shopify checkout/thank-you | Shopify Custom Pixel |
+| Third-party conversion pixels | Shopify thank-you page | Shopify Custom Pixel |
+| Cookie consent management | Both environments | [Cookie Consent Banner](/features/cookie-consent-banner) |
+
+## Further Reading
+
+- [Shopify Custom Pixels Documentation](https://shopify.dev/docs/apps/build/marketing-analytics/build-tracking-pixel)
+- [Shopify Customer Events API](https://shopify.dev/docs/api/customer-events)
+- [GA4 DebugView Setup](https://support.google.com/analytics/answer/7201382)
+- [Cookie Consent Banner](/features/cookie-consent-banner)
+- [Content Security Policy](/features/content-security)
+- [Third-party Integrations](/features/third-party-integrations)

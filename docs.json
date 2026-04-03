@@ -177,7 +177,8 @@
 						"group": "Security & Privacy",
 						"pages": [
 							"features/content-security",
-							"features/cookie-consent-banner"
+							"features/cookie-consent-banner",
+							"features/analytics-tracking"
 						]
 					},
 					{
