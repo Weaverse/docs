@@ -344,6 +344,19 @@ analytics.subscribe('checkout_completed', (event) => {
 });
 ```
 
+### Checkout Cookie Banner
+
+Shopify offers a separate **"Show cookie banner in checkout"** option (Settings → Checkout → Customer consent). Our recommendation:
+
+- **Don't enable it** unless you're legally required to (GDPR/EU, UK PECR, etc.)
+- The storefront consent banner already captures the visitor's cookie preference, and Shopify's Customer Privacy API **propagates that signal to checkout automatically**
+- Enabling the checkout banner adds friction and reduces conversion rate — Shopify themselves warn about this
+- For stores targeting non-EU markets (US, APAC, etc.), the storefront banner alone is sufficient
+
+<Tip>
+If your visitors accept cookies on the storefront, checkout pixels will fire normally — no second consent prompt needed.
+</Tip>
+
 For full cookie consent setup, see the [Cookie Consent Banner](/features/cookie-consent-banner) guide.
 
 ## Avoiding Duplicate Events
