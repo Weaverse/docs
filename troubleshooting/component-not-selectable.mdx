@@ -5,22 +5,25 @@ description: "Fix components that appear in preview but cannot be selected or ed
 
 # Component Not Selectable
 
-You may encounter a situation where your component renders correctly in the preview, but you **cannot click to select it** in Weaverse Studio. The section appears in the left panel's section list but clicking it or clicking directly on the preview does nothing — the settings panel stays empty.
-
-This is commonly referred to as a **"ghost section"** and Studio will display a warning on the affected item:
+You may notice an **info icon** next to a component in Weaverse Studio's outline panel. This indicates that Studio cannot locate the component's DOM element in the preview.
 
 <Frame>
-  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/component-not-selectable.png?v=1773633163" alt="Weaverse Studio showing a warning icon on a component that is not selectable, with a hover popup explaining the issue" />
+  <img src="https://cdn.shopify.com/s/files/1/0838/0052/3057/files/component-not-selectable.png?v=1775269173" alt="Weaverse Studio showing an info icon on a component that is not selectable in the preview" />
 </Frame>
+
+<Note>
+**Don't worry — your component is still fully editable.** You can always select it from the outline panel and modify its settings. The info icon simply means Studio can't highlight or select it by clicking directly on the preview.
+</Note>
 
 ## Why This Happens
 
 Weaverse Studio identifies components in the preview by looking for a `data-wv-id` attribute on the DOM element. This attribute is automatically included in the props that Weaverse passes to your component.
 
-There are **two main causes** for this issue:
+There are **three common causes** for this:
 
 1. **Props not spread correctly** — the `data-wv-id` attribute is in the props but never reaches the DOM
 2. **Component returns `null`** — no DOM element is rendered at all, so there's nothing for Studio to find
+3. **Component is conditionally rendered** — a parent component controls whether this component appears in the DOM
 
 ## How to Fix
 
@@ -223,9 +226,9 @@ This commonly happens when components guard against missing data.
   ```
 </CodeGroup>
 
-<Warning>
-**Never return `null` from a Weaverse component.** Always render at least a root element with `{...rest}` so Studio can identify and select it. Use conditional rendering _inside_ the root element instead.
-</Warning>
+<Tip>
+Avoid returning `null` from a Weaverse component. Render at least a root element with `{...rest}` so Studio can locate it in the preview. Use conditional rendering _inside_ the root element instead.
+</Tip>
 
 #### Common Patterns That Cause This
 
@@ -273,17 +276,46 @@ This commonly happens when components guard against missing data.
 
 ---
 
+### Cause 3: Component Is Conditionally Rendered
+
+Sometimes the component itself is fine, but a **parent component** decides whether to render it based on some condition. When the condition is `false`, the child component is removed from the DOM entirely, and Studio can't find it in the preview.
+
+This is standard [conditional rendering in React](https://react.dev/learn/conditional-rendering) — nothing is broken.
+
+```tsx
+function ParentSection(props: ParentSectionProps) {
+  const { showBanner, children, ...rest } = props;
+
+  return (
+    <section {...rest}>
+      {/* When showBanner is false, BannerChild is not in the DOM */}
+      {showBanner && children}
+    </section>
+  );
+}
+```
+
+In this case, the child component will show an info icon in the outline panel whenever `showBanner` is `false`. **This is expected behavior** — when the parent renders the child again, it becomes selectable in the preview automatically.
+
+<Tip>
+You don't need to fix this. It's a natural result of conditional rendering. The child component is always editable via the outline panel regardless of whether it's visible in the preview.
+</Tip>
+
+---
+
 ## Checklist
 
-If a component is not selectable in Studio, verify:
+If a component shows an info icon in Studio, verify:
 
-- [ ] The component **never returns `null`** — return an empty element with `{...rest}` instead
 - [ ] The component destructures custom props and captures `...rest`
 - [ ] `...rest` is spread onto the **root DOM element**
+- [ ] The component **never returns `null`** — return an empty element with `{...rest}` instead
+- [ ] If conditionally rendered by a parent — this is expected and safe, no action needed
 - [ ] The development server has been restarted after changes
 
 ## Related Resources
 
 - [Creating Components](/development-guide/creating-components)
 - [Weaverse Component](/development-guide/weaverse-component)
+- [Conditional Rendering (React docs)](https://react.dev/learn/conditional-rendering)
 - [Preview Connection Errors](/troubleshooting/preview-errors)
