@@ -206,6 +206,27 @@ export function CartSummary() {
 }
 ```
 
+3. **Using simple string interpolation**:
+If you need to inject dynamic values into your translations, `useThemeText` natively supports simple interpolation. Mark variables in your source JSON copy with double braces (e.g. `{{name}}`), and then pass an object of variables as the second parameter to `t`:
+
+**app/i18n/en.json:**
+```json
+{
+  "product": {
+    "pictureOf": "Picture of {{name}}"
+  }
+}
+```
+
+**React Component:**
+```tsx
+export function ProductImage({ name }: { name: string }) {
+  const { t } = useThemeText();
+  
+  return <img alt={t("product.pictureOf", { name })} />;
+}
+```
+
 With this setup, the keys defined in `app/i18n/en.json` will automatically render as the localized strings managed in Studio.
 
 ### Advanced: Pluralization with i18next
