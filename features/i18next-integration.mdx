@@ -1,0 +1,241 @@
+---
+title: i18next Integration
+description: Learn how to set up i18next for advanced localization and pluralization support in Weaverse.
+published: true
+---
+
+# i18next Integration with `withWeaverse`
+
+## Context
+
+`useThemeText()` from `@weaverse/hydrogen` exposes a `t(key, variables?)` function that only does simple `{{variable}}` string substitution. It has **no plural support**, no context forms, no ordinals, no ICU. When a component needs "1 item" vs "3 items", the current system cannot handle it.
+
+The fix: initialize **i18next** (already in `package.json` as `^25.8.17`) with the existing `app/i18n/en.json` content, then pass i18next's `t` as the `externalT` into `withWeaverse`. Since `externalT` is the **highest-priority source** in Weaverse's resolution chain, all translations now flow through i18next's full engine (plurals, context, ordinals, interpolation) while still falling back gracefully to Weaverse's merchantOverrides → staticContent → key chain.
+
+**Existing `TranslateFunction` type** (from `@weaverse/hydrogen`):
+```typescript
+type TranslateFunction = (key: string, variables?: Record<string, string | number>) => string
+```
+
+`withWeaverse`'s `ThemeTextProvider` only calls `externalT` if its result is non-empty AND differs from the key — so the existing fallback chain is fully preserved.
+
+### Translation priority chain (unchanged)
+
+```
+External t (i18next)  ←  highest priority
+       ↓ (if returns key unchanged = not found)
+Merchant Overrides    ←  from Weaverse backend/DB
+       ↓
+Static Content        ←  app/i18n/en.json via themeSchema
+       ↓
+Key itself            ←  final fallback
+```
+
+---
+
+## Files to Change
+
+| File | Action |
+|------|--------|
+| `app/i18n/index.ts` | **Create** — i18next singleton, `initI18n(locale)`, `weaverseT` bridge |
+| `app/root.tsx` | **Modify** — 4 additions: import, loader call, `withWeaverse` option, client `useEffect` |
+| `app/i18n/en.json` | **Extend** — add plural-form keys when needed (e.g. `cart.itemCount_one` / `_other`) |
+
+No changes to: `app/.server/root.ts`, `app/weaverse/schema.server.ts`, any section component.
+
+---
+
+## Step 1 — Create `app/i18n/index.ts`
+
+```typescript
+// app/i18n/index.ts
+import i18next from 'i18next'
+import type { TranslateFunction } from '@weaverse/hydrogen'
+import enTranslations from './en.json'
+
+// ── Locale bundle registry ─────────────────────────────────────────────────
+// EN is bundled synchronously (no async tick on first SSR render).
+// Add other locales here as you create their JSON files:
+//   fr: () => import('./fr.json').then(m => m.default as Record<string, unknown>),
+const LOCALE_RESOURCES: Record<string, () => Promise<Record<string, unknown>>> = {
+  en: () => Promise.resolve(enTranslations as Record<string, unknown>),
+}
+
+// ── One-time singleton init ────────────────────────────────────────────────
+let initPromise: Promise<void> | null = null
+
+function ensureInit(): Promise<void> {
+  if (initPromise) return initPromise
+  initPromise = i18next
+    .init({
+      lng: 'en',
+      fallbackLng: 'en',
+      defaultNS: 'translation',
+      ns: ['translation'],
+      resources: { en: { translation: enTranslations } },
+      interpolation: {
+        prefix: '{{',
+        suffix: '}}',
+        escapeValue: false,      // React escapes; don't double-escape
+      },
+      compatibilityJSON: 'v4',   // plural keys: key_one / key_other (CLDR)
+      initAsync: false,          // sync init when resources are inline
+      saveMissing: false,
+    })
+    .then(() => undefined)
+  return initPromise
+}
+
+// ── Per-request (SSR) / per-navigation (client) locale switch ─────────────
+// Call before React renders so weaverseT is already pointing at the right language.
+export async function initI18n(locale: string): Promise<void> {
+  // Normalize: Shopify gives "EN", "FR", "ZH_CN" → i18next wants "en", "fr", "zh"
+  const lang = locale.toLowerCase().split('_')[0]
+  await ensureInit()
+
+  // Lazily hydrate a locale bundle on first use
+  if (!i18next.hasResourceBundle(lang, 'translation')) {
+    const loader = LOCALE_RESOURCES[lang]
+    if (loader) {
+      const resources = await loader()
+      i18next.addResourceBundle(lang, 'translation', resources, true, false)
+    }
+    // No loader → i18next falls back to 'en' automatically
+  }
+
+  if (i18next.language !== lang) {
+    await i18next.changeLanguage(lang)
+  }
+}
+
+// ── Stable bridge function passed to withWeaverse ─────────────────────────
+// • Never changes identity → React's useMemo in ThemeTextProvider doesn't re-run
+// • Reads i18next.t at *call time* → always uses the language set by initI18n()
+// • `count` in variables flows through to i18next for plural resolution
+// • Returns the key unchanged when i18next has no translation →
+//   Weaverse sees (external === key) and falls through to merchantOverrides/staticContent
+export const weaverseT: TranslateFunction = (
+  key: string,
+  variables?: Record<string, string | number>
+): string => {
+  if (!i18next.isInitialized) return key
+  const result = i18next.t(key, variables as object | undefined)
+  return typeof result === 'string' ? result : key
+}
+```
+
+---
+
+## Step 2 — Modify `app/root.tsx` (4 additions)
+
+### 2a. Add import (near line 6)
+```typescript
+import { initI18n, weaverseT } from '~/i18n/index'
+```
+
+### 2b. Call `initI18n` in the loader (after `criticalData` is awaited)
+```typescript
+export async function loader(args: LoaderFunctionArgs) {
+  const deferredData = loadDeferredData(args)
+  const criticalData = await loadCriticalData(args)
+
+  // Switch i18next singleton to this request's locale BEFORE React renders
+  await initI18n(criticalData.locale)   // e.g. "en", "fr", "zh_cn"
+
+  return { ...deferredData, ...criticalData }
+}
+```
+
+### 2c. Pass `weaverseT` to `withWeaverse` (line 179)
+```typescript
+// Before:
+export const Layout = withWeaverse(RootLayout)
+
+// After:
+export const Layout = withWeaverse(RootLayout, { t: weaverseT })
+```
+
+### 2d. Initialize i18next on the client after hydration (inside `RootLayout`)
+Add a `useEffect` so client-side navigations also have the correct language:
+```typescript
+// Inside RootLayout, after the existing `const locale = ...` line:
+useEffect(() => {
+  if (locale) initI18n(locale)
+}, [locale])
+```
+
+---
+
+## Step 3 — Add plural keys to `app/i18n/en.json` where needed
+
+i18next plural convention (CLDR v4 with `compatibilityJSON: 'v4'`):
+- `key_one` → when `count === 1`
+- `key_other` → when `count !== 1`
+
+Example addition:
+```json
+{
+  "cart": {
+    "itemCount_one":   "{{count}} item",
+    "itemCount_other": "{{count}} items"
+  }
+}
+```
+
+Components call it exactly like any other key — **no component changes needed**:
+```typescript
+const { t } = useThemeText()
+t('cart.itemCount', { count: 3 })  // → "3 items"
+t('cart.itemCount', { count: 1 })  // → "1 item"
+```
+
+---
+
+## Step 4 — Adding future locale files (fr, de, vi, …)
+
+1. Create `app/i18n/fr.json` mirroring `en.json` structure (add `_one`/`_other` keys where needed)
+2. Register the lazy loader in `LOCALE_RESOURCES` inside `app/i18n/index.ts`:
+   ```typescript
+   fr: () => import('./fr.json').then(m => m.default as Record<string, unknown>),
+   de: () => import('./de.json').then(m => m.default as Record<string, unknown>),
+   vi: () => import('./vi.json').then(m => m.default as Record<string, unknown>),
+   ```
+3. Add the locale to `COUNTRIES` in `app/utils/const.ts` (already-existing pattern)
+4. `initI18n("fr")` will lazily call `addResourceBundle` on first request for that locale — no other changes needed
+
+---
+
+## Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Stable `weaverseT` module reference | `withWeaverse` closes over `options?.t` at module load. A stable ref means `ThemeTextProvider`'s `useMemo` doesn't re-create on locale change. Locale switching happens inside i18next before render. |
+| `initI18n` in loader (not in `withWeaverse`) | Loader runs server-side before the React tree renders. `weaverseT` is called during the render — by then `i18next.language` is already correct. |
+| EN bundled inline, others lazy | Avoids async tick on the overwhelmingly common case. Other locales load once and are cached in the singleton. |
+| `compatibilityJSON: 'v4'` | Matches i18next v25 defaults; uses CLDR `_one`/`_other` plural categories, not legacy `_plural`. |
+| No `react-i18next` | Not needed; only the core `i18next` JS API is used. No React provider required. |
+| Fallback chain preserved | `weaverseT` returns the key when i18next has no match → Weaverse sees `external === key` → falls through to merchantOverrides → staticContent → key. |
+
+---
+
+## Caveats
+
+### Singleton vs. concurrent requests (Oxygen/Workers)
+The i18next singleton is shared across requests in the same isolate. React SSR renders are synchronous, so `initI18n` (called before `renderToReadableStream`) sets the language safely. For extreme concurrency, use `i18next.getFixedT(lang)` to create per-request fixed translators — but this requires storing the function in route loader data rather than in the module-level `withWeaverse` call.
+
+### Client hydration
+The `useEffect` in Step 2d ensures the client singleton is initialized after hydration. Without it, client-side React Router navigations that re-render `weaverseT` before the next server response could use a stale language.
+
+### `initAsync: false` requirement
+Only valid when resources are passed inline (no backend plugin). If you add `i18next-fs-backend` or similar, remove `initAsync: false`.
+
+---
+
+## Verification Checklist
+
+- [ ] **Plurals work:** Add `cart.itemCount_one` / `cart.itemCount_other` to `en.json`, verify `t('cart.itemCount', { count: 1 })` → "1 item" and `{ count: 3 }` → "3 items"
+- [ ] **Fallback chain intact:** `t('some.missing.key')` still resolves from `staticContent` (not swallowed by i18next)
+- [ ] **Existing translations unchanged:** All current `useThemeText()` calls in badges, footer, cart, etc. continue to work
+- [ ] **TypeScript clean:** `npm run typecheck` passes — `weaverseT` satisfies `TranslateFunction`
+- [ ] **No hydration warnings:** `npm run dev` shows no React hydration mismatch in the browser console
+- [ ] **Locale switching** *(if multi-locale)*: Visiting `/fr/` path triggers `initI18n('fr')` and returns French strings

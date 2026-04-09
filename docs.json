@@ -171,7 +171,11 @@
 					},
 					{
 						"group": "Internationalization",
-						"pages": ["features/markets-localization"]
+						"pages": [
+							"features/markets-localization",
+							"features/translation-feature-guide",
+							"features/i18next-integration"
+						]
 					},
 					{
 						"group": "Security & Privacy",

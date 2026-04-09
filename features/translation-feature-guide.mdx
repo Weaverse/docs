@@ -1,0 +1,246 @@
+---
+title: Translation Feature Guide
+description: Learn how to use Translation Manager to manage reusable storefront copy and page-level localized content.
+published: true
+---
+
+# Translation Feature Guide
+
+This guide introduces the new `Translation Manager` and shows how to set it up, translate your content, and apply it to a project.
+
+## Overview
+
+`Translation Manager` helps you localize two kinds of content inside a Weaverse project:
+
+1. `Theme content`: reusable storefront strings like button labels, empty states, and helper text.
+2. `Page content`: text and image content extracted from page sections, blocks, and elements.
+
+The feature is designed to work with your project's default locale first, then layer additional languages on top without overwriting the source content.
+
+> [!TIP]
+> Always ensure your default locale content is fully polished before translating to save time and reduce errors across supported languages.
+
+## Before You Start
+
+Make sure these pieces are in place before your team starts translating:
+
+1. You have installed `@weaverse/hydrogen` version `^5.12.0` or higher in your `package.json`.
+2. Your project has a valid default locale configured.
+3. The latest page content is published.
+4. Your theme exposes reusable strings through `schema.i18n.staticContent` if you want to translate theme-level text.
+
+Why this matters:
+
+- The first time `Translation Manager` opens, it auto-creates the default language from the project's default locale.
+- Page scans read from the last published version of the project, not from unpublished editor changes.
+- Theme-level translation keys come from the theme schema, so they need to exist there before they can be synced and translated.
+
+## Theme Setup
+
+If your project needs translatable theme strings, create a file at `theme/i18n/default.json` (or your preferred location) to store your keys:
+
+```json
+{
+  "cart": {
+    "general": {
+      "title": "Cart",
+      "checkout": "Checkout"
+    }
+  },
+  "general": {
+    "search": {
+      "placeholder": "Search"
+    }
+  }
+}
+```
+
+Then import it into the theme schema under `i18n.staticContent`. You must also set `i18n.translation: true` to enable and display the Translation Manager in Studio.
+
+```ts
+import staticContent from '~/i18n/en.json'
+
+export const schema = {
+  i18n: {
+    translation: true,
+    staticContent,
+  },
+}
+```
+
+Recommended setup rules:
+
+1. Keep keys structured in a multi-nested object format.
+2. Use stable keys that describe the UI meaning, not the current copy.
+3. Treat these default values as the source language content for your project.
+
+## Open Translation Manager
+
+In Studio, click the language icon to open `Translation Manager`.
+
+On first open, the feature will:
+
+1. Detect the project's default locale.
+2. Create the default language record if it does not exist yet.
+3. Load the current language, theme content, and page content.
+
+If the theme default language changes later, the manager shows a `Theme language changed` warning with a `Re-sync Keys` action.
+
+## Add a New Language
+
+To add a translation target:
+
+1. Click `Add Language`.
+2. Choose the target locale you want to support.
+3. Choose the source locale for that new language.
+
+The source locale matters because the manager uses it as the base content for translation and review.
+
+Example:
+
+1. Default locale: `en-us`
+2. New language: `fr-fr`
+3. Source locale: `en-us`
+
+After the language is added, the manager switches into that language automatically.
+
+## Translate Theme Content
+
+Use the `Theme` tab for project-wide UI strings.
+
+### Default language mode
+
+When the selected language is the default language:
+
+1. Click `Sync Theme Keys` to import keys from `schema.i18n.staticContent`.
+2. Edit the default values directly.
+3. Changes save automatically.
+
+Use this mode when you want to clean up or rewrite the source copy before translating it into other languages.
+
+### Translation mode
+
+When the selected language is not the default language:
+
+1. Open the `Theme` tab.
+2. Review the source values on the left.
+3. Enter translated values on the right.
+4. Use `Auto-Translate` to generate first-pass translations.
+5. Refine any strings that need tone or brand adjustments.
+
+Theme translation edits also save automatically.
+
+## Translate Page Content
+
+Use the `Page` tab for page-specific content.
+
+1. Switch to `Page`.
+2. Pick the page you want to translate from the sidebar.
+3. Choose `Text Content` or `Image Content`.
+4. Edit translated values inline.
+5. Use filters like `Untranslated` to focus on missing content.
+
+For text content, you can also use `Auto-Translate`:
+
+1. Select the current page to translate one page.
+2. Select multiple pages to run a background translation job.
+3. Track long-running jobs from the notification panel.
+
+Page translation edits save automatically as you work.
+
+## How Translations Apply To The Project
+
+The feature applies translations in two different ways:
+
+1. **Theme content:** Stored as project translation keys. You must use the `useThemeText` hook (as detailed below) in your frontend components so that these strings are rendered dynamically based on the active locale.
+2. **Page content:** Stored separately from the main page JSON. **Weaverse automatically applies these localized strings at runtime.** You do not need to add any code, hooks, or rendering logic to your Weaverse sections—Weaverse Hydrogen components automatically display the translated text when a non-default locale is requested.
+
+That means your source content stays intact, while each supported language gets its own translation layer securely applied.
+
+## Recommended Workflow
+
+For the smoothest rollout, use this order:
+
+1. Finalize the default-language content first.
+2. Publish the latest page changes.
+3. Sync theme keys.
+4. Add the target language.
+5. Auto-translate theme content.
+6. Auto-translate page content.
+7. Review high-visibility strings manually.
+8. Preview the localized storefront and QA important flows.
+
+## Common Notes
+
+1. `Translation Manager` only works well when the default locale is correct.
+2. If a page was changed but not published, the scan will not see that new content yet.
+3. If theme keys are missing, check that `schema.i18n.staticContent` exists and then run `Sync Theme Keys` again.
+4. If your source language changes, use `Re-sync Keys` instead of recreating all translations.
+
+## Rendering Translations in the Theme
+
+To use the translated theme content in your project's components, you can use the `useThemeText` hook provided by `@weaverse/hydrogen`. This hook automatically connects to your theme's static content and localized strings managed in the Translation Manager.
+
+1. **Import the hook**:
+Import the `useThemeText` hook into your component from the Weaverse Hydrogen library.
+
+```tsx
+import { useThemeText } from "@weaverse/hydrogen";
+```
+
+2. **Use the `t` function to render localized strings**:
+Call the hook to access the `t` function. Then pass your JSON key path to it.
+
+```tsx
+import { useThemeText } from "@weaverse/hydrogen";
+
+export function CartSummary() {
+  const { t } = useThemeText();
+  
+  return (
+    <div>
+      <h2>{t("cart.summary.orderSummary")}</h2>
+      <button>{t("cart.actions.checkout")}</button>
+    </div>
+  );
+}
+```
+
+With this setup, the keys defined in `app/i18n/en.json` will automatically render as the localized strings managed in Studio.
+
+### Advanced: Pluralization with i18next
+
+By default, the `t` function from `useThemeText` only supports simple string substitution (e.g., `{{variable}}`). It does not natively support advanced formatting like plurals. 
+
+If your application requires plural forms or other advanced i18n features, you can configure an `i18next` instance and pass it as an custom translation function to Weaverse using the `withWeaverse` wrapper. 
+
+For full step-by-step instructions on setting this up, read the dedicated [i18next Integration Guide](./i18next-integration).
+
+## Translating Shopify Content
+
+While Weaverse's Translation Manager perfectly handles your storefront's theme UI strings and custom page features, your core catalog data (Products, Collections, Blogs, Articles, Menus) natively resides in Shopify.
+
+**How to Translate Catalog Data:**
+Localize your core Shopify catalog within the Shopify Admin using Shopify's free [Translate & Adapt](https://apps.shopify.com/translate-and-adapt) app or any compatible 3rd-party translation app from the Shopify App Store.
+
+**How to Query Translated Data:**
+Hydrogen and the Storefront API make retrieving translated catalog data seamless. You do not need to fetch translations separately. You simply ensure your GraphQL queries include the `@inContext` directive with the localized language and country codes.
+
+```graphql
+query Product(
+  $handle: String!
+  $language: LanguageCode
+  $country: CountryCode
+) @inContext(language: $language, country: $country) {
+  product(handle: $handle) {
+    title
+    description
+  }
+}
+```
+
+When executing queries in your route loaders (`context.storefront.query(...)`), Hydrogen uses its built-in routing context to automatically pass the correct language prefix (e.g., `/fr/products/hoodie`). As a result, Shopify immediately returns the translated strings natively, allowing your Weaverse sections to simply render `product.title` without any additional locale handling!
+
+## Summary
+
+Use `Translation Manager` when you need a single centralized location to manage both reusable storefront copy and page-level localized content. By setting up the default locale, exposing theme keys via `schema.i18n.staticContent`, adding target languages, and using the built-in `useThemeText` hook, you can maintain a seamless, fully localized shopping experience for your buyers directly inside Studio.
