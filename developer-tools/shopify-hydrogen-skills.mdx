@@ -1,0 +1,120 @@
+---
+title: "Shopify Hydrogen Skills"
+description: "Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse — works with Claude Code, Cursor, Copilot, and more"
+---
+
+# Shopify Hydrogen Skills
+
+Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse. Works with **Claude Code**, **Cursor**, **GitHub Copilot**, **Windsurf**, **OpenCode**, **Gemini CLI**, and any agent that supports markdown skill files.
+
+<Note>
+  **Why skills, not docs?** Skills are concise, agent-optimized knowledge that your coding agent loads before working on a task — structured for LLMs, not humans. Pair them with [Weaverse MCP](/developer-tools/weaverse-mcp) for live doc search and the best results.
+</Note>
+
+## Quick Install
+
+```bash
+npx skills add Weaverse/shopify-hydrogen-skills
+```
+
+Auto-detects your coding agents and installs to all of them. Powered by [skills.sh](https://skills.sh).
+
+For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/shopify-hydrogen-skills/blob/main/INSTALL.md).
+
+## Available Skills
+
+<CardGroup cols={2}>
+  <Card title="shopify-hydrogen" icon="store">
+    Core Hydrogen APIs — `createHydrogenContext`, cart handler, caching, pagination, SEO, CSP. Load when working with `@shopify/hydrogen` APIs.
+  </Card>
+  <Card title="weaverse-hydrogen" icon="cube">
+    Weaverse components, schemas, loaders, theming, deployment. Load for any Hydrogen + Weaverse project.
+  </Card>
+  <Card title="hydrogen-cookbooks" icon="book-open">
+    Step-by-step guides — bundles, combined listings, 3D models, customer accounts, performance. Load when building specific features.
+  </Card>
+  <Card title="hydrogen-upgrades" icon="arrow-up">
+    Breaking changes and migration steps for Hydrogen framework versions. Load when upgrading Hydrogen.
+  </Card>
+  <Card title="theme-update" icon="paintbrush">
+    Safe Pilot theme updates — detect version, plan changes, preserve customizations, verify build. Load when updating a customer's Pilot theme.
+  </Card>
+  <Card title="weaverse-integration" icon="plug">
+    Integrate Weaverse into an existing Hydrogen project — analyze codebase, convert components, set up SDK, configure routes. Load when adding Weaverse to a project that doesn't use it yet.
+  </Card>
+</CardGroup>
+
+## Live Doc Fetching
+
+Instead of baking static API docs into skill files (which go stale), this repo ships **live doc fetching scripts** that query official sources at runtime:
+
+```bash
+# Search Shopify Hydrogen docs (shopify.dev)
+node scripts/search_shopify_docs.mjs "createHydrogenContext"
+node scripts/search_shopify_docs.mjs "CartForm actions"
+
+# Search Weaverse docs (docs.weaverse.io)
+node scripts/search_weaverse_docs.mjs "component schema"
+
+# Fetch a specific Weaverse doc page
+node scripts/get_weaverse_page.mjs "development-guide/component-schema"
+
+# Check for Pilot theme updates
+node skills/theme-update/scripts/check_pilot_updates.mjs
+```
+
+| Script | Source | What it does |
+|--------|--------|-------------|
+| `search_shopify_docs.mjs` | shopify.dev | Search Hydrogen API docs |
+| `search_weaverse_docs.mjs` | docs.weaverse.io | Search Weaverse docs via Mintlify MCP |
+| `get_weaverse_page.mjs` | docs.weaverse.io | Fetch full page content by path |
+| `check_pilot_updates.mjs` | github.com | Check for Pilot theme release updates |
+
+All scripts are **zero-dependency** — Node.js 18+ built-ins only.
+
+## Repo Structure
+
+```
+├── skills/
+│   ├── shopify-hydrogen/          # Core Hydrogen APIs
+│   │   ├── SKILL.md
+│   │   └── references/            # Setup, caching, cart patterns
+│   ├── weaverse-hydrogen/         # Weaverse CMS integration
+│   │   ├── references/            # 13 deep-dive guides
+│   │   └── examples/              # Production-ready component code
+│   ├── hydrogen-cookbooks/        # Feature recipes
+│   │   └── references/            # Bundles, combined listings, 3D, etc.
+│   ├── hydrogen-upgrades/         # Framework version migrations
+│   │   └── references/            # Version-specific migration guides
+│   ├── theme-update/              # Pilot theme updater
+│   │   ├── SKILL.md
+│   │   └── scripts/
+│   └── weaverse-integration/      # Integrate into existing Hydrogen
+│       └── SKILL.md
+├── scripts/                       # Live doc fetching (shared)
+├── .cursorrules                   # Cursor agent rules
+├── AGENTS.md                      # Repo guidance for AI agents
+└── INSTALL.md                     # Manual per-agent install guide
+```
+
+## Using with Weaverse MCP
+
+For the best development experience, combine agent skills with [Weaverse MCP](/developer-tools/weaverse-mcp):
+
+- **Skills** provide structured knowledge your agent loads before tasks
+- **MCP** provides real-time doc search for up-to-date API details
+
+Together, your AI coding agent has both deep context and live access to the latest documentation.
+
+## Contributing
+
+PRs welcome — especially for:
+
+- New cookbooks (feature implementation guides)
+- Upgrade guides for newer Hydrogen versions
+- Improved offline references
+- New live doc scripts for other sources
+
+<Card title="GitHub Repository" icon="github" href="https://github.com/Weaverse/shopify-hydrogen-skills">
+  View source, report issues, and contribute on GitHub
+</Card>

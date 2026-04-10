@@ -100,7 +100,8 @@
 						"pages": [
 							"developer-tools/weaverse-cli",
 							"developer-tools/weaverse-sdks",
-							"developer-tools/weaverse-mcp"
+							"developer-tools/weaverse-mcp",
+							"developer-tools/shopify-hydrogen-skills"
 						]
 					},
 					{
@@ -255,7 +256,8 @@
 						"pages": [
 							"developer-tools/weaverse-cli",
 							"developer-tools/weaverse-sdks",
-							"developer-tools/weaverse-mcp"
+							"developer-tools/weaverse-mcp",
+							"developer-tools/shopify-hydrogen-skills"
 						]
 					},
 					{
