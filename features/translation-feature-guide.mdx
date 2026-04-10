@@ -86,9 +86,33 @@ On first open, the feature will:
 
 If the theme default language changes later, the manager shows a `Theme language changed` warning with a `Re-sync Keys` action.
 
-## Add a New Language
+## Add a New Locale in Configuration
 
-To add a translation target:
+To make a new language available in your storefront routing, configure it in your `COUNTRIES` object first.
+
+1. Open `app/utils/const.ts`.
+2. Locate the `COUNTRIES` exported constant.
+3. Add a new route prefix key for your locale (e.g., `"/fr"`).
+4. Define the `label`, `language`, `country`, and `currency` properties.
+
+```ts
+export const COUNTRIES: Localizations = {
+  // ... existing locales
+  "/fr": {
+    label: "France",
+    language: "FR",
+    country: "FR",
+    currency: "EUR",
+  },
+};
+```
+
+> [!NOTE]
+> The Translation Manager specifically uses the `language` code field (e.g., `"FR"`, `"ZH_CN"`) to determine the target language when auto-translating content.
+
+## Add a New Language in Studio
+
+To add a translation target in the Translation Manager:
 
 1. Click `Add Language`.
 2. Choose the target locale you want to support.
