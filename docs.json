@@ -55,6 +55,79 @@
 					{
 						"group": "Studio Guide",
 						"pages": ["studio-guide/interface-tour"]
+					},
+					{
+						"group": "Building Components",
+						"pages": [
+							"development-guide/environment-setup",
+							"development-guide/creating-components",
+							"development-guide/component-schema",
+							"development-guide/input-settings",
+							"development-guide/styling-theming",
+							"development-guide/data-fetching"
+						]
+					},
+					{
+						"group": "API Reference",
+						"pages": [
+							"api-reference/introduction",
+							"api-reference/use-weaverse",
+							"api-reference/weaverse-root",
+							"api-reference/types"
+						]
+					},
+					{
+						"group": "Content API",
+						"pages": [
+							"content-api/overview",
+							"content-api/list-pages",
+							"content-api/get-page"
+						]
+					},
+					{
+						"group": "Features",
+						"pages": [
+							"features/why-weaverse-for-hydrogen",
+							"features/global-sections",
+							"features/navigation-menus",
+							"features/markets-localization",
+							"features/custom-pages",
+							"features/content-security"
+						]
+					},
+					{
+						"group": "Developer Tools",
+						"pages": [
+							"developer-tools/weaverse-cli",
+							"developer-tools/weaverse-sdks",
+							"developer-tools/weaverse-mcp"
+						]
+					},
+					{
+						"group": "Hydrogen Themes",
+						"pages": [
+							"hydrogen-themes/pilot-theme-overview",
+							"hydrogen-themes/pilot-theme-customization"
+						]
+					},
+					{
+						"group": "Deployment",
+						"pages": [
+							"deployment",
+							"oxygen-deployment",
+							"docker-deployment",
+							"workers-deployment"
+						]
+					},
+					{
+						"group": "Help & Community",
+						"pages": [
+							"resources/faq",
+							"resources/example-components",
+							"troubleshooting/preview-errors",
+							"community/community",
+							"changelog/index"
+						]
 					}
 				]
 			},
