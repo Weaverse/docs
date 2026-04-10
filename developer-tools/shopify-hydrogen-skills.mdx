@@ -5,7 +5,7 @@ description: "Agent skills for building, maintaining, and upgrading Shopify Hydr
 
 # Shopify Hydrogen Skills
 
-Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse. Works with **Claude Code**, **Cursor**, **GitHub Copilot**, **Windsurf**, **OpenCode**, **Gemini CLI**, and any agent that supports markdown skill files.
+Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse. Works with **Claude Code**, **Cursor**, **GitHub Copilot**, **Windsurf**, **OpenCode**, **OpenClaw**, **Gemini CLI**, and any agent that supports markdown skill files.
 
 <Note>
   **Why skills, not docs?** Skills are concise, agent-optimized knowledge that your coding agent loads before working on a task — structured for LLMs, not humans. Pair them with [Weaverse MCP](/developer-tools/weaverse-mcp) for live doc search and the best results.
@@ -71,6 +71,8 @@ node skills/theme-update/scripts/check_pilot_updates.mjs
 | `check_pilot_updates.mjs` | github.com | Check for Pilot theme release updates |
 
 All scripts are **zero-dependency** — Node.js 18+ built-ins only.
+
+The `references/` folders in each skill serve as **offline fallback** — cached snapshots for when live search is unavailable.
 
 ## Repo Structure
 
