@@ -55,15 +55,92 @@
 					{
 						"group": "Studio Guide",
 						"pages": ["studio-guide/interface-tour"]
+					},
+					{
+						"group": "Building Components",
+						"pages": [
+							"development-guide/environment-setup",
+							"development-guide/creating-components",
+							"development-guide/component-schema",
+							"development-guide/input-settings",
+							"development-guide/styling-theming",
+							"development-guide/data-fetching"
+						]
+					},
+					{
+						"group": "API Reference",
+						"pages": [
+							"api-reference/introduction",
+							"api-reference/use-weaverse",
+							"api-reference/weaverse-root",
+							"api-reference/types"
+						]
+					},
+					{
+						"group": "Content API",
+						"pages": [
+							"content-api/overview",
+							"content-api/list-pages",
+							"content-api/get-page"
+						]
+					},
+					{
+						"group": "Features",
+						"pages": [
+							"features/why-weaverse-for-hydrogen",
+							"features/global-sections",
+							"features/navigation-menus",
+							"features/markets-localization",
+							"features/custom-pages",
+							"features/content-security"
+						]
+					},
+					{
+						"group": "Developer Tools",
+						"pages": [
+							"developer-tools/weaverse-cli",
+							"developer-tools/weaverse-sdks",
+							"developer-tools/weaverse-mcp",
+							"developer-tools/shopify-hydrogen-skills"
+						]
+					},
+					{
+						"group": "Hydrogen Themes",
+						"pages": [
+							"hydrogen-themes/pilot-theme-overview",
+							"hydrogen-themes/pilot-theme-customization"
+						]
+					},
+					{
+						"group": "Deployment",
+						"pages": [
+							"deployment",
+							"oxygen-deployment",
+							"docker-deployment",
+							"workers-deployment"
+						]
+					},
+					{
+						"group": "Help & Community",
+						"pages": [
+							"resources/faq",
+							"resources/example-components",
+							"troubleshooting/preview-errors",
+							"community/community",
+							"changelog/index"
+						]
 					}
 				]
 			},
 			{
-				"tab": "Development Guides",
+				"tab": "Guides",
 				"pages": [
 					{
 						"group": "Environment",
-						"pages": ["development-guide/environment-setup", "development-guide/design-mode"]
+						"pages": [
+							"development-guide/environment-setup",
+							"development-guide/design-mode"
+						]
 					},
 					{
 						"group": "Building Components",
@@ -78,26 +155,51 @@
 						]
 					},
 					{
-						"group": "Advanced Guides",
+						"group": "Content Management",
+						"pages": [
+							"features/why-weaverse-for-hydrogen",
+							"features/global-sections",
+							"features/navigation-menus",
+							"features/third-party-integrations"
+						]
+					},
+					{
+						"group": "Internationalization",
+						"pages": [
+							"features/markets-localization",
+							"features/translation-feature-guide",
+							"features/i18next-integration"
+						]
+					},
+					{
+						"group": "Security & Privacy",
+						"pages": [
+							"features/content-security",
+							"features/cookie-consent-banner",
+							"features/analytics-tracking"
+						]
+					},
+					{
+						"group": "Pages & Routing",
+						"pages": [
+							"features/custom-pages",
+							"features/custom-templates",
+							"features/custom-routing"
+						]
+					},
+					{
+						"group": "Advanced",
 						"pages": [
 							"guides/rendering-page",
 							"guides/localization-advanced",
 							"guides/multi-project-architecture",
 							"development-guide/customer-account-local-dev"
 						]
-					},
-					{
-						"group": "Tools & CLI",
-						"pages": [
-							"developer-tools/weaverse-cli",
-							"developer-tools/weaverse-sdks",
-							"developer-tools/weaverse-mcp"
-						]
 					}
 				]
 			},
 			{
-				"tab": "API References",
+				"tab": "API Reference",
 				"pages": [
 					{
 						"group": "Overview",
@@ -128,19 +230,11 @@
 							"api-reference/images-placeholders",
 							"api-reference/types"
 						]
-					}
-				]
-			},
-			{
-				"tab": "Content API",
-				"pages": [
-					{
-						"group": "Overview",
-						"pages": ["content-api/overview"]
 					},
 					{
-						"group": "Endpoints",
+						"group": "Content API",
 						"pages": [
+							"content-api/overview",
 							"content-api/list-projects",
 							"content-api/list-pages",
 							"content-api/get-page",
@@ -151,61 +245,34 @@
 				]
 			},
 			{
-				"tab": "Features",
+				"tab": "Ecosystem",
 				"pages": [
 					{
-						"group": "Why Weaverse",
-						"pages": ["features/why-weaverse-for-hydrogen"]
+						"group": "Overview",
+						"pages": ["ecosystem/index"]
+					},
+					{
+						"group": "Developer Tools",
+						"pages": [
+							"developer-tools/weaverse-cli",
+							"developer-tools/weaverse-sdks",
+							"developer-tools/weaverse-mcp",
+							"developer-tools/shopify-hydrogen-skills"
+						]
 					},
 					{
 						"group": "APIs",
-						"pages": ["features/api-access", "features/admin-api-proxy"]
-					},
-					{
-						"group": "Content Management",
 						"pages": [
-							"features/global-sections",
-							"features/navigation-menus",
-							"features/third-party-integrations"
+							"features/api-access",
+							"features/admin-api-proxy"
 						]
 					},
 					{
-						"group": "Internationalization",
+						"group": "Hydrogen Themes",
 						"pages": [
-							"features/markets-localization",
-							"features/translation-feature-guide",
-							"features/i18next-integration"
-						]
-					},
-					{
-						"group": "Security & Privacy",
-						"pages": [
-							"features/content-security",
-							"features/cookie-consent-banner",
-							"features/analytics-tracking"
-						]
-					},
-					{
-						"group": "Custom Pages & Routing",
-						"pages": [
-							"features/custom-pages",
-							"features/custom-templates",
-							"features/custom-routing"
-						]
-					}
-				]
-			},
-			{
-				"tab": "Deployment",
-				"pages": [
-					{
-						"group": "Deployment",
-						"pages": [
-							"deployment",
-							"oxygen-deployment",
-							"custom-domain-and-dns-setup",
-							"docker-deployment",
-							"workers-deployment"
+							"hydrogen-themes/pilot-theme-overview",
+							"hydrogen-themes/pilot-theme-customization",
+							"hydrogen-themes/pilot-theme-sections"
 						]
 					},
 					{
@@ -215,27 +282,24 @@
 							"migration-advanced/v5-migration",
 							"migration-advanced/existing-hydrogen-integration"
 						]
-					}
-				]
-			},
-			{
-				"tab": "Hydrogen Themes",
-				"pages": [
+					},
 					{
-						"group": "Hydrogen Themes",
+						"group": "Deployment",
 						"pages": [
-							"hydrogen-themes/pilot-theme-overview",
-							"hydrogen-themes/pilot-theme-customization",
-							"hydrogen-themes/pilot-theme-sections"
+							"deployment",
+							"oxygen-deployment",
+							"custom-domain-and-dns-setup",
+							"docker-deployment",
+							"workers-deployment"
 						]
 					}
 				]
 			},
 			{
-				"tab": "Help Center",
+				"tab": "Resources",
 				"pages": [
 					{
-						"group": "Resources",
+						"group": "Help",
 						"pages": [
 							"resources/faq",
 							"resources/tutorial",

@@ -166,14 +166,14 @@ This is useful for testing during development. Without this parameter, the banne
 
 Use this checklist to verify your setup:
 
-- [ ] `consent.withPrivacyBanner` is set to `true` in the root loader
-- [ ] `storefrontAccessToken` is a valid 32-character public token
-- [ ] `checkoutDomain` is correctly set
-- [ ] `window.Shopify.storefrontAccessToken` is injected via inline `<script>` in `<head>`
-- [ ] Banner appears with `?preview_privacy_banner=1`
-- [ ] Banner appears for visitors in configured regions (without preview param)
-- [ ] Accepting/declining sets the `_tracking_consent` cookie
-- [ ] `window.Shopify.customerPrivacy` is not null after page load
+- `consent.withPrivacyBanner` is set to `true` in the root loader
+- `storefrontAccessToken` is a valid 32-character public token
+- `checkoutDomain` is correctly set
+- `window.Shopify.storefrontAccessToken` is injected via inline `<script>` in `<head>`
+- Banner appears with `?preview_privacy_banner=1`
+- Banner appears for visitors in configured regions (without preview param)
+- Accepting/declining sets the `_tracking_consent` cookie
+- `window.Shopify.customerPrivacy` is not null after page load
 
 ### Browser Console Check
 

@@ -307,11 +307,11 @@ You don't need to fix this. It's a natural result of conditional rendering. The 
 
 If a component shows an info icon in Studio, verify:
 
-- [ ] The component destructures custom props and captures `...rest`
-- [ ] `...rest` is spread onto the **root DOM element**
-- [ ] The component **never returns `null`** — return an empty element with `{...rest}` instead
-- [ ] If conditionally rendered by a parent — this is expected and safe, no action needed
-- [ ] The development server has been restarted after changes
+- The component destructures custom props and captures `...rest`
+- `...rest` is spread onto the **root DOM element**
+- The component **never returns `null`** — return an empty element with `{...rest}` instead
+- If conditionally rendered by a parent — this is expected and safe, no action needed
+- The development server has been restarted after changes
 
 ## Related Resources
 

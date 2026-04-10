@@ -1,11 +1,26 @@
 ---
 title: "Welcome to Weaverse"
 description: "Universal visual page builder with AI integration for headless Shopify storefronts using React Router and Hydrogen"
+mode: "wide"
+hideFooterPagination: true
 ---
 
-## Getting Started
+# Build Beautiful Shopify Storefronts with Weaverse
 
-Build beautiful, high-converting Shopify storefronts with Weaverse's universal visual page builder. Powered by React Router v7, Hydrogen, and AI integration for modern headless commerce development.
+Universal visual page builder powered by React Router v7, Hydrogen, and AI — for headless commerce that converts.
+
+{/* TODO: Add hero screenshot or GIF of Studio drag-and-drop editing */}
+
+<CardGroup cols={2}>
+  <Card title="Get Started" icon="rocket" href="/quickstart">
+    Create your first Weaverse storefront in 5 minutes
+  </Card>
+  <Card title="Open Studio" icon="paintbrush" href="https://studio.weaverse.io/dashboard">
+    Launch the visual editor and start building
+  </Card>
+</CardGroup>
+
+---
 
 ## Choose Your Path
 
@@ -21,97 +36,100 @@ Build beautiful, high-converting Shopify storefronts with Weaverse's universal v
   </Card>
 </CardGroup>
 
-## Quick Links
+---
 
-<CardGroup cols={2}>
-  <Card title="5-Minute Quickstart" icon="rocket" href="/quickstart">
-    Create your first Weaverse storefront in minutes
+## Ecosystem at a Glance
+
+Everything you need to build, customize, and deploy Hydrogen storefronts.
+
+<CardGroup cols={3}>
+  <Card title="Hydrogen SDKs" icon="cube" href="/developer-tools/weaverse-sdks">
+    Core, React, and Hydrogen packages for building custom components.
   </Card>
-  <Card title="Example Components" icon="shapes" href="/resources/example-components">
-    Browse ready-to-use component examples
+  <Card title="CLI Tools" icon="terminal" href="/developer-tools/weaverse-cli">
+    Scaffold projects, run dev servers, and manage deployments.
   </Card>
-  <Card title="FAQ" icon="circle-question" href="/resources/faq">
-    Find answers to common questions
+  <Card title="MCP Server" icon="robot" href="/developer-tools/weaverse-mcp">
+    AI agent integration for Claude, Cursor, and other tools.
   </Card>
-  <Card title="Community Support" icon="users" href="/community/community">
-    Get help from the Weaverse community
+  <Card title="Content API" icon="database" href="/content-api/overview">
+    Headless content delivery for pages, themes, and languages.
+  </Card>
+  <Card title="Visual Studio" icon="paintbrush" href="/studio-guide/interface-tour">
+    Drag and drop editor with real-time preview.
+  </Card>
+  <Card title="Hydrogen Themes" icon="palette" href="/hydrogen-themes/pilot-theme-overview">
+    Production-ready Pilot theme with full customization.
   </Card>
 </CardGroup>
 
-## Core Features
+{/* TODO: Add ecosystem architecture diagram */}
 
-Everything you need to build professional Shopify storefronts.
+---
 
-<Columns cols={2}>
-  <Card
-    title="Visual Page Builder"
-    icon="paintbrush"
-  >
-    Drag and drop components with real-time preview. Component schema system with settings (not inspector) for precise control and customization.
-  </Card>
-  <Card
-    title="Shopify Integration"
-    icon="store"
-  >
-    Seamlessly integrate with Shopify's Storefront API and products.
-  </Card>
-  <Card
-    title="Custom Components"
-    icon="cube"
-  >
-    Build and integrate your own custom React components.
-  </Card>
-  <Card
-    title="AI Assistant & Developer Tools"
-    icon="code"
-  >
-    AI-powered development assistant with Claude integration, plus powerful CLI, SDKs, and MCP tools for enhanced productivity.
-  </Card>
-</Columns>
+## Quick Start
 
-## Popular Topics
+<Steps>
+  <Step title="Install">
+    Scaffold a new Weaverse Hydrogen project:
+    ```bash
+    npx @weaverse/cli@latest create --template=pilot --project-id=YOUR_PROJECT_ID
+    ```
+  </Step>
+  <Step title="Connect">
+    Add your Weaverse project ID and start the dev server:
+    ```bash
+    npm run dev
+    ```
+    Your storefront runs at `http://localhost:3456` with live connection to Weaverse Studio.
+  </Step>
+  <Step title="Customize">
+    Open [Weaverse Studio](https://studio.weaverse.io/dashboard), drag components onto pages, configure settings, and publish your changes — all with real-time preview.
+  </Step>
+</Steps>
 
-Explore the most commonly accessed resources.
+{/* TODO: Add screenshot for each step — CLI create output, dev server running, Studio editor */}
 
-<CardGroup cols={3}>
+---
+
+## Popular Guides
+
+<CardGroup cols={2}>
   <Card title="Creating Components" icon="cube" href="/development-guide/creating-components">
     Build custom React components for your storefront
   </Card>
   <Card title="Component Schema" icon="file-code" href="/development-guide/component-schema">
-    Define component structure and behavior
+    Define component structure, settings, and behavior
   </Card>
-  <Card title="Deployment Guide" icon="rocket" href="/deployment">
-    Deploy your storefront to production
+  <Card title="Input Settings" icon="sliders" href="/development-guide/input-settings">
+    Configure component settings with the input system
   </Card>
-  <Card title="Localization" icon="globe" href="/features/markets-localization">
-    Support multiple markets and languages
+  <Card title="Data Fetching" icon="download" href="/development-guide/data-fetching">
+    Load Shopify data with loaders and the Storefront API
   </Card>
-  <Card title="Multi-Project Architecture" icon="sitemap" href="/guides/multi-project-architecture">
-    Multi-market, A/B testing, and multi-brand setups
+  <Card title="Global Sections" icon="table-columns" href="/features/global-sections">
+    Reusable sections shared across all pages
   </Card>
-  <Card title="API Hooks" icon="link" href="/api-reference/use-weaverse">
-    Access Weaverse data in your components
-  </Card>
-  <Card title="Developer Tools" icon="terminal" href="/developer-tools/weaverse-cli">
-    CLI, SDKs, and MCP integration
+  <Card title="Deployment" icon="cloud" href="/deployment">
+    Deploy to Oxygen, Docker, or Cloudflare Workers
   </Card>
 </CardGroup>
 
-## Explore by Topic
+---
 
-<Columns cols={2}>
-  <Card title="Development Guide" icon="wrench" href="/development-guide/environment-setup">
-    Environment setup, component building, data fetching, and styling
-  </Card>
+## Developer Resources
+
+<CardGroup cols={2}>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
     Complete documentation for hooks, components, utilities, and types
   </Card>
-  <Card title="Features" icon="star" href="/features/global-sections">
-    Global sections, navigation menus, third-party integrations, and security
+  <Card title="Content API" icon="database" href="/content-api/overview">
+    REST endpoints for pages, projects, themes, and languages
   </Card>
-  <Card title="Deployment" icon="cloud" href="/deployment">
-    Deploy to Oxygen, Docker, or custom hosting environments
+  <Card title="Troubleshooting" icon="wrench" href="/troubleshooting/preview-errors">
+    Solutions for common issues and error messages
   </Card>
-</Columns>
-
-
+  <Card title="Community" icon="users" href="/community/community">
+    Join the Slack community, contribute on GitHub, stay updated
+  </Card>
+</CardGroup>
