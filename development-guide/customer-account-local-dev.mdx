@@ -1,23 +1,28 @@
 ---
 title: "Customer Account API Local Development"
-description: "How to set up and run your Hydrogen storefront locally with Customer Account API support using the Pilot theme."
+description: "How to set up and test Shopify Customer Account API locally in your Weaverse Hydrogen storefront — for both paid stores and development stores."
 ---
 
 # Customer Account API Local Development
 
-The Customer Account API requires OAuth 2.0 flows with HTTPS callback URLs — which means `localhost` won't work out of the box. This guide walks you through running the Pilot theme locally with full Customer Account API support using the `--customer-account-push` flag, which creates a Cloudflare tunnel automatically.
+The Customer Account API requires OAuth 2.0 flows with HTTPS callback URLs — which means `http://localhost` won't work. This guide walks you through running the Pilot theme locally with full Customer Account API support.
+
+<Warning>
+  The setup differs depending on your **store type**:
+  - **Paid stores** (Basic, Shopify, Advanced, Plus) → use the built-in `dev:ca` command with automatic tunneling
+  - **Development stores** (Partner/Staff) → use ngrok or Cloudflare Tunnel with manual OAuth configuration in the Headless sales channel app
+</Warning>
 
 ## Prerequisites
 
-- A Shopify store with the **Hydrogen sales channel** installed
-- Your Shopify account must have **full access to apps** or **access to the Hydrogen channel** on that store
-- Customer accounts enabled in your Shopify admin (see [Step 1 below](#step-1-enable-customer-accounts))
+- A Shopify store with the **Hydrogen** or **Headless** sales channel installed
+- Customer accounts enabled in your Shopify admin
+- Shopify CLI installed (`@shopify/cli`)
+- Your Hydrogen project linked to your store (`shopify hydrogen link`)
 
 ---
 
 ## Step 1: Enable Customer Accounts
-
-The Customer Account API requires Shopify's new customer accounts to be active on your store.
 
 1. From your Shopify admin, go to **Settings > Customer accounts**
 2. Under **Accounts in online store and checkout**, click **Edit**
@@ -26,94 +31,201 @@ The Customer Account API requires Shopify's new customer accounts to be active o
 
 ---
 
-## Step 2: Clean Up the CLI Project Link
+## Step 2: Link Your Project
 
-If you have an existing `.shopify/project.json`, delete it first:
+If you have an existing `.shopify/project.json` pointing to a different store, delete it first:
 
 ```bash
 rm .shopify/project.json
 ```
 
-<Warning>
-  If this file points to a store where your account lacks Hydrogen channel access, all `shopify hydrogen` commands will fail with an `ACCESS_DENIED` error — including `shopify hydrogen link` itself — making it impossible to switch stores without deleting this file first.
-</Warning>
-
----
-
-## Step 3: Link to the Correct Store
+Then link to the correct store:
 
 ```bash
 shopify hydrogen link
 ```
 
-When prompted, select the store that has the **Hydrogen sales channel** installed. This regenerates `.shopify/project.json` pointing to the correct store.
+<Warning>
+  If `.shopify/project.json` points to a store where your account lacks Hydrogen/Headless channel access, all `shopify hydrogen` commands will fail with `ACCESS_DENIED` — including `shopify hydrogen link` itself.
+</Warning>
 
 ---
 
-## Step 4: Update Your `.env`
+## Step 3: Pull Environment Variables
 
-Make sure these variables in `.env` match the store you just linked:
+```bash
+shopify hydrogen env pull
+```
+
+Verify your `.env` has these variables:
 
 ```env
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=shp_xxxxx
+PUBLIC_CUSTOMER_ACCOUNT_API_URL=https://shopify.com/SHOP_ID
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
-PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
 SHOP_ID=your-shop-id
 ```
 
-You can find all these values in the Shopify admin under **Settings > Apps and sales channels > Hydrogen > Storefront**.
+<Tip>
+  When deploying to **Shopify Oxygen**, these variables are injected automatically — no manual setup needed for production.
+</Tip>
 
 ---
 
-## Step 5: Start the Dev Server
+## Option A: Paid Stores (Basic to Plus)
+
+For stores on a paid Shopify plan, use the built-in `dev:ca` command. This is the easiest approach — it handles tunneling and OAuth configuration automatically.
+
+<Info>
+  The `dev:ca` script is already configured in the Pilot theme's [`package.json`](https://github.com/Weaverse/pilot/blob/main/package.json) — no additional setup needed.
+</Info>
+
+### Start the dev server
 
 ```bash
-nr dev:ca
+npm run dev:ca
 ```
 
-This runs the following command under the hood:
+This runs:
 
 ```bash
 shopify hydrogen dev --codegen --port 3456 --customer-account-push
 ```
 
-The `--customer-account-push` flag spins up a **Cloudflare tunnel** that forwards the OAuth redirect callbacks from Shopify to your local machine over HTTPS.
+The `--customer-account-push` flag does two things:
 
-Once started, your terminal will print a tunnel URL like:
+1. **Creates an HTTPS tunnel** — publishes your local dev server to a `*.tryhydrogen.dev` domain
+2. **Syncs OAuth credentials** — automatically configures the Callback URI, JavaScript Origin, and Logout URI in your Shopify admin
+
+### Open the tunnel URL
+
+After the dev server starts, look for the tunnel URL in your terminal:
 
 ```
-https://xxxxx.trycloudflare.com
+  ➜  Local:   http://localhost:3456
+  ➜  Tunnel:  https://abc123.tryhydrogen.dev
 ```
+
+**Use the `*.tryhydrogen.dev` URL** to test customer account flows. Navigate to `/account` to test login.
+
+<Warning>
+  Do **not** use `http://localhost:3456` for customer account testing — OAuth redirects will fail on non-HTTPS origins.
+</Warning>
 
 ---
 
-## Step 6: Update the Customer Account API Application Setup
+## Option B: Development Stores — Manual Tunnel Setup
 
-The tunnel URL needs to be registered in your Shopify store's Customer Account API settings so Shopify knows where to redirect after login/logout.
+For **Shopify development stores** (Partner/Staff), the `--customer-account-push` flag is not available. You must use a third-party tunneling service and manually configure the Customer Account API in the **Headless** sales channel app.
 
-1. Go to **Shopify Admin > Settings > Customer accounts**
-2. Find the **Customer Account API** section and open **Application setup**
-3. Update the following fields with your tunnel URL:
+### Set up a tunnel
+
+Choose either ngrok or Cloudflare Tunnel:
+
+<Tabs>
+  <Tab title="ngrok">
+    ```bash
+    # Install ngrok
+    brew install ngrok
+
+    # Start a tunnel to your dev server
+    ngrok http 3456
+    ```
+
+    <Tip>
+      Use a [static ngrok domain](https://ngrok.com/blog-post/free-static-domains-ngrok-users) so you don't have to reconfigure OAuth settings every time you restart.
+    </Tip>
+  </Tab>
+  <Tab title="Cloudflare Tunnel">
+    ```bash
+    # Install cloudflared
+    brew install cloudflare/cloudflare/cloudflared
+
+    # Start a quick tunnel
+    cloudflared tunnel --url http://localhost:3456
+    ```
+
+    Note: Quick tunnels generate a random URL each time. Use a [named tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/get-started/create-local-tunnel/) for a stable URL.
+  </Tab>
+</Tabs>
+
+### Configure Customer Account API
+
+For development stores, configure this in the **Headless** sales channel app:
+
+1. Open your Shopify admin → **Settings > Customer accounts**
+2. Find **Customer Account API** and open **Application setup**
+3. Ensure the client type is set to **Public**
+4. Update the following fields with your tunnel URL:
 
 | Field | Value |
 |---|---|
-| **Login URI** | `https://xxxxx.trycloudflare.com/account/login` |
-| **JavaScript origin(s)** | `https://xxxxx.trycloudflare.com` |
-| **Logout URI** | `https://xxxxx.trycloudflare.com` |
-| **Redirect URI(s)** | `https://xxxxx.trycloudflare.com/account/authorize` |
+| **Callback URI(s)** | `https://your-tunnel-domain/account/authorize` |
+| **JavaScript origin(s)** | `https://your-tunnel-domain` |
+| **Logout URI** | `https://your-tunnel-domain` |
 
-<Warning>
-  The tunnel URL changes every time you restart the dev server. You'll need to update these fields each time you restart.
-</Warning>
+### Update Content Security Policy
+
+In your `app/entry.server.tsx`, add the tunnel domain to your CSP:
+
+```tsx
+const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+  connectSrc: [
+    "'self'",
+    "https://your-tunnel-domain",
+    // ... other sources
+  ],
+});
+```
+
+### Start the dev server
+
+```bash
+npm run dev
+```
+
+Then access your storefront via the tunnel URL (not localhost).
+
+---
+
+## Account Routes in Pilot Theme
+
+The Pilot theme includes a complete set of customer account routes at `app/routes/account/`:
+
+| Route | Purpose |
+|-------|---------|
+| `auth/login.ts` | Redirects to Shopify login |
+| `auth/logout.ts` | Logs the customer out |
+| `auth/authorize.ts` | Handles OAuth callback |
+| `dashboard/index.tsx` | Account dashboard |
+| `dashboard/account-details.tsx` | Customer profile details |
+| `dashboard/address-book.tsx` | Saved addresses |
+| `dashboard/orders-history.tsx` | Order history |
+| `profile.tsx` | Edit profile |
+| `edit.tsx` | Edit account settings |
+| `orders/list.tsx` | Orders list |
+| `orders/order.tsx` | Single order view |
+| `address/index.tsx` | Address management |
+| `address/list.tsx` | Address list |
+
+Source: [Pilot theme routes](https://github.com/Weaverse/pilot/tree/main/app/routes/account)
+
+<Note>
+  Customer account pages are **code-based routes** — they are not editable through Weaverse Studio's visual editor. Any layout or design changes need to be done directly in the route files.
+</Note>
 
 ---
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="`ACCESS_DENIED` error on any `shopify hydrogen` command">
-    Your `.shopify/project.json` is pointing to a store where you don't have Hydrogen channel access. Delete it and re-link:
+  <Accordion title="Login fails or redirect loop on localhost">
+    Customer Account API requires HTTPS. Use `npm run dev:ca` (paid stores) or set up a tunnel (dev stores). Never test account flows on `http://localhost`.
+  </Accordion>
+
+  <Accordion title="ACCESS_DENIED error on shopify hydrogen commands">
+    Your `.shopify/project.json` is pointing to a store where you don't have channel access. Delete it and re-link:
 
     ```bash
     rm .shopify/project.json
@@ -121,16 +233,30 @@ The tunnel URL needs to be registered in your Shopify store's Customer Account A
     ```
   </Accordion>
 
+  <Accordion title="OAuth redirect mismatch error">
+    The Callback URI in your Shopify admin must exactly match your tunnel URL (including no trailing slash). For paid stores using `--customer-account-push`, this is synced automatically. For dev stores, update it manually.
+  </Accordion>
+
+  <Accordion title="Customer data not persisting after login">
+    Ensure you commit the session at the end of any loader/action with a customer auth check:
+
+    ```tsx
+    export async function loader({ context }: LoaderFunctionArgs) {
+      const customer = await context.customerAccount.query(CUSTOMER_QUERY);
+      return json(
+        { customer },
+        { headers: { "Set-Cookie": await context.session.commit() } }
+      );
+    }
+    ```
+  </Accordion>
+
   <Accordion title="Port already in use">
-    The dev server defaults to port `3456`. If it's taken, it will try the next available port. To free up the port manually:
+    The dev server defaults to port `3456`. To free it:
 
     ```bash
     lsof -ti:3456 | xargs kill -9
     ```
-  </Accordion>
-
-  <Accordion title="Customer account login not working">
-    Double-check that the tunnel URL registered in the **Customer Account API application setup** exactly matches the one printed in your terminal. Even a trailing slash difference will cause the OAuth flow to fail.
   </Accordion>
 </AccordionGroup>
 
@@ -139,4 +265,5 @@ The tunnel URL needs to be registered in your Shopify store's Customer Account A
 ## Next Steps
 
 - Read the [Customer Account API reference](https://shopify.dev/docs/api/customer) for available queries and mutations
-- Follow the [Using Customer Account API with Hydrogen](https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/hydrogen) tutorial from Shopify
+- Follow Shopify's [Using Customer Account API with Hydrogen](https://shopify.dev/docs/storefronts/headless/building-with-the-customer-account-api/hydrogen) tutorial
+- Learn about [Weaverse environment variables](/development-guide/environment-setup)
