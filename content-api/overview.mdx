@@ -28,6 +28,21 @@ https://studio.weaverse.io/api/v1/content
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
 | `GET` | `/openapi.json` | OpenAPI 3.1 specification |
 
+## Response formats
+
+Page and theme-settings endpoints support two output formats. The default is unchanged — existing integrations are unaffected.
+
+| Format | How to request | Output shape |
+|---|---|---|
+| `weaverse` (default) | no parameter, or `?format=weaverse` | Flat item tree with `{id, type, data, children}` |
+| `portable-text` | `?format=portable-text`, or `Accept: application/portable-text+json` | [Portable Text](https://www.portabletext.org/) array, with rich-text fields converted from HTML strings to structured blocks |
+
+When both the query parameter and the `Accept` header are present, the query parameter wins. See [Get Page › Portable Text format](/content-api/get-page#portable-text-format) for the full mapping rules and a rendering example.
+
+<Tip>
+  Portable Text is well-suited for multi-channel rendering (web, native, email, PDF) and for piping content into LLMs, since the structured JSON is far easier to query and reason over than HTML strings.
+</Tip>
+
 ## Authentication
 
 All endpoints (except `/openapi.json`) require a **Content API key**. Pass it via the `Authorization` header:

@@ -31,6 +31,10 @@ Returns the full page content including all component items. This is the primary
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `locale` | string | `""` | Locale code for localized content (e.g., `en-us`, `fr-fr`) |
+| `format` | `weaverse` \| `portable-text` | `weaverse` | Output format. See [Portable Text format](#portable-text-format) below. |
+| `meta` | boolean | `false` | When `true` *and* `format=portable-text`, each block carries a `_weaverse: { id, schemaVersion }` field for round-tripping back to the original Weaverse item. |
+
+The format can also be requested via the `Accept` header (`application/portable-text+json`). The query parameter takes precedence when both are present.
 
 ### Locale fallback
 
@@ -121,6 +125,104 @@ Each item in the `items` array represents a page section or component:
   The `items` array is a flat list. Use the `children` field on each item to reconstruct the component tree. The item with `type: "root"` is the tree's entry point.
 </Tip>
 
+## Portable Text format
+
+Pass `?format=portable-text` (or `Accept: application/portable-text+json`) to receive the page as a [Portable Text](https://www.portabletext.org/) array. This format is designed for multi-channel rendering (web, native, email, PDF) and AI consumption — rich-text fields are converted from opaque HTML strings into structured blocks that any [official PT renderer](https://www.portabletext.org/rendering/) can render.
+
+### Envelope difference
+
+The `items` field becomes `content`, and the response carries `Content-Type: application/portable-text+json`. All other envelope fields are unchanged.
+
+```json
+{
+  "object": "page",
+  "id": "clz5wxy12abc345defg",
+  "type": "PRODUCT",
+  "handle": "blue-shirt",
+  "locale": "en-us",
+  "content": [ /* Portable Text blocks — see below */ ],
+  "updatedAt": "2026-03-20T10:30:00.000Z",
+  "meta": { "inherited": false, "sourceProjectId": "...", "depth": 0 }
+}
+```
+
+### Mapping rules
+
+Each Weaverse item becomes a [custom Portable Text block](https://www.portabletext.org/specification/#custom-block-types):
+
+| Weaverse | Portable Text |
+|---|---|
+| `type` | `_type` |
+| `id` | `_key` (truncated to 8 chars; full id available in `_weaverse.id` when `?meta=true`) |
+| `data.*` fields | flattened onto the block root |
+| nested children | `children: PTBlock[]` on the parent block |
+| HTML-valued field (`richtext`) | array of [standard PT text blocks](https://www.portabletext.org/specification/#block) with `marks`, `markDefs`, `style`, `listItem` |
+| Synthetic `root` item | dropped — its children become the top-level `content` array |
+
+Field types other than `richtext` (text, image URL, color, range, switch, product/collection refs, etc.) pass through unchanged.
+
+### Example
+
+```json
+{
+  "content": [
+    {
+      "_type": "hero-banner",
+      "_key": "01950b17",
+      "backgroundImage": "https://cdn.shopify.com/hero.jpg",
+      "overlayOpacity": 40,
+      "children": [
+        { "_type": "heading", "_key": "01950c22", "text": "Summer 2026", "level": "h1" },
+        {
+          "_type": "text-section",
+          "_key": "01950d55",
+          "content": [
+            {
+              "_type": "block",
+              "_key": "b1",
+              "style": "normal",
+              "children": [
+                { "_type": "span", "_key": "s1", "text": "Read the " },
+                { "_type": "span", "_key": "s2", "text": "documentation", "marks": ["link1"] },
+                { "_type": "span", "_key": "s3", "text": " for details." }
+              ],
+              "markDefs": [
+                { "_type": "link", "_key": "link1", "href": "/docs" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+Note how the `text-section`'s `content` field — originally an HTML string — is now a queryable array of PT blocks with explicit marks and link annotations.
+
+### Rendering with `@portabletext/react`
+
+```tsx
+import { PortableText } from '@portabletext/react'
+
+const components = {
+  types: {
+    'hero-banner': HeroBanner,
+    'heading': Heading,
+    'text-section': TextSection,
+  },
+  marks: {
+    link: ({ children, value }) => <a href={value.href}>{children}</a>,
+  },
+}
+
+function Page({ content }) {
+  return <PortableText value={content} components={components} />
+}
+```
+
+Official renderers exist for [React, Vue, Svelte, Astro, React Native](https://www.portabletext.org/rendering/) and more.
+
 ## Errors
 
 | Code | Status | When |
@@ -129,7 +231,7 @@ Each item in the `items` array represents a page section or component:
 | `FORBIDDEN` | 403 | API key does not have access to this project |
 | `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
 | `PAGE_NOT_FOUND` | 404 | No page found for this type/handle (after locale fallback) |
-| `INVALID_PARAMS` | 400 | Missing `projectId`, `type`, or `handle` |
+| `INVALID_PARAMS` | 400 | Missing `projectId`, `type`, or `handle`, or unsupported `format` value |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
 
 ## Examples
