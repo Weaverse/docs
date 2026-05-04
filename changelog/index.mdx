@@ -8,6 +8,22 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+{/*
+DRAFT — next release entry. Fill in the version and date when the next builder release lands on `main`, then uncomment.
+
+<Update label="YYYY.M.D" description="Month D, YYYY" tags={["API", "Infrastructure"]}>
+  ### Bug Fixes
+
+  - **Content API `/openapi.json` 500**: The OpenAPI 3.1 spec endpoint was returning 500 because the YAML file it tried to read wasn't shipped in the production Docker image. The spec is now bundled directly into the route as JSON — the endpoint now serves the full spec, importable into Swagger UI / Postman / OpenAPI generators.
+  - **OpenAPI Spec Documents Portable Text Parameter**: The `?format=portable-text` query parameter (shipped in 2026.5.4) is now formally documented in the OpenAPI spec for both the page and theme-settings endpoints, including the alternative `Accept: application/portable-text+json` header and the optional `?meta=true` flag.
+
+  ### Improvements
+
+  - **Security Updates**: Bumped `vite` 8.0.3 → 8.0.10, `lodash` 4.17.23 → 4.18.1, removed unused `uuid` dependency — closes 6 Dependabot alerts (3 high, 3 moderate)
+  - **Deploy Reliability**: Production deploy workflow now uses `--wait-timeout 600` for Fly.io rollouts, preventing false-failure timeouts when one region's stopped machines take longer than the default 5-minute health-check window
+</Update>
+*/}
+
 <Update label="2026.5.5" description="May 4, 2026" tags={["Studio"]}>
   ### New Features
 
@@ -30,6 +46,24 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Zustand State Migration**: Studio state (page, locale, template assignment, device, sidebar) migrated from Preact Signals to Zustand for more consistent reactivity
   - **AI Proxy Migration**: Replaced `claudible.mtp.im` with `proxy.weaverse.ai` for AI traffic
   - **Claude Code GitHub Workflow**: Added an official Claude Code workflow for AI-assisted PR reviews
+</Update>
+
+<Update label="2026.5.4" description="May 2, 2026" tags={["API", "Studio"]}>
+  ### New Features
+
+  - **Portable Text Content API**: Opt-in `?format=portable-text` (and `Accept: application/portable-text+json`) on the page and theme-settings endpoints
+    - Default `weaverse` format unchanged — zero migration for existing integrations
+    - Rich-text fields convert from HTML strings to structured [Portable Text](https://www.portabletext.org/) blocks for multi-channel rendering and AI consumption
+    - Optional `?meta=true` on the page endpoint adds `_weaverse: { id, schemaVersion }` to each custom block for round-tripping
+    - See [Get Page › Portable Text format](/content-api/get-page#portable-text-format) for the full mapping
+
+  ### Bug Fixes
+
+  - **Multi-Store Studio 404**: Studio loader now resolves the active shop from the URL handle instead of `lastActiveStore`, fixing 404s when a user has multiple stores and switches between them
+
+  ### Improvements
+
+  - **Weaverse Proxy Cleanup**: Dropped dead exports and unused environment variables from the API proxy; added `aria-busy` to button loading states for screen-reader support
 </Update>
 
 <Update label="2026.4.22" description="April 22, 2026" tags={["Studio", "API"]}>
