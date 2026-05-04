@@ -8,16 +8,15 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
-<Update label="2026.5.6" description="May 6, 2026" tags={["API", "Infrastructure"]}>
+<Update label="2026.5.6" description="May 6, 2026" tags={["API"]}>
   ### Bug Fixes
 
-  - **Content API `/openapi.json` 500**: The OpenAPI 3.1 spec endpoint was returning 500 because the YAML file it tried to read wasn't shipped in the production Docker image. The spec is now bundled directly into the route as JSON — the endpoint serves the full spec, importable into Swagger UI / Postman / OpenAPI generators.
-  - **OpenAPI Spec Documents Portable Text Parameter**: The `?format=portable-text` query parameter (shipped in 2026.5.4) is now formally documented in the OpenAPI spec for both the page and theme-settings endpoints, including the alternative `Accept: application/portable-text+json` header and the optional `?meta=true` flag.
+  - **Content API OpenAPI Spec**: The `/api/v1/content/openapi.json` endpoint was returning 500. It now serves the full OpenAPI 3.1 specification, ready to import into Swagger UI, Postman, or any OpenAPI code generator.
+  - **OpenAPI Spec Documents Portable Text Parameter**: The `?format=portable-text` query parameter (shipped in 2026.5.4) is now formally documented for both the page and theme-settings endpoints, including the alternative `Accept: application/portable-text+json` header and the optional `?meta=true` flag.
 
   ### Improvements
 
-  - **Security Updates**: Bumped `vite` 8.0.3 → 8.0.10, `lodash` 4.17.23 → 4.18.1, removed unused `uuid` dependency — closes 6 Dependabot alerts (3 high, 3 moderate)
-  - **Deploy Reliability**: Production deploy workflow now uses `--wait-timeout 600` for Fly.io rollouts, preventing false-failure timeouts when one region's stopped machines take longer than the default 5-minute health-check window
+  - **Security**: Patched several upstream dependency vulnerabilities affecting build and runtime libraries.
 </Update>
 
 <Update label="2026.5.5" description="May 4, 2026" tags={["Studio"]}>
@@ -29,19 +28,17 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
     - New browser bar and preview URL selector with inline performance scores
     - Studio settings popover consolidates preferences, project, and activity tabs
 
-  - **New Weaverse Dashboard**: Comprehensive dashboard redesign inspired by Vercel and Shadcn UI
-    - Cleaner, flatter visual style on a slate palette with no nested cards
-    - Wider 1200px+ layout, unified border-radius, and a new sidebar with release-notes widget
+  - **New Weaverse Dashboard**: Comprehensive dashboard redesign with a cleaner, flatter visual style
+    - More breathing room with a wider layout and unified visual rhythm
+    - New sidebar with an inline release-notes widget
 
-  - **Template Assignment Picker Rewrite**: Controlled-component rewrite with shared cache
-    - Dialogs own a local working copy — Cancel/Close discards edits cleanly
-    - No more duplicate fetches between "All" and "Assigned only" views
+  - **Snappier Template Assignment Picker**: Reworked for better responsiveness and predictability
+    - Cancel or Close cleanly discards edits without partially saving
+    - No more duplicate loading between the "All" and "Assigned only" views
 
   ### Improvements
 
-  - **Zustand State Migration**: Studio state (page, locale, template assignment, device, sidebar) migrated from Preact Signals to Zustand for more consistent reactivity
-  - **AI Proxy Migration**: Replaced `claudible.mtp.im` with `proxy.weaverse.ai` for AI traffic
-  - **Claude Code GitHub Workflow**: Added an official Claude Code workflow for AI-assisted PR reviews
+  - **More Consistent Studio Reactivity**: Reworked how Studio tracks page, locale, template assignment, device, and sidebar state. No visible UI change — a foundational improvement that unlocks smoother behavior across upcoming features.
 </Update>
 
 <Update label="2026.5.4" description="May 2, 2026" tags={["API", "Studio"]}>
@@ -55,62 +52,37 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 
   ### Bug Fixes
 
-  - **Multi-Store Studio 404**: Studio loader now resolves the active shop from the URL handle instead of `lastActiveStore`, fixing 404s when a user has multiple stores and switches between them
+  - **Multi-Store Studio 404**: Fixed 404s when switching between stores in a multi-store account — Studio now resolves the active shop directly from the URL.
 
   ### Improvements
 
-  - **Weaverse Proxy Cleanup**: Dropped dead exports and unused environment variables from the API proxy; added `aria-busy` to button loading states for screen-reader support
+  - **Accessibility**: Loading buttons now expose an `aria-busy` state, so screen readers announce when an action is in flight.
 </Update>
 
 <Update label="2026.4.22" description="April 22, 2026" tags={["Studio", "API"]}>
   ### New Features
 
-  - **Agent Discovery Endpoints**: 12 `.well-known/*` endpoints for AI bot interoperability per the [isitagentready.com](https://isitagentready.com) audit
-    - `RFC 9727` API Catalog at `/.well-known/api-catalog`
-    - `SEP-1649` MCP Server Card at `/.well-known/mcp/server-card.json`
-    - Agent Skills Discovery index and individual skill files at `/.well-known/agent-skills/*`
-    - `Web Bot Auth` JWKS at `/.well-known/http-message-signatures-directory` (Ed25519 public keys via `WEB_BOT_AUTH_PUBLIC_KEYS`)
-    - `UCP` profile at `/.well-known/ucp` with the required top-level `ucp` wrapper
-    - OIDC, OAuth Protected Resource, ACP, and x402 stubs for future activation
-    - `RFC 8288` Link headers on the homepage and `Accept: text/markdown` content negotiation that serves `llms.txt`
-    - Served as Express middleware before the React Router catch-all for zero SSR overhead
+  - **Agent Discovery Endpoints**: 12 new `.well-known/*` endpoints for AI bot interoperability — API catalogs, agent skill discovery, MCP server cards, and machine-readable site metadata. Aligned with the [isitagentready.com](https://isitagentready.com) audit so AI agents can reliably discover and interact with Weaverse Studio.
 
-  - **Public Custom Pages API**: New unauthenticated endpoint for sitemap consumers
-    - `GET /api/public/v1/projects/:projectId/custom-pages` returns paginated, published custom pages
-    - Cursor-based pagination on `(createdAt, id)` with opaque base64 cursors
-    - Locale filtering and `lastModified` derived from the latest published `PageVersion.publishedAt`
-    - CDN-cacheable (`max-age=3600, s-maxage=86400, stale-while-revalidate=604800`) and rate-limited at 60 req/min per IP per project
+  - **Public Custom Pages API**: New unauthenticated endpoint for sitemap and crawler integrations
+    - `GET /api/public/v1/projects/:projectId/custom-pages` — returns paginated, locale-filtered published custom pages
+    - CDN-cacheable and rate-limited (60 req/min per IP per project)
 
   ### Improvements
 
-  - **Translation — Deterministic Mode**: Disabled thinking/reasoning on translation calls to cut latency and cost
-    - Anthropic `thinking: disabled` and OpenAI `reasoningEffort: none` set via `providerOptions`
-    - Fallback providers were silently enabling reasoning, adding latency and cost without improving output
+  - **Faster, Cheaper Translation Calls**: Disabled redundant model reasoning that was adding latency and cost without improving translation quality.
 
-  - **Translation — Static Resolver Rewrite**: Default-locale fallbacks now merge correctly with translated bundles
-    - `defaultKeys` merged with locale bundle via `Promise.all` so untranslated keys fall back cleanly
-    - RPC layer constructs fallback locale from `requestInfo.i18n` when no explicit locale is provided
-    - Translation-key inspector preserves defaults when a translated value is missing
+  - **More Reliable Translation Fallbacks**: Default-locale fallbacks now merge cleanly with translated bundles — untranslated keys consistently fall back to the default value rather than appearing as raw keys.
 </Update>
 
-<Update label="2026.4.21" description="April 21, 2026" tags={["Studio", "Infrastructure"]}>
+<Update label="2026.4.21" description="April 21, 2026" tags={["Studio"]}>
   ### New Features
 
-  - **Session Drafts**: Introduced a session-scoped draft mechanism in place of the database-backed cache page
-    - Edits live in session draft state until explicitly saved, reducing write pressure on the database
-    - Removed the legacy `db cache page` flow
-
-  ### Improvements
-
-  - **Marketing Stack Migration — Loops.so → marketing.weaverse.io**: Replaced direct Loops API calls with our self-managed stack on Cloudflare Workers + D1 + Resend
-    - New `marketing.server.ts` is a drop-in replacement for `loops.server.ts` — same function signatures, zero caller changes
-    - Endpoints: `POST /api/contacts/upsert`, `/api/contacts/event`, `/api/contacts/uninstall`, `/api/email/send`
-    - Configured via `MARKETING_API_URL` and `MARKETING_API_KEY`
-    - Loops.so dependency sunset; reference file kept temporarily until staging verification
+  - **Session Drafts**: Edits now live in session draft state until you explicitly save — fewer interruptions while editing, and you stay in control of when changes commit.
 
   ### Bug Fixes
 
-  - **Studio Refresh Race**: Skip the `refreshStudio` rebuild when a `silentUpdate` is pending to prevent UI flicker and lost edits
+  - **Studio Refresh Race**: Fixed UI flicker and occasional lost edits when background updates landed mid-keystroke.
 </Update>
 
 <Update label="2026.4.10" description="April 10, 2026" tags={["Studio", "Translation"]}>
@@ -122,14 +94,9 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 
   ### Improvements
 
-  - **Subscription Enforcement Unified**: One enforcement check, surfaced in both Dashboard and Studio
-    - Moved enforcement signals and modal to shared `app/stores/` and `app/components/` locations
-    - Switched to `useEffectOnce` with a shared `'enforcementCheck'` key so the modal does not re-fire on route navigation
-    - `EnforcementModal` now mounts in the Studio layout in addition to the Dashboard
-    - Dismissal still respects the 24h localStorage TTL; non-dismissible types continue to block interaction
+  - **Unified Subscription Status**: Subscription enforcement messages now surface consistently in both the Dashboard and the Studio. The modal no longer re-fires on every navigation, and dismissal continues to respect the 24-hour cooldown for non-blocking notices.
 
-  - **Usage Tracking — Bot Filtering Disabled**: Removed bot filtering in usage tracking and refreshed `llms.txt`
-    - Better aligns reported counts with actual billed traffic
+  - **More Accurate Usage Reporting**: Usage counts now match billed traffic more closely — the previous bot-filtering layer was undercounting real visits.
 
   ### Bug Fixes
 
@@ -153,17 +120,12 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
     - Fixed tooltip overflow on reactions
     - Reactions: server-side negative-value safeguard, client-side fetch, and auto-revalidation on window focus
 
-  - **Loops Mailing List Management & Lifecycle Events**: Plan-based contact list management
-    - New `MAILING_LISTS` config and `PLAN_TO_LIST_KEY` mapping for plan-based, active/churned, and newsletter lists
-    - `handlePlanChange` and `handleUninstall` consolidate previously scattered API calls into single entry points
-    - OAuth flow detects reinstalls via `shopMeta.uninstallAt` and fires `user-reactivate` events
-    - Mantle plan changes are now synced to Loops directly from the billing route
+  - **Smarter Lifecycle Emails**: Plan changes, uninstalls, and reinstalls now drive the right mailing-list segments automatically — you'll receive only the messages that match your current state.
 </Update>
 
-<Update label="2026.4.3" description="April 3, 2026" tags={["Studio", "Infrastructure"]}>
+<Update label="2026.4.3" description="April 3, 2026" tags={["Studio"]}>
   ### Improvements
 
-  - **Changelog Parser**: Updated changelog version parsing for the new MDX format and fixed related test failures
   - **Store Handle Resolution**: Resolve the store handle from the current request URL first for more predictable multi-store behavior
 
   ### Bug Fixes
@@ -190,30 +152,17 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 
   ### Improvements
 
-  - **Vite 8 + Rolldown Migration**: Upgraded bundler from esbuild/Rollup to Rolldown/Oxc via Vite 8.0.3 and `@vitejs/plugin-react` 6.0.1
-    - Switched to Vite 8's built-in `resolve.tsconfigPaths` — removed `vite-tsconfig-paths` plugin
-    - Added `allowStudioCrossOriginPlugin` to handle Vite 8's new CORS security middleware for the Studio bridge script loaded in cross-origin preview iframes
-    - Migrated `animate-loading` to `@weaverse/animate-loading@2.2.0` with proper ESM/CJS dual output via tsup, replacing the broken UMD-only package under Rolldown
+  - **Faster Studio Builds**: Upgraded the underlying bundler for noticeably quicker dev-server cold-starts and incremental rebuilds.
 
-  - **RPC Call Coalescing**: Eliminated editor lag caused by continuous UI inputs (color picker, range slider) firing ~200 cross-iframe `postMessage` round-trips per second
-    - New `createRAFCoalescer` utility caps RPC dispatch to 1 per animation frame (~60/sec) while keeping editor-side signal updates immediate
-    - Applied to `updateThemeSettings`, `updateItemData`, and `updateThemeSchema` hot paths
-
-  - **Dependency Upgrades**: 48 packages upgraded with Biome 2.4.9 compatibility fixes, Bun bumped to 1.3.11
+  - **Smoother Editor Inputs**: Eliminated lag in continuous controls (color picker, range slider) — inputs now stay buttery-smooth even on long editing sessions.
 
   ### Bug Fixes
 
-  - **Localization Reset**: Fixed a critical bug where resetting a localized page could delete the original default page instead of only the localized clone
-    - Added server-side guard to refuse deleting pages without a non-default locale assignment
-    - Fixed frontend race condition where `Editor.currentPageId` could point to the original page before the preview iframe synced
+  - **Localization Reset**: Fixed a critical bug where resetting a localized page could delete the original default page instead of only the localized clone. A server-side guard now refuses any reset that would touch the default page.
 
-  - **Translation API Security**: Added authentication guards to all 13 `/api/translation/*` endpoints that previously had zero authentication
-    - Endpoints with `projectId` now use `requireProjectAccess` (auth + project ownership check)
-    - ID-only endpoints use `requireAuth`
-    - Public storefront-facing CORS endpoint (`static.ts`) intentionally left unauthenticated
+  - **Translation API Security**: Hardened authentication on the translation API — all internal endpoints now require project access. The public storefront-facing endpoint is unchanged.
 
-  - **Fetch Cleanup**: Fixed optional chaining for abort controller during cleanup to prevent errors on unmount
-  - **Race Conditions**: Fixed race conditions in fetch cleanup paths and updated AI model versions
+  - **Editor Stability**: Fixed sporadic errors during navigation and unmount, and updated AI model versions.
 </Update>
 
 <Update label="2026.3.26" description="March 26, 2026" tags={["API"]}>
