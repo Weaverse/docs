@@ -31,6 +31,9 @@ When the `locale` query parameter is provided, also returns `staticTranslations`
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `locale` | string | No | Locale code (e.g., `fr-fr`, `vi-vn`). When provided, includes `staticTranslations` in the response. Tries exact match first, then falls back to language prefix (e.g., `fr`). |
+| `format` | `weaverse` \| `portable-text` | No (default `weaverse`) | Output format. With `portable-text`, any string value (in `theme` or `staticTranslations`) that contains HTML markup is replaced in place by a [Portable Text](https://www.portabletext.org/) block array. The envelope shape is unchanged. |
+
+The format can also be requested via `Accept: application/portable-text+json`. The query parameter takes precedence when both are present. See [Get Page › Portable Text format](/content-api/get-page#portable-text-format) for the conversion rules and a rendering example.
 
 ## Response
 
@@ -112,14 +115,44 @@ GET /projects/:projectId/theme-settings?locale=fr-fr
   Use the [List Languages](/content-api/list-languages) endpoint to discover available locales before requesting translations.
 </Tip>
 
+## Portable Text format
+
+With `?format=portable-text`, the response carries `Content-Type: application/portable-text+json` and any HTML-valued leaf inside `theme` or `staticTranslations` is converted in place. Non-HTML strings, numbers, booleans, colors, and the surrounding object structure are preserved exactly — only richtext leaves change shape.
+
+```json
+{
+  "object": "theme_settings",
+  "projectId": "clx1abc23def456ghij",
+  "theme": {
+    "colorSchemes": { "primary": { "background": "#ffffff" } },
+    "footer": {
+      "copyright": [
+        {
+          "_type": "block",
+          "_key": "b1",
+          "style": "normal",
+          "children": [
+            { "_type": "span", "_key": "s1", "text": "© 2026 " },
+            { "_type": "span", "_key": "s2", "text": "Acme Inc.", "marks": ["em"] }
+          ],
+          "markDefs": []
+        }
+      ]
+    }
+  }
+}
+```
+
+In the default `weaverse` format the same `copyright` field is returned as the original HTML string `"<p>&copy; 2026 <em>Acme Inc.</em></p>"`.
+
 ## Errors
 
 | Code | Status | When |
 |------|--------|------|
+| `INVALID_PARAMS` | 400 | Missing `projectId`, empty `locale`, or unsupported `format` value |
 | `UNAUTHORIZED` | 401 | Missing or invalid API key |
 | `FORBIDDEN` | 403 | API key does not have access to this project |
 | `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
-| `INVALID_PARAMS` | 400 | Missing `projectId` |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
 
 ## Examples
