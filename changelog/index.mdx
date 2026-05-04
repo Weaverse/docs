@@ -8,13 +8,10 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
-{/*
-DRAFT — next release entry. Fill in the version and date when the next builder release lands on `main`, then uncomment.
-
-<Update label="YYYY.M.D" description="Month D, YYYY" tags={["API", "Infrastructure"]}>
+<Update label="2026.5.6" description="May 6, 2026" tags={["API", "Infrastructure"]}>
   ### Bug Fixes
 
-  - **Content API `/openapi.json` 500**: The OpenAPI 3.1 spec endpoint was returning 500 because the YAML file it tried to read wasn't shipped in the production Docker image. The spec is now bundled directly into the route as JSON — the endpoint now serves the full spec, importable into Swagger UI / Postman / OpenAPI generators.
+  - **Content API `/openapi.json` 500**: The OpenAPI 3.1 spec endpoint was returning 500 because the YAML file it tried to read wasn't shipped in the production Docker image. The spec is now bundled directly into the route as JSON — the endpoint serves the full spec, importable into Swagger UI / Postman / OpenAPI generators.
   - **OpenAPI Spec Documents Portable Text Parameter**: The `?format=portable-text` query parameter (shipped in 2026.5.4) is now formally documented in the OpenAPI spec for both the page and theme-settings endpoints, including the alternative `Accept: application/portable-text+json` header and the optional `?meta=true` flag.
 
   ### Improvements
@@ -22,7 +19,6 @@ DRAFT — next release entry. Fill in the version and date when the next builder
   - **Security Updates**: Bumped `vite` 8.0.3 → 8.0.10, `lodash` 4.17.23 → 4.18.1, removed unused `uuid` dependency — closes 6 Dependabot alerts (3 high, 3 moderate)
   - **Deploy Reliability**: Production deploy workflow now uses `--wait-timeout 600` for Fly.io rollouts, preventing false-failure timeouts when one region's stopped machines take longer than the default 5-minute health-check window
 </Update>
-*/}
 
 <Update label="2026.5.5" description="May 4, 2026" tags={["Studio"]}>
   ### New Features
