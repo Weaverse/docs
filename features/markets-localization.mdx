@@ -65,10 +65,92 @@ The `i18n` object contains the following properties:
 
   Weaverse currently supports `url-path` structure. The other two options are under construction and will be available in future releases soon.
 - `shopLocales`: An array of locale objects, each containing:
-  - `language` (Required): The language code (e.g., `en`, `fr`).
-  - `country` (Required): The country code (e.g., `US`, `CA`).
+  - `language` (Required): The **ISO 639-1** language code — exactly **2 letters** (e.g., `en`, `fr`, `zh`, `de`).
+  - `country` (Required): The **ISO 3166-1 alpha-2** country code — exactly **2 letters** (e.g., `US`, `CA`, `HK`, `JP`).
   - `pathPrefix` (Optional, Recommended): An optional path prefix for the locale. It helps in better navigation inside Weaverse Studio. If not provided, it will be computed based on the `language` and `country` codes.
   - `label` (Optional): An optional label for the locale, which can be used for display purposes.
+
+<Warning>
+**Use ISO 639-1 language codes only — do NOT use Shopify's `LanguageCode` enum values directly.**
+
+Shopify's Storefront API exposes a `LanguageCode` enum that includes combined values like `ZH_CN`, `ZH_TW`, `PT_BR`, `PT_PT`. **These will NOT work as Weaverse `language` values** because they contain underscores and break locale matching (Weaverse builds locale identifiers as `language-country` in lowercase, and `zh_cn-hk` is not a valid locale string).
+
+| ❌ Incorrect | ✅ Correct |
+|---|---|
+| `language: "ZH_CN", country: "HK"` | `language: "ZH", country: "CN"` (or use Shopify Markets language settings to distinguish Simplified vs Traditional Chinese for the same country) |
+| `language: "PT_BR", country: "BR"` | `language: "PT", country: "BR"` |
+| `language: "ZH_HANT", country: "TW"` | `language: "ZH", country: "TW"` |
+
+If you need to serve multiple Chinese variants (Simplified + Traditional) within the same country (e.g., Hong Kong), see [Serving multiple language variants in one country](#serving-multiple-language-variants-in-one-country) below.
+</Warning>
+
+#### Serving multiple language variants in one country
+
+Weaverse identifies each locale uniquely by its `(language, country)` pair. Two `shopLocales` entries with the same pair (e.g., both `{ language: "ZH", country: "HK" }`) will collide and only one will resolve.
+
+If you need Simplified **and** Traditional Chinese for the same Hong Kong storefront, use distinct `country` codes purely as locale identifiers while keeping the user-facing label and currency aligned to HK:
+
+```typescript
+export const COUNTRIES: Localizations = {
+  default: {
+    label: "English · Hong Kong (HKD $)",
+    language: "EN",
+    country: "HK",
+    currency: "HKD",
+    pathPrefix: "",
+  },
+  "/zh-cn": {
+    label: "简体中文 · 香港 (HKD $)",
+    language: "ZH",
+    country: "CN",       // Simplified Chinese audience identifier
+    currency: "HKD",     // Real currency stays HKD
+    pathPrefix: "/zh-cn",
+  },
+  "/zh-tw": {
+    label: "繁體中文 · 香港 (HKD $)",
+    language: "ZH",
+    country: "TW",       // Traditional Chinese audience identifier
+    currency: "HKD",
+    pathPrefix: "/zh-tw",
+  },
+};
+```
+
+The `country` field is just a locale identifier for Weaverse — the visible label, currency, and your Shopify Markets configuration control what customers actually experience.
+
+Alternatively, configure a single `zh-hk` locale in Weaverse and pick Simplified **or** Traditional for the HK market in your Shopify admin (**Settings → Languages**).
+
+#### Example: A correct multi-language setup
+
+```typescript
+// app/utils/const.ts
+export const COUNTRIES: Localizations = {
+  default: {
+    label: "United States (USD $)",
+    language: "EN",
+    country: "US",
+    currency: "USD",
+  },
+  "/fr-ca": {
+    label: "Canada (CAD $)",
+    language: "FR",
+    country: "CA",
+    currency: "CAD",
+  },
+  "/zh-cn": {
+    label: "China (CNY ¥)",
+    language: "ZH",  // ✅ ISO 639-1 — not ZH_CN
+    country: "CN",
+    currency: "CNY",
+  },
+  "/ja-jp": {
+    label: "Japan (JPY ¥)",
+    language: "JA",
+    country: "JP",
+    currency: "JPY",
+  },
+};
+```
 
 ### Step 3: Manage Localized Content in Weaverse Studio
 
@@ -253,6 +335,35 @@ const weaverse = new WeaverseClient({
 <Note>
 See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)** for comprehensive documentation on multi-project setup, including A/B testing, multi-brand storefronts, advanced routing patterns, and step-by-step migration guides.
 </Note>
+
+## Troubleshooting
+
+### “Create localized content” button is missing for a page
+
+**Symptoms:**
+- The icon button next to the country selector in Weaverse Studio's top bar is missing or never appears, even when you switch to a non-default locale.
+- The page itself disappears or falls back to defaults when you switch locale.
+
+**Common causes & fixes:**
+
+1. **Invalid `language` code in your `shopLocales` config.** Most common cause. If you used `LanguageCode` enum values like `ZH_CN`, `ZH_TW`, `PT_BR`, `PT_PT`, or `ZH_HANT`, Weaverse cannot resolve the locale and the button will not render. **Fix:** switch to ISO 639-1 (2-letter) codes — see the [warning above](#step-2-configure-localization-in-the-weaverse-theme-schema).
+
+2. **`i18n` object missing from theme schema.** If you only see a popup telling you to set up markets (not the locale dropdown), your `schema.server.ts` is missing the `i18n` configuration. Re-check Step 2.
+
+3. **`shopLocales` doesn’t include the locale you switched to.** The country selector only shows locales declared in `shopLocales`. Add the locale to your `COUNTRIES` config and restart the dev server.
+
+4. **Stale storefront context.** If you recently changed `schema.server.ts` or `app/utils/const.ts`, restart your Hydrogen dev server (`npm run dev`) and refresh Weaverse Studio. Locale config is read at startup.
+
+### Custom template disappears on a non-default locale
+
+If a custom template (e.g., a page template assigned to a Shopify resource like `/for-kitchens`) renders correctly on the default locale but disappears or shows the default Pilot page on `/zh-cn`, `/fr-ca`, etc.:
+
+- This is almost always caused by the same invalid `language` code issue described above. Weaverse cannot match the page assignment to the requested locale because the locale string is malformed.
+- **Fix:** verify your `language` codes are ISO 639-1 (2 letters, no underscores). After fixing, restart the dev server and reload Weaverse Studio.
+
+### Locale path prefix mismatch
+
+If your `pathPrefix` (e.g., `/zh-cn`) implies a different language–country combination than your actual `language` and `country` fields, navigation may work but Weaverse Studio may fail to resolve the page. Keep your path prefix aligned with `language-country` in lowercase (e.g., `pathPrefix: "/zh-cn"` should pair with `language: "ZH"`, `country: "CN"`).
 
 ## Conclusion
 

@@ -51,6 +51,14 @@ Weaverse uses the standard `language-country` format for locale identifiers.
 **Important:** Weaverse requires the exact lowercase hyphen-separated format. Formats like `en_US`, `en-US`, or `EN-us` are not supported and may cause locale detection to fail.
 </Note>
 
+<Warning>
+**Do NOT pass Shopify `LanguageCode` enum values as `language` in your `shopLocales` config.**
+
+Shopify's Storefront API exposes a `LanguageCode` enum that includes combined values such as `ZH_CN`, `ZH_TW`, `ZH_HANT`, `PT_BR`, `PT_PT`. These contain underscores and are **not** valid ISO 639-1 codes. If you use them, Weaverse will build malformed locale identifiers like `zh_cn-hk`, which break locale matching, page resolution, and the “Create localized content” button in Weaverse Studio.
+
+**Always use the 2-letter ISO 639-1 base language** (`zh`, `pt`, `en`, etc.) and let the `country` field disambiguate the regional variant (e.g., `zh` + `CN` for Simplified, `zh` + `TW` for Traditional). For finer-grained control over Simplified vs Traditional Chinese within the same country, configure language settings in your Shopify admin under **Settings → Languages**.
+</Warning>
+
 ## Locale Detection Methods
 
 Weaverse provides three methods for detecting the current locale, with a clear priority order.
