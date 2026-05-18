@@ -1,0 +1,428 @@
+---
+title: Contact Form with Klaviyo
+description: Build a Weaverse contact form section that delivers submissions to your inbox through a Klaviyo API-based transactional email flow.
+published: true
+---
+
+# Contact Form with Klaviyo
+
+## Introduction
+
+This guide shows you how to build a **contact form as a Weaverse section** whose submissions are emailed to a notification inbox through a [Klaviyo API-based transactional flow](https://developers.klaviyo.com/en/docs/guide_to_setting_up_api_based_transactional_events).
+
+Instead of sending mail directly from your storefront (which requires an SMTP provider, deliverability tuning, and secret management), the form fires a single Klaviyo **event**. A Klaviyo **flow** listens for that event's metric and renders a **transactional** email. You get spam protection (hCaptcha), a tamper-resistant recipient, and a merchant-editable form — without running your own mail infrastructure.
+
+### Architecture at a glance
+
+```text
+┌──────────────────────────┐      POST /api/contact      ┌────────────────────────────┐
+│  Weaverse section         │  ───────────────────────▶  │  Resource route action      │
+│  app/sections/            │   name, email, message,     │  app/routes/api/contact.ts  │
+│  contact-form/index.tsx   │   inquiry_type, recipient,  │                             │
+│  (useFetcher + hCaptcha)  │   h-captcha-response        │  1. verify hCaptcha         │
+└──────────────────────────┘                              │  2. resolve recipient       │
+                                                          │  3. POST Klaviyo event      │
+                                                          └──────────────┬──────────────┘
+                                                                         │ Create Event
+                                                                         ▼
+                                                          ┌────────────────────────────┐
+                                                          │  Klaviyo                    │
+                                                          │  metric ▸ flow ▸ email      │
+                                                          │  (marked transactional)     │
+                                                          └──────────────┬──────────────┘
+                                                                         ▼
+                                                              Notification inbox
+```
+
+The submitter is **not** the email recipient. The event's `profile.email` is *your* notification inbox; the submitter's details ride along as event **properties** that the flow email template renders.
+
+## Prerequisites
+
+<Steps>
+  <Step title="Klaviyo private API key">
+    A private key with the **`events:write`** scope (Full access also works but is broader than needed). Create it in Klaviyo under **Settings → API keys → Create Private API Key → Custom Key**. You only see the key once.
+  </Step>
+  <Step title="hCaptcha keys">
+    A site key and secret key from [hCaptcha](https://dashboard.hcaptcha.com/). The Pilot theme already uses hCaptcha for the newsletter form, so you can reuse the same pair.
+  </Step>
+  <Step title="Environment variables">
+    Set the following on Oxygen (or in `.env` for local dev, then `npx shopify hydrogen env pull`):
+
+    ```bash
+    # Klaviyo private key (must include events:write)
+    KLAVIYO_PRIVATE_API_TOKEN=pk_xxxxxxxxxxxxxxxxxxxxxxxxx
+
+    # Default notification inbox (used when the section field is blank)
+    CONTACT_FORM_RECIPIENT_EMAIL=you@yourdomain.com
+
+    # Recommended: allowlist of addresses the section is permitted to send to.
+    # Comma-separated. If unset, any valid email set in the section is trusted.
+    CONTACT_FORM_ALLOWED_RECIPIENTS=you@yourdomain.com,support@yourdomain.com
+
+    # hCaptcha (PUBLIC_ prefix exposes the site key to the browser)
+    PUBLIC_HCAPTCHA_SITE_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    HCAPTCHA_SECRET_KEY=0xXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    ```
+  </Step>
+</Steps>
+
+## Step 1 — Create the API route
+
+The form posts to a [resource route](/features/custom-routing) at `app/routes/api/contact.ts`. The action does three things: verify the captcha, resolve a safe recipient, then POST a Klaviyo event. Only the parts that carry the integration logic are shown below — the rest (reading form fields, 400s for missing `email`/`message`/captcha) is routine.
+
+**Resolve a safe recipient.** The section's recipient arrives as a *tamperable form field*, so it's only honored when it passes the optional allowlist (see [the security model](#security-model-the-recipient-allowlist)):
+
+```ts
+function resolveRecipient(configured, envRecipient, allowList) {
+  const fallback = envRecipient?.trim() || FALLBACK_RECIPIENT;
+  if (!configured || !EMAIL_PATTERN.test(configured)) return fallback;
+  const allowed = (allowList || "")
+    .split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  if (allowed.length === 0 || allowed.includes(configured.toLowerCase())) {
+    return configured;
+  }
+  return fallback;
+}
+```
+
+**Verify hCaptcha server-side** before sending anything to Klaviyo:
+
+```ts
+async function verifyHCaptcha(token: string, secret: string) {
+  const body = new URLSearchParams({ secret, response: token });
+  const res = await fetch("https://api.hcaptcha.com/siteverify", {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  return ((await res.json()) as { success: boolean }).success === true;
+}
+```
+
+**Build and POST the Klaviyo event** — the core of the integration. Note `profile.email` is the *recipient* (your inbox), and the submitter's data goes in `properties`:
+
+```ts
+const payload = {
+  data: {
+    type: "event",
+    attributes: {
+      properties: {
+        sender_name: name, sender_email: email, sender_phone: phone,
+        subject, message, inquiry_type: inquiryType, is_urgent: isUrgent,
+        source_url: request.headers.get("referer") || "",
+        submitted_at: new Date().toISOString(),
+      },
+      metric:  { data: { type: "metric",  attributes: { name: metricName } } },
+      profile: { data: { type: "profile", attributes: { email: recipientEmail } } },
+    },
+  },
+};
+
+const res = await fetch("https://a.klaviyo.com/api/events", {
+  method: "POST",
+  headers: {
+    accept: "application/vnd.api+json",
+    revision: "2024-10-15",
+    "content-type": "application/vnd.api+json",
+    Authorization: `Klaviyo-API-Key ${apiToken}`,
+  },
+  body: JSON.stringify(payload),
+});
+// res.status === 202 → accepted; anything else is an error
+```
+
+The action exports a result type the section reads via `useFetcher`:
+
+```ts
+export type ContactFormApiPayload = {
+  ok: boolean;
+  error?: string;
+  klaviyoData?: unknown;
+};
+```
+
+### Why the Klaviyo payload looks like this
+
+| Payload part | Purpose |
+|---|---|
+| `metric.data.attributes.name` | The metric your Klaviyo flow triggers on. Klaviyo auto-creates it on first event. Configurable per-section so one codebase can power multiple flows. |
+| `profile.data.attributes.email` | The **recipient** of the resulting transactional email — your notification inbox, *not* the submitter. |
+| `attributes.properties.*` | Submitter data exposed to the flow email template as `{{ event.<key> }}` variables. |
+| `revision` header | Klaviyo API version pin. Keep it explicit so a server-side API change can't silently alter behavior. |
+
+A successful Create Event call returns **HTTP 202** with an empty body.
+
+## Step 2 — Register the route
+
+Add the route inside the `api` prefix block in `app/routes.ts`:
+
+```ts {3}
+...prefix("api", [
+  route("contact", "routes/api/contact.ts"),
+  route("countries", "routes/api/countries.ts"),
+  // ...existing api routes
+]),
+```
+
+This makes the action reachable at `POST /api/contact` (and `/:locale/api/contact`).
+
+## Step 3 — Build the Weaverse section
+
+The section at `app/sections/contact-form/index.tsx` is a standard [Weaverse component](/development-guide/creating-components) — a default-exported component plus a `schema`. Below are the integration-specific pieces; the rest is ordinary form markup (name / email / message / optional checkbox / dropdown).
+
+**Submit with `useFetcher` and gate on the captcha token:**
+
+```tsx
+const fetcher = useFetcher<ContactFormApiPayload>();
+const hCaptchaSiteKey = useRouteLoaderData<RootLoader>("root")?.hCaptchaSiteKey;
+const [captchaToken, setCaptchaToken] = useState("");
+
+function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  if (hCaptchaSiteKey && !captchaToken) {
+    e.preventDefault();
+    setLocalError("Please complete the captcha before submitting.");
+  }
+}
+
+// Reset the captcha after every response so the token can't be reused
+useEffect(() => {
+  if (fetcher.state === "idle" && fetcher.data) {
+    captchaRef.current?.resetCaptcha();
+    setCaptchaToken("");
+    if (fetcher.data.ok) formRef.current?.reset();
+  }
+}, [fetcher.state, fetcher.data]);
+```
+
+**The form posts to the route**, carrying `metric` and `recipient` as hidden fields plus the captcha token:
+
+```tsx
+<fetcher.Form method="POST" action="/api/contact" onSubmit={handleSubmit}>
+  <input type="hidden" name="metric" value={metricName} />
+  <input type="hidden" name="recipient" value={recipientEmail} />
+
+  {/* name / email* / message* / urgent checkbox / inquiry_type select … */}
+
+  <input type="hidden" name="h-captcha-response" value={captchaToken} />
+  {hCaptchaSiteKey && (
+    <HCaptcha
+      ref={captchaRef}
+      sitekey={hCaptchaSiteKey}
+      onVerify={(token) => setCaptchaToken(token)}
+      onExpire={() => setCaptchaToken("")}
+    />
+  )}
+
+  <button
+    type="submit"
+    disabled={isSubmitting || (!!hCaptchaSiteKey && !captchaToken)}
+  >
+    {buttonText}
+  </button>
+</fetcher.Form>
+```
+
+**Expose `metricName` and `recipientEmail` in the schema** so merchants can point the form at the right Klaviyo flow and inbox without touching code (other inputs — labels, dropdown options, button text — follow the same pattern):
+
+```tsx
+export const schema = createSchema({
+  type: "contact-form",
+  title: "Contact form",
+  settings: [
+    {
+      group: "Content",
+      inputs: [
+        {
+          type: "text",
+          name: "metricName",
+          label: "Klaviyo metric name",
+          defaultValue: "Contact Form Submission",
+          helpText: "Must match the metric your Klaviyo flow triggers on.",
+        },
+        {
+          type: "text",
+          name: "recipientEmail",
+          label: "Notification recipient email",
+          placeholder: "you@yourstore.com",
+          helpText: "Where submissions are emailed (subject to the allowlist).",
+        },
+        // …heading, description, field labels, dropdown options, button text
+      ],
+    },
+    ...sectionSettings,
+  ],
+  presets: { metricName: "Contact Form Submission", recipientEmail: "" },
+});
+```
+
+<Note>
+  The hCaptcha **site key** is read from the root loader (`rootData.hCaptchaSiteKey`, sourced from `PUBLIC_HCAPTCHA_SITE_KEY`). The Pilot theme already exposes this for its newsletter form. If your root loader does not return it yet, add it there — the section renders without a captcha when the key is absent, and the server rejects captcha-less submissions, so you'd be blocked until the key is wired up.
+</Note>
+
+## Step 4 — Register the section
+
+Add the section to `app/weaverse/components.ts` so the Weaverse builder can discover it:
+
+```ts
+// Alongside the other section imports (keep alphabetical):
+import * as ContactForm from "~/sections/contact-form";
+
+// In the registered components array:
+export const components: HydrogenComponent[] = [
+  // ...other components
+  ContactForm,
+  // ...
+];
+```
+
+## Step 5 — Declare the environment types
+
+Add the new variables to the `Env` interface in `env.d.ts` so `context.env.*` is typed:
+
+```ts {4-5}
+interface Env extends HydrogenEnv {
+  // ...existing vars
+  KLAVIYO_PRIVATE_API_TOKEN: string;
+  CONTACT_FORM_RECIPIENT_EMAIL: string;
+  CONTACT_FORM_ALLOWED_RECIPIENTS: string;
+  PUBLIC_HCAPTCHA_SITE_KEY: string;
+  HCAPTCHA_SECRET_KEY: string;
+}
+```
+
+## Step 6 — Configure the Klaviyo flow
+
+Code alone won't deliver mail — the event needs a flow that produces a **transactional** email.
+
+<Steps>
+  <Step title="Trigger the metric once">
+    Submit the form once (or use the curl smoke test below) so the `Contact Form Submission` metric appears in **Analytics → Metrics**. You can also pre-create it to build the flow first.
+  </Step>
+  <Step title="Create the flow">
+    **Flows → Create Flow → Create from Scratch.** Set the trigger to **Metric → Contact Form Submission**. Leave the trigger filter empty so every submission emails you. Drag a **Flow Email** action in right after the trigger.
+  </Step>
+  <Step title="Template the email with event variables">
+    Reference the event properties the action sends:
+
+    ```text
+    Subject: New contact form message from {{ event.sender_name|default:"a visitor" }}
+
+    From: {{ event.sender_name }} <{{ event.sender_email }}>
+    Phone: {{ event.sender_phone|default:"—" }}
+    Inquiry type: {{ event.inquiry_type|default:"—" }}
+    Urgent: {{ event.is_urgent }}
+    Source: {{ event.source_url }}
+    Submitted at: {{ event.submitted_at }}
+
+    ---
+    {{ event.message }}
+    ```
+  </Step>
+  <Step title="Mark the email transactional">
+    Edit email → **Settings → Apply for transactional status / This is a transactional email** → ON. This is what lets the email deliver regardless of marketing consent. Then set **Smart Sending OFF** — every submission goes to the *same* inbox, so smart sending would silently drop repeat notifications inside its window.
+  </Step>
+  <Step title="Go live">
+    Save the flow and switch it from **Draft → Live**.
+  </Step>
+</Steps>
+
+<Warning>
+  **Branded sending domain required for production.** Klaviyo will skip transactional sends whose *from* address is not on your verified branded sending domain ("Sender email addresses need to use your branded sending domain"). Set this up in Klaviyo under **Settings → Domains** and complete DNS (CNAME) verification before launch, or notifications will silently stop.
+</Warning>
+
+### Event property → template variable map
+
+| Form field (`name=`) | Event property | Template variable |
+|---|---|---|
+| `name` | `sender_name` | `{{ event.sender_name }}` |
+| `email` | `sender_email` | `{{ event.sender_email }}` |
+| `phone` | `sender_phone` | `{{ event.sender_phone }}` |
+| `subject` | `subject` | `{{ event.subject }}` |
+| `message` | `message` | `{{ event.message }}` |
+| `inquiry_type` | `inquiry_type` | `{{ event.inquiry_type }}` |
+| `urgent` | `is_urgent` (bool) | `{{ event.is_urgent }}` |
+| — (server-set) | `source_url` | `{{ event.source_url }}` |
+| — (server-set) | `submitted_at` | `{{ event.submitted_at }}` |
+
+## Security model: the recipient allowlist
+
+The "Notification recipient email" section setting is convenient for merchants but is a **public, tamperable input** — it travels as a normal form field, so anyone can POST `/api/contact` with an arbitrary `recipient`. Without a guard, your endpoint becomes an open mail relay.
+
+`resolveRecipient()` resolves the address in this order:
+
+1. The section's `recipient` field — **only if** it's a valid email **and** (when `CONTACT_FORM_ALLOWED_RECIPIENTS` is set) it appears in that allowlist.
+2. `CONTACT_FORM_RECIPIENT_EMAIL` (server-side env).
+3. The hardcoded `FALLBACK_RECIPIENT` constant.
+
+<Tip>
+  Always set `CONTACT_FORM_ALLOWED_RECIPIENTS` in production. With it unset, *any* well-formed email configured in the section is trusted — fine for local dev, unsafe for a public storefront. hCaptcha raises the cost of automated abuse, but the allowlist is what actually contains where mail can go.
+</Tip>
+
+## Step 7 — Test end to end
+
+1. Open the page on the storefront (or `npm run dev`), fill the form, complete hCaptcha, submit.
+2. The fetch to `/api/contact` should return **202**; the form resets and the success banner shows.
+3. In Klaviyo: **Analytics → Metrics → Contact Form Submission** shows the event within ~30s, and **Flows → your flow → Analytics** shows one recipient processed.
+4. Check the resolved recipient inbox.
+
+Curl smoke test (bypasses hCaptcha — only meaningful if you temporarily comment out the captcha check while debugging; it hits Klaviyo directly):
+
+```bash
+curl -X POST https://a.klaviyo.com/api/events \
+  -H "Authorization: Klaviyo-API-Key $KLAVIYO_PRIVATE_API_TOKEN" \
+  -H "revision: 2024-10-15" \
+  -H "accept: application/vnd.api+json" \
+  -H "content-type: application/vnd.api+json" \
+  -d '{
+    "data": {
+      "type": "event",
+      "attributes": {
+        "properties": { "sender_name": "Test", "message": "Hello" },
+        "metric":  { "data": { "type": "metric",  "attributes": { "name": "Contact Form Submission" } } },
+        "profile": { "data": { "type": "profile", "attributes": { "email": "you@yourdomain.com" } } }
+      }
+    }
+  }'
+```
+
+A successful call returns HTTP **202** with an empty body.
+
+## Troubleshooting
+
+| Symptom | Likely cause / fix |
+|---|---|
+| `Missing KLAVIYO_PRIVATE_API_TOKEN` | Env var not set on Oxygen or not pulled locally. Re-run `npx shopify hydrogen env pull`. |
+| `Captcha verification is required` | `PUBLIC_HCAPTCHA_SITE_KEY` not exposed at runtime, or the root loader doesn't return `hCaptchaSiteKey`. Verify the `PUBLIC_` prefix. |
+| 403 from Klaviyo | The private key is missing the `events:write` scope. |
+| 202 but no email | Flow still in **Draft**, email not marked **transactional**, or **Smart Sending** filtered the repeat send. |
+| Event arrives but flow doesn't fire | Section's **Klaviyo metric name** doesn't match the metric the flow triggers on. |
+| Email arrives but variables are blank | Template uses wrong property names — they must be `event.sender_name`, `event.sender_email`, `event.sender_phone`, `event.subject`, `event.message`, `event.inquiry_type`, `event.is_urgent`, `event.source_url`, `event.submitted_at`. |
+| "Update this action to align with your branded sending domain" | The flow email's *from* address isn't on a verified branded sending domain. Complete domain DNS verification in Klaviyo. |
+| Notifications going to the wrong/unexpected inbox | The section `recipient` failed the allowlist (or is invalid) and fell back to `CONTACT_FORM_RECIPIENT_EMAIL` / `FALLBACK_RECIPIENT`. Check `CONTACT_FORM_ALLOWED_RECIPIENTS`. |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Creating Components" icon="puzzle-piece" href="/development-guide/creating-components">
+    Weaverse section fundamentals — the default export + schema pattern used here.
+  </Card>
+  <Card title="Custom Routing" icon="route" href="/features/custom-routing">
+    How resource routes like `/api/contact` are defined and matched.
+  </Card>
+  <Card title="Third-party Integrations" icon="plug" href="/features/third-party-integrations">
+    General patterns for wiring external APIs into Weaverse themes.
+  </Card>
+  <Card title="Input Settings" icon="sliders" href="/development-guide/input-settings">
+    Every schema input type used in the contact form's settings.
+  </Card>
+</CardGroup>
+
+## Reference links
+
+- Klaviyo: [Guide to setting up API-based transactional events](https://developers.klaviyo.com/en/docs/guide_to_setting_up_api_based_transactional_events)
+- Klaviyo API: [Create Event](https://developers.klaviyo.com/en/reference/create_event)
+- Klaviyo: [Retrieve API credentials / scopes](https://developers.klaviyo.com/en/docs/retrieve_api_credentials)
+- Klaviyo help: [Sending transactional email content](https://help.klaviyo.com/hc/en-us/articles/360032689572)
+- Klaviyo help: [Use event variables in flow emails](https://help.klaviyo.com/hc/en-us/articles/115005078647)
+- hCaptcha: [Server-side verification](https://docs.hcaptcha.com/#verify-the-user-response-server-side)
+- Shopify: [Hydrogen environment variables](https://shopify.dev/docs/storefronts/headless/hydrogen/environment-variables)
