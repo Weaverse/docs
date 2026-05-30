@@ -1,0 +1,222 @@
+---
+title: Page SEO
+description: Wire Weaverse Studio's per-page SEO editor into your Hydrogen storefront.
+published: true
+---
+
+# Page SEO
+
+Weaverse Studio lets merchants edit per-page SEO metadata (title, description, canonical, robots, Open Graph, Twitter card, JSON-LD) on every Weaverse page. To render those tags on the storefront, your theme needs to forward `weaverseData` to a single helper — `getWeaverseSeoMeta` — from a `meta` export.
+
+This guide explains where to wire the helper, how it interacts with code-defined SEO, and how to clean up any legacy override layer. It is written so you can apply it to any Hydrogen theme without prior knowledge of the file layout.
+
+> **What changes on the storefront?** Each Weaverse-served route exports `meta` that returns the SEO tags configured in Studio. Pages without SEO configured fall through silently (no overrides).
+
+---
+
+## Prerequisites
+
+- `@weaverse/hydrogen` **>= 5.14.0** (the version that introduced `getWeaverseSeoMeta`).
+- A Hydrogen route that loads a Weaverse page via `context.weaverse.loadPage(...)`.
+
+If your theme is on an older SDK, bump it:
+
+```bash
+npm install @weaverse/hydrogen@^5.14.0
+```
+
+
+---
+
+## TL;DR
+
+In every route that loads a Weaverse page, export `meta` like this:
+
+```tsx
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import type { MetaFunction } from "react-router";
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return getWeaverseSeoMeta(data?.weaverseData);
+};
+```
+
+`getWeaverseSeoMeta` reads the SEO record embedded in the loaded page and returns the meta-tag array that React Router's `meta` export expects. If the page has no SEO configured, it returns a minimal `robots: index,follow` descriptor — safe to call unconditionally.
+
+The rest of this guide covers three real-world patterns and the cleanup steps you typically need.
+
+---
+
+## Where to wire it
+
+You wire `getWeaverseSeoMeta` into every route whose loader calls `context.weaverse.loadPage(...)`. In a typical theme that means **two routes you must both wire**: the catch-all that serves [custom pages](/features/custom-pages) and the home/index route. A third recipe — template routes — is an optional supplement.
+
+The two required recipes are independent of each other; the route file determines which one applies. Together they make Studio-edited SEO apply across the homepage and every custom page, with code-defined SEO (e.g. `seoPayload.home()`) filling in any field a merchant leaves blank.
+
+### Catch-all route — CUSTOM pages
+
+Most themes have a catch-all route that resolves any unmatched URL into a Weaverse CUSTOM page. Typical filenames: `routes/catch-all.tsx`, `routes/($locale).$.tsx`, `routes/$.tsx`. If your catch-all currently has no `meta` export, add one.
+
+**Before**
+
+```tsx
+export async function loader({ context }: LoaderFunctionArgs) {
+  const weaverseData = await context.weaverse.loadPage({ type: "CUSTOM" });
+  // …validation…
+  return { weaverseData };
+}
+
+export default function Component() {
+  return <WeaverseContent />;
+}
+```
+
+**After**
+
+```tsx
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import type { MetaFunction } from "react-router";
+
+export async function loader({ context }: LoaderFunctionArgs) {
+  const weaverseData = await context.weaverse.loadPage({ type: "CUSTOM" });
+  // …validation…
+  return { weaverseData };
+}
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  return getWeaverseSeoMeta(data?.weaverseData);
+};
+
+export default function Component() {
+  return <WeaverseContent />;
+}
+```
+
+### Home / index route — INDEX (and root-level CUSTOM)
+
+Many themes serve both the real homepage (`type: "INDEX"`) **and** root-level CUSTOM handles from the same `_index` / locale-index route. If Weaverse Studio has SEO configured for the homepage, the theme should apply the Weaverse SEO settings; otherwise, it should fall back to the code-defined SEO (`seoPayload.home()`).
+
+> **Skipping this pattern?** Studio's SEO Manager lets merchants edit homepage SEO regardless of theme wiring. If you don't wire this pattern, any title / description / OG image a merchant sets for the homepage will silently have no effect on the storefront. Either wire it, or surface that limitation in your team's onboarding so merchants don't waste time configuring fields that won't apply.
+
+**Loader** — compute `seo` only for INDEX, leave it `null` for CUSTOM, and return both `weaverseData` and `seo`:
+
+```tsx
+import type { PageType } from "@weaverse/hydrogen";
+
+export async function loader(args: LoaderFunctionArgs) {
+  const { params, context } = args;
+  // NOTE: This locale-detection pattern assumes a ($locale)._index.tsx
+  // route shape where params.locale holds the first URL segment.
+  // Adjust to match your theme's own locale-detection logic.
+  const { pathPrefix } = context.storefront.i18n;
+  const locale = pathPrefix?.slice(1) || "";
+  let type: PageType = "INDEX";
+
+  // If the first segment is not a supported locale, treat it as a custom handle.
+  if (params.locale && params.locale.toLowerCase() !== locale) {
+    type = "CUSTOM";
+  }
+
+  // INDEX uses the code-defined homepage SEO; CUSTOM pages (root-level
+  // Weaverse handles served by this route) get their SEO from Weaverse
+  // via getWeaverseSeoMeta in the meta export below.
+  const seo = type === "INDEX" ? seoPayload.home() : null;
+
+  const weaverseData = await context.weaverse.loadPage({ type });
+
+  return { weaverseData, seo };
+}
+```
+
+**Meta** — prioritize Weaverse-configured SEO and fallback to code-defined `seo`:
+
+```tsx
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getSeoMeta, type SeoConfig } from "@shopify/hydrogen";
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  // Weaverse SEO wins when the merchant has filled in title or description in
+  // Studio; otherwise fall back to seoPayload.home() so the homepage never
+  // ships with empty meta tags. CUSTOM pages have no `data.seo` to fall back
+  // to (it's null in the loader), so they get whatever Weaverse returns.
+  const hasWeaverseSeo = !!(
+    data?.weaverseData?.page?.seo?.title ||
+    data?.weaverseData?.page?.seo?.description
+  );
+
+  if (!hasWeaverseSeo && data?.seo) {
+    return getSeoMeta(data.seo as SeoConfig);
+  }
+  return getWeaverseSeoMeta(data?.weaverseData);
+};
+```
+
+### Template routes — optional supplement (product, collection, blog, page)
+
+Routes for Shopify resources (product, collection, blog, article, Shopify pages) typically build their SEO from the Shopify payload via `seoPayload.product(...)`, `seoPayload.collection(...)`, etc. **Leave those as-is.** For templates, Shopify-driven SEO already covers the resource-specific fields (including structured JSON-LD with price, availability, ratings, etc.) that Weaverse Studio does not surface today.
+
+> **If you want Weaverse SEO to supplement template routes**: Add `getWeaverseSeoMeta` to the template's `meta` export and **append** it after the Shopify tags, not replace them. Avoid concatenating arrays naively — duplicate `<meta name="description">` tags can confuse crawlers. The safest pattern is to let Shopify SEO win and only pull in Weaverse tags that are absent from the Shopify payload (e.g. a custom `robots` override or extra OG fields).
+
+---
+
+## Step-by-step: applying this to a theme
+
+1. **Bump the SDK** to `@weaverse/hydrogen@^5.14.0` and reinstall.
+2. **Locate every route that calls `context.weaverse.loadPage(...)`** — `grep -rln "weaverse.loadPage" app/routes`.
+3. **For each, match it to the matching recipe above** (catch-all, home/index, or — optionally — template) and apply it.
+4. **Remove legacy overrides** (see next section), if any.
+5. **Run `typecheck` and `build`.** Fix any `errorComponent` regression caused by the SDK bump (see [SDK 5.14 side effect](#sdk-514-side-effect-errorcomponent-prop-type)).
+6. **Smoke test**: open a Weaverse page in Studio, set a Title and Description, save, view source on the storefront URL. The tags should appear.
+
+---
+
+## Removing a legacy override layer
+
+Some themes shipped a hardcoded SEO override config to brand custom pages before Studio could edit SEO. Typical signatures:
+
+- A file like `app/.server/seo-overrides.ts`, `app/utils/seo-overrides.ts`, or similar, with a hardcoded `Record<string, { title, description }>`.
+- A helper like `seoPayload.customPage({ url })` that maps the URL to one of those overrides.
+- A route that does `seoPayload.customPage({ url: request.url })` and returns it in the loader.
+
+Once Studio-edited SEO works, this layer is dead weight and competes with Weaverse:
+
+1. Delete the override file (e.g. `seo-overrides.ts`).
+2. Remove `customPage` from your SEO payload module — both the function and its export.
+3. Update routes that called `seoPayload.customPage({ url: request.url })` — replace with the `meta` export pattern above. The loader no longer needs `request` for SEO purposes.
+
+> **Why remove it?** Studio-edited SEO is per-page and merchant-controlled. A static override would silently shadow whatever the merchant configures in Studio.
+
+---
+
+## SDK 5.14 side effect: `errorComponent` prop type
+
+`@weaverse/hydrogen` 5.14 narrowed `WeaverseHydrogenRoot`'s `errorComponent` prop to `React.FC<{ error: unknown }>`. If your theme passes a custom error component typed as `{ error?: { message; stack? } }`, TypeScript will now complain. The fix is to accept `unknown` and narrow at runtime:
+
+```tsx
+export function GenericError({
+  error,
+}: {
+  error: { message: string; stack?: string } | unknown;
+}) {
+  let description = "We found an error while loading this page.";
+
+  if (error && typeof error === "object" && "message" in error) {
+    description += `\n${(error as { message: string }).message}`;
+  }
+
+  // …render…
+}
+```
+
+Apply the same narrowing pattern wherever you read `.stack` or other fields off the error.
+
+---
+
+## Verification checklist
+
+- [ ] `@weaverse/hydrogen` is at `^5.14.0` (or newer) in `package.json` and the installed `node_modules` version matches.
+- [ ] Every route that loads a Weaverse page exports a `meta` function returning `getWeaverseSeoMeta(data?.weaverseData)` (or branches per the home/index recipe).
+- [ ] Any legacy `seo-overrides.ts` / `customPage` helper is deleted.
+- [ ] `typecheck` passes (or only flags pre-existing, unrelated errors).
+- [ ] `build` succeeds.
+- [ ] Setting a Title/Description in Studio is reflected in the storefront's `<head>` for that page.

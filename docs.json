@@ -92,6 +92,7 @@
 							"features/navigation-menus",
 							"features/markets-localization",
 							"features/custom-pages",
+							"features/page-seo",
 							"features/content-security"
 						]
 					},
@@ -184,6 +185,7 @@
 						"group": "Pages & Routing",
 						"pages": [
 							"features/custom-pages",
+							"features/page-seo",
 							"features/custom-templates",
 							"features/custom-routing"
 						]
