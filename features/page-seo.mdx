@@ -139,9 +139,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   // Studio; otherwise fall back to seoPayload.home() so the homepage never
   // ships with empty meta tags. CUSTOM pages have no `data.seo` to fall back
   // to (it's null in the loader), so they get whatever Weaverse returns.
-  const hasWeaverseSeo = !!(
+  const hasWeaverseSeo = Boolean(
     data?.weaverseData?.page?.seo?.title ||
-    data?.weaverseData?.page?.seo?.description
+      data?.weaverseData?.page?.seo?.description,
   );
 
   if (!hasWeaverseSeo && data?.seo) {
