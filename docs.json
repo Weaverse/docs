@@ -54,7 +54,9 @@
 					},
 					{
 						"group": "Studio Guide",
-						"pages": ["studio-guide/interface-tour"]
+						"pages": [
+							"studio-guide/interface-tour"
+						]
 					},
 					{
 						"group": "Building Components",
@@ -64,7 +66,8 @@
 							"development-guide/component-schema",
 							"development-guide/input-settings",
 							"development-guide/styling-theming",
-							"development-guide/data-fetching"
+							"development-guide/data-fetching",
+							"development-guide/multipass-in-hydrogen"
 						]
 					},
 					{
@@ -196,7 +199,8 @@
 							"guides/rendering-page",
 							"guides/localization-advanced",
 							"guides/multi-project-architecture",
-							"development-guide/customer-account-local-dev"
+							"development-guide/customer-account-local-dev",
+							"development-guide/multipass-in-hydrogen"
 						]
 					}
 				]
@@ -206,7 +210,9 @@
 				"pages": [
 					{
 						"group": "Overview",
-						"pages": ["api-reference/introduction"]
+						"pages": [
+							"api-reference/introduction"
+						]
 					},
 					{
 						"group": "Hooks",
@@ -252,7 +258,9 @@
 				"pages": [
 					{
 						"group": "Overview",
-						"pages": ["ecosystem/index"]
+						"pages": [
+							"ecosystem/index"
+						]
 					},
 					{
 						"group": "Developer Tools",

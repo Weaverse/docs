@@ -51,6 +51,13 @@ Returns a paginated list of page assignments in a project. Each assignment maps 
       "pageId": "clz5wxy12abc345defg"
     },
     {
+      "id": "clz4mno56pqr789cust",
+      "type": "CUSTOM",
+      "handle": "pages/gift-shop",
+      "locale": "en-us",
+      "pageId": "clz5wxy12abc345gift"
+    },
+    {
       "id": "clz4mno56pqr789wxyz",
       "type": "INDEX",
       "handle": "default",
@@ -70,10 +77,14 @@ Returns a paginated list of page assignments in a project. Each assignment maps 
 | `data` | array | Array of page assignment objects |
 | `data[].id` | string | Page assignment ID |
 | `data[].type` | string | Page type (e.g., `PRODUCT`, `INDEX`) |
-| `data[].handle` | string | Page handle (e.g., product handle, `default`) |
+| `data[].handle` | string | Page handle (e.g., product handle, `default`, `pages/gift-shop`). Use this exact value when calling [Get Page](/content-api/get-page); custom page handles may contain `/`. |
 | `data[].locale` | string | Locale code |
 | `data[].pageId` | string | Associated page ID |
 | `nextCursor` | string \| null | Cursor for the next page |
+
+<Tip>
+  Treat `type` + `handle` as an opaque pair. For example, a row with `type: "CUSTOM"` and `handle: "pages/gift-shop"` is fetched from `/projects/:projectId/pages/CUSTOM/pages/gift-shop`.
+</Tip>
 
 ## Errors
 

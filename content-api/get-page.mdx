@@ -7,7 +7,7 @@ published: true
 # Get Page
 
 ```
-GET /api/v1/content/projects/:projectId/pages/:type/:handle
+GET /api/v1/content/projects/:projectId/pages/:type/:handle...
 ```
 
 Returns the full page content including all component items. This is the primary endpoint for rendering Weaverse pages in external applications.
@@ -24,7 +24,11 @@ Returns the full page content including all component items. This is the primary
 |-----------|------|----------|-------------|
 | `projectId` | string | Yes | The project ID |
 | `type` | string | Yes | Page type (e.g., `INDEX`, `PRODUCT`, `COLLECTION`) |
-| `handle` | string | Yes | Page handle (e.g., `default`, `blue-shirt`) |
+| `handle` | string | Yes | Page handle (e.g., `default`, `blue-shirt`, `pages/gift-shop`). For `CUSTOM` pages, use the exact handle returned by [List Pages](/content-api/list-pages); it may contain `/` and is captured as the rest of the path. |
+
+<Tip>
+  Custom page handles can include path separators. If the list endpoint returns `type: "CUSTOM"` and `handle: "pages/gift-shop"`, fetch it at `/projects/:projectId/pages/CUSTOM/pages/gift-shop`.
+</Tip>
 
 ## Query parameters
 
@@ -246,6 +250,10 @@ Official renderers exist for [React, Vue, Svelte, Astro, React Native](https://w
     # Get a product page with locale
     curl -H "Authorization: Bearer YOUR_API_KEY" \
       "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/PRODUCT/blue-shirt?locale=fr-fr"
+
+    # Get a custom page whose handle includes a slash
+    curl -H "Authorization: Bearer YOUR_API_KEY" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/CUSTOM/pages/gift-shop"
     ```
   </Tab>
   <Tab title="TypeScript">
@@ -276,6 +284,10 @@ Official renderers exist for [React, Vue, Svelte, Astro, React Native](https://w
     // Get localized product page
     const productPage = await getPage('clx1abc23def456ghij', 'PRODUCT', 'blue-shirt', 'fr-fr')
 
+    // Get a custom page; pass the exact handle from List Pages
+    const giftShop = await getPage('clx1abc23def456ghij', 'CUSTOM', 'pages/gift-shop')
+    console.log(productPage.handle, giftShop.handle)
+
     // Render items
     for (const item of homepage.items) {
       console.log(`${item.type}: ${JSON.stringify(item.data)}`)
@@ -301,6 +313,9 @@ Official renderers exist for [React, Vue, Svelte, Astro, React Native](https://w
 
     # Get localized product page
     product = get_page("clx1abc23def456ghij", "PRODUCT", "blue-shirt", "fr-fr")
+
+    # Get a custom page; pass the exact handle from List Pages
+    gift_shop = get_page("clx1abc23def456ghij", "CUSTOM", "pages/gift-shop")
     ```
   </Tab>
 </Tabs>
