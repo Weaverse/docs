@@ -47,10 +47,10 @@
 						"group": "Introduction",
 						"pages": [
 							"index",
-							"features/why-weaverse-for-hydrogen",
-							"core-concepts/how-it-works",
-							"quickstart",
-							"core-concepts/project-structure"
+							"intro/why-weaverse-for-hydrogen",
+							"intro/how-it-works",
+							"intro/quickstart",
+							"intro/project-structure"
 						]
 					},
 					{
@@ -130,11 +130,11 @@
 					{
 						"group": "Deployment",
 						"pages": [
-							"deployment",
-							"oxygen-deployment",
-							"custom-domain-and-dns-setup",
-							"docker-deployment",
-							"workers-deployment"
+							"guides/deployment/index",
+							"guides/deployment/oxygen",
+							"guides/deployment/custom-domain-and-dns",
+							"guides/deployment/docker",
+							"guides/deployment/workers"
 						]
 					}
 				]
@@ -285,6 +285,42 @@
 		]
 	},
 	"redirects": [
+		{
+			"source": "/features/why-weaverse-for-hydrogen",
+			"destination": "/intro/why-weaverse-for-hydrogen"
+		},
+		{
+			"source": "/core-concepts/how-it-works",
+			"destination": "/intro/how-it-works"
+		},
+		{
+			"source": "/quickstart",
+			"destination": "/intro/quickstart"
+		},
+		{
+			"source": "/core-concepts/project-structure",
+			"destination": "/intro/project-structure"
+		},
+		{
+			"source": "/deployment",
+			"destination": "/guides/deployment"
+		},
+		{
+			"source": "/oxygen-deployment",
+			"destination": "/guides/deployment/oxygen"
+		},
+		{
+			"source": "/custom-domain-and-dns-setup",
+			"destination": "/guides/deployment/custom-domain-and-dns"
+		},
+		{
+			"source": "/docker-deployment",
+			"destination": "/guides/deployment/docker"
+		},
+		{
+			"source": "/workers-deployment",
+			"destination": "/guides/deployment/workers"
+		},
 		{
 			"source": "/migration-advanced/custom-pages",
 			"destination": "/features/custom-pages"
