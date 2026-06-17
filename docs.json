@@ -47,91 +47,16 @@
 						"group": "Introduction",
 						"pages": [
 							"index",
-							"quickstart",
-							"core-concepts/how-it-works",
-							"core-concepts/project-structure"
+							"intro/why-weaverse-for-hydrogen",
+							"intro/how-it-works",
+							"intro/quickstart",
+							"intro/project-structure"
 						]
 					},
 					{
 						"group": "Studio Guide",
 						"pages": [
 							"studio-guide/interface-tour"
-						]
-					},
-					{
-						"group": "Building Components",
-						"pages": [
-							"development-guide/environment-setup",
-							"development-guide/creating-components",
-							"development-guide/component-schema",
-							"development-guide/input-settings",
-							"development-guide/styling-theming",
-							"development-guide/data-fetching",
-							"development-guide/multipass-in-hydrogen"
-						]
-					},
-					{
-						"group": "API Reference",
-						"pages": [
-							"api-reference/introduction",
-							"api-reference/use-weaverse",
-							"api-reference/weaverse-root",
-							"api-reference/types"
-						]
-					},
-					{
-						"group": "Content API",
-						"pages": [
-							"content-api/overview",
-							"content-api/list-pages",
-							"content-api/get-page"
-						]
-					},
-					{
-						"group": "Features",
-						"pages": [
-							"features/why-weaverse-for-hydrogen",
-							"features/global-sections",
-							"features/navigation-menus",
-							"features/markets-localization",
-							"features/custom-pages",
-							"features/page-seo",
-							"features/content-security"
-						]
-					},
-					{
-						"group": "Developer Tools",
-						"pages": [
-							"developer-tools/weaverse-cli",
-							"developer-tools/weaverse-sdks",
-							"developer-tools/weaverse-mcp",
-							"developer-tools/shopify-hydrogen-skills"
-						]
-					},
-					{
-						"group": "Hydrogen Themes",
-						"pages": [
-							"hydrogen-themes/pilot-theme-overview",
-							"hydrogen-themes/pilot-theme-customization"
-						]
-					},
-					{
-						"group": "Deployment",
-						"pages": [
-							"deployment",
-							"oxygen-deployment",
-							"docker-deployment",
-							"workers-deployment"
-						]
-					},
-					{
-						"group": "Help & Community",
-						"pages": [
-							"resources/faq",
-							"resources/example-components",
-							"troubleshooting/preview-errors",
-							"community/community",
-							"changelog/index"
 						]
 					}
 				]
@@ -161,7 +86,6 @@
 					{
 						"group": "Content Management",
 						"pages": [
-							"features/why-weaverse-for-hydrogen",
 							"features/global-sections",
 							"features/navigation-menus",
 							"features/third-party-integrations",
@@ -201,6 +125,16 @@
 							"guides/multi-project-architecture",
 							"development-guide/customer-account-local-dev",
 							"development-guide/multipass-in-hydrogen"
+						]
+					},
+					{
+						"group": "Deployment",
+						"pages": [
+							"guides/deployment/index",
+							"guides/deployment/oxygen",
+							"guides/deployment/custom-domain-and-dns",
+							"guides/deployment/docker",
+							"guides/deployment/workers"
 						]
 					}
 				]
@@ -293,21 +227,11 @@
 							"migration-advanced/v5-migration",
 							"migration-advanced/existing-hydrogen-integration"
 						]
-					},
-					{
-						"group": "Deployment",
-						"pages": [
-							"deployment",
-							"oxygen-deployment",
-							"custom-domain-and-dns-setup",
-							"docker-deployment",
-							"workers-deployment"
-						]
 					}
 				]
 			},
 			{
-				"tab": "Resources",
+				"tab": "Help & Community",
 				"pages": [
 					{
 						"group": "Help",
@@ -361,6 +285,42 @@
 		]
 	},
 	"redirects": [
+		{
+			"source": "/features/why-weaverse-for-hydrogen",
+			"destination": "/intro/why-weaverse-for-hydrogen"
+		},
+		{
+			"source": "/core-concepts/how-it-works",
+			"destination": "/intro/how-it-works"
+		},
+		{
+			"source": "/quickstart",
+			"destination": "/intro/quickstart"
+		},
+		{
+			"source": "/core-concepts/project-structure",
+			"destination": "/intro/project-structure"
+		},
+		{
+			"source": "/deployment",
+			"destination": "/guides/deployment"
+		},
+		{
+			"source": "/oxygen-deployment",
+			"destination": "/guides/deployment/oxygen"
+		},
+		{
+			"source": "/custom-domain-and-dns-setup",
+			"destination": "/guides/deployment/custom-domain-and-dns"
+		},
+		{
+			"source": "/docker-deployment",
+			"destination": "/guides/deployment/docker"
+		},
+		{
+			"source": "/workers-deployment",
+			"destination": "/guides/deployment/workers"
+		},
 		{
 			"source": "/migration-advanced/custom-pages",
 			"destination": "/features/custom-pages"
