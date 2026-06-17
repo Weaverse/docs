@@ -47,8 +47,9 @@
 						"group": "Introduction",
 						"pages": [
 							"index",
-							"quickstart",
+							"features/why-weaverse-for-hydrogen",
 							"core-concepts/how-it-works",
+							"quickstart",
 							"core-concepts/project-structure"
 						]
 					},
@@ -85,7 +86,6 @@
 					{
 						"group": "Content Management",
 						"pages": [
-							"features/why-weaverse-for-hydrogen",
 							"features/global-sections",
 							"features/navigation-menus",
 							"features/third-party-integrations",
@@ -125,6 +125,16 @@
 							"guides/multi-project-architecture",
 							"development-guide/customer-account-local-dev",
 							"development-guide/multipass-in-hydrogen"
+						]
+					},
+					{
+						"group": "Deployment",
+						"pages": [
+							"deployment",
+							"oxygen-deployment",
+							"custom-domain-and-dns-setup",
+							"docker-deployment",
+							"workers-deployment"
 						]
 					}
 				]
@@ -217,21 +227,11 @@
 							"migration-advanced/v5-migration",
 							"migration-advanced/existing-hydrogen-integration"
 						]
-					},
-					{
-						"group": "Deployment",
-						"pages": [
-							"deployment",
-							"oxygen-deployment",
-							"custom-domain-and-dns-setup",
-							"docker-deployment",
-							"workers-deployment"
-						]
 					}
 				]
 			},
 			{
-				"tab": "Resources",
+				"tab": "Help & Community",
 				"pages": [
 					{
 						"group": "Help",
