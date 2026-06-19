@@ -698,6 +698,18 @@ Because `customData` is merged into every analytics event, downstream conversion
 Read the active variant anywhere with `useExperiment("green-theme-test")`.
 
 
+### Previewing Variants in Studio
+
+Each variant is its own Weaverse project, so you preview a variant by **opening that project in Weaverse Studio** — the same way you edit any project. Studio loads your storefront with the chosen project pinned via the `weaverseProjectId` query parameter, the highest-priority source in the SDK's `projectId` resolution.
+
+`getExperiments` is Studio-aware: when it sees `weaverseProjectId` on the request it **defers to Studio** instead of applying the hashed assignment. It returns the pinned project as `projectId`, forces the matching variant so `useExperiment(...)` and analytics `customData` reflect what you are viewing, and skips minting a visitor cookie — so the loader code above needs no special casing.
+
+<Note>
+Without this deferral the route-level `projectId` from `getExperiments` would override `loadPage()` and pin the editor to whichever variant the `_wv_vid` cookie buckets into — you could never reach the other variant from Studio. The package handles this for you.
+</Note>
+
+To compare both, open **Control (A)** to review the baseline, then open **Variant B** to review the experiment — each renders its own project in the Studio preview.
+
 ### Route-Level A/B Testing
 
 To test a single route without affecting the rest of the site, resolve the experiment in that route's loader and pass the chosen `projectId` to `loadPage()`:
