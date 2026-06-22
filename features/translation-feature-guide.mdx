@@ -20,7 +20,7 @@ You author content **once** in your default language, then let the manager fan i
 > [!NOTE]
 > This is a different layer from the Hydrogen i18n loader (`schema.server.ts` / `loadPage()`), which controls how a published storefront *reads* translations at runtime. Use the i18n loader to wire locales into your theme (see [Markets and Localization](./markets-localization)); use the `Translation Manager` to actually *produce* the translations.
 
-![Translation Manager open in Weaverse Studio](https://PLACEHOLDER.weaverse.io/translation/manager-overview.png)
+![Translation Manager open in Weaverse Studio](../images/translation/manager-overview.webp)
 {/* TODO (screenshot): Translation Manager dialog open, full window, a target language selected, side-by-side editor visible */}
 
 ## Core concept: Market vs. Language
@@ -34,7 +34,7 @@ Weaverse separates **what region a page targets** from **what language it is rea
 
 A **market** owns the page layout and the source content. **Languages** are overlays on that one layout. So a Vietnam market that sells in both Vietnamese and English is built **once** — you only translate the copy, you don't rebuild the page per language.
 
-![One market layout with multiple language overlays](https://PLACEHOLDER.weaverse.io/translation/market-vs-language.png)
+![One market layout with multiple language overlays](../images/translation/market-vs-language.webp)
 {/* TODO (diagram): Market (VN) box containing one page layout, with VI / EN language overlays branching off */}
 
 ### Legacy vs. market-first projects
@@ -117,7 +117,7 @@ The manager splits everything translatable into two scopes, shown in the left na
 | **Theme** | Reusable static UI strings shipped by the theme (button labels, empty states, helper text) | `i18n.staticContent` |
 | **Page** | Content of each page/section — text and image content (headings, body copy, image alt) | Page items |
 
-![Scope navigation in the Translation Manager](https://PLACEHOLDER.weaverse.io/translation/scopes-nav.png)
+![Scope navigation in the Translation Manager](../images/translation/scopes-nav.webp)
 {/* TODO (screenshot): left navigation showing the scope switcher and the page list with untranslated counts */}
 
 ## Open Translation Manager
