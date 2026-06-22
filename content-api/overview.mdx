@@ -24,10 +24,14 @@ https://studio.weaverse.io/api/v1/content
 |--------|------|-------------|
 | `GET` | [`/projects`](/content-api/list-projects) | List all projects |
 | `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
-| `GET` | [`/projects/:projectId/pages/:type/:handle`](/content-api/get-page) | Get page content |
+| `GET` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/get-page) | Get page content |
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
 | `GET` | [`/projects/:projectId/languages`](/content-api/list-languages) | List configured locales |
 | `GET` | `/openapi.json` | OpenAPI 3.1 specification |
+
+<Tip>
+  The page detail endpoint captures the handle as the rest of the path. Use the exact `handle` returned by `/projects/:projectId/pages`; custom page handles may include `/`, such as `pages/gift-shop`.
+</Tip>
 
 ## Response formats
 
@@ -181,7 +185,8 @@ async function fetchPage(projectId: string, type: string, handle: string) {
 
 // Usage
 const page = await fetchPage('clx1abc23def456ghij', 'PRODUCT', 'blue-shirt')
-console.log(page.items) // Array of section components
+const customPage = await fetchPage('clx1abc23def456ghij', 'CUSTOM', 'pages/gift-shop')
+console.log(page.items, customPage.items) // Arrays of section components
 ```
 
 ## Next steps

@@ -55,45 +55,46 @@ When working with Weaverse Studio, you may encounter preview connection errors t
 
 ### NO_WEAVERSE_CONTENT
 
-**Symptom**: Preview loads but shows "We couldn't find Weaverse content on this page."
+**Symptom**: The preview loads, but Studio shows **"No Weaverse content on this page yet"** with setup guidance — *not* a connection error. The URL responded; it just has no Weaverse sections for Studio to edit.
+
+<Note>
+This is a normal, recoverable state — not a broken preview. Studio stays connected on any page it can reach (including 404s and routes without Weaverse content) so it can tell you *why* there's nothing to edit, instead of falsely reporting "Connection lost". Requires `@weaverse/hydrogen` **5.16.3+** in your theme.
+</Note>
 
 **Common Causes**:
-- Weaverse components not installed in theme
-- Wrong page selected (non-Weaverse page)
-- Theme not properly configured
-- Missing `@weaverse/hydrogen` package
+- No page or template has been created/assigned for this route yet
+- The underlying Shopify resource (collection, product, article) doesn't exist, or isn't published to your **Headless / Hydrogen sales channel** — the storefront route then returns a 404 with no content to edit
+- The route doesn't render `<WeaverseHydrogenRoot />`
+- Missing or outdated `@weaverse/hydrogen` package
 
-**Quick Fixes**:
+**How to set it up**:
 
-1. **Verify Weaverse is installed in your theme**
-   ```bash
-   # Check package.json includes:
-   npm list @weaverse/hydrogen
-   ```
+1. **Create or assign a page for this route**
+   - Open the page selector in the Studio top bar and create/assign a page for the current URL
+   - Add at least one section, then **Save**
 
-2. **Ensure page is a Weaverse-enabled route**
-   - Check if the page uses Weaverse components
-   - Navigate to a known Weaverse page (e.g., homepage)
-   - Verify route file includes Weaverse setup with `loadPage()` and `<WeaverseContent />`
+2. **For a Shopify resource page, confirm the resource exists and is published**
+   - In Shopify admin, verify the collection/product/article in the URL exists
+   - Publish it to your **Headless** (Hydrogen) sales channel — an unpublished resource returns a 404, so the storefront renders its not-found page with no Weaverse content
+   - Open the URL directly in your browser: a 404 there confirms the Shopify resource, not Weaverse, is missing
 
-3. **Check component registration**
-   - Ensure all Weaverse components are properly registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in Pilot template)
-   - Use namespace imports: `import * as ComponentName from "~/sections/component"`
-   - Restart dev server after adding new components
+3. **Verify the route renders Weaverse content**
+   - The route loader should call `weaverse.loadPage()` and the route should render `<WeaverseHydrogenRoot />`
+   - Ensure components are registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in the Pilot template)
+   - Restart the dev server after adding new components
 
-4. **Verify correct page type**
-   - Ensure you're using a supported Weaverse page type: `PRODUCT`, `COLLECTION`, `PAGE`, `BLOG`, `ARTICLE`, `INDEX`, or `CUSTOM`
-   - Some pages (search, cart, account) may not use Weaverse at all - they use native Shopify components instead
-   - Check loader uses correct type: `weaverse.loadPage({ type: "PRODUCT", handle })`
+4. **Confirm the page type is supported**
+   - Supported types: `PRODUCT`, `COLLECTION`, `PAGE`, `BLOG`, `ARTICLE`, `INDEX`, `CUSTOM`
+   - Some routes (search, cart, account) use native Shopify components and aren't Weaverse pages
 
-5. **Reinstall Weaverse packages**
+5. **Update Weaverse if needed**
    ```bash
    npm install @weaverse/hydrogen@latest
    # or
    pnpm add @weaverse/hydrogen@latest
    ```
 
-<Note>If you just created a new page, make sure it's using the Weaverse page template and has Weaverse components configured. See the [Rendering Weaverse Pages guide](/guides/rendering-page) for complete implementation details.</Note>
+<Note>If you just created a page, make sure it uses the Weaverse page template and has sections configured. See the [Rendering Weaverse Pages guide](/guides/rendering-page) for complete implementation details.</Note>
 
 ---
 
