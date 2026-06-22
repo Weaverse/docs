@@ -1,15 +1,17 @@
-// Force first-party navigation links to open in the same tab. The sidebar
-// anchors Home (weaverse.io) and Studio (studio.weaverse.io) are external to the
+// Force first-party navigation links to open in the same tab. Internal links
+// (any *.weaverse.io host — Home, Studio, Help, Docs, etc.) are external to the
 // docs origin, so Mintlify renders them with target="_blank", and docs.json
 // exposes no per-anchor link-target option. We strip the target at click time.
 //
 // Mintlify auto-includes every .js file in the content root on all pages (see
 // https://www.mintlify.com/docs/customize/custom-scripts). A capture-phase,
 // delegated listener survives Mintlify's client-side re-renders without a
-// MutationObserver and applies to first-party hosts only — GitHub/Community
-// (external) keep opening in a new tab.
+// MutationObserver. Third-party links (GitHub, Slack, etc.) keep opening in a
+// new tab.
 (function () {
-  var SAME_TAB_HOSTS = ['weaverse.io', 'www.weaverse.io', 'studio.weaverse.io']
+  function isInternal(hostname) {
+    return hostname === 'weaverse.io' || hostname.endsWith('.weaverse.io')
+  }
   document.addEventListener(
     'click',
     function (event) {
@@ -22,7 +24,7 @@
       } catch (e) {
         return
       }
-      if (SAME_TAB_HOSTS.indexOf(host) !== -1) {
+      if (isInternal(host)) {
         anchor.target = '_self'
       }
     },
