@@ -40,6 +40,30 @@ Returns the full page content including all component items. This is the primary
 
 The format can also be requested via the `Accept` header (`application/portable-text+json`). The query parameter takes precedence when both are present.
 
+<Warning>
+  **Always pass `locale` for localized projects.** Page content is stored per
+  locale. If you edit and publish a page while a specific market/locale is
+  selected in the editor (for example `en-us`), that content is saved on the
+  `en-us` assignment — **not** on the base locale (`""`).
+
+  Because `locale` defaults to `""`, calling
+  `…/pages/PRODUCT/default` *without* `?locale` returns the **base-locale**
+  page, which on a localized project is often a different — and possibly
+  empty or un-edited — assignment. This is the most common reason a published
+  change appears in the storefront/editor but seems "missing" from the API.
+
+  Fix: include the market locale, e.g.
+  `…/pages/PRODUCT/default?locale=en-us`.
+
+  To find which locale a product/page actually uses, open it in Studio — the
+  template dropdown shows the active template and "Assigned to N products",
+  and the market/locale selector sits next to it. The pair
+  `(type, handle, locale)` is exactly what you pass to this endpoint. You can
+  also confirm the available locales for each page with
+  [List Pages](/content-api/list-pages), which returns a `locale` field per
+  assignment.
+</Warning>
+
 ### Locale fallback
 
 When a page is not found for the requested locale, the API falls back in order:
