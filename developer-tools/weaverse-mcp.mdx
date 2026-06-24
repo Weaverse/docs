@@ -80,11 +80,29 @@ docs-only use) via the `env` block.
     Restart Claude Desktop.
   </Tab>
 
-  <Tab title="OpenClaw">
+  <Tab title="Claude Code">
     ```bash
-    openclaw mcp add weaverse \
+    claude mcp add weaverse \
       --env WEAVERSE_API_KEY=your-key \
       -- npx -y @weaverse/mcp
+    ```
+  </Tab>
+
+  <Tab title="opencode">
+    opencode reads `opencode.json` (project) or
+    `~/.config/opencode/opencode.json` (global) with an `mcp` block:
+
+    ```json
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "mcp": {
+        "weaverse": {
+          "type": "local",
+          "command": ["npx", "-y", "@weaverse/mcp"],
+          "environment": { "WEAVERSE_API_KEY": "your-key" }
+        }
+      }
+    }
     ```
   </Tab>
 
@@ -120,6 +138,12 @@ docs-only use) via the `env` block.
 <Note>
   Leave `WEAVERSE_API_KEY` out to run docs-only — `search_weaverse_docs` still
   works. Existing installs that only search docs keep working unchanged.
+</Note>
+
+<Note>
+  Using another MCP-compatible client — **pi**, Gemini CLI, or anything else that
+  speaks MCP? Point it at `npx -y @weaverse/mcp` and put `WEAVERSE_API_KEY` in
+  the server's environment.
 </Note>
 
 ## Authentication
