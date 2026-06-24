@@ -507,74 +507,40 @@ Run experiments with different themes, layouts, or content strategies to optimiz
 - Note start date and goals
 - Plan when to end experiment
 
-### Technical Implementation: Cookie-Based Routing
+### Technical Implementation
 
-```typescript
-// app/lib/weaverse/ab-testing.server.ts
-import { createCookie } from "@shopify/remix-oxygen";
+<Note>
+Variant assignment, stickiness, and exposure tracking are handled by the optional [`@weaverse/experiments`](https://www.npmjs.com/package/@weaverse/experiments) package — install it only when you run experiments:
 
-// Cookie to store user's variant assignment
-export let experimentCookie = createCookie("weaverse-experiment", {
-  maxAge: 60 * 60 * 24 * 30, // 30 days
-  httpOnly: true,
-  secure: true,
-  sameSite: "lax",
-});
-
-/**
- * Assign user to variant based on traffic split
- * @param split - Percentage of traffic for variant B (0-100)
- */
-export function assignVariant(split: number = 50): "A" | "B" {
-  let random = Math.random() * 100;
-  return random < split ? "B" : "A";
-}
-
-/**
- * Get or assign user's experiment variant
- */
-export async function getExperimentVariant(
-  request: Request,
-  split: number = 50
-): Promise<"A" | "B"> {
-  let cookieHeader = request.headers.get("Cookie");
-  let cookie = await experimentCookie.parse(cookieHeader);
-
-  // Return existing assignment if found
-  if (cookie?.variant === "A" || cookie?.variant === "B") {
-    return cookie.variant;
-  }
-
-  // Assign new variant
-  return assignVariant(split);
-}
-
-/**
- * Set experiment variant cookie in response
- */
-export async function setExperimentCookie(
-  headers: Headers,
-  variant: "A" | "B"
-): Promise<Headers> {
-  headers.append(
-    "Set-Cookie",
-    await experimentCookie.serialize({ variant })
-  );
-  return headers;
-}
+```bash
+npm i @weaverse/experiments
 ```
+</Note>
 
-#### WeaverseClient with A/B Testing
+Each variant is a duplicated Weaverse **project**. The package deterministically assigns each visitor to a variant from a stable seed and maps it to that project's `projectId`. Assignment is **sticky without a per-experiment cookie** — the same visitor always sees the same variant, with no flicker.
+
+#### 1. Resolve the variant on the server
 
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
-import { getExperimentVariant, setExperimentCookie } from "./ab-testing.server";
+import { getExperiments } from "@weaverse/experiments/server";
+import { WeaverseClient } from "@weaverse/hydrogen";
 
-export async function createWeaverseClient(args: CreateWeaverseClientArgs) {
+export function createWeaverseClient(args: CreateWeaverseClientArgs) {
   let { hydrogenContext, request, cache, themeSchema, components } = args;
 
-  // Get user's assigned variant (50/50 split)
-  let variant = await getExperimentVariant(request, 50);
+  // Deterministic, sticky assignment — no manual cookie handling.
+  let { projectId, assignments, headers } = getExperiments(request, {
+    experiments: [
+      {
+        id: "green-theme-test",
+        variants: [
+          { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! },
+          { id: "b", projectId: process.env.WEAVERSE_PROJECT_VARIANT_B! },
+        ],
+      },
+    ],
+  });
 
   let weaverse = new WeaverseClient({
     ...hydrogenContext,
@@ -582,165 +548,22 @@ export async function createWeaverseClient(args: CreateWeaverseClientArgs) {
     cache,
     themeSchema,
     components,
-    projectId: () => {
-      // A/B test: Route to different projects based on variant
-      if (variant === "B") {
-        return process.env.WEAVERSE_PROJECT_VARIANT_B!;
-      }
-      return process.env.WEAVERSE_PROJECT_CONTROL!;
-    },
+    projectId, // the chosen variant's project
   });
 
-  return { weaverse, experimentVariant: variant };
+  // `headers` carries a `Set-Cookie` only when a new visitor seed is minted.
+  return { weaverse, assignments, headers };
 }
 ```
 
-#### Root Route with Cookie Setting
+#### 2. Persist the seed and expose assignments to the client
 
 ```typescript
 // app/root.tsx
-import { setExperimentCookie } from "~/lib/weaverse/ab-testing.server";
+import { data } from "react-router";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
-  let { weaverse, experimentVariant } = await createWeaverseClient({
-    hydrogenContext: context,
-    request,
-    // ... other args
-  });
-
-  // Set cookie for variant assignment
-  let headers = new Headers();
-  await setExperimentCookie(headers, experimentVariant);
-
-  return json(
-    { experimentVariant },
-    { headers }
-  );
-}
-```
-
-### Advanced: 80/20 Split
-
-```typescript
-// 80% control (A), 20% variant (B)
-export async function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
-
-  // 80/20 split: 80% see control, 20% see variant
-  let variant = await getExperimentVariant(request, 20);
-
-  let weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
-    projectId: () => {
-      return variant === "B"
-        ? process.env.WEAVERSE_PROJECT_VARIANT_B!
-        : process.env.WEAVERSE_PROJECT_CONTROL!;
-    },
-  });
-
-  return { weaverse, experimentVariant: variant };
-}
-```
-
-### Analytics Integration
-
-Track experiment performance with your analytics provider:
-
-```typescript
-// app/routes/_index.tsx
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  let { weaverse, experimentVariant } = await createWeaverseClient({
-    // ... args
-  });
-
-  let weaverseData = await weaverse.loadPage({ type: "INDEX" });
-
-  return {
-    weaverseData,
-    experimentVariant, // Pass to client for analytics
-  };
-}
-
-export default function Homepage() {
-  let { experimentVariant } = useLoaderData<typeof loader>();
-
-  useEffect(() => {
-    // Track experiment variant in analytics
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "experiment_view", {
-        experiment_id: "green-theme-test",
-        variant_id: experimentVariant,
-      });
-    }
-  }, [experimentVariant]);
-
-  return <WeaverseContent />;
-}
-```
-
-### Complete A/B Testing Example
-
-```typescript
-// Complete implementation with analytics
-
-// app/lib/weaverse/ab-testing.server.ts
-import { createCookie } from "@shopify/remix-oxygen";
-
-export let experimentCookie = createCookie("weaverse-experiment", {
-  maxAge: 60 * 60 * 24 * 30,
-  httpOnly: true,
-  secure: true,
-  sameSite: "lax",
-});
-
-export function assignVariant(split: number = 50): "A" | "B" {
-  return Math.random() * 100 < split ? "B" : "A";
-}
-
-export async function getExperimentVariant(
-  request: Request,
-  split: number = 50
-): Promise<"A" | "B"> {
-  let cookieHeader = request.headers.get("Cookie");
-  let cookie = await experimentCookie.parse(cookieHeader);
-
-  if (cookie?.variant === "A" || cookie?.variant === "B") {
-    return cookie.variant;
-  }
-
-  return assignVariant(split);
-}
-
-// app/lib/weaverse/weaverse.server.ts
-export async function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
-
-  let variant = await getExperimentVariant(request, 50);
-
-  let weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
-    projectId: () => {
-      if (variant === "B") {
-        return process.env.WEAVERSE_PROJECT_VARIANT_B!;
-      }
-      return process.env.WEAVERSE_PROJECT_CONTROL!;
-    },
-  });
-
-  return { weaverse, experimentVariant: variant };
-}
-
-// app/root.tsx
-export async function loader({ request, context }: LoaderFunctionArgs) {
-  let { weaverse, experimentVariant } = await createWeaverseClient({
+  let { weaverse, assignments, headers } = await createWeaverseClient({
     hydrogenContext: context,
     request,
     cache: context.storefront.cache,
@@ -748,78 +571,186 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     components,
   });
 
-  let headers = new Headers();
-  await setExperimentCookie(headers, experimentVariant);
+  // `headers` already includes the seed `Set-Cookie` when one is needed.
+  return data({ assignments }, { headers });
+}
+```
 
-  return json(
+#### Adjusting the traffic split
+
+Variant `weight` is relative — omit it for an even split. For an 80/20 test, weight the variant down (only the ratio matters):
+
+```typescript
+let { projectId } = getExperiments(request, {
+  experiments: [
     {
-      experimentVariant,
-      experimentId: "green-theme-test",
+      id: "green-theme-test",
+      variants: [
+        { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! }, // weight 1
+        { id: "b", weight: 0.25, projectId: process.env.WEAVERSE_PROJECT_VARIANT_B! }, // ~20%
+      ],
     },
-    { headers }
+  ],
+});
+```
+
+<Tip>
+Need a specific audience instead of a random split? Pass your own `seed` (e.g. a logged-in customer id) so assignment keys off that identity, or skip the helper entirely and choose `projectId` with any logic — see [Advanced Routing Patterns](#advanced-routing-patterns).
+</Tip>
+
+#### Tracking exposure and segmenting downstream events
+
+Integrate with Hydrogen's [`Analytics.Provider`](https://shopify.dev/docs/api/hydrogen/hooks/useanalytics) at two points. Passing assignments to `customData` makes the variant ride along on **every** event (`page_viewed`, `product_added_to_cart`, `purchase`, …) — that's how you measure conversion impact, not just impressions. `onExpose` adds a one-time impression event.
+
+```tsx
+// app/root.tsx
+import { Analytics, useAnalytics } from "@shopify/hydrogen";
+import { WeaverseExperiments } from "@weaverse/experiments/react";
+import type { ReactNode } from "react";
+
+export default function App() {
+  let { assignments, cart, shop, consent } = useLoaderData<typeof loader>();
+
+  return (
+    <Analytics.Provider
+      cart={cart}
+      shop={shop}
+      consent={consent}
+      customData={{
+        experiments: Object.fromEntries(
+          assignments.map((a) => [a.experimentId, a.variant.id])
+        ),
+      }}
+    >
+      <Experiments assignments={assignments}>
+        <Outlet />
+      </Experiments>
+    </Analytics.Provider>
   );
 }
 
-export default function App() {
-  let { experimentVariant, experimentId } = useLoaderData<typeof loader>();
-
-  useEffect(() => {
-    // Send to Google Analytics
-    if (typeof window !== "undefined" && window.gtag) {
-      window.gtag("event", "experiment_view", {
-        experiment_id: experimentId,
-        variant_id: experimentVariant,
-      });
-    }
-  }, [experimentVariant, experimentId]);
+// Provides the resolved assignments to the whole tree — so `useExperiment(...)`
+// works in any route or section — and fires one exposure event per variant.
+// Wrapping `<Outlet />` is required: a self-closing `<WeaverseExperiments />`
+// provides its context to no descendants, so `useExperiment` would read the
+// empty default and return `undefined`.
+function Experiments({
+  assignments,
+  children,
+}: {
+  assignments: Assignment[];
+  children: ReactNode;
+}) {
+  let { publish, canTrack } = useAnalytics();
+  // Attach `onExpose` only once consent is granted. If it were always present,
+  // the provider would mark a variant exposed before `canTrack()` is true, and a
+  // later consent grant would never re-publish the impression. Leaving it
+  // `undefined` until then defers exposure — the provider fires it when consent
+  // flips and this prop becomes defined.
+  let tracking = canTrack();
 
   return (
-    <html>
-      <body>
-        <Outlet />
-      </body>
-    </html>
+    <WeaverseExperiments
+      value={assignments}
+      onExpose={
+        tracking
+          ? (assignment) => {
+              publish("custom_experiment_viewed", {
+                experimentId: assignment.experimentId,
+                variantId: assignment.variant.id,
+              });
+            }
+          : undefined
+      }
+    >
+      {children}
+    </WeaverseExperiments>
   );
 }
 ```
+
+Bridge the custom event to GA4/GTM (or any sink) from a subscriber. Custom event names must be prefixed `custom_`, and `ready()` ensures events aren't dropped before the subscriber attaches:
+
+```tsx
+// app/components/CustomAnalytics.tsx
+import { useAnalytics } from "@shopify/hydrogen";
+import { useEffect } from "react";
+
+export function CustomAnalytics() {
+  let { subscribe, register } = useAnalytics();
+  let { ready } = register("CustomAnalytics");
+
+  useEffect(() => {
+    subscribe("custom_experiment_viewed", (data) => {
+      window.dataLayer?.push({ event: "experiment_viewed", ...data });
+    });
+    ready();
+  }, []);
+
+  return null;
+}
+```
+
+<Tip>
+Because `customData` is merged into every analytics event, downstream conversions are already tagged with the variant — no need to re-attach the experiment on each `add_to_cart` or `purchase` call.
+</Tip>
+
+Read the active variant anywhere with `useExperiment("green-theme-test")`.
+
+
+### Previewing Variants in Studio
+
+Each variant is its own Weaverse project, so you preview a variant by **opening that project in Weaverse Studio** — the same way you edit any project. Studio loads your storefront with the chosen project pinned via the `weaverseProjectId` query parameter, the highest-priority source in the SDK's `projectId` resolution.
+
+`getExperiments` is Studio-aware: when it sees `weaverseProjectId` on the request it **defers to Studio** instead of applying the hashed assignment. It returns the pinned project as `projectId`, forces the matching variant so `useExperiment(...)` and analytics `customData` reflect what you are viewing, and skips minting a visitor cookie — so the loader code above needs no special casing.
+
+<Note>
+Without this deferral the route-level `projectId` from `getExperiments` would override `loadPage()` and pin the editor to whichever variant the `_wv_vid` cookie buckets into — you could never reach the other variant from Studio. The package handles this for you.
+</Note>
+
+To compare both, open **Control (A)** to review the baseline, then open **Variant B** to review the experiment — each renders its own project in the Studio preview.
 
 ### Route-Level A/B Testing
 
-For testing specific pages or routes without affecting the entire site:
+To test a single route without affecting the rest of the site, resolve the experiment in that route's loader and pass the chosen `projectId` to `loadPage()`:
 
 ```typescript
 // app/routes/products.$productHandle.tsx
+import { getExperiments } from "@weaverse/experiments/server";
+import { data } from "react-router";
+
 export async function loader({ context, params, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
-  let { productHandle } = params;
 
-  // Determine variant (from cookie, header, query param, etc.)
-  let variant = await getExperimentVariant(request);
-
-  // Override project for this specific route only
-  let projectId = variant === "B"
-    ? process.env.WEAVERSE_PROJECT_PRODUCT_VARIANT_B!
-    : process.env.WEAVERSE_PROJECT_CONTROL!;
+  let { projectId, assignments, headers } = getExperiments(request, {
+    experiments: [
+      {
+        id: "pdp-layout-test",
+        variants: [
+          { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! },
+          { id: "b", projectId: process.env.WEAVERSE_PROJECT_PRODUCT_VARIANT_B! },
+        ],
+      },
+    ],
+  });
 
   let weaverseData = await weaverse.loadPage({
     type: "PRODUCT",
-    handle: productHandle,
-    projectId, // Route-level override
+    handle: params.productHandle,
+    projectId, // route-level override
   });
 
-  return { weaverseData, variant };
+  return data({ weaverseData, assignments }, { headers });
 }
 ```
 
+The loader returns `assignments` alongside `weaverseData`, so this route can feed the chosen variant into its own `<Analytics.Provider customData>` / `<WeaverseExperiments>` — exactly like the global setup above — making variant-segmented events and `useExperiment("pdp-layout-test")` work on this route too.
+
 **Use Cases for Route-Level A/B Testing:**
-- Test product page layouts without changing homepage
+- Test product page layouts without changing the homepage
 - Experiment with collection page designs
 - Test checkout flow variations
 - Try different landing page versions for campaigns
-
-<Warning>
-Route-level testing requires careful cookie/variant management to ensure consistency. Consider using client-level projectId for site-wide experiments.
-</Warning>
 
 ### A/B Testing Best Practices
 
@@ -843,7 +774,7 @@ Route-level testing requires careful cookie/variant management to ensure consist
   <Accordion title="Ensure Consistent Experience" icon="user-check">
     **Critical:** Same user always sees same variant
 
-    **Implementation:** Use cookies with long expiry (30 days)
+    **Implementation:** `@weaverse/experiments` handles this automatically — deterministic seeding keeps a visitor on one variant with no per-request cookie
 
     **Avoid:** Random assignment on every page load
   </Accordion>
