@@ -193,6 +193,14 @@ revocable any time from **Settings → Connected agents / API keys** in Builder.
 
 ### Account (read-only — requires `WEAVERSE_API_KEY`)
 
+<Note>
+  **Account tools require `@weaverse/mcp` v2.2.0 or later** (the unified server,
+  shipped with this release). Documentation search works on every version.
+  Because `npx -y @weaverse/mcp` always fetches the latest, a fresh install
+  gets the account tools automatically; pin or upgrade if you installed an older
+  version.
+</Note>
+
 | Tool | Description |
 | ---- | ----------- |
 | `whoami` | Identify the token: shop id + scopes (when available) and the projects it can access. Call first. |
