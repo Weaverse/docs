@@ -82,18 +82,30 @@ docs-only use) via the `env` block.
 
   <Tab title="OpenClaw">
     ```bash
-    claude mcp add weaverse \
+    openclaw mcp add weaverse \
       --env WEAVERSE_API_KEY=your-key \
       -- npx -y @weaverse/mcp
     ```
   </Tab>
 
-  <Tab title="VS Code / Codex">
-    Add to your client's MCP config:
+  <Tab title="Codex">
+    Codex CLI uses TOML, not JSON. Add to `~/.codex/config.toml`:
+
+    ```toml
+    [mcp_servers.weaverse]
+    command = "npx"
+    args = ["-y", "@weaverse/mcp"]
+    env = { WEAVERSE_API_KEY = "your-key" }
+    ```
+  </Tab>
+
+  <Tab title="VS Code">
+    Add to `.vscode/mcp.json` (or your user `mcp.json`). VS Code uses a top-level
+    `servers` key (not `mcpServers`):
 
     ```json
     {
-      "mcpServers": {
+      "servers": {
         "weaverse": {
           "command": "npx",
           "args": ["-y", "@weaverse/mcp"],
