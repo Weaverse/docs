@@ -299,6 +299,10 @@
 			"destination": "/intro/quickstart"
 		},
 		{
+			"source": "/getting-started/quickstart",
+			"destination": "/intro/quickstart"
+		},
+		{
 			"source": "/core-concepts/project-structure",
 			"destination": "/intro/project-structure"
 		},
