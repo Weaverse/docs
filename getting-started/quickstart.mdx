@@ -23,9 +23,9 @@ Before starting, make sure you have:
 
 - **Node.js 18+** - [Download here](https://nodejs.org/) and verify with `node --version`
 - **A Shopify store** - [Create a development store](https://partners.shopify.com/) (free for testing)
-- **Basic terminal knowledge** - Copy/paste commands (we'll guide you!)
+- **An AI coding agent** (recommended) - Cursor, Claude Code, Codex, Windsurf, or similar. The agent handles setup for you so you barely touch the terminal.
 
-> **💡 New to terminal?** On macOS/Linux open Terminal, on Windows use Command Prompt or PowerShell. You'll only need to copy and paste a few commands!
+> **💡 No coding agent?** You can still follow along with the CLI fallback in Step 4 — you'll only need to copy and paste a few commands. On macOS/Linux open Terminal, on Windows use Command Prompt or PowerShell.
 
 ## Step 1: Install Weaverse App
 
@@ -74,27 +74,41 @@ Before starting, make sure you have:
 
 ---
 
-## Step 4: Quick Setup with CLI
+## Step 4: Set Up with Your AI Agent (Recommended)
 
-1. **Copy the Generated Command**
-   - After selecting your theme, you'll see a custom CLI command
-   - This command is unique to your project and includes your Project ID
+The fastest way to get going is to let your AI coding agent do the setup. The onboarding modal gives you a ready-to-paste prompt tailored to your project.
 
-2. **Example Command:**
+1. **Copy the AI Agent Prompt**
+   - After selecting your theme, the modal shows an **AI agent prompt** as the primary option
+   - It already includes your `WEAVERSE_PROJECT_ID` and theme
+
+2. **Paste It Into Your Agent**
+   - Works with Cursor, Claude Code, Codex, Windsurf, Gemini CLI, and others
+   - The agent loads the [`setup-weaverse-project`](/developer-tools/shopify-hydrogen-skills) skill and runs the full setup
+
+3. **What the Agent Does**
+   - ✅ Clones your selected theme (`https://github.com/Weaverse/{theme-handle}`) and makes it your own fresh git repo
+   - ✅ **Boots a live preview on a demo store first** — you see your storefront running at `http://localhost:3456` in ~2 minutes, *before* you have to provide any credentials
+   - ✅ Then helps you make it yours: your Shopify store env, a new GitHub repo, and connecting the preview back to Builder
+   - ✅ Verifies everything works before telling you it's done
+
+<Note>
+  **Why demo-first?** You get a working storefront immediately, then swap in your own store data once you've seen it run. No walls before the win. See Step 7 to connect your real store.
+</Note>
+
+<Accordion title="Prefer the terminal? Use the CLI command instead">
+
+The modal also includes a CLI command as a backup. Copy it and run in your terminal:
+
 ```bash
 npx @weaverse/cli@latest create --template=pilot --project-id=v3gf5xxth6j1u3qr2fa4im1x --project-name=my-hydrogen-storefront
 ```
 
-3. **Run in Terminal**
-   - Open your terminal/command prompt
-   - Paste and run the command
-   - The setup process will automatically:
-     - ✅ Download the selected theme to your local machine
-     - ✅ Install all dependencies (React, Hydrogen, etc.)
-     - ✅ Update environment variables with your Project ID
-     - ✅ Start the development server
-
-![CLI command displayed in modal with copy button](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_cli_command.webp?v=1755078433)
+The command is unique to your project and includes your Project ID. It will automatically:
+- ✅ Download the selected theme to your local machine
+- ✅ Install all dependencies (React, Hydrogen, etc.)
+- ✅ Update environment variables with your Project ID
+- ✅ Start the development server
 
 **Example Terminal Output:**
 ```bash
@@ -107,6 +121,10 @@ npx @weaverse/cli@latest create --template=pilot --project-id=v3gf5xxth6j1u3qr2f
 🌐 Local:    http://localhost:3456
 📝 Studio:   https://studio.weaverse.io/projects/your-project-id
 ```
+
+</Accordion>
+
+![Project setup modal with AI agent prompt and CLI fallback](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_cli_command.webp?v=1755078433)
 
 ---
 
