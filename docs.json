@@ -238,7 +238,8 @@
 						"pages": [
 							"resources/faq",
 							"resources/tutorial",
-							"resources/example-components"
+							"resources/example-components",
+							"resources/glossary"
 						]
 					},
 					{

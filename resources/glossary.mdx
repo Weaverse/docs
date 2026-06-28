@@ -1,0 +1,71 @@
+---
+title: "Glossary"
+description: "Definitions of the Weaverse and Shopify Hydrogen terminology used throughout these docs."
+published: true
+---
+
+# Glossary
+
+Definitions of the Weaverse and Shopify Hydrogen terms used throughout this documentation. Each term links to the guide where the concept is covered in depth.
+
+## Platform & Core Concepts
+
+- **Weaverse** — A visual page builder and CMS for Shopify Hydrogen. Developers build a theme once with React components; merchants then edit content, layout, and styling visually — like the Shopify theme editor, but for Hydrogen. See [Why Weaverse for Hydrogen](/intro/why-weaverse-for-hydrogen).
+- **Weaverse Studio** — The visual editor at `studio.weaverse.io`, where you arrange sections, edit content, and preview changes live. See [Studio Interface Tour](/studio-guide/interface-tour).
+- **Shopify Hydrogen** — Shopify's React framework for building custom (headless) storefronts. Weaverse themes are Hydrogen apps. See [How Weaverse Works](/intro/how-it-works).
+- **Shopify Oxygen** — Shopify's global edge hosting platform for deploying Hydrogen storefronts. See [Deploy to Oxygen](/guides/deployment/oxygen).
+- **Project** — A Weaverse project connects a Hydrogen storefront to Studio; its `WEAVERSE_PROJECT_ID` ties your local code to the editor. See [Project Structure](/intro/project-structure).
+- **Storefront API** — Shopify's GraphQL API for reading store data (products, collections, cart). Weaverse components query it through the Weaverse client. See [Section Data Fetching](/development-guide/data-fetching).
+
+## Themes, Pages & Structure
+
+- **Theme** — A complete Hydrogen storefront that combines code structure with Weaverse's visual editing (for example Pilot or Naturelle). See [Themes & Templates](/hydrogen-themes).
+- **Pilot** — Weaverse's flagship reference theme: a fully featured Hydrogen storefront and the recommended starting point. See [Pilot Theme Overview](/hydrogen-themes/pilot-theme-overview).
+- **Section** — A page-level building block that merchants add, reorder, and configure in Studio. Sections are Weaverse components registered for the page. See [Pilot Theme Sections](/hydrogen-themes/pilot-theme-sections).
+- **Global Section** — A reusable section (such as a header or footer) saved once and shared across pages, so a single edit updates every instance. See [Global Sections](/features/global-sections).
+- **Template** — A reusable layout for a Shopify resource type (product, collection, page, blog) that overrides the default layout. See [Custom Templates](/features/custom-templates).
+- **Custom Page** — A brand-new route created in Weaverse, as opposed to a template that overrides an existing resource. See [Custom Pages](/features/custom-pages).
+- **Navigation Menu** — Storefront menus driven by Shopify's menu system and rendered through Weaverse. See [Navigation Menus](/features/navigation-menus).
+
+## Components & Schema
+
+- **Component** — A reusable React UI element with a Weaverse schema. The top-level components used on pages are called **sections**. See [Creating Components](/development-guide/creating-components).
+- **Schema** — The configuration object that registers a component with Weaverse, defining its `type`, `title`, editor `settings`, allowed `childTypes`, `presets`, and more. Created with `createSchema()`. See [Component Schema](/development-guide/component-schema).
+- **`createSchema()`** — The function from `@weaverse/hydrogen` used to define a component's schema. See [Component Schema](/development-guide/component-schema).
+- **Settings** — The grouped editor inputs that make a component configurable by merchants. (Formerly *inspector*, now deprecated.) See [Input Settings](/development-guide/input-settings).
+- **Input** — A single configurable field within a component's settings: text, image, range, color, select, and so on. See [Input Settings](/development-guide/input-settings).
+- **Child Component / `childTypes`** — Components allowed to nest inside another (for example slides inside a slideshow), declared via `childTypes` in the schema. See [Component Schema](/development-guide/component-schema).
+- **Presets** — Default content and settings applied when a component is first added to a page. See [Component Schema](/development-guide/component-schema).
+
+## Data & Theme Settings
+
+- **Loader** — A component's server-side data-fetching function. Weaverse calls it with `ComponentLoaderArgs` so a section can fetch its own data. See [Section Data Fetching](/development-guide/data-fetching).
+- **Theme Settings** — Global, site-wide configuration (colors, fonts, layout) defined in the theme schema and editable in Studio. See [Styling & Theming](/development-guide/styling-theming).
+- **Theme Schema** — The `HydrogenThemeSchema` that declares all global theme settings for a storefront. See [Styling & Theming](/development-guide/styling-theming).
+- **Data Revalidation (`shouldRevalidate`)** — A flag on an input that tells Weaverse to re-run a component's loader when that setting changes, keeping displayed data in sync. See [Section Data Fetching](/development-guide/data-fetching).
+- **`fetchWithCache`** — A Weaverse utility for fetching external APIs with Hydrogen's caching applied. See [Section Data Fetching](/development-guide/data-fetching).
+- **Metaobjects** — Shopify's structured custom-content records, used by themes such as Pilot to model reusable content. See [Pilot Theme Overview](/hydrogen-themes/pilot-theme-overview).
+
+## SDK & API Reference
+
+- **`@weaverse/hydrogen`** — The Weaverse SDK for Hydrogen: components, hooks, schema helpers, and the client. See [Weaverse SDKs](/developer-tools/weaverse-sdks).
+- **WeaverseRoot** — The core component that renders Weaverse content (sections) from the Weaverse context. See [WeaverseRoot](/api-reference/weaverse-root).
+- **WeaverseClient** — The client that fetches Weaverse page and theme content for your routes. See [WeaverseClient](/api-reference/weaverse-client).
+- **`withWeaverse`** — A higher-order component that sets up the Weaverse provider and theme-settings context around your app. See [withWeaverse](/api-reference/with-weaverse).
+- **`useWeaverse`** — Hook to access the active Weaverse instance. See [useWeaverse](/api-reference/use-weaverse).
+- **`useThemeSettings`** — Hook to read global theme settings inside components. See [useThemeSettings](/api-reference/use-theme-settings).
+- **`useItemInstance` / `useParentInstance` / `useChildInstances`** — Hooks to access a component instance and traverse the component tree. See [useItemInstance](/api-reference/use-item-instance).
+- **`getSelectedProductOptions`** — Utility that resolves the selected variant options from the request for product rendering. See [getSelectedProductOptions](/api-reference/get-selected-product-options).
+- **Content API** — Weaverse's API for fetching project and page content outside the SDK. See [Content API Overview](/content-api/overview).
+- **Weaverse CLI** — The `@weaverse/cli` command-line tool for scaffolding and managing Weaverse Hydrogen projects. See [Weaverse CLI](/developer-tools/weaverse-cli).
+
+## Editor & Workflow
+
+- **Design Mode** — The state a storefront runs in when loaded inside Studio's iframe (detected via the `isDesignMode=true` query parameter), used to branch editor-only behavior. See [Studio vs. Live Environment](/development-guide/design-mode).
+- **Inspector** — Deprecated term for a component's **settings**. Use `settings` in schemas.
+- **Preview** — The live storefront rendered inside Studio. Local development serves it on `http://localhost:3456`. See [Quickstart](/intro/quickstart).
+- **Markets & Localization** — Weaverse's support for multiple languages and international markets. See [Markets & Localization](/features/markets-localization).
+
+---
+
+Can't find a term? Check the [FAQ](/resources/faq) or ask in our [community](/community/community).
