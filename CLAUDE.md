@@ -162,7 +162,7 @@ published: true  # Optional, defaults to true
 
 Commonly used Mintlify components in this documentation:
 
-```mdx
+````mdx
 # Card components
 <Card title="Title" icon="icon-name" href="/path">
   Description text
@@ -206,7 +206,7 @@ npm run dev
 <Frame>
   <img src="url" alt="description" />
 </Frame>
-```
+````
 
 ## Weaverse-Specific Terminology
 
