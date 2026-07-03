@@ -69,7 +69,7 @@ Create a `.env` file with your Weaverse and Shopify credentials:
 
 ```bash
 # Core Variables
-SESSION_SECRET="your-session-secret"
+SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 WEAVERSE_PROJECT_ID="your-weaverse-project-id"
@@ -77,6 +77,10 @@ WEAVERSE_PROJECT_ID="your-weaverse-project-id"
 # Optional: Use demo data during development
 # PUBLIC_STORE_DOMAIN="mock.shop"
 ```
+
+Generate `SESSION_SECRET` with `openssl rand -hex 32` or `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. If you scaffold with the Weaverse CLI, it is generated for you.
+
+For real Shopify data, stores on a Shopify plan should install the Hydrogen sales channel (https://apps.shopify.com/hydrogen), create a Hydrogen storefront project, then run `npx shopify hydrogen env pull` or copy values from **Storefront Settings → Environments and variables**. Development stores or stores without a Shopify plan should use the Headless sales channel (https://apps.shopify.com/headless) and copy the Storefront API values into `.env`.
 
 </Step>
 

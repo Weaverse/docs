@@ -84,8 +84,8 @@ Before starting, ensure you have:
    PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
    PUBLIC_STOREFRONT_API_TOKEN="your-storefront-access-token"
    
-   # Required - Generate a random string
-   SESSION_SECRET="your-random-session-secret"
+   # Required - generated automatically by Weaverse CLI/agent setup
+   SESSION_SECRET="<generated-random-secret>"
    
    # Optional - For customer accounts
    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-client-id"
@@ -94,8 +94,10 @@ Before starting, ensure you have:
 
    **Where to find these values:**
    - `WEAVERSE_PROJECT_ID`: Copy from Weaverse Studio project settings
-   - `PUBLIC_STOREFRONT_API_TOKEN`: Create in Shopify Admin → Apps → App and sales channel settings → Develop apps
-   - `SESSION_SECRET`: Generate with `openssl rand -base64 32`
+   - `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`:
+     - Stores on a Shopify plan: install the Hydrogen sales channel (https://apps.shopify.com/hydrogen), create one Hydrogen storefront project, then run `npx shopify hydrogen env pull` or copy values from **Hydrogen sales channel → Storefront Settings → Environments and variables**.
+     - Development stores or stores without a Shopify plan: install the Headless sales channel (https://apps.shopify.com/headless), then copy the Storefront API values into `.env` or give them to your AI agent to handle.
+   - `SESSION_SECRET`: Generated automatically by the Weaverse CLI/agent setup. For manual setup, generate with `openssl rand -hex 32`.
 
 4. **Start the development server**:
    ```bash

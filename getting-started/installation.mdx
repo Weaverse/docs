@@ -78,14 +78,14 @@ PUBLIC_STOREFRONT_API_TOKEN=your_storefront_api_token
 WEAVERSE_PROJECT_ID=your-weaverse-project-id
 
 # Session secret
-SESSION_SECRET=your-random-session-secret
+SESSION_SECRET=<generated-random-secret>
 ```
 
 ### Getting API Tokens
 
-**For paid stores**: Install Hydrogen app (https://apps.shopify.com/hydrogen) then run `npx shopify hydrogen env pull`
+**For stores on a Shopify plan**: Install the Hydrogen sales channel (https://apps.shopify.com/hydrogen), create one Hydrogen storefront project, then run `npx shopify hydrogen env pull`. If the CLI cannot pull yet, copy values from **Hydrogen sales channel → Storefront Settings → Environments and variables**.
 
-**For development stores**: Use Headless app (https://apps.shopify.com/headless) or create a custom app with Storefront API access
+**For development stores or stores without a Shopify plan**: Install the Headless sales channel (https://apps.shopify.com/headless), copy the Storefront API values, and add them to `.env` manually or give them to your AI agent to handle.
 
 **Session Secret**: Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 

@@ -191,7 +191,7 @@ revocable any time from **Settings → Connected agents / API keys** in Builder.
   knowledge base, ranking, and freshness all live upstream.
 </Card>
 
-### Account (read-only — requires `WEAVERSE_API_KEY`)
+### Account (requires `WEAVERSE_API_KEY`)
 
 <Note>
   **Account tools require `@weaverse/mcp` v2.2.0 or later** (the unified server,
@@ -209,6 +209,10 @@ revocable any time from **Settings → Connected agents / API keys** in Builder.
 | `get_page` | Get a page's content. Defaults to **Portable Text**; pass `format: "weaverse"` for the raw item tree. |
 | `get_theme_settings` | Get a project's theme settings (design tokens + config). |
 | `list_languages` | List a project's locales. |
+| `update_page` | Edit a page: merge `data` into existing items, create new typed items, relink `children`. Goes live immediately. |
+| `delete_pages` | Soft-delete pages by ids or handles + type. Takes effect on the live storefront immediately. |
+| `update_theme_settings` | Merge top-level theme settings keys. Snapshots a restorable theme version first. |
+| `update_project` | Rename a project (`name` is the only writable field). |
 
 <Tip>
   `get_page` returns [Portable Text](/content-api/get-page#portable-text-format)
@@ -219,21 +223,23 @@ revocable any time from **Settings → Connected agents / API keys** in Builder.
 ## Content writes & safety
 
 <Warning>
-  The Content API is **read-only today**, so the MCP exposes **no write tools**.
+  Write tools change the **live storefront immediately** — edits propagate
+  through the same cache-invalidation path as a Studio save. Read the current
+  value first (`get_page`, `get_theme_settings`), send only the keys you mean
+  to change, and remember nested objects are replaced wholesale.
 </Warning>
 
-When write endpoints land, the planned tools (e.g. `update_page_content`,
-`update_theme_settings`) will be **bulk edits to existing items only** and will
-ship behind a safety flow:
+Write scope is deliberately narrow:
 
-- **Dry-run by default** — return a diff/preview first.
-- **`confirm: true` required** to apply.
-- **Audit log** of which token changed what, when.
+- **Page content** — merge item data, create items, relink children
+  (`update_page`), and soft-delete pages (`delete_pages`).
+- **Theme settings** — top-level key merges only; a restorable theme version is
+  snapshotted before every change (`update_theme_settings`).
+- **Project** — `name` only (`update_project`).
 
-**Destructive and account-level operations are never exposed via MCP** — deleting
-projects, billing, team/members, plan changes, and production publishes stay
-human-only in [Weaverse Builder](https://studio.weaverse.io). An agent may
-*propose*; a human *confirms*.
+**Account-level operations are never exposed via MCP** — creating or deleting
+projects, billing, team/members, plan changes, and store linkage stay
+human-only in [Weaverse Builder](https://studio.weaverse.io).
 
 ## How docs search relates to `docs.weaverse.io/mcp`
 
@@ -246,7 +252,7 @@ lookup; pick `@weaverse/mcp` when you want your agent to work with your projects
 
 <CardGroup cols={2}>
   <Card title="Content API" icon="plug" href="/content-api/overview">
-    The read-only REST API the account tools wrap. The MCP is its agent-native front end.
+    The REST API the account tools wrap — reads and writes. The MCP is its agent-native front end.
   </Card>
   <Card title="Shopify Hydrogen Skills" icon="sparkles" href="/developer-tools/shopify-hydrogen-skills">
     Agent skills for building Weaverse + Hydrogen storefronts. After setup, the same key powers the account tools here.

@@ -86,13 +86,14 @@ The fastest way to get going is to let your AI coding agent do the setup. The on
    - The agent loads the [`setup-weaverse-project`](/developer-tools/shopify-hydrogen-skills) skill and runs the full setup
 
 3. **What the Agent Does**
-   - ✅ Clones your selected theme (`https://github.com/Weaverse/{theme-handle}`) and makes it your own fresh git repo
+   - ✅ Runs the Weaverse CLI to scaffold your selected theme and makes it your own fresh git repo
    - ✅ **Boots a live preview on a demo store first** — you see your storefront running at `http://localhost:3456` in ~2 minutes, *before* you have to provide any credentials
+   - ✅ Generates local-only values like `SESSION_SECRET` automatically
    - ✅ Then helps you make it yours: your Shopify store env, a new GitHub repo, and connecting the preview back to Builder
    - ✅ Verifies everything works before telling you it's done
 
 <Note>
-  **Why demo-first?** You get a working storefront immediately, then swap in your own store data once you've seen it run. No walls before the win. See Step 7 to connect your real store.
+  **Why demo-first?** You get a working storefront immediately, then swap in your own store data once you've seen it run. No Shopify tokens, GitHub setup, or manual secrets before the win. See Step 7 to connect your real store.
 </Note>
 
 <Accordion title="Prefer the terminal? Use the CLI command instead">
@@ -106,7 +107,7 @@ npx @weaverse/cli@latest create --template=pilot --project-id=v3gf5xxth6j1u3qr2f
 The command is unique to your project and includes your Project ID. It will automatically:
 - ✅ Download the selected theme to your local machine
 - ✅ Install all dependencies (React, Hydrogen, etc.)
-- ✅ Update environment variables with your Project ID
+- ✅ Update environment variables with your Project ID and a generated `SESSION_SECRET`
 - ✅ Start the development server
 
 **Example Terminal Output:**
@@ -169,14 +170,18 @@ Now for the fun part! Start customizing your storefront:
 
 Right now you're seeing demo content. Let's connect your actual store data:
 
-### Option A: For Paid Shopify Stores (Recommended)
+### Option A: Stores on a Shopify plan (Recommended)
 
-1. **Install Hydrogen App**
+1. **Install Hydrogen Sales Channel**
    - Go to https://apps.shopify.com/hydrogen
    - Install the **Hydrogen** app (by Shopify)
    - This creates a Hydrogen sales channel
 
-2. **Pull Store Environment**
+2. **Create a Hydrogen Storefront Project**
+   - Open the Hydrogen sales channel in Shopify Admin
+   - Create one Hydrogen storefront project for this store
+
+3. **Pull Store Environment**
    ```bash
    # Make sure you're in your theme folder
    cd my-hydrogen-storefront
@@ -185,12 +190,16 @@ Right now you're seeing demo content. Let's connect your actual store data:
    npx shopify hydrogen env pull
    ```
 
-3. **Follow CLI Prompts**
-   - Select your Shopify store
-   - Choose your Hydrogen project
+4. **Follow CLI Prompts**
+   - Select your Shopify store. If an AI agent is driving the CLI and more than one shop appears, give it the exact `.myshopify.com` domain to select.
+   - Choose the Hydrogen storefront project you created
    - The CLI will automatically update your `.env` file
 
-4. **Restart Development Server**
+<Tip>
+  If `env pull` is not available or the project is not linked yet, copy the values manually from **Shopify Admin → Hydrogen sales channel → Storefront Settings → Environments and variables**, then add them to `.env`.
+</Tip>
+
+5. **Restart Development Server**
    ```bash
    npm run dev
    ```
@@ -198,21 +207,24 @@ Right now you're seeing demo content. Let's connect your actual store data:
 ![Hydrogen app installation in Shopify App Store](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/hydrogen_on_shopify_app_store.webp?v=1755078732)
 
 
-### Option B: For Development/Trial Stores
+### Option B: Development stores or stores without a Shopify plan
 
-1. **Create Storefront API Token**
-   - In Shopify Admin, go to **Apps > Develop apps**
-   - Click **Create an app** 
-   - Name it "Weaverse Storefront"
-   - Alternative: Use the **Headless** app (https://apps.shopify.com/headless) for easier setup
-   - Configure **Storefront API scopes** and enable all permissions
+1. **Install Headless Sales Channel**
+   - Go to https://apps.shopify.com/headless
+   - Install the **Headless** app (by Shopify)
+   - Create or open a storefront inside the Headless channel
 
 2. **Update Environment Variables**
+   - Copy the Storefront API values from the Headless channel
+   - Add them to `.env`, or give them to your AI agent and let it update `.env`
+
    ```bash
    # Edit your .env file with:
    PUBLIC_STORE_DOMAIN=your-store.myshopify.com
    PUBLIC_STOREFRONT_API_TOKEN=your_generated_token
    ```
+
+   You do not need to create `SESSION_SECRET` manually. The Weaverse CLI and agent setup generate it for you.
 
 3. **Restart Development Server**
    ```bash

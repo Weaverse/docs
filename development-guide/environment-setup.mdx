@@ -11,7 +11,7 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 ## Essential Environment Variables
 
 ### Core Variables
-1. **`SESSION_SECRET`**: A secret key used to sign session cookies. For more details, refer to the [Remix documentation on using sessions](https://remix.run/docs/en/v1/api/remix#use-session).
+1. **`SESSION_SECRET`**: A random secret key used to sign session cookies. The Weaverse CLI/agent setup generates this automatically; if you are configuring a project manually, generate it instead of choosing a memorable value.
 2. **`PUBLIC_STOREFRONT_API_TOKEN`**: The public access token for the Storefront API. This is not required if you are using the **`mock.shop`** demo setup.
 3. **`PUBLIC_STORE_DOMAIN`**: The domain of the store used to communicate with the Storefront API.
 4. **`PUBLIC_CHECKOUT_DOMAIN`**: The domain of the checkout page (or the original Online Store domain).
@@ -44,16 +44,24 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 ### Using Demo Setup (with `mock.shop`)
 
 ```plaintext
-SESSION_SECRET="my-secret-key"
+SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="mock.shop"
 WEAVERSE_PROJECT_ID="weaverse-project-id"
+```
+
+Generate a local `SESSION_SECRET` with either command:
+
+```bash
+openssl rand -hex 32
+# or
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### Production Setup
 
 ```plaintext
 # Core Variables
-SESSION_SECRET="your-session-secret"
+SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
 PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
@@ -137,9 +145,10 @@ interface Env extends HydrogenEnv {
 ## Obtaining Required Tokens
 
 ### Storefront API Token
-1. Install the [Headless](https://apps.shopify.com/headless) or [Hydrogen](https://apps.shopify.com/hydrogen) app
-2. Follow [these instructions](https://shopify.dev/docs/custom-storefronts/building-with-the-storefront-api/manage-headless-channels) to obtain the Storefront API Token
-3. When setting permissions, enable all Storefront API access scopes to avoid unexpected errors during development
+1. **Stores on a Shopify plan**: install the [Hydrogen sales channel](https://apps.shopify.com/hydrogen), create one Hydrogen storefront project, then run `npx shopify hydrogen env pull` from your local storefront. If you need to copy values manually, use **Hydrogen sales channel → Storefront Settings → Environments and variables**.
+2. **Development stores or stores without a Shopify plan**: install the [Headless sales channel](https://apps.shopify.com/headless), copy the Storefront API values, and add them to `.env` manually or give them to your AI agent to handle.
+3. Follow [Shopify's headless channel instructions](https://shopify.dev/docs/custom-storefronts/building-with-the-storefront-api/manage-headless-channels) when you need to manage Headless storefront tokens directly.
+4. When setting permissions, enable all Storefront API access scopes to avoid unexpected errors during development.
 
 > 💡 **Tip**: Always enable all Storefront API permissions when generating your token. This prevents access-related errors that can be difficult to troubleshoot during development.
 

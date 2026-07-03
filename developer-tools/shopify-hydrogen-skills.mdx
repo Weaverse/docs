@@ -25,7 +25,7 @@ For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/sho
 
 <CardGroup cols={2}>
   <Card title="setup-weaverse-project" icon="rocket">
-    The front door — take a project from nothing to a running, connected storefront. Boots a live preview on the demo store first (before any credentials), then makes it yours: env, GitHub repo, dev server, preview connection. Load when starting a brand-new project or running a theme locally for the first time.
+    The front door — take a project from nothing to a running, connected storefront. Scaffolds with the Weaverse CLI, generates `SESSION_SECRET`, boots a live demo-store preview before credentials, then makes it yours: env, GitHub repo, dev server, preview connection. Load when starting a brand-new project or running a theme locally for the first time.
   </Card>
   <Card title="shopify-hydrogen" icon="store">
     Core Hydrogen APIs — `createHydrogenContext`, cart handler, caching, pagination, SEO, CSP. Load when working with `@shopify/hydrogen` APIs.
@@ -107,7 +107,7 @@ The `references/` folders in each skill serve as **offline fallback** — cached
 For the best development experience, combine agent skills with [Weaverse MCP](/developer-tools/weaverse-mcp):
 
 - **Skills** provide structured knowledge your agent loads before tasks
-- **MCP** provides real-time doc search for up-to-date API details
+- **MCP** provides real-time doc search plus account access: read projects, pages, theme settings, and locales — and edit page content, theme settings, and project names
 
 Together, your AI coding agent has both deep context and live access to the latest documentation.
 

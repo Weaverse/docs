@@ -1,15 +1,18 @@
 ---
 title: "Content API"
-description: "Read-only REST API for accessing Weaverse page content, theme settings, and project data from external applications"
+description: "REST API for reading and updating Weaverse page content, theme settings, and project data from external applications"
 published: true
 ---
 
 # Content API
 
-The Weaverse Content API is a read-only REST API that lets you access your page content, theme settings, and project data from any application — headless frontends, mobile apps, static site generators, or custom integrations.
+The Weaverse Content API is a REST API that lets you read **and update** your page content, theme settings, and project data from any application — headless frontends, mobile apps, static site generators, AI agents, or custom integrations.
 
 <Note>
-  The Content API is currently **read-only** (GET requests). Write endpoints are planned for a future release.
+  Write endpoints cover page content (update + delete), theme settings, and the
+  project name. Changes go live immediately through the same cache-invalidation
+  path as a Studio save. Project create/delete and store-level settings remain
+  Studio-only.
 </Note>
 
 ## Base URL
@@ -23,11 +26,34 @@ https://studio.weaverse.io/api/v1/content
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | [`/projects`](/content-api/list-projects) | List all projects |
+| `GET` | `/projects/:projectId` | Get a single project's metadata |
+| `PATCH` | `/projects/:projectId` | Update the project name |
 | `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
+| `DELETE` | `/projects/:projectId/pages` | Bulk-delete pages (by ids or handles) |
 | `GET` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/get-page) | Get page content |
+| `PATCH` | `/projects/:projectId/pages/:type/:handle...` | Update page content (merge item data, create items, relink children) |
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
-| `GET` | [`/projects/:projectId/languages`](/content-api/list-languages) | List configured locales |
+| `PATCH` | `/projects/:projectId/theme-settings` | Merge top-level theme settings keys |
 | `GET` | `/openapi.json` | OpenAPI 3.1 specification |
+
+All write endpoints also accept `POST` with the same body, for clients and
+proxies that strip `PATCH`/`DELETE` bodies. Full request/response schemas live
+in [`/openapi.json`](https://studio.weaverse.io/api/v1/content/openapi.json).
+
+### Write semantics
+
+- **Page update** — `PATCH .../pages/:type/:handle...` with
+  `{ "items": [{ "id", "data", "type?", "children?" }], "locale?" }`.
+  `data` is shallow-merged over the item's existing data (send only changed
+  top-level keys; nested objects are replaced wholesale). Unknown ids are
+  created only when `type` is supplied. Max 100 items per request.
+- **Page delete** — `DELETE .../pages` with `{ "pageIds": [...] }` or
+  `{ "handles": [...], "type", "locale?" }`. Soft-deletes up to 500 pages.
+- **Theme settings** — `PATCH .../theme-settings` with `{ "theme": { ... } }`.
+  Top-level keys are shallow-merged over the project's own theme; a restorable
+  theme version is snapshotted before each change.
+- **Project** — `PATCH /projects/:projectId` with `{ "name": "..." }`.
+  Only `name` is writable; unknown fields are rejected.
 
 <Tip>
   The page detail endpoint captures the handle as the rest of the path. Use the exact `handle` returned by `/projects/:projectId/pages`; custom page handles may include `/`, such as `pages/gift-shop`.

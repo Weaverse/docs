@@ -569,8 +569,10 @@ app/
 
 **Weaverse MCP Server**:
 ```bash
-npm install -g @weaverse/mcp
-# Provides AI assistants access to Weaverse documentation
+npx -y @weaverse/mcp
+# Docs search works without a key.
+# Add WEAVERSE_API_KEY in your MCP client config to read and edit
+# project, page, and theme settings data.
 ```
 
 **AI-Friendly Patterns**:
@@ -1569,7 +1571,7 @@ jobs:
 # Shopify Configuration
 PUBLIC_STORE_DOMAIN=dev-store.myshopify.com
 PUBLIC_STOREFRONT_API_TOKEN=dev_storefront_token
-SESSION_SECRET=dev_session_secret
+SESSION_SECRET=<generated-random-secret>
 
 # Weaverse Configuration
 WEAVERSE_PROJECT_ID=dev_project_id
@@ -1578,6 +1580,8 @@ WEAVERSE_PROJECT_ID=dev_project_id
 GOOGLE_ANALYTICS_ID=GA-DEV-ID
 KLAVIYO_API_KEY=dev_klaviyo_key
 ```
+
+For stores on a Shopify plan, install the Hydrogen sales channel, create one Hydrogen storefront project, then run `npx shopify hydrogen env pull` or copy values from **Hydrogen sales channel → Storefront Settings → Environments and variables**. For development stores or stores without a Shopify plan, install the Headless sales channel and copy the Storefront API values into `.env`.
 
 **Production Security**:
 - Use platform secret management
