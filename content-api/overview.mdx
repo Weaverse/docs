@@ -34,6 +34,7 @@ https://studio.weaverse.io/api/v1/content
 | `PATCH` | `/projects/:projectId/pages/:type/:handle...` | Update page content (merge item data, create items, relink children) |
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
 | `PATCH` | `/projects/:projectId/theme-settings` | Merge top-level theme settings keys |
+| `GET` | [`/projects/:projectId/languages`](/content-api/list-languages) | List configured locales |
 | `GET` | `/openapi.json` | OpenAPI 3.1 specification |
 
 All write endpoints also accept `POST` with the same body, for clients and
