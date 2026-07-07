@@ -8,112 +8,95 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.7.17" description="July 7, 2026" tags={["API"]}>
+  ### New Features
+
+  - **Get components with their defaults filled in**: When you fetch a single page from the Content API, you can now ask for every component to come back with its default values already included. Add `?includeDefaults=true` to your request and any setting you left untouched arrives with its built-in default — no need to look it up yourself.
+</Update>
+
 <Update label="2026.7.16" description="July 3, 2026" tags={["API"]}>
   ### New Features
 
-  - **Content API Writes**: The Content API can now write, not just read. Update theme settings and project metadata programmatically, so external systems and AI agents can push content changes back into Weaverse. See the [Content API overview](/content-api/overview).
-  - **Schema Defaults in Page Responses**: Opt in to have component schema defaults merged into page responses, so consumers get fully-resolved field values without a separate schema lookup.
+  - **Write to your content over the API**: The Content API can now make changes, not just read. Update your theme settings and project details programmatically, so your own tools and AI assistants can push updates back into Weaverse. See the [Content API overview](/content-api/overview).
+</Update>
+
+<Update label="2026.7.11" description="July 1, 2026" tags={["Studio"]}>
+  ### New Features
+
+  - **Keyboard shortcuts guide**: A new quick-reference lists every editor keyboard shortcut, so you can move around the editor without reaching for the mouse.
 
   ### Improvements
 
-  - **Automatic Orphan Cleanup**: A scheduled sweep now removes orphaned page items across projects, replacing the previous per-project cleanup for more reliable housekeeping.
-
-  ### Bug Fixes
-
-  - **Content API Referential Integrity**: Creating a page item no longer leaves dangling child references when a sibling create fails partway through — the whole operation now resolves consistently.
+  - **Clearer error when a save fails**: If a save doesn't go through, the editor now tells you the actual reason instead of a generic message, so it's faster to fix and try again.
 </Update>
 
-<Update label="2026.7.11" description="July 1, 2026" tags={["Studio", "API"]}>
+<Update label="2026.7.8" description="June 30, 2026" tags={["Studio"]}>
+  ### Bug Fixes
+
+  - **Setup guide fits on smaller screens**: The "How to set up project" guide no longer runs off the edge of shorter windows, and now links straight to the full guide.
+  - **Tidier blog article details on mobile**: The author and date on blog articles now line up correctly on small screens.
+</Update>
+
+<Update label="2026.7.2" description="June 24, 2026" tags={["Studio"]}>
   ### New Features
 
-  - **Studio Keyboard Shortcuts Guide**: A new quick-reference dialog lists the Studio keyboard shortcuts so you can move through the editor without reaching for the mouse.
-
-  ### Improvements
-
-  - **Clearer Save Failures**: When a save fails, the Studio now surfaces the real reason instead of a generic error, making it faster to understand and recover.
-  - **Enterprise Billing Accuracy**: Custom Enterprise plans on Shopify's managed App Pricing are now recorded as unlimited usage, so overage never shows against a plan that doesn't meter it.
-</Update>
-
-<Update label="2026.7.8" description="June 30, 2026" tags={["Studio", "Theme"]}>
-  ### Bug Fixes
-
-  - **Custom Page Handles with Slashes**: The custom-page handle field now accepts `/` cleanly, so nested handles like `pages/gift-shop` save and resolve as expected.
-  - **Setup Guide Overflow**: The "How to set up project" guide no longer overflows on shorter screens, and now includes an inline link to the full guide.
-  - **Inspector Help Text**: Long inspector help text no longer overflows its panel.
-  - **Blog Article Meta on Mobile**: Tidied the article meta row so author and date lay out correctly on small screens.
-</Update>
-
-<Update label="2026.7.2" description="June 24, 2026" tags={["Studio", "API"]}>
-  ### New Features
-
-  - **Local Agent Handshake**: A new device-handshake flow lets a local AI coding agent authenticate with Studio and register agent-writable preview URLs, so agent-driven edits can target your dev server safely.
-  - **Setup Reactivation on Preview Errors**: When a local preview can't connect, the preview overlay now offers a direct path back into the setup guide to get your dev server running again.
-
-  ### Bug Fixes
-
-  - **Seeded Project Theme Name**: Projects created from a theme now record the chosen theme handle, so the correct theme is reflected everywhere downstream.
+  - **Connect a local AI coding assistant**: You can now link a local AI coding assistant to your project so it can make edits and preview them against your own development server.
+  - **Jump back to setup when a preview won't load**: If your local preview can't connect, the preview screen now gives you a direct link back into the setup guide to get things running again.
 </Update>
 
 <Update label="2026.6.29" description="June 23, 2026" tags={["Studio", "Marketing"]}>
   ### New Features
 
-  - **Project Backups**: Snapshot and restore your project's content. Backups include a human-readable diff of named changes so you can see exactly what a restore would alter before you commit to it.
-  - **New Marketing Pages**: Added a Careers page and refreshed the Partners page on the marketing site.
+  - **Project backups**: Save and restore snapshots of your project's content. Each backup shows you a plain-language summary of what changed, so you can see exactly what a restore would alter before you go ahead.
+  - **New Careers and Partners pages**: Added a Careers page and refreshed the Partners page on our website.
 
   ### Improvements
 
-  - **Resource Picker Reliability**: Studio now auto-revalidates resource-picker inputs after an underlying SDK fix, and preserves the draft-item context across SDK URL normalization — fewer stale pickers and lost selections while editing.
+  - **Fewer stale resource pickers**: Picking a product, collection, or other resource is more reliable, with fewer cases of a picker showing outdated options or losing your selection while editing.
 </Update>
 
-<Update label="2026.6.27" description="June 21, 2026" tags={["Studio", "API"]}>
+<Update label="2026.6.27" description="June 21, 2026" tags={["Studio"]}>
   ### New Features
 
-  - **Shopify Sidekick Data Tools**: New read-only tools let Shopify Sidekick query your Weaverse projects, pages, and SEO data directly, with a dedicated auth and CORS foundation for the Sidekick extension.
+  - **Shopify Sidekick can read your Weaverse content**: New tools let Shopify Sidekick look up your Weaverse projects, pages, and SEO details directly.
 </Update>
 
-<Update label="2026.6.19" description="June 19, 2026" tags={["Studio", "API"]}>
+<Update label="2026.6.19" description="June 19, 2026" tags={["Studio"]}>
   ### New Features
 
-  - **Cross-Element Style Copy/Paste**: Copy the styling from one element and paste it onto another, so you can reuse a look across your page without redoing every setting.
-  - **Billing Lifecycle Notifications**: Subscription lifecycle events (activations, upgrades, cancellations) now emit notifications, and the daily usage-billing summary reports uncharged shops with views for clearer revenue tracking.
+  - **Copy and paste styling between elements**: Copy the look of one element and paste it onto another, so you can reuse a style across your page without redoing every setting.
 
   ### Improvements
 
-  - **Downgrade Clarity**: The "Change Plan" action is now disabled on lower-tier cards, so it's obvious which plans are upgrades from your current one.
-
-  ### Bug Fixes
-
-  - **Notification Deduplication**: Subscription notifications are now claimed atomically, eliminating duplicate messages for a single event.
+  - **Clearer plan options**: The "Change Plan" button is now greyed out on plans below your current one, so it's obvious which plans are upgrades.
 </Update>
 
 <Update label="2026.6.18" description="June 18, 2026" tags={["Studio"]}>
-  ### New Features
+  ### Improvements
 
-  - **Billing Migrated to Shopify App Pricing**: Weaverse billing has moved from Mantle to Shopify's native App Pricing. Subscriptions and usage now bill directly through Shopify, with a one-time cutover that preserves existing plans and usage. No action needed for existing merchants.
+  - **Billing now runs through Shopify**: Your subscription and usage are now billed directly through Shopify. Your existing plan and usage carry over automatically — there's nothing you need to do.
 </Update>
 
 <Update label="2026.6.15" description="June 15, 2026" tags={["Studio", "API", "Marketing"]}>
   ### New Features
 
-  - **URL Picker Search**: The URL picker now has search across both Weaverse pages and Shopify store pages, so you can find and link a destination without scrolling.
-  - **Richtext Image Width Presets**: Rich-text images now support width presets, and images are preserved through the Content API for headless rendering.
-  - **AI-Agent Onboarding Prompt**: The local-install setup step now includes a copyable AI-agent prompt, so you can hand your project setup to an AI coding assistant in one paste.
-  - **Delete Confirmation for Irreversible Actions**: Irreversible deletes now require an explicit acknowledgement before they run, reducing accidental data loss.
+  - **Search in the URL picker**: The URL picker now lets you search across both your Weaverse pages and your Shopify store pages, so you can find and link to a destination without scrolling.
+  - **Set image widths in rich text**: Rich-text images now come with handy width presets, and your images stay intact when you pull content through the Content API.
+  - **Hand your setup to an AI assistant**: The local setup step now includes a ready-to-copy prompt, so you can hand your project setup to an AI coding assistant in a single paste.
+  - **Confirm before permanent deletes**: Actions that can't be undone now ask you to confirm first, so it's harder to delete something by accident.
 
   ### Improvements
 
-  - **Clearer Preview Diagnosis**: Studio now distinguishes a page with no Weaverse content from a genuinely lost preview connection, so the error you see matches the actual cause.
-  - **Destructive Actions Redesign**: Destructive buttons now use a solid-red style that meets AA contrast for better legibility.
-  - **Real-Time Editor Presence**: Editor presence moved from database polling to in-memory SSE for faster, lighter multi-editor awareness.
-  - **Faster Page Resolution**: Collapsed the page-assignment fallback cascade into a single query for quicker page loads.
+  - **Know why a preview isn't loading**: The editor now tells the difference between a page that simply has no Weaverse content yet and a preview that's genuinely disconnected, so the message matches what's actually going on.
+  - **Easier-to-read delete buttons**: Buttons for destructive actions now use a bolder red that's easier to read.
 
   ### Bug Fixes
 
-  - **Restored Blog Table of Contents**: The blog table of contents is back for long-form articles.
-  - **Page Classification**: Fixed several page-resolution issues — INDEX and content-source pages are no longer misclassified as custom templates, catch-all Publish persists at the visited URL rather than the Default page, and default pages resolve correctly to resources without a custom template.
-  - **Locale Path Prefixes**: Editor navigation now honors the default locale's configured path prefix, and the public page resolver guards `i18n.pathPrefix` correctly.
-  - **Pricing Page**: Wired up the comparison-table header CTAs and restored table accessibility.
+  - **Blog table of contents is back**: Longer articles show their table of contents again.
+  - **Pages resolve more reliably**: Fixed a handful of cases where the wrong page could show up — publishing now stays on the page you're viewing, and pages match up to the right content more consistently.
+  - **Correct language in page URLs**: The editor and your live storefront now use the right language prefix in page links.
 </Update>
+
 
 <Update label="2026.6.11" description="June 11, 2026" tags={["API"]}>
   ### Bug Fixes
