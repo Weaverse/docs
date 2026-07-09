@@ -1,0 +1,134 @@
+---
+title: "Create Page"
+description: "Create a custom page through the Content API, optionally cloning an existing page layout"
+published: true
+---
+
+# Create Page
+
+```
+POST /api/v1/content/projects/:projectId/pages
+```
+
+Creates a new `CUSTOM` page in a project with a caller-supplied handle/path. The page starts blank unless you pass `basedOn`, which clones layout items from an existing page assigned to the same project.
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+
+## Request body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `type` | string | Yes | Must be `CUSTOM` |
+| `handle` | string | Yes | Custom page handle/path, for example `pages/gift-shop` or `about-us` |
+| `name` | string | No | Display name. Defaults to the normalized handle. |
+| `locale` | string | No | Assignment locale. Defaults to the global/default assignment (`""`). |
+| `basedOn` | string | No | Source page ID to clone layout items from. The source page must be assigned to the same project. |
+
+<Warning>
+  `POST /projects/:projectId/pages` also preserves the legacy POST-as-delete fallback. A body containing `pageIds` or `handles` is treated as a bulk-delete request. Use the create fields above for page creation.
+</Warning>
+
+## Example
+
+<Tabs>
+  <Tab title="cURL">
+    ```bash
+    curl -X POST \
+      -H "Authorization: Bearer YOUR_API_KEY" \
+      -H "Content-Type: application/json" \
+      "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages" \
+      -d '{
+        "type": "CUSTOM",
+        "name": "Gift Shop",
+        "handle": "pages/gift-shop"
+      }'
+    ```
+  </Tab>
+  <Tab title="TypeScript">
+    ```typescript
+    const res = await fetch(
+      `https://studio.weaverse.io/api/v1/content/projects/${projectId}/pages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'CUSTOM',
+          name: 'Gift Shop',
+          handle: 'pages/gift-shop',
+        }),
+      },
+    )
+
+    const created = await res.json()
+    ```
+  </Tab>
+</Tabs>
+
+## Clone an existing layout
+
+Pass `basedOn` with a page ID from [List Pages](/content-api/list-pages) to clone the source page's layout items into the new page.
+
+```json
+{
+  "type": "CUSTOM",
+  "name": "Wholesale Landing Page",
+  "handle": "pages/wholesale",
+  "basedOn": "clz5wxy12abc345gift"
+}
+```
+
+The source page must be assigned to the same project. Cross-project source IDs return `404 PAGE_NOT_FOUND`.
+
+## Response
+
+```json
+{
+  "object": "page_create",
+  "page": {
+    "object": "page",
+    "id": "clz5wxy12abc345gift",
+    "type": "CUSTOM",
+    "handle": "pages/gift-shop",
+    "locale": "",
+    "items": [
+      {
+        "id": "019503a2-c4b6-7c9d-8e3f-1a2b3c4d5e6f",
+        "type": "root",
+        "data": {},
+        "children": null
+      }
+    ],
+    "updatedAt": "2026-07-09T10:30:00.000Z",
+    "meta": {
+      "inherited": false,
+      "sourceProjectId": "clx1abc23def456ghij",
+      "depth": 0
+    }
+  }
+}
+```
+
+The nested `page` object follows the same shape as [Get Page](/content-api/get-page).
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `PAGE_NOT_FOUND` | 404 | `basedOn` does not resolve to a live page in this project |
+| `CONFLICT` | 409 | A live page already exists for the same type, handle, and locale/market assignment |
+| `INVALID_PARAMS` | 400 | Invalid body, unsupported type, or missing/empty handle |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
