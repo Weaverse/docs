@@ -44,15 +44,16 @@
         "tab": "Get Started",
         "pages": [
           {
-            "group": "Introduction",
-            "pages": [
-              "index",
-              "intro/why-weaverse-for-hydrogen",
-              "intro/how-it-works",
-              "intro/quickstart",
-              "intro/project-structure"
-            ]
-          },
+						"group": "Introduction",
+						"pages": [
+							"index",
+							"intro/quickstart",
+							"getting-started/installation",
+							"intro/why-weaverse-for-hydrogen",
+							"intro/how-it-works",
+							"intro/project-structure"
+						]
+					},
           {
             "group": "Studio Guide",
             "pages": [
@@ -215,12 +216,13 @@
               "features/admin-api-proxy"
             ]
           },
-          {
-            "group": "Hydrogen Themes",
-            "pages": [
-              "hydrogen-themes/pilot-theme-overview",
-              "hydrogen-themes/pilot-theme-customization",
-              "hydrogen-themes/pilot-theme-sections"
+					{
+						"group": "Hydrogen Themes",
+						"pages": [
+							"hydrogen-themes/index",
+							"hydrogen-themes/pilot-theme-overview",
+							"hydrogen-themes/pilot-theme-customization",
+							"hydrogen-themes/pilot-theme-sections"
             ]
           },
           {
@@ -236,12 +238,13 @@
       {
         "tab": "Help & Community",
         "pages": [
-          {
-            "group": "Help",
-            "pages": [
-              "resources/faq",
-              "resources/tutorial",
-              "resources/example-components",
+					{
+						"group": "Help",
+						"pages": [
+							"resources/index",
+							"resources/faq",
+							"resources/tutorial",
+							"resources/example-components",
               "resources/glossary"
             ]
           },

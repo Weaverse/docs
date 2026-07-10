@@ -5,11 +5,13 @@ mode: "wide"
 hideFooterPagination: true
 ---
 
-# Build Beautiful Shopify Storefronts with Weaverse
+# Build Shopify Hydrogen Storefronts Visually
 
-Universal visual page builder powered by React Router v7, Hydrogen, and AI — for headless commerce that converts.
+Weaverse brings a visual editing layer to Shopify Hydrogen, so teams can launch headless storefronts with React Router, reusable components, live previews, and merchant-friendly content editing.
 
-{/* TODO: Add hero screenshot or GIF of Studio drag-and-drop editing */}
+<Frame>
+  ![Weaverse Studio showing a Hydrogen storefront preview with the visual editor open](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio_loaded_2.webp?v=1755078650)
+</Frame>
 
 <CardGroup cols={2}>
   <Card title="Get Started" icon="rocket" href="/intro/quickstart">
@@ -63,7 +65,29 @@ Everything you need to build, customize, and deploy Hydrogen storefronts.
   </Card>
 </CardGroup>
 
-{/* TODO: Add ecosystem architecture diagram */}
+```mermaid
+flowchart LR
+    Shopify["Shopify store data"] --> Hydrogen["Hydrogen storefront"]
+    WeaverseCLI["Weaverse CLI"] --> Hydrogen
+    SDKs["Weaverse SDKs"] --> Hydrogen
+    Studio["Weaverse Studio"] --> ContentAPI["Content API"]
+    ContentAPI --> Hydrogen
+    Agent["AI coding agent"] --> WeaverseCLI
+    Agent --> SDKs
+    Hydrogen --> Deploy["Oxygen, Docker, or Workers"]
+```
+
+<CardGroup cols={3}>
+  <Card title="Develop" icon="code" href="/development-guide/creating-components">
+    Build Hydrogen components and expose editable settings through Weaverse schemas.
+  </Card>
+  <Card title="Edit" icon="paintbrush" href="/studio-guide/interface-tour">
+    Let merchants arrange sections, update copy, and preview pages in Studio.
+  </Card>
+  <Card title="Ship" icon="cloud" href="/guides/deployment">
+    Deploy the storefront to Shopify Oxygen, Docker, or Cloudflare Workers.
+  </Card>
+</CardGroup>
 
 ---
 
@@ -88,7 +112,21 @@ Everything you need to build, customize, and deploy Hydrogen storefronts.
   </Step>
 </Steps>
 
-{/* TODO: Add screenshot for each step — CLI create output, dev server running, Studio editor */}
+<CardGroup cols={3}>
+  <Card title="1. Create the project" icon="terminal" href="/intro/quickstart#set-up-with-your-ai-agent-recommended">
+    Use the AI-agent prompt from onboarding or run the Weaverse CLI command.
+  </Card>
+  <Card title="2. Preview locally" icon="monitor" href="/intro/quickstart#create-project--load-studio">
+    Start the Hydrogen dev server and load the storefront at `localhost:3456`.
+  </Card>
+  <Card title="3. Connect real data" icon="database" href="/intro/quickstart#connect-your-real-store-data">
+    Swap demo content for your Shopify store data when you are ready.
+  </Card>
+</CardGroup>
+
+<Frame>
+  ![Project setup modal showing the AI agent prompt and CLI fallback](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_cli_command.webp?v=1755078433)
+</Frame>
 
 ---
 
