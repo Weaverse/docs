@@ -29,7 +29,7 @@ https://studio.weaverse.io/api/v1/content
 | `GET` | `/projects/:projectId` | Get a single project's metadata |
 | `PATCH` | `/projects/:projectId` | Update the project name |
 | `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
-| `POST` | [`/projects/:projectId/pages`](/content-api/create-page) | Create a custom page |
+| `POST` | [`/projects/:projectId/pages`](/content-api/create-page) | Create a page (`CUSTOM` or `COLLECTION` override) |
 | `DELETE` | `/projects/:projectId/pages` | Bulk-delete pages (by ids or handles) |
 | `GET` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/get-page) | Get page content |
 | `PATCH` | `/projects/:projectId/pages/:type/:handle...` | Update page content (merge item data, create items, relink children) |
@@ -50,9 +50,11 @@ in [`/openapi.json`](https://studio.weaverse.io/api/v1/content/openapi.json).
   top-level keys; nested objects are replaced wholesale). Unknown ids are
   created only when `type` is supplied. Max 100 items per request.
 - **Page create** — `POST .../pages` with
-  `{ "type": "CUSTOM", "handle", "name?", "locale?", "basedOn?" }`.
-  Creates a custom page with a blank root item, or clones layout items from
-  another page assigned to the same project when `basedOn` is supplied.
+  `{ "type": "CUSTOM" | "COLLECTION", "handle", "name?", "locale?", "basedOn?", "shopifyResourceId?" }`.
+  `CUSTOM` creates a bespoke page with a blank root item (or clones `basedOn`).
+  `COLLECTION` creates a resource-backed override that clones the project's
+  shared default `COLLECTION` template (or `basedOn`). A duplicate live
+  assignment returns `409` and mutates nothing.
 - **Page delete** — `DELETE .../pages` with `{ "pageIds": [...] }` or
   `{ "handles": [...], "type", "locale?" }`. Soft-deletes up to 500 pages.
 - **Theme settings** — `PATCH .../theme-settings` with `{ "theme": { ... } }`.
