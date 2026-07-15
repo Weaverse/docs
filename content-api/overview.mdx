@@ -29,10 +29,11 @@ https://studio.weaverse.io/api/v1/content
 | `GET` | `/projects/:projectId` | Get a single project's metadata |
 | `PATCH` | `/projects/:projectId` | Update the project name |
 | `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
-| `POST` | [`/projects/:projectId/pages`](/content-api/create-page) | Create a page (`CUSTOM` or `COLLECTION` override) |
+| `POST` | [`/projects/:projectId/pages`](/content-api/create-page) | Create a page (`CUSTOM` or a resource-backed template override) |
+| `POST` | [`/projects/:projectId/template-assignments/:pageId`](/content-api/assign-template-resources) | Assign many resources to one shared template page |
 | `DELETE` | `/projects/:projectId/pages` | Bulk-delete pages (by ids or handles) |
 | `GET` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/get-page) | Get page content |
-| `PATCH` | `/projects/:projectId/pages/:type/:handle...` | Update page content (merge item data, create items, relink children) |
+| `PATCH` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/update-page) | Update page content (merge item data, create items, relink children) |
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
 | `PATCH` | `/projects/:projectId/theme-settings` | Merge top-level theme settings keys |
 | `GET` | [`/projects/:projectId/languages`](/content-api/list-languages) | List configured locales |
@@ -50,11 +51,19 @@ in [`/openapi.json`](https://studio.weaverse.io/api/v1/content/openapi.json).
   top-level keys; nested objects are replaced wholesale). Unknown ids are
   created only when `type` is supplied. Max 100 items per request.
 - **Page create** — `POST .../pages` with
-  `{ "type": "CUSTOM" | "COLLECTION", "handle", "name?", "locale?", "basedOn?", "shopifyResourceId?" }`.
-  `CUSTOM` creates a bespoke page with a blank root item (or clones `basedOn`).
-  `COLLECTION` creates a resource-backed override that clones the project's
-  shared default `COLLECTION` template (or `basedOn`). A duplicate live
-  assignment returns `409` and mutates nothing.
+  `{ "type", "handle", "name?", "locale?", "basedOn?", "shopifyResourceId?" }`.
+  Creatable types are `CUSTOM`, `PRODUCT`, `COLLECTION`, `PAGE`, `BLOG`,
+  `ARTICLE`. `CUSTOM` creates a bespoke page with a blank root item (or clones
+  `basedOn`). A resource-backed type creates a per-resource override that clones
+  the project's shared default template for that type when one exists (otherwise
+  blank), or clones `basedOn`. **This creates one new page per call (a
+  per-resource copy).** A duplicate live assignment returns `409` and mutates
+  nothing.
+- **Assign template resources** — `POST .../template-assignments/:pageId` with
+  `{ "assignments": [{ "handle", "shopifyResourceId?", "locale?" }] }`. Assigns
+  many resources to **one shared** template page without creating page copies.
+  A handle already on this page is an idempotent no-op; a handle on a different
+  live page is returned as a conflict (never repointed).
 - **Page delete** — `DELETE .../pages` with `{ "pageIds": [...] }` or
   `{ "handles": [...], "type", "locale?" }`. Soft-deletes up to 500 pages.
 - **Theme settings** — `PATCH .../theme-settings` with `{ "theme": { ... } }`.

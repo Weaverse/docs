@@ -55,7 +55,9 @@
           },
           {
             "group": "Studio Guide",
-            "pages": ["studio-guide/interface-tour"]
+            "pages": [
+              "studio-guide/interface-tour"
+            ]
           }
         ]
       },
@@ -142,7 +144,9 @@
         "pages": [
           {
             "group": "Overview",
-            "pages": ["api-reference/introduction"]
+            "pages": [
+              "api-reference/introduction"
+            ]
           },
           {
             "group": "Hooks",
@@ -177,7 +181,9 @@
               "content-api/list-projects",
               "content-api/list-pages",
               "content-api/create-page",
+              "content-api/assign-template-resources",
               "content-api/get-page",
+              "content-api/update-page",
               "content-api/get-theme-settings",
               "content-api/list-languages"
             ]
@@ -189,7 +195,9 @@
         "pages": [
           {
             "group": "Overview",
-            "pages": ["ecosystem/index"]
+            "pages": [
+              "ecosystem/index"
+            ]
           },
           {
             "group": "Developer Tools",
@@ -202,7 +210,10 @@
           },
           {
             "group": "APIs",
-            "pages": ["features/api-access", "features/admin-api-proxy"]
+            "pages": [
+              "features/api-access",
+              "features/admin-api-proxy"
+            ]
           },
           {
             "group": "Hydrogen Themes",
