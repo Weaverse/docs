@@ -1,6 +1,6 @@
 ---
 title: "Create Page"
-description: "Create a custom page through the Content API, optionally cloning an existing page layout"
+description: "Create a custom page or resource-backed override (e.g. COLLECTION) through the Content API, optionally cloning an existing layout"
 published: true
 ---
 
@@ -10,7 +10,10 @@ published: true
 POST /api/v1/content/projects/:projectId/pages
 ```
 
-Creates a new `CUSTOM` page in a project with a caller-supplied handle/path. The page starts blank unless you pass `basedOn`, which clones layout items from an existing page assigned to the same project.
+Creates a page in a project. Two page types are creatable in v1:
+
+- **`CUSTOM`** — a bespoke merchant page with a caller-supplied handle/path. Starts blank unless you pass `basedOn`.
+- **`COLLECTION`** — a resource-backed override / custom template for a specific collection PLP. Clones the project's shared default `COLLECTION` template (or the `basedOn` page) so the new page starts from a real layout.
 
 <Note>
   Requires a Content API key. See [Authentication](/content-api/overview#authentication).
@@ -26,11 +29,12 @@ Creates a new `CUSTOM` page in a project with a caller-supplied handle/path. The
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | Yes | Must be `CUSTOM` |
-| `handle` | string | Yes | Custom page handle/path, for example `pages/gift-shop` or `about-us` |
+| `type` | string | Yes | `CUSTOM` or `COLLECTION` |
+| `handle` | string | Yes | For `CUSTOM`, a page handle/path (e.g. `pages/gift-shop`). For `COLLECTION`, the Shopify collection handle (e.g. `summer-sale`). |
 | `name` | string | No | Display name. Defaults to the normalized handle. |
 | `locale` | string | No | Assignment locale. Defaults to the global/default assignment (`""`). |
-| `basedOn` | string | No | Source page ID to clone layout items from. The source page must be assigned to the same project. |
+| `basedOn` | string | No | Source page ID to clone layout items from. The source page must be assigned to the same project. When omitted for `COLLECTION`, the shared default `COLLECTION` template is cloned. |
+| `shopifyResourceId` | string | No | Shopify resource id (gid) to bind to a `COLLECTION` override for the Studio assignment UX. Ignored for `CUSTOM`. |
 
 <Warning>
   `POST /projects/:projectId/pages` also preserves the legacy POST-as-delete fallback. A body containing `pageIds` or `handles` is treated as a bulk-delete request. Use the create fields above for page creation.
@@ -90,6 +94,21 @@ Pass `basedOn` with a page ID from [List Pages](/content-api/list-pages) to clon
 
 The source page must be assigned to the same project. Cross-project source IDs return `404 PAGE_NOT_FOUND`.
 
+## Create a COLLECTION override
+
+Create a per-collection override (custom template) so a specific collection PLP can carry editorial/content blocks. When you omit `basedOn`, the project's shared default `COLLECTION` template is cloned; pass `shopifyResourceId` to bind the Shopify collection for Studio's assignment UX.
+
+```json
+{
+  "type": "COLLECTION",
+  "name": "Summer Sale PLP",
+  "handle": "summer-sale",
+  "shopifyResourceId": "gid://shopify/Collection/123456789"
+}
+```
+
+If a live `COLLECTION` assignment already exists for the same handle and locale/market, the request returns `409 CONFLICT` and creates nothing. Use [Get Page](/content-api/get-page) and [Update Page](/content-api/get-page) to read or edit an existing override instead.
+
 ## Response
 
 ```json
@@ -130,5 +149,5 @@ The nested `page` object follows the same shape as [Get Page](/content-api/get-p
 | `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
 | `PAGE_NOT_FOUND` | 404 | `basedOn` does not resolve to a live page in this project |
 | `CONFLICT` | 409 | A live page already exists for the same type, handle, and locale/market assignment |
-| `INVALID_PARAMS` | 400 | Invalid body, unsupported type, or missing/empty handle |
+| `INVALID_PARAMS` | 400 | Invalid body, unsupported type (only `CUSTOM` and `COLLECTION` are creatable), or missing/empty handle |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
