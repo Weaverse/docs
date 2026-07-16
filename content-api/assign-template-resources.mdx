@@ -46,8 +46,8 @@ Per-assignment fields:
 
 - The target page's type is derived from its existing assignments and must be resource-backed.
 - A resource whose handle already points at **this** page is an idempotent no-op (returned under `existing`).
-- A resource whose handle already belongs to a **different** live page is **not** repointed — it is returned under `conflicts`.
-- New resources are created as assignment rows pointing at `pageId`.
+- **All-or-nothing.** Every requested handle is checked first. If any handle already belongs to a **different** live page, the whole request is rejected with `409 CONFLICT` (the clashing handles in `details.conflicts`) and **nothing is written** — a mixed batch never leaves partial assignments. A resource is **never** repointed away from another page.
+- New resources are created as assignment rows pointing at `pageId`, in a single transaction.
 - All lookups and writes are scoped strictly to `projectId`; the endpoint never touches another project's pages.
 
 ## Example
@@ -78,12 +78,11 @@ curl -X POST \
   ],
   "existing": [
     { "handle": "winter-drop", "locale": "", "assignmentId": "asg_0" }
-  ],
-  "conflicts": []
+  ]
 }
 ```
 
-Use the per-resource accounting to retry only the `conflicts` (e.g. after unassigning the handle from its current template).
+On a `409`, no assignment is created; inspect `details.conflicts`, unassign each clashing handle from its current template, then retry the batch.
 
 ## Errors
 
@@ -93,5 +92,6 @@ Use the per-resource accounting to retry only the `conflicts` (e.g. after unassi
 | `FORBIDDEN` | 403 | API key does not have access to this project |
 | `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
 | `PAGE_NOT_FOUND` | 404 | The template page is not a live page in this project |
+| `CONFLICT` | 409 | A handle already belongs to a different live page (or a concurrent write won the race); nothing was assigned |
 | `INVALID_PARAMS` | 400 | Invalid body, empty/too many assignments, or the page cannot carry resource assignments |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |

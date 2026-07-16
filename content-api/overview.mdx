@@ -62,8 +62,9 @@ in [`/openapi.json`](https://studio.weaverse.io/api/v1/content/openapi.json).
 - **Assign template resources** — `POST .../template-assignments/:pageId` with
   `{ "assignments": [{ "handle", "shopifyResourceId?", "locale?" }] }`. Assigns
   many resources to **one shared** template page without creating page copies.
-  A handle already on this page is an idempotent no-op; a handle on a different
-  live page is returned as a conflict (never repointed).
+  All-or-nothing: a handle already on this page is an idempotent no-op, but if
+  any handle belongs to a different live page the whole request returns `409`
+  and writes nothing (never repointed).
 - **Page delete** — `DELETE .../pages` with `{ "pageIds": [...] }` or
   `{ "handles": [...], "type", "locale?" }`. Soft-deletes up to 500 pages.
 - **Theme settings** — `PATCH .../theme-settings` with `{ "theme": { ... } }`.
