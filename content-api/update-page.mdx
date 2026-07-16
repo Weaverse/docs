@@ -1,0 +1,66 @@
+---
+title: "Update Page"
+description: "Update component items on an existing page — merge data, create items, and relink children"
+published: true
+---
+
+# Update Page
+
+```
+PATCH /api/v1/content/projects/:projectId/pages/:type/:handle...
+```
+
+Updates component items on the page resolved for `type` / `handle` / `locale` (same locale fallback as [Get Page](/content-api/get-page)). Also accepts `POST` for clients/proxies that cannot send `PATCH` bodies.
+
+<Note>
+  Requires a Content API key. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `projectId` | string | Yes | The project ID |
+| `type` | string | Yes | Page type (e.g. `PRODUCT`, `COLLECTION`, `CUSTOM`) |
+| `handle` | string | Yes | Page handle; may include `/`. Use the exact handle from [List Pages](/content-api/list-pages). |
+
+## Request body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `locale` | string | No | Same resolution as Get Page; defaults to the stored default locale. |
+| `items` | array | Yes | Up to 100 item patches. Each entry is `{ id, data, type?, children? }`. |
+
+Behavior:
+
+- `data` is **shallow-merged** into the item's existing data — send only the changed top-level keys; nested objects are replaced wholesale.
+- Unknown item ids are **created only when `type` is supplied**; otherwise they are returned as `notFound`.
+- Each `children` reference must point to an existing page item or a typed new item created in the same request.
+- A page inherited from a parent project returns `409` — edit it on the source project.
+
+On success the edit goes live through `api.weaverse.io` like a Studio save.
+
+## Example
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  "https://studio.weaverse.io/api/v1/content/projects/clx1abc23def456ghij/pages/COLLECTION/summer-sale" \
+  -d '{
+    "items": [
+      { "id": "019503a2-c4b6-7c9d-8e3f-1a2b3c4d5e6f", "data": { "heading": "Summer Sale" } }
+    ]
+  }'
+```
+
+## Errors
+
+| Code | Status | When |
+|------|--------|------|
+| `UNAUTHORIZED` | 401 | Missing or invalid API key |
+| `FORBIDDEN` | 403 | API key does not have access to this project |
+| `PAGE_NOT_FOUND` | 404 | No live page resolves for the given type/handle/locale |
+| `CONFLICT` | 409 | The page is inherited from a parent project (edit it on the source project) |
+| `INVALID_PARAMS` | 400 | Invalid body, too many items, or a bad `children` reference |
+| `INTERNAL_ERROR` | 500 | Unexpected server error |
