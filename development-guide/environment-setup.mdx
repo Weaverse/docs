@@ -71,8 +71,8 @@ SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
 PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
-PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"
-PUBLIC_STOREFRONT_ID="your-storefront-id"
+PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
+PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
 PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://shopify.com/your-shop-id"
 SHOP_ID="your-shop-id"
@@ -103,8 +103,8 @@ interface Env extends HydrogenEnv {
   SESSION_SECRET: string;
   PUBLIC_STORE_DOMAIN: string;
   PUBLIC_STOREFRONT_API_TOKEN: string;
-  PRIVATE_STOREFRONT_API_TOKEN: string;
-  PUBLIC_STOREFRONT_ID: string;
+  PRIVATE_STOREFRONT_API_TOKEN?: string;
+  PUBLIC_STOREFRONT_ID?: string;
   PUBLIC_CHECKOUT_DOMAIN?: string;
   PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
   PUBLIC_CUSTOMER_ACCOUNT_API_URL?: string;
