@@ -31,10 +31,10 @@ Before starting, make sure you have:
 1. **Go to Shopify App Store**
    - Open your Shopify admin panel
    - Navigate to **Apps** in the sidebar
-   - Search for "Weaverse Hydrogen" or visit https://apps.shopify.com/weaverse
+   - Search for "Weaverse Hydrogen Page Builder" or visit https://apps.shopify.com/weaverse
 
 2. **Install the App**
-   - Click **Add app** on the Weaverse Hydrogen listing
+   - Click **Add app** on the Weaverse Hydrogen Page Builder listing
    - Review permissions and click **Install app**
    - The app will be added to your store
 
@@ -86,11 +86,11 @@ The fastest way to get going is to let your AI coding agent do the setup. The on
    - The agent loads the [`setup-weaverse-project`](/developer-tools/shopify-hydrogen-skills) skill and runs the full setup
 
 3. **What the Agent Does**
-   - ✅ Runs the Weaverse CLI to scaffold your selected theme and makes it your own fresh git repo
-   - ✅ **Boots a live preview on a demo store first** — you see your storefront running at `http://localhost:3456` in ~2 minutes, *before* you have to provide any credentials
-   - ✅ Generates local-only values like `SESSION_SECRET` automatically
-   - ✅ Then helps you make it yours: your Shopify store env, a new GitHub repo, and connecting the preview back to Builder
-   - ✅ Verifies everything works before telling you it's done
+   - Runs the Weaverse CLI to scaffold your selected theme and makes it your own fresh git repo
+   - **Boots a live preview on a demo store first** — you see your storefront running at `http://localhost:3456` in ~2 minutes, *before* you have to provide any credentials
+   - Generates local-only values like `SESSION_SECRET` automatically
+   - Then helps you make it yours: your Shopify store env, a new GitHub repo, and connecting the preview back to Weaverse Studio
+   - Verifies everything works before telling you it's done
 
 <Note>
   **Why demo-first?** You get a working storefront immediately, then swap in your own store data once you've seen it run. No Shopify tokens, GitHub setup, or manual secrets before the win. See Step 7 to connect your real store.
@@ -98,28 +98,32 @@ The fastest way to get going is to let your AI coding agent do the setup. The on
 
 <Accordion title="Prefer the terminal? Use the CLI command instead">
 
-The modal also includes a CLI command as a backup. Copy it and run in your terminal:
+The modal also includes a CLI command as a backup. Copy the command from your project modal, or use this pattern and replace the placeholders:
 
 ```bash
-npx @weaverse/cli@latest create --template=pilot --project-id=v3gf5xxth6j1u3qr2fa4im1x --project-name=my-hydrogen-storefront
+npx @weaverse/cli@latest create --template=pilot --project-id=YOUR_PROJECT_ID --project-name=my-hydrogen-storefront
 ```
 
+<Tip>
+  Use the Project ID shown in your Weaverse onboarding modal or in **Project Settings** inside Weaverse Studio.
+</Tip>
+
 The command is unique to your project and includes your Project ID. It will automatically:
-- ✅ Download the selected theme to your local machine
-- ✅ Install all dependencies (React, Hydrogen, etc.)
-- ✅ Update environment variables with your Project ID and a generated `SESSION_SECRET`
-- ✅ Start the development server
+- Download the selected theme to your local machine
+- Install all dependencies (React, Hydrogen, etc.)
+- Update environment variables with your Project ID and a generated `SESSION_SECRET`
+- Start the development server
 
 **Example Terminal Output:**
 ```bash
-🚀 Downloading Pilot theme...
-📦 Installing dependencies...
-⚙️  Configuring environment...
-🔧 Starting development server...
+Downloading Pilot theme...
+Installing dependencies...
+Configuring environment...
+Starting development server...
 
-✅ Your Weaverse storefront is ready!
-🌐 Local:    http://localhost:3456
-📝 Studio:   https://studio.weaverse.io/projects/your-project-id
+Your Weaverse storefront is ready!
+Local:  http://localhost:3456
+Studio: https://studio.weaverse.io/projects/YOUR_PROJECT_ID
 ```
 
 </Accordion>
@@ -135,7 +139,7 @@ The command is unique to your project and includes your Project ID. It will auto
    - The project will be created in your Weaverse dashboard
 
 2. **Studio Loads Automatically**
-   - Weaverse Studio will open at `https://studio.weaverse.io/projects/your-project-id`
+   - Weaverse Studio will open at `https://studio.weaverse.io/projects/YOUR_PROJECT_ID`
    - You'll see your theme loaded with `http://localhost:3456` in the preview
    - The content will initially come from demo data
 
@@ -237,15 +241,15 @@ Right now you're seeing demo content. Let's connect your actual store data:
 
 ## Step 8: Verify Everything Works
 
-🎉 **Congratulations!** Let's make sure everything is working perfectly:
+Before moving on, make sure the local storefront and Studio preview are working together:
 
-### ✅ Checklist
+### Checklist
 - Storefront loads at `http://localhost:3456`
 - Your real products and collections appear
 - Navigation menus show your store structure  
 - Search finds your actual products
 - Cart and checkout process work
-- Weaverse Studio loads at `https://studio.weaverse.io/projects/your-project-id`
+- Weaverse Studio loads at `https://studio.weaverse.io/projects/YOUR_PROJECT_ID`
 - You can edit content and see changes instantly
 
 ### 🔍 Test Your Store
@@ -266,7 +270,8 @@ Right now you're seeing demo content. Let's connect your actual store data:
 **Solutions**:
 - Ensure Node.js 18+ is installed: `node --version`
 - Check internet connection for downloading packages
-- Try running with npm directly: `npm create @weaverse/cli@latest create --template=pilot ...`
+- Copy the latest command directly from the Weaverse onboarding modal
+- Confirm you replaced `YOUR_PROJECT_ID` with your actual Project ID
 - Clear npm cache: `npm cache clean --force`
 
 ### Studio Preview Not Loading  
@@ -357,23 +362,23 @@ When you're ready to go live:
 
 ---
 
-## Success! 🎉
+## Success
 
-**Congratulations!** You've just created a modern, high-performance e-commerce storefront in under 10 minutes. Here's what makes your setup special:
+You've just created a modern, high-performance e-commerce storefront in under 10 minutes. Here's what makes your setup special:
 
-✅ **Lightning Fast** - Hydrogen's SSR and edge deployment
-✅ **Visual Editing** - Anyone on your team can update content
-✅ **Mobile Optimized** - Perfect on every device
-✅ **SEO Ready** - Built for search engine success
-✅ **Developer Friendly** - Full React component control when needed
+- ✅ **Lightning Fast** - Hydrogen's SSR and edge deployment
+- ✅ **Visual Editing** - Anyone on your team can update content
+- ✅ **Mobile Optimized** - Perfect on every device
+- ✅ **SEO Ready** - Built for search engine success
+- ✅ **Developer Friendly** - Full React component control when needed
 
-### Your Storefront Features:
-- 🏪 **Professional Theme** - Pilot theme with proven conversion patterns
-- 🎨 **Visual Builder** - Drag-and-drop customization
-- 📱 **Mobile First** - Responsive design out of the box
-- ⚡ **Performance** - Sub-second load times
-- 🛒 **Complete E-commerce** - Cart, checkout, and payment ready
+### Your Storefront Features
+- **Professional Theme** - Pilot theme with proven conversion patterns
+- **Visual Editing** - Drag-and-drop customization in Weaverse Studio
+- **Mobile First** - Responsive design out of the box
+- **Performance** - Sub-second load times
+- **Complete E-commerce** - Cart, checkout, and payment ready
 
-**Time to live storefront**: Under 10 minutes ⚡
+**Time to live storefront**: Under 10 minutes
 
 Ready to customize and launch? Dive into [Core Concepts](/core-concepts) to understand how everything works together!

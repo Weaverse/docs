@@ -1,43 +1,49 @@
 ---
 title: Environment Variables
-description: Setting up and managing environment variables in Weaverse Hydrogen theme.
+description: Set up Shopify, Hydrogen, and Weaverse environment variables for local development and production.
 published: true
 ---
 
 ## Introduction
 
-Environment variables provide a mechanism to protect sensitive data, manage configurations, and streamline different environments like development, testing, and production. In **Weaverse Hydrogen**, you'll frequently interact with a set of predefined variables tailored specifically for the framework.
+Environment variables connect your Hydrogen storefront to Shopify, Weaverse Studio, and any third-party services your theme uses. The Weaverse CLI and AI-agent setup generate most local values for you, but it is still useful to know which variables matter and where they come from.
+
+<Tip>
+  If you are starting a new project, follow the [5-Minute Quickstart](/intro/quickstart) first. This page is for checking, editing, or manually creating your `.env` values.
+</Tip>
 
 ## Essential Environment Variables
 
-### Core Variables
-1. **`SESSION_SECRET`**: A random secret key used to sign session cookies. The Weaverse CLI/agent setup generates this automatically; if you are configuring a project manually, generate it instead of choosing a memorable value.
-2. **`PUBLIC_STOREFRONT_API_TOKEN`**: The public access token for the Storefront API. This is not required if you are using the **`mock.shop`** demo setup.
-3. **`PUBLIC_STORE_DOMAIN`**: The domain of the store used to communicate with the Storefront API.
-4. **`PUBLIC_CHECKOUT_DOMAIN`**: The domain of the checkout page (or the original Online Store domain).
-5. **`PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`**: The public access token for the Customer Account API.
-6. **`PUBLIC_CUSTOMER_ACCOUNT_API_URL`**: The API URL for the Customer Account API, format: `https://shopify.com/{SHOP_ID}`.
-7. **`SHOP_ID`**: Your Shopify store ID.
+### Shopify and Hydrogen Variables
+1. **`SESSION_SECRET`**: A random secret used to sign session cookies. The Weaverse CLI/agent setup generates this automatically; if you configure a project manually, generate a random value instead of choosing a memorable one.
+2. **`PUBLIC_STORE_DOMAIN`**: Your Shopify store domain, such as `your-store.myshopify.com`.
+3. **`PUBLIC_STOREFRONT_API_TOKEN`**: Public Storefront API access token used by client-side Storefront API calls. This is not required for the `mock.shop` demo setup.
+4. **`PRIVATE_STOREFRONT_API_TOKEN`**: Private Storefront API access token used for server-side Storefront API calls. Keep this value secret.
+5. **`PUBLIC_STOREFRONT_ID`**: The numeric Hydrogen storefront ID.
+6. **`PUBLIC_CHECKOUT_DOMAIN`**: Checkout domain, often your original Shopify Online Store domain. Some themes fall back to `PUBLIC_STORE_DOMAIN`.
+7. **`PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`**: Customer Account API client ID.
+8. **`PUBLIC_CUSTOMER_ACCOUNT_API_URL`**: Customer Account API URL, usually in the format `https://shopify.com/{SHOP_ID}`.
+9. **`SHOP_ID`**: Shopify store ID. Some Hydrogen features and theme code use this alongside Customer Account API values.
 
-### Weaverse Specific Variables
-1. **`WEAVERSE_PROJECT_ID`**: A unique ID representing your specific **Weaverse** project. You can find this ID inside the Weaverse Studio under **Project Settings**.
-2. **`WEAVERSE_API_KEY`** (optional): Weaverse API Key retrieved from your Weaverse Account settings.
-3. **`WEAVERSE_HOST`** (optional): The host URL for Weaverse services. Default: **`https://studio.weaverse.io`**.
+### Weaverse Variables
+1. **`WEAVERSE_PROJECT_ID`**: Unique ID for your Weaverse project. Find it in Weaverse Studio under **Project Settings**.
+2. **`WEAVERSE_API_KEY`**: Optional API key from your Weaverse account or project settings. Only include it when your theme or automation needs direct API access.
+3. **`WEAVERSE_HOST`**: Optional Weaverse service host. Default: `https://studio.weaverse.io`.
 
-### Optional Variables
-1. **`PUBLIC_STOREFRONT_ID`**: The ID of your storefront.
-2. **`PRIVATE_STOREFRONT_API_TOKEN`**: The private access token for the Storefront API.
-3. **`PUBLIC_STOREFRONT_API_VERSION`**: The Storefront API version. Defaults to the version used by Hydrogen.
+### Optional Theme Variables
+1. **`PUBLIC_STOREFRONT_API_VERSION`**: Storefront API version. If omitted, Hydrogen uses its configured default.
+2. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
+3. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
+4. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
+5. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
 
-### Third-Party Integration Variables
-1. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
-2. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
-3. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
-4. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
-
-### Custom Metafields & Metaobjects
+### Custom Metafields and Metaobjects
 1. **`METAOBJECT_COLORS_TYPE`**: Type identifier for color metaobjects.
 2. **`CUSTOM_COLLECTION_BANNER_METAFIELD`**: Metafield identifier for collection banners.
+
+<Note>
+  Variables with `PUBLIC_` can be exposed to browser code. Do not put secrets in `PUBLIC_` variables. Keep private API tokens in server-only variables such as `PRIVATE_STOREFRONT_API_TOKEN`.
+</Note>
 
 ## Setting Up Environment Variables
 
@@ -46,7 +52,7 @@ Environment variables provide a mechanism to protect sensitive data, manage conf
 ```plaintext
 SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="mock.shop"
-WEAVERSE_PROJECT_ID="weaverse-project-id"
+WEAVERSE_PROJECT_ID="YOUR_PROJECT_ID"
 ```
 
 Generate a local `SESSION_SECRET` with either command:
@@ -60,31 +66,29 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ### Production Setup
 
 ```plaintext
-# Core Variables
+# Shopify and Hydrogen
 SESSION_SECRET="<generated-random-secret>"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
 PUBLIC_CHECKOUT_DOMAIN="your-store.myshopify.com"
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
+PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
+PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
 PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://shopify.com/your-shop-id"
 SHOP_ID="your-shop-id"
 
-# Weaverse Variables
-WEAVERSE_PROJECT_ID="your-weaverse-project-id"
+# Weaverse
+WEAVERSE_PROJECT_ID="YOUR_PROJECT_ID"
 WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional
 WEAVERSE_HOST="https://studio.weaverse.io"  # Optional
 
-# Optional Variables
-PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
-PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
-
-# Third-Party Integrations
+# Optional integrations
 PUBLIC_GOOGLE_GTM_ID="your-gtm-id"  # Optional
 JUDGEME_PRIVATE_API_TOKEN="your-judgeme-token"  # Optional
 KLAVIYO_PRIVATE_API_TOKEN="your-klaviyo-token"  # Optional
 PUBLIC_SHOPIFY_INBOX_SHOP_ID="your-inbox-shop-id"  # Optional
 
-# Custom Metafields
+# Optional theme-specific metafields
 METAOBJECT_COLORS_TYPE="shopify--color-pattern"  # Optional
 CUSTOM_COLLECTION_BANNER_METAFIELD="custom.collection_banner"  # Optional
 ```
@@ -95,28 +99,29 @@ For TypeScript support, add your environment variables to `env.d.ts`:
 
 ```typescript
 interface Env extends HydrogenEnv {
-  // Core Variables
+  // Shopify and Hydrogen
+  SESSION_SECRET: string;
   PUBLIC_STORE_DOMAIN: string;
   PUBLIC_STOREFRONT_API_TOKEN: string;
+  PRIVATE_STOREFRONT_API_TOKEN?: string;
+  PUBLIC_STOREFRONT_ID?: string;
+  PUBLIC_CHECKOUT_DOMAIN?: string;
   PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
+  PUBLIC_CUSTOMER_ACCOUNT_API_URL?: string;
   SHOP_ID: string;
   
-  // Weaverse Variables
+  // Weaverse
   WEAVERSE_PROJECT_ID: string;
   WEAVERSE_API_KEY?: string;
   WEAVERSE_HOST?: string;
   
-  // Optional Variables
-  PUBLIC_STOREFRONT_ID?: string;
-  PRIVATE_STOREFRONT_API_TOKEN?: string;
-  
-  // Third-Party Integrations
+  // Optional integrations
   PUBLIC_GOOGLE_GTM_ID?: string;
   JUDGEME_PRIVATE_API_TOKEN?: string;
   KLAVIYO_PRIVATE_API_TOKEN?: string;
   PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
   
-  // Custom Metafields
+  // Optional theme-specific metafields
   METAOBJECT_COLORS_TYPE?: string;
   CUSTOM_COLLECTION_BANNER_METAFIELD?: string;
 }
@@ -144,21 +149,44 @@ interface Env extends HydrogenEnv {
 
 ## Obtaining Required Tokens
 
-### Storefront API Token
-1. **Stores on a Shopify plan**: install the [Hydrogen sales channel](https://apps.shopify.com/hydrogen), create one Hydrogen storefront project, then run `npx shopify hydrogen env pull` from your local storefront. If you need to copy values manually, use **Hydrogen sales channel → Storefront Settings → Environments and variables**.
-2. **Development stores or stores without a Shopify plan**: install the [Headless sales channel](https://apps.shopify.com/headless), copy the Storefront API values, and add them to `.env` manually or give them to your AI agent to handle.
-3. Follow [Shopify's headless channel instructions](https://shopify.dev/docs/custom-storefronts/building-with-the-storefront-api/manage-headless-channels) when you need to manage Headless storefront tokens directly.
-4. When setting permissions, enable all Storefront API access scopes to avoid unexpected errors during development.
+### Recommended: Hydrogen Sales Channel
 
-> 💡 **Tip**: Always enable all Storefront API permissions when generating your token. This prevents access-related errors that can be difficult to troubleshoot during development.
+For stores on a Shopify plan, use Shopify's Hydrogen sales channel:
 
-<doc-warning>If you are on the Shopify Starter plan, please create a custom app to obtain the Storefront API token. [Learn more](https://help.shopify.com/en/manual/apps/app-types/custom-apps)</doc-warning>
+1. Install the [Hydrogen sales channel](https://apps.shopify.com/hydrogen).
+2. Create one Hydrogen storefront project for your store.
+3. From your local storefront folder, run:
+
+   ```bash
+   npx shopify hydrogen env pull
+   ```
+
+4. Choose the store, storefront, and environment when prompted.
+
+The command pulls environment variables from the linked Hydrogen storefront and writes them into your local `.env` file. If the CLI cannot pull values yet, copy them manually from **Hydrogen sales channel → Storefront settings → Environments and variables**.
+
+### Alternative: Headless Sales Channel
+
+For development stores, stores without a Shopify plan, or custom Storefront API setups:
+
+1. Install the [Headless sales channel](https://apps.shopify.com/headless).
+2. Create or open a storefront in the Headless channel.
+3. Copy the Storefront API values into `.env`.
+4. Request the Storefront API permissions your theme needs.
+
+<Tip>
+  During development, enable the Storefront API scopes required by your theme features. Missing scopes often show up later as product, collection, cart, localization, or metaobject data errors.
+</Tip>
+
+<Warning>
+  If you are on the Shopify Starter plan and cannot use the Hydrogen or Headless channel flow, create a custom app to obtain Storefront API access values.
+</Warning>
 
 ![API Token](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/API-Token.webp?v=1743408636)
 
 ### Weaverse Project ID
 1. Log in to [Weaverse Studio](https://studio.weaverse.io)
-2. Navigate to Project Settings
+2. Open your project and go to **Project Settings**
 3. Copy your Project ID
 
 ## Using Environment Variables

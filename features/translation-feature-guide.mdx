@@ -17,8 +17,9 @@ This guide shows how to set up and use the `Translation Manager` in Weaverse Stu
 
 You author content **once** in your default language, then let the manager fan it out to every other language with one click — review, refine, and you're done.
 
-> [!NOTE]
-> This is a different layer from the Hydrogen i18n loader (`schema.server.ts` / `loadPage()`), which controls how a published storefront *reads* translations at runtime. Use the i18n loader to wire locales into your theme (see [Markets and Localization](./markets-localization)); use the `Translation Manager` to actually *produce* the translations.
+<Note>
+  This is a different layer from the Hydrogen i18n loader (`schema.server.ts` / `loadPage()`), which controls how a published storefront *reads* translations at runtime. Use the i18n loader to wire locales into your theme (see [Markets and Localization](./markets-localization)); use the `Translation Manager` to actually *produce* the translations.
+</Note>
 
 ![Translation Manager open in Weaverse Studio](../images/translation/manager-overview.webp)
 {/* TODO (screenshot): Translation Manager dialog open, full window, a target language selected, side-by-side editor visible */}
@@ -44,10 +45,11 @@ How a project keys its content depends on **when it was created**:
 - **Market-first projects (new)** — content is keyed by **market**. One page per `(market, type, handle)`, with language as a pure translation overlay. This is the model the Translation Manager is built for: *edit once, translate everywhere.*
 - **Legacy projects (older)** — content is keyed by **full locale** (`vi-vn`, `en-vn`, `vi-us`). Each language of the same country is a **separate page you must author and maintain by hand**, even when the layout is identical.
 
-> [!IMPORTANT]
-> **New projects are market-first automatically.** Existing legacy projects keep working exactly as before — nothing breaks — but they do **not** get the "edit once, translate everywhere" benefit until they move to the market-first model.
->
-> There is **no automatic migration** today. If you're on a legacy project and want the market-first workflow, the recommended path is to **create a new project** (new projects are market-first by default) and rebuild your content there, or **[contact Weaverse support](mailto:support@weaverse.io)** to discuss a migration. A self-serve in-Studio migration flow is on the roadmap.
+<Warning>
+  **New projects are market-first automatically.** Existing legacy projects keep working exactly as before — nothing breaks — but they do **not** get the "edit once, translate everywhere" benefit until they move to the market-first model.
+
+  There is **no automatic migration** today. If you're on a legacy project and want the market-first workflow, the recommended path is to **create a new project** (new projects are market-first by default) and rebuild your content there, or **[contact Weaverse support](mailto:support@weaverse.io)** to discuss a migration. A self-serve in-Studio migration flow is on the roadmap.
+</Warning>
 
 {/* TODO (author): once the merchant-side migration UX ships, replace the note above with the in-Studio migration steps. */}
 
@@ -66,8 +68,9 @@ Why this matters:
 - Page scans read from the last **published** version of the project, not from unpublished editor changes.
 - Theme-level translation keys come from the theme schema, so they need to exist there before they can be synced and translated.
 
-> [!NOTE]
-> If the manager shows *"Translation feature is not configured for this project,"* your theme schema is missing `i18n.translation: true`. Add it (below) and reload Studio.
+<Note>
+  If the manager shows *"Translation feature is not configured for this project,"* your theme schema is missing `i18n.translation: true`. Add it (below) and reload Studio.
+</Note>
 
 ## Theme Setup
 
@@ -139,8 +142,9 @@ To add a translation target:
 
 That's it — the **default language is always the source**. The list is keyed by **language**, so markets that share a language share one set of translations; you never translate the same language twice. The default language and already-added languages appear disabled in the list.
 
-> [!TIP]
-> If you open the manager on a storefront language you haven't added yet, it prompts **"Add this language?"** so you can add it inline without losing context.
+<Tip>
+  If you open the manager on a storefront language you haven't added yet, it prompts **"Add this language?"** so you can add it inline without losing context.
+</Tip>
 
 Languages available to add come from the locales published on your store (the same `shopLocales` your Hydrogen i18n config reads). To add a brand-new locale to your storefront routing first, see [Markets and Localization](./markets-localization).
 
@@ -190,8 +194,9 @@ For large catalogs or external translation vendors, move translations in and out
 - **Export** — download a page's translations as **CSV** or **JSON**. CSV columns are `Item ID, Key, Path, Original Value, Translated Value`.
 - **Import** — upload a translated **CSV** or **JSON** back into a target language. Keep the export column shape so rows map to the right items.
 
-> [!TIP]
-> Export → hand to a translator or your own pipeline → import. This is the recommended path when you need certified human translation rather than AI drafts.
+<Tip>
+  Export → hand to a translator or your own pipeline → import. This is the recommended path when you need certified human translation rather than AI drafts.
+</Tip>
 
 ## How Translations Apply To The Project
 
