@@ -90,7 +90,8 @@
               "features/global-sections",
               "features/navigation-menus",
               "features/third-party-integrations",
-              "features/contact-form-klaviyo"
+              "features/contact-form-klaviyo",
+              "features/mobile-app-pwa"
             ]
           },
           {
