@@ -48,9 +48,7 @@ export let schema = createSchema({
   type: 'related-products',
   title: 'Related products',
   limit: 1,
-  enabledOn: {
-    pages: ['PRODUCT'],
-  },
+  enabled: ({ page }) => page.type === 'PRODUCT',
   settings: [
     {
       group: 'Layout',
@@ -664,9 +662,8 @@ export let schema = createSchema({
     ]
   },
   limit: 3,
-  enabledOn: {
-    pages: ['INDEX', 'COLLECTION', 'PRODUCT']
-  }
+  enabled: ({ page }) =>
+    ['INDEX', 'COLLECTION', 'PRODUCT'].includes(page.type)
 });
 ```
 
@@ -921,7 +918,7 @@ export let schema = createSchema({
 
 5. **Child Component Not Available**: If a child component doesn't appear in the editor, check that its type is included in the parent's `childTypes` array.
 
-6. **Component Not Appearing on Specific Pages**: Verify that the `enabledOn.pages` array includes the intended page types.
+6. **Component Not Appearing on Specific Pages**: Verify that the `enabled` callback returns `true` for the active page type, handle, locale, and group.
 
 7. **Data Not Refreshing**: For components with loaders, check if relevant inputs have `shouldRevalidate: true` set to trigger data refetching.
 
