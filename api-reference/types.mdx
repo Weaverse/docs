@@ -48,10 +48,12 @@ interface HydrogenComponentSchema {
   inspector?: InspectorGroup[]; // Deprecated: use 'settings' instead
   presets?: Omit<HydrogenComponentPresets, 'type'>;
   limit?: number;
+  /** @deprecated Use enabled instead. */
   enabledOn?: {
     pages?: ('*' | PageType)[];
     groups?: ('*' | 'header' | 'footer' | 'body')[];
   };
+  enabled?: Resolvable<boolean, ComponentAvailabilityContext>;
   pages?: ('*' | PageType)[];
   groups?: ('*' | 'header' | 'footer' | 'body')[];
 }
@@ -206,6 +208,48 @@ type PageType =
   | 'ARTICLE'
   | 'CUSTOM';
 ```
+
+### Component Availability
+
+The canonical availability types are exported by `@weaverse/schema`:
+
+```typescript
+import type {
+  ComponentAvailabilityContext,
+  ComponentGroup,
+  Resolvable,
+} from '@weaverse/schema';
+```
+
+Their definitions are:
+
+```typescript
+type ComponentGroup = 'body' | 'header' | 'footer';
+
+type ComponentAvailabilityContext = {
+  page: {
+    id: string;
+    type: PageType;
+    handle: string;
+    locale: string;
+  };
+  group: ComponentGroup;
+};
+
+type Resolvable<T, Context = unknown> =
+  | T
+  | ((context: Context) => T);
+```
+
+A component schema accepts either a static boolean or a synchronous callback:
+
+```typescript
+enabled?: Resolvable<boolean, ComponentAvailabilityContext>;
+```
+
+`enabledOn` is deprecated; move its page and group checks into `enabled`. Existing schemas remain supported, and Studio combines both properties using AND semantics when both are present. Callback errors, Promises, and non-boolean results make the component unavailable for new insertion, while existing instances remain editable. The callback runs in the storefront preview and is not serialized over Studio RPC.
+
+Studio currently evaluates component insertion for the `body` group. `header` and `footer` are reserved for placement surfaces that support them in the future.
 
 ### WeaverseI18n
 
@@ -386,10 +430,14 @@ export let schema = createSchema({
   settings?: InspectorGroup[];      // UI controls configuration
   childTypes?: string[];            // Allowed child component types
   limit?: number;                   // Maximum instances allowed
-  enabledOn?: {                     // Where component can be used
+  enabledOn?: {                     // Deprecated: use enabled
     pages?: PageType[];
     groups?: ('*' | 'header' | 'footer' | 'body')[];
   };
+  enabled?: Resolvable<             // Dynamic insertion availability
+    boolean,
+    ComponentAvailabilityContext
+  >;
   presets?: {                       // Default values and children
     children?: ComponentPresets[];
     [key: string]: any;
@@ -418,8 +466,9 @@ export let schema = createSchema({
       ],
     },
   ],
-  enabledOn: {
-    pages: ['INDEX', 'COLLECTION'],
-  },
+  enabled: ({ page, group }) =>
+    ['INDEX', 'COLLECTION'].includes(page.type) &&
+    group === 'body' &&
+    page.locale === 'en-us',
 });
 ```
