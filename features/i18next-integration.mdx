@@ -8,7 +8,7 @@ published: true
 
 This guide explains how to integrate **i18next** as the primary translation engine in your Weaverse Hydrogen project. 
 
-While Weaverse provides a built-in `useThemeText()` hook for simple `{ {variable} }` substitution, integrating `i18next` enables advanced localization features like **plurals**, **context-based formatting**, and **ordinals**—without breaking Weaverse's visual translation workflow!
+While Weaverse provides a built-in `useTranslation()` hook for simple `{ {variable} }` substitution, integrating `i18next` enables advanced localization features like **plurals**, **context-based formatting**, and **ordinals**—without breaking Weaverse's visual translation workflow!
 
 ## How It Works
 
@@ -25,7 +25,7 @@ By routing translations through `i18next` first and gracefully falling back to W
 
 ## Step 1: Install Dependencies
 
-You only need the core `i18next` package. React bindings (`react-i18next`) are fully optional unless you strictly prefer using them in your components over `useThemeText`.
+You only need the core `i18next` package. React bindings (`react-i18next`) are optional unless you prefer using its hook directly instead of `useTranslation` from `@weaverse/hydrogen`.
 
 ```bash
 npm install i18next
@@ -148,10 +148,10 @@ Your components don't need any updates. Standard keys simply fall back to Weaver
 
 **React Component Example:**
 ```tsx
-import { useThemeText } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 
 export function CartItemCount({ count }: { count: number }) {
-  const { t } = useThemeText();
+  const { t } = useTranslation();
   
   // Will output "1 item" or "3 items" depending on the count!
   return <span>{t('cart.itemCount', { count })}</span>;
