@@ -202,7 +202,7 @@ For large catalogs or external translation vendors, move translations in and out
 
 The feature applies translations in two different ways:
 
-1. **Theme content:** Stored as project translation keys. Use the `useThemeText` hook (below) in your frontend components so these strings render dynamically based on the active locale.
+1. **Theme content:** Stored as project translation keys. Use the `useTranslation` hook (below) in your frontend components so these strings render dynamically based on the active locale.
 2. **Page content:** Stored separately from the main page JSON. **Weaverse automatically applies these localized strings at runtime.** You don't need to add any code, hooks, or rendering logic to your Weaverse sections — Weaverse Hydrogen components automatically display the translated text when a non-default locale is requested.
 
 Your source content stays intact, while each supported language gets its own translation layer applied on top.
@@ -243,21 +243,21 @@ For the smoothest rollout, use this order:
 
 ## Rendering Translations in the Theme
 
-To use translated theme content in your components, use the `useThemeText` hook from `@weaverse/hydrogen`. It connects to your theme's static content and the localized strings managed in the Translation Manager.
+To use translated theme content in your components, use the `useTranslation` hook from `@weaverse/hydrogen`. It connects to your theme's static content and the localized strings managed in the Translation Manager.
 
 1. **Import the hook:**
 
 ```tsx
-import { useThemeText } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 ```
 
 2. **Use the `t` function to render localized strings:**
 
 ```tsx
-import { useThemeText } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen";
 
 export function CartSummary() {
-  const { t } = useThemeText();
+  const { t } = useTranslation();
 
   return (
     <div>
@@ -282,7 +282,7 @@ export function CartSummary() {
 **React Component:**
 ```tsx
 export function ProductImage({ name }: { name: string }) {
-  const { t } = useThemeText();
+  const { t } = useTranslation();
 
   return <img alt={t("product.pictureOf", { name })} />;
 }
@@ -290,7 +290,7 @@ export function ProductImage({ name }: { name: string }) {
 
 ### Advanced: Pluralization with i18next
 
-By default, the `t` function from `useThemeText` only supports simple string substitution (e.g., `{{variable}}`). It does not natively support advanced formatting like plurals.
+By default, the `t` function from `useTranslation` only supports simple string substitution (e.g., `{{variable}}`). It does not natively support advanced formatting like plurals.
 
 If your application requires plural forms or other advanced i18n features, configure an `i18next` instance and pass it as a custom translation function to Weaverse using the `withWeaverse` wrapper. For full step-by-step instructions, read the dedicated [i18next Integration Guide](./i18next-integration).
 
