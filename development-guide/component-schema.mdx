@@ -124,10 +124,12 @@ export let schema = createSchema({
   childTypes?: string[]
   presets?: Omit<HydrogenComponentPresets, 'type'>
   limit?: number
+  /** @deprecated Use enabled instead */
   enabledOn?: {
     pages?: ('*' | PageType)[]
     groups?: ('*' | 'header' | 'footer' | 'body')[]
   }
+  enabled?: boolean | ((context: ComponentAvailabilityContext) => boolean)
 });
 ```
 
@@ -375,7 +377,7 @@ export let schema = createSchema({
 });
 ```
 
-### `enabledOn`
+### `enabledOn` (deprecated)
 
 ```tsx
 enabledOn?: {
@@ -384,13 +386,32 @@ enabledOn?: {
 }
 ```
 
-The `enabledOn` property controls where components can be used within a theme.
+The `enabledOn` property controls where components can be used within a theme, but it is deprecated. Use `enabled` for both static and context-aware availability rules. Existing schemas remain supported, and when both properties are present both rules must pass.
 
 > **Note to users:** The `groups` feature for managing components in header/footer sections is not available yet. Currently, only the `pages` property is functional. The `groups` feature will be implemented in a future release.
 
 #### Page Types
 
 The `pages` array specifies which page types can include this component. Use `'*'` to allow the component on all page types.
+
+Migrate page and group checks directly into `enabled`:
+
+```tsx
+// Before
+export let schema = createSchema({
+  type: 'product-recommendations',
+  title: 'Product recommendations',
+  enabledOn: { pages: ['PRODUCT'], groups: ['body'] },
+});
+
+// After
+export let schema = createSchema({
+  type: 'product-recommendations',
+  title: 'Product recommendations',
+  enabled: ({ page, group }) =>
+    page.type === 'PRODUCT' && group === 'body',
+});
+```
 
 ```tsx
 type PageType =
@@ -404,6 +425,46 @@ type PageType =
   | 'ARTICLE'
   | 'CUSTOM'
 ```
+
+### `enabled`
+
+```tsx
+enabled?: boolean | ((context: ComponentAvailabilityContext) => boolean)
+```
+
+Use `enabled` to control whether a component can be inserted for the current page. A static boolean handles simple feature switches, while a synchronous callback can inspect the active page:
+
+```tsx
+export let schema = createSchema({
+  type: 'freebie-banner',
+  title: 'Freebie banner',
+  enabled: ({ page, group }) =>
+    group === 'body' &&
+    page.type === 'CUSTOM' &&
+    page.handle === 'freebies/essential',
+  settings: [],
+});
+```
+
+The callback receives:
+
+```tsx
+interface ComponentAvailabilityContext {
+  page: {
+    id: string
+    type: PageType
+    handle: string
+    locale: string
+  }
+  group: 'body' | 'header' | 'footer'
+}
+```
+
+`enabled` is combined with `enabledOn` using **AND semantics**. A component is available only when both rules allow it. The callback is evaluated synchronously in the storefront preview whenever Studio initializes or refreshes its page context; it is never sent over Studio RPC.
+
+Callbacks must be pure and return a boolean immediately. Returning a Promise or another value, or throwing an error, makes the component unavailable for new insertion without breaking Studio. Existing component instances remain visible and editable even when they are no longer available for insertion.
+
+> **Current placement support:** Studio currently evaluates insertion for the `body` group. The `header` and `footer` values are reserved for placement surfaces that support those groups in the future.
 
 ## Data Flow and Component Lifecycle
 
