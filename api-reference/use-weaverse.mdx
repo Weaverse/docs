@@ -6,7 +6,7 @@ published: true
 
 # useWeaverse
 
-The `useWeaverse` hook provides access to the global Weaverse instance, giving components access to page data, component registry, theme settings, and other essential Weaverse functionality. It serves as the main entry point for interacting with the Weaverse system.
+The `useWeaverse` hook provides access to the global Weaverse instance, giving components access to page data, the component registry, and other essential Weaverse functionality. It serves as the main entry point for interacting with the Weaverse system.
 
 ## Import
 
@@ -25,36 +25,6 @@ function useWeaverse(): WeaverseInstance
 - `WeaverseInstance` - The Weaverse instance containing global state and methods
 
 ## Common Use Patterns
-
-### Accessing Global Theme Settings
-
-Get access to global theme settings that apply across the entire storefront:
-
-```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
-
-export function GlobalFooter() {
-  const { themeSettings } = useWeaverse()
-  const { copyrightText, showSocialLinks, socialLinks } = themeSettings
-  
-  return (
-    <footer className="site-footer">
-      <div className="footer-content">
-        {showSocialLinks && socialLinks && (
-          <div className="social-links">
-            {socialLinks.map(link => (
-              <a key={link.platform} href={link.url} target="_blank" rel="noopener">
-                {link.platform}
-              </a>
-            ))}
-          </div>
-        )}
-        <div className="copyright">{copyrightText}</div>
-      </div>
-    </footer>
-  )
-}
-```
 
 ### Accessing Component Registry
 
@@ -159,11 +129,6 @@ export function CartSyncComponent() {
 
 ## Core Properties
 
-### `themeSettings`
-
-- **Type**: `HydrogenThemeSettings`
-- **Description**: Global theme settings like colors, typography, and layout options
-
 ### `itemInstances`
 
 - **Type**: `Map<string, WeaverseItemStore>`
@@ -186,7 +151,6 @@ export function CartSyncComponent() {
 
 ## When To Use
 
-- When you need to access global theme settings
 - When you need to find and interact with components that aren't in the current component tree
 - When implementing global state management or event handling
 - When you need access to page-level configuration data
