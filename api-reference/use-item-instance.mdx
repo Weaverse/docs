@@ -1,12 +1,12 @@
 ---
 title: useItemInstance
-description: Hook for accessing specific component instances in Weaverse Hydrogen components.
+description: Hook for accessing component instances in Weaverse Hydrogen components.
 published: true
 ---
 
 # useItemInstance
 
-The `useItemInstance` hook allows you to access and interact with a specific component instance in the Weaverse component tree by its ID. This gives you direct access to the component's data and methods, allowing for advanced interactions and updates.
+The `useItemInstance` hook returns a component item store. Pass an instance ID to look up a specific component, or omit it to use the current component from `WeaverseItemContext`.
 
 ## Import
 
@@ -17,36 +17,33 @@ import { useItemInstance } from '@weaverse/hydrogen'
 ## Type
 
 ```typescript
-function useItemInstance(id: string): WeaverseItemStore | null
+function useItemInstance(id?: string): WeaverseItemStore | null
 ```
 
 ## Parameters
 
-- `id: string` - The unique identifier of the component instance to access
+- `id?: string` — The component instance ID. When omitted, the hook uses the current component ID.
 
 ## Returns
 
-- `WeaverseItemStore | null` - The component instance, or `null` if no component with the provided ID exists
+- `WeaverseItemStore | null` — The item store, or `null` when the instance cannot be found.
 
 ## Common Use Patterns
 
-### Directly Accessing Component Data
+### Accessing the Current Component
 
-Access and use a specific component's data anywhere in your application:
+Call the hook without an ID inside a rendered Weaverse component:
 
 ```tsx
 import { useItemInstance } from '@weaverse/hydrogen'
 
 export function ProductDetails() {
-  // Access a specific product showcase component by ID
-  const showcase = useItemInstance('product-showcase-123')
-  
-  if (!showcase) {
-    return <div>Showcase not found</div>
-  }
-  
-  const { product, selectedVariant, showPricing } = showcase.data
-  
+  const item = useItemInstance()
+
+  if (!item) return null
+
+  const { product, selectedVariant, showPricing } = item.data
+
   return (
     <div className="product-details">
       <h2>{product.title}</h2>
@@ -58,59 +55,30 @@ export function ProductDetails() {
 }
 ```
 
-### Finding the Closest Weaverse Component
-
-Use the hook to find the closest Weaverse component to a given element, which is useful for custom integrations:
-
-```tsx
-import { useItemInstance } from '@weaverse/hydrogen'
-import { useRef, useEffect, useState } from 'react'
-
-export function useClosestWeaverseItem(ref) {
-  const [weaverseId, setWeaverseId] = useState('')
-  const weaverseItem = useItemInstance(weaverseId)
-
-  useEffect(() => {
-    if (!weaverseItem && ref.current) {
-      const closest = ref.current.closest('[data-wv-id]')
-      if (closest) {
-        setWeaverseId(closest.getAttribute('data-wv-id'))
-      }
-    }
-  }, [ref])
-
-  return weaverseItem
-}
-```
-
-### Accessing and Updating Component State
-
-Use the hook to read and update component state:
+### Accessing a Specific Component
 
 ```tsx
 import { useItemInstance } from '@weaverse/hydrogen'
 
 export function ProductFilterControls() {
   const productGrid = useItemInstance('product-grid-main')
-  
+
   if (!productGrid) return null
-  
+
   const { filters, activeFilters } = productGrid.data
-  
-  const toggleFilter = (filterId) => {
-    const newActiveFilters = activeFilters.includes(filterId)
-      ? activeFilters.filter(id => id !== filterId)
+
+  const toggleFilter = (filterId: string) => {
+    const nextActiveFilters = activeFilters.includes(filterId)
+      ? activeFilters.filter((id: string) => id !== filterId)
       : [...activeFilters, filterId]
-      
-    productGrid.updateData({
-      activeFilters: newActiveFilters
-    })
+
+    productGrid.setData({ activeFilters: nextActiveFilters })
   }
-  
+
   return (
     <div className="filter-controls">
-      {filters.map(filter => (
-        <button 
+      {filters.map((filter) => (
+        <button
           key={filter.id}
           onClick={() => toggleFilter(filter.id)}
           className={activeFilters.includes(filter.id) ? 'active' : ''}
@@ -123,22 +91,41 @@ export function ProductFilterControls() {
 }
 ```
 
-## Implementation Details
+### Finding the Closest Weaverse Component
 
-The `useItemInstance` hook accesses the component registry in the Weaverse context to find and return the requested component instance. It returns `null` if no component with the provided ID exists.
+```tsx
+import { useItemInstance } from '@weaverse/hydrogen'
+import { useEffect, useState, type RefObject } from 'react'
+
+export function useClosestWeaverseItem(
+  ref: RefObject<HTMLElement | null>
+) {
+  const [weaverseId, setWeaverseId] = useState('')
+  const weaverseItem = useItemInstance(weaverseId)
+
+  useEffect(() => {
+    if (!weaverseItem && ref.current) {
+      const closest = ref.current.closest('[data-wv-id]')
+      setWeaverseId(closest?.getAttribute('data-wv-id') ?? '')
+    }
+  }, [ref, weaverseItem])
+
+  return weaverseItem
+}
+```
 
 ## Core Methods and Properties
 
 ### `data`
 
-- **Type**: `any`
-- **Description**: Contains all the component's data, including its props, state, and any custom data.
+- **Type**: `ElementData`
+- **Description**: The serialized component data. It always includes `id` and `type`, plus component-specific fields.
 
-### `updateData(newData)`
+### `setData(update)`
 
-- **Parameters**: `newData: Partial<ComponentData>`
-- **Returns**: `void`
-- **Description**: Updates the component's data and triggers a re-render.
+- **Parameters**: `Omit<ElementData, 'id' | 'type'>`
+- **Returns**: `ElementData`
+- **Description**: Merges the update into the item data and triggers a re-render.
 
 ### `triggerUpdate()`
 
@@ -148,22 +135,21 @@ The `useItemInstance` hook accesses the component registry in the Weaverse conte
 ### `_id`
 
 - **Type**: `string`
-- **Description**: The unique identifier of the component instance.
+- **Description**: The component instance ID.
 
 ### `_element`
 
 - **Type**: `HTMLElement | null`
-- **Description**: Reference to the component's DOM node, if available.
+- **Description**: The component's DOM node, when available.
 
 ## When To Use
 
-- When you need to access or manipulate a component that's not in the current component hierarchy
-- When implementing custom integrations that need to interact with specific Weaverse components
-- When building advanced features that require direct access to component instances
-- When implementing cross-component communication patterns
+- When a component needs its own runtime data or methods
+- When you need to interact with a component by instance ID
+- When implementing cross-component communication
 
 ## Related
 
 - [useParentInstance](/api-reference/use-parent-instance) - Access the parent component instance
 - [useChildInstances](/api-reference/use-child-instances) - Access child component instances
-- [useWeaverse](/api-reference/use-weaverse) - Access the Weaverse instance
+- [useWeaverse](/api-reference/use-weaverse) - Access the Weaverse runtime
