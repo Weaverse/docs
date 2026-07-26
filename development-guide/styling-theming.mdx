@@ -540,6 +540,7 @@ Use theme settings directly in your Weaverse components:
 
 ```tsx
 // app/sections/hero-banner/index.tsx
+import type { Ref } from "react";
 import { useThemeSettings } from "@weaverse/hydrogen";
 import { createSchema } from "@weaverse/hydrogen";
 import type { HydrogenComponentProps } from "@weaverse/hydrogen";
@@ -547,10 +548,11 @@ import type { HydrogenComponentProps } from "@weaverse/hydrogen";
 interface HeroBannerProps extends HydrogenComponentProps {
   heading: string;
   showButton: boolean;
+  ref?: Ref<HTMLElement>;
 }
 
 export default function HeroBanner(props: HeroBannerProps) {
-  const { heading, showButton } = props;
+  const { heading, showButton, ref, ...rest } = props;
   const { 
     buttonPrimaryBg, 
     buttonPrimaryColor,
@@ -559,7 +561,7 @@ export default function HeroBanner(props: HeroBannerProps) {
   } = useThemeSettings();
   
   return (
-    <section className="relative py-20 text-center">
+    <section ref={ref} {...rest} className="relative py-20 text-center">
       <h1 
         style={{
           fontSize: `${h1BaseSize}px`,

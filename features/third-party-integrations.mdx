@@ -483,30 +483,44 @@ export let schema = createSchema({
 });
 ```
 
-The Judge.me integration leverages Hydrogen's existing product route data by accessing it through the React Router loader:
+The Judge.me integration reads the current product from the React Router loader, then fetches reviews from a resource route. Current Pilot keeps review data out of the product loader and loads it on demand:
 
 ```tsx
-// app/sections/judgeme-reviews/review-index.tsx
-import type { ComponentProps } from "react";
+// app/sections/judgeme-reviews/index.tsx
+import { useEffect, type ComponentProps } from "react";
 import { useLoaderData } from "react-router";
 import type { loader as productRouteLoader } from "~/routes/products/product";
-import ReviewForm from "./review-form";
-import { ReviewList } from "./review-list";
+import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
+import type { JudgemeReviewsData } from "~/types/judgeme";
+import { useJudgemeStore } from "./store";
 
 interface ReviewIndexProps extends ComponentProps<"div"> {}
 
-function ReviewIndex({ ref, ...props }: ReviewIndexProps) {
-  let { productReviews } = useLoaderData<typeof productRouteLoader>();
+function ReviewIndex({ ref, children, ...props }: ReviewIndexProps) {
+  const { product } = useLoaderData<typeof productRouteLoader>();
+  const { setData } = useJudgemeStore();
+  const reviewsAPI = usePrefixPathWithLocale(
+    `/api/product/${product?.handle}/reviews`,
+  );
+
+  useEffect(() => {
+    if (!product?.handle) return;
+
+    fetch(reviewsAPI)
+      .then((response) => {
+        if (!response.ok) throw new Error(`Review request failed: ${response.status}`);
+        return response.json();
+      })
+      .then((reviews: JudgemeReviewsData) => setData(reviews));
+  }, [product?.handle, reviewsAPI, setData]);
+
   return (
     <div
       ref={ref}
       {...props}
       className="flex flex-col md:flex-row md:gap-10 gap-5"
     >
-      <ReviewForm reviews={productReviews} />
-      {productReviews.reviews.length > 0 ? (
-        <ReviewList reviews={productReviews} />
-      ) : null}
+      {children}
     </div>
   );
 }
@@ -516,9 +530,9 @@ export default ReviewIndex;
 
 This approach:
 
-1. Leverages existing Hydrogen route data instead of making additional API calls
-2. Separates the display components from the data fetching logic
-3. Optimizes performance by reusing already fetched data
+1. Reuses the product already loaded by the Hydrogen route
+2. Defers the third-party review request until the component renders
+3. Keeps review pagination and caching independent from the product loader
 
 ## Common Integration Challenges
 

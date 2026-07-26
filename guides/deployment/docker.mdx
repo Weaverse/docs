@@ -167,7 +167,7 @@ SHOP_ID=your-shop-id
 WEAVERSE_PROJECT_ID=your-weaverse-project-id
 ```
 
-Run the container with those values injected at start time:
+Run the container with those values injected at start time. Before deploying, verify that the installed Shopify CLI version exposes the process environment as Hydrogen worker bindings:
 
 ```bash
 docker build -t my-storefront .
@@ -184,7 +184,7 @@ docker run --rm -p 3000:3000 \
 ```
 
 <Tip>
-If a tool in your chain insists on reading a `.env` file from disk, write it at container **start** from the injected environment via an entrypoint script — never at build time. The file then exists only in the running container's writable layer, not in the distributable image.
+Exercise a route that reads the required bindings after the container starts. If your CLI version does not forward the process environment, write a `.env` file at container **start** from the injected values via an entrypoint script — never at build time. The file then exists only in the running container's writable layer, not in the distributable image.
 </Tip>
 
 ## Cloud Deployment (Fly.io)

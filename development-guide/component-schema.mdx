@@ -900,7 +900,7 @@ export let schema = createSchema({
 ```
 
 <Warning>
-`settings` does **not** replace or override `inspector`. Both arrays are merged, so any group you copied from `inspector` into `settings` without deleting the original will appear twice in the Studio settings panel. Remove each `inspector` group as soon as you have migrated it.
+`settings` does **not** replace or override `inspector`. The SDK concatenates both arrays before extracting defaults and registering the schema, so a group copied into `settings` without deleting the original is submitted twice to Studio. Remove each `inspector` group as soon as you have migrated it.
 </Warning>
 
 ## Troubleshooting

@@ -257,16 +257,16 @@ The preview uses PostMessage/RPC for Studio communication:
 
 ```javascript
 // Check whether the Weaverse storefront runtime booted in the preview.
-// `window.__weaverse` is the runtime instance exposed by @weaverse/hydrogen.
-window.__weaverse?.sdkVersion // e.g. "5.19.1" when the runtime is mounted
-window.__weaverse?.isDesignMode // true when the page is rendered inside Studio
+// @weaverse/hydrogen stores runtimes by Weaverse page ID.
+const runtime = Object.values(window.__weaverses ?? {})[0]
+runtime?.sdkVersion // e.g. "5.19.1" when a runtime is mounted
+runtime?.isDesignMode // true when the page is rendered inside Studio
 
-// Multi-project storefronts expose one runtime per project id:
-window.__weaverses // Record<projectId, WeaverseHydrogen>
+window.__weaverses // Record<pageId, WeaverseHydrogen>
 ```
 
 <Note>
-Check the storefront runtime (`window.__weaverse`), not the Studio bridge. The bridge object is an internal implementation detail and does not expose a stable `version` field.
+Check the storefront runtimes in `window.__weaverses`, not the Studio bridge. The bridge object is an internal implementation detail and does not expose a stable `version` field.
 </Note>
 
 ### Clear Studio Cache

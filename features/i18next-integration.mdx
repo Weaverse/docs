@@ -111,7 +111,8 @@ export async function loader(args: LoaderFunctionArgs) {
 }
 
 function RootDocument({ children }: { children: ReactNode }) {
-  const { locale } = useRouteLoaderData<typeof loader>('root');
+  const data = useRouteLoaderData<typeof loader>('root');
+  const locale = data?.locale ?? 'EN';
 
   return (
     <html lang={locale.toLowerCase().split(/[-_]/)[0]}>
@@ -121,7 +122,8 @@ function RootDocument({ children }: { children: ReactNode }) {
 }
 
 export function Layout(props: { children: ReactNode }) {
-  const { locale } = useRouteLoaderData<typeof loader>('root');
+  const data = useRouteLoaderData<typeof loader>('root');
+  const locale = data?.locale ?? 'EN';
 
   const LayoutWithWeaverse = useMemo(() => {
     const instance = createI18nForRequest(locale, baseTranslations);
@@ -133,7 +135,7 @@ export function Layout(props: { children: ReactNode }) {
 }
 ```
 
-Each server render gets a separate `Layout` hook state, so concurrent locales never share an i18next instance. In the browser, the memoized wrapped layout remains stable until the active locale changes.
+Each server render gets a separate `Layout` hook state, so concurrent locales never share an i18next instance. In the browser, the memoized wrapped layout remains stable until the active locale changes. A locale change intentionally creates a new wrapped layout so the translation callback cannot retain the previous locale.
 
 <Warning>
 Do not call `useContext()`, `useTranslation()`, or any other hook from the translator passed to `withWeaverse`. The SDK invokes that callback as a plain function, so hooks there violate React's Rules of Hooks. Also never mutate a module-global i18next instance during SSR.

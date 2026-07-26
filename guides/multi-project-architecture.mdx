@@ -237,7 +237,8 @@ Build a global storefront with different domains per country, each with market-s
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
 import { WeaverseClient } from "@weaverse/hydrogen";
-import type { HydrogenContext, HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
+import type { HydrogenContext } from "@shopify/hydrogen";
+import type { HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
 
 export function createWeaverseClient(args: {
   hydrogenContext: HydrogenContext;
@@ -290,7 +291,7 @@ WEAVERSE_PROJECT_GERMANY=project-germany-012     # Germany: mystore.de
 // app/entry.server.tsx or server.ts
 import { createWeaverseClient } from "~/lib/weaverse/weaverse.server";
 import { themeSchema } from "~/weaverse/schema.server";
-import { components } from "~/weaverse";
+import { components } from "~/weaverse/components";
 
 export default {
   async fetch(request: Request, env: Env, context: ExecutionContext) {
@@ -876,15 +877,15 @@ WEAVERSE_PROJECT_ID=project-default-789  # Fallback
 #### Brand-Specific Product Filtering
 
 ```typescript
-// app/routes/collections/list.tsx
-// Registered in app/routes.ts as index("routes/collections/list.tsx")
+// app/routes/products/list.tsx
+// Registered inside prefix("products", [...]) as index("routes/products/list.tsx")
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse, storefront } = context;
   let url = new URL(request.url);
   let brand = url.hostname.split(".")[0];
 
   // Load Weaverse page (brand-specific layout)
-  let weaverseData = await weaverse.loadPage({ type: "COLLECTION_LIST" });
+  let weaverseData = await weaverse.loadPage({ type: "ALL_PRODUCTS" });
 
   // Filter Shopify products by brand tag
   let brandTag = brand === "brand-a" ? "Premium" : "Affordable";
@@ -976,14 +977,14 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
   return { weaverse, brand, brandConfig };
 }
 
-// app/routes/collections/list.tsx
-// Registered in app/routes.ts as index("routes/collections/list.tsx")
+// app/routes/products/list.tsx
+// Registered inside prefix("products", [...]) as index("routes/products/list.tsx")
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse, brand, brandConfig } = await createWeaverseClient({
     // ... args
   });
 
-  let weaverseData = await weaverse.loadPage({ type: "COLLECTION_LIST" });
+  let weaverseData = await weaverse.loadPage({ type: "ALL_PRODUCTS" });
 
   // Filter products by brand tag
   let filters = brandConfig.productTag

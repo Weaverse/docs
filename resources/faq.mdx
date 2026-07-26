@@ -128,7 +128,7 @@ Weaverse v5 fully supports React Router v7:
 - **Route Loaders**: Standard React Router data loading patterns
 - **Component Loaders**: Weaverse-specific data loading at the component level
 - **Type Generation**: `npx react-router typegen` for type safety
-- **File-based Routing**: Standard React Router v7 route conventions
+- **Route Configuration**: Routes registered in `app/routes.ts` with React Router v7 helpers
 - **SSR & Hydration**: Seamless server-side rendering with client hydration
 
 Migration from older Remix versions is handled through our [v5 Migration Guide](/migration-advanced/v5-migration).
@@ -143,21 +143,25 @@ Migration from older Remix versions is handled through our [v5 Migration Guide](
 
 ### How does server-side rendering work in Weaverse?
 
-Weaverse components are fully server-side rendered:
-1. **Build Time**: Static page data is fetched and cached
-2. **Request Time**: Server renders React components with data
-3. **Client Hydration**: Minimal JavaScript for interactivity
-4. **Navigation**: Client-side routing with React Router v7
-5. **Data Loading**: Progressive enhancement for dynamic content
+Weaverse renders the initial page on the server:
+1. **Request Time**: Route and component loaders fetch the data required for the request
+2. **Server Render**: React renders the page HTML with the resolved Weaverse data
+3. **Client Hydration**: React hydrates the page for interactive components
+4. **Navigation**: React Router runs the loaders required by client-side navigation
+5. **Studio Preview**: Design-mode updates refresh the active Weaverse render tree
 
-This ensures fast initial page loads and SEO optimization.
+Actual performance depends on the storefront code, data sources, cache strategy, and deployed runtime.
 
 ### What's the difference between component loaders and route loaders?
 
 **Route Loaders** (React Router v7):
 ```typescript
-// app/routes/products.$handle.tsx
-export async function loader({ params, context }: LoaderArgs) {
+// app/routes/products/product.tsx
+// Registered inside prefix("products", [...]) as
+// route(":productHandle", "routes/products/product.tsx")
+import type { LoaderFunctionArgs } from 'react-router';
+
+export async function loader({ params, context }: LoaderFunctionArgs) {
   // Provides data to entire route
 }
 ```
@@ -165,6 +169,8 @@ export async function loader({ params, context }: LoaderArgs) {
 **Component Loaders** (Weaverse):
 ```typescript
 // app/sections/featured-product.tsx
+import type { ComponentLoaderArgs } from '@weaverse/hydrogen';
+
 export async function loader({ weaverse, data }: ComponentLoaderArgs) {
   // Provides data only to this component
 }
@@ -236,11 +242,11 @@ const MyComponent = forwardRef<HTMLElement, Props>((props, ref) => {
 
 ### What's the data flow between Studio and local development?
 
-1. **Local Development**: Components register with Weaverse config
-2. **Studio Connection**: WebSocket connection to localhost:3456
-3. **Live Preview**: Studio renders local components in iframe
-4. **Data Sync**: Changes in Studio update local component props
-5. **Build Output**: Production builds include optimized static data
+1. **Local Development**: Components register with the Weaverse client
+2. **Studio Preview**: Studio loads the local storefront URL in an iframe
+3. **Runtime Bridge**: The storefront and Studio exchange preview updates through the Studio bridge
+4. **Data Sync**: Studio changes update the active component props and render tree
+5. **Production Build**: The Hydrogen build includes the registered components and storefront code
 
 ### Can I use React Context, Redux, or Zustand with Weaverse?
 
@@ -1481,8 +1487,8 @@ export const loader = ({ params }: Route.LoaderArgs) => {};
 
 **1. Development Server Problems**:
 ```bash
-# Verify dev server is running
-npm run dev  # Should start both studio and remix servers
+# Verify the local Hydrogen storefront preview is running for Studio
+npm run dev
 
 # Check port availability
 lsof -i :3456  # Weaverse default port
@@ -1904,10 +1910,10 @@ If you can't find your answer in this comprehensive FAQ:
 **Professional Support**:
 - 📧 Email support@weaverse.io for business inquiries
 - 📅 Schedule a consultation for complex projects
-- 🏢 Enterprise support with dedicated account management
+- 🏢 Ask the Weaverse team about currently available support plans
 
 **Learning Resources**:
-- 📚 [Complete Tutorial](/resources/tutorial) (45-minute walkthrough)
+- 📚 [Complete Tutorial](/resources/tutorial) (step-by-step walkthrough)
 - 📖 [Development Guide](/development-guide/creating-components) for advanced topics
 - 🧪 [Example Components](/resources/example-components) for inspiration
 
