@@ -260,7 +260,7 @@ Let's create a customizable Hero Banner that showcases your products.
          group: 'Design',
          inputs: [
            {
-             type: 'image_picker',
+             type: 'image',
              name: 'backgroundImage',
              label: 'Background Image',
            },
@@ -314,7 +314,10 @@ Let's enhance our Hero Banner to feature a specific product.
      const { weaverse } = args;
      const { storefront } = weaverse;
 
-     if (!args.data?.productHandle) {
+     // A `product` input stores a resource reference, not a bare string —
+     // read the handle off it before querying the Storefront API.
+     const handle = args.data?.product?.handle;
+     if (!handle) {
        return null;
      }
 
@@ -340,7 +343,7 @@ Let's enhance our Hero Banner to feature a specific product.
          }
        }
      `, {
-       variables: { handle: args.data.productHandle }
+       variables: { handle }
      });
 
      return { product };
@@ -349,16 +352,18 @@ Let's enhance our Hero Banner to feature a specific product.
 
 2. **Update component to use product data**:
    ```typescript
+   import type { WeaverseProduct } from '@weaverse/hydrogen';
+
    interface HeroBannerProps extends HydrogenComponentProps {
      // ... existing props
-     productHandle?: string;
+     product?: WeaverseProduct;
      loaderData?: {
        product?: any;
      };
    }
 
    function HeroBanner(props: HeroBannerProps) {
-     const { loaderData, productHandle, ...rest } = props;
+     const { loaderData, product: _product, ...rest } = props;
      const product = loaderData?.product;
 
      // Use product data if available
@@ -399,8 +404,8 @@ Let's enhance our Hero Banner to feature a specific product.
          inputs: [
            // ... existing inputs
            {
-             type: 'product_picker',
-             name: 'productHandle',
+             type: 'product',
+             name: 'product',
              label: 'Featured Product',
            },
          ],
@@ -418,15 +423,16 @@ Let's enhance our Hero Banner to feature a specific product.
      const { weaverse } = args;
      const { storefront } = weaverse;
 
-     if (!args.data?.productHandle) {
+     const handle = args.data?.product?.handle;
+     if (!handle) {
        return null;
      }
 
      const { product } = await storefront.query(
        PRODUCT_QUERY,
        {
-         variables: { handle: args.data.productHandle },
-         cache: storefront.CacheLong(), // Cache for 1 hour
+         variables: { handle },
+         cache: storefront.CacheLong(),
        }
      );
 
@@ -470,7 +476,7 @@ Before going live, ensure:
 - **Images are optimized** and loading properly
 - **All sections work** as expected
 - **Mobile responsive** design looks good
-- **Performance scores** are above 90 (check with Lighthouse)
+- **Performance is measured** on the deployed site (run Lighthouse and check Core Web Vitals)
 - **SEO metadata** is configured
 
 ### Go Live

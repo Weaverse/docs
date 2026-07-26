@@ -15,9 +15,9 @@ Find comprehensive answers to the most common questions about Weaverse developme
 Weaverse is a visual page builder and CMS designed specifically for Shopify Hydrogen storefronts. Unlike traditional Liquid themes:
 
 - **Modern Architecture**: Built with React Router v7, TypeScript, and modern React patterns
-- **Visual Editing**: Drag-and-drop interface for merchants with zero runtime JavaScript overhead
+- **Visual Editing**: Drag-and-drop interface for merchants, with Studio-only editing code kept out of the storefront runtime
 - **Developer Control**: Full component-level customization while maintaining merchant usability
-- **Performance First**: Server-side rendered, statically optimized, and edge-ready
+- **Performance First**: Server-side rendered, cached at the edge, and deployable to Shopify Oxygen
 - **Headless Integration**: Native Shopify Storefront API integration with advanced caching
 
 ### Do I need React/TypeScript knowledge to use Weaverse?
@@ -736,23 +736,36 @@ npm run dev  # Starts both Studio and Remix servers
 
 ### Does Weaverse add JavaScript bloat?
 
-**No runtime overhead!** Weaverse is designed for optimal performance:
+Weaverse is a React runtime, so it does ship JavaScript — `@weaverse/hydrogen`
+brings its own renderer, stores, and Studio integration on top of React, React
+Router v7, and Hydrogen. What it avoids is the *extra* per-app script layer that
+Liquid page builders add. How it keeps the payload in check:
 
-**Build Time**:
-- Components pre-rendered to static HTML
-- Data fetched and cached during build
-- CSS optimized and purged
+**Server-Side Rendering**:
+- Pages render on the server through Hydrogen and React Router v7
+- The client hydrates the already-rendered markup rather than building it
 
-**Runtime**:
-- Zero page builder JavaScript
-- Standard React hydration only
-- Minimal client-side code
+**Bundling**:
+- One Vite-built bundle shared by every section — no duplicate frameworks
+- Tree-shaking and code splitting via Vite
+- Studio-only code (design mode, the editor bridge) is gated behind design mode
+  and out of the shopper-facing path
 
-**Bundle Analysis**:
+**Caching**:
+- Storefront API and Weaverse Builder API responses cached with Hydrogen caching
+  strategies
+- Static assets and HTML cached at the Oxygen edge
+
+**Measure your own bundle**:
 ```bash
-npm run build  # Includes bundle analysis
-# Weaverse components add ~0KB runtime JavaScript
+npm run build                  # Check the build output for large chunks
+npx vite-bundle-analyzer dist  # Visual bundle analysis
 ```
+
+<Note>
+  Real numbers depend on your theme, your sections, and your third-party scripts.
+  Measure your own storefront rather than relying on generic figures.
+</Note>
 
 ### How does it compare to Liquid in performance?
 
@@ -761,22 +774,26 @@ npm run build  # Includes bundle analysis
 - **Weaverse**: Single React-based bundle optimized with Vite → unified framework, no conflicts, optimized loading
 
 **Performance Advantages**:
-- ✅ **Unified Bundle**: All components share React framework - no duplicate libraries
+- ✅ **Unified Bundle**: All components share one React framework - no duplicate libraries
 - ✅ **Vite Optimization**: Tree-shaking, code splitting, and modern bundling
-- ✅ **Server-Side Rendering**: Faster initial page loads with React Router v7
-- ✅ **Static Generation**: Pre-computed HTML and CSS
-- ✅ **Zero Runtime JS**: Weaverse components add ~0KB runtime JavaScript
-- ✅ **Image Optimization**: Automatic WebP/AVIF conversion
+- ✅ **Server-Side Rendering**: Markup rendered on the server with React Router v7
+- ✅ **Edge Caching**: Hydrogen caching strategies plus the Oxygen CDN
+- ✅ **Image Optimization**: Shopify CDN handles format conversion and responsive sizes
 
 **Architecture Comparison**:
 - **Liquid Apps**: Multiple scripts + different frameworks = bloated, conflict-prone
-- **Weaverse**: Single React bundle + Vite optimization = lean, fast, cohesive
+- **Weaverse**: Single React bundle + Vite optimization = lean, cohesive
 
-**Real-world Results**:
+**What this changes in practice**:
 - Eliminates script conflicts between different page builder apps
-- 40-60% faster initial page loads
-- 90+ Lighthouse performance scores
-- Improved Core Web Vitals metrics
+- Removes duplicated framework code shipped by separate Liquid apps
+- Puts caching and rendering behaviour under your control in code
+
+<Note>
+  Weaverse doesn't guarantee a specific Lighthouse score or load-time
+  improvement — those depend on your theme, content, and third-party scripts.
+  Benchmark your own storefront before and after migrating.
+</Note>
 
 ### What's the impact on Core Web Vitals?
 
@@ -799,7 +816,9 @@ npm run build  # Includes bundle analysis
 - Skeleton loading states
 - Reserved space for dynamic content
 
-**Typical Scores**: 90+ on all Core Web Vitals metrics
+These are the techniques the themes use — the resulting scores depend on your
+own content and scripts, so validate them with field data (Core Web Vitals in
+Search Console) rather than assuming a target.
 
 ### How does image optimization work?
 
@@ -897,62 +916,87 @@ shopify hydrogen deploy
 
 ### How do I implement lazy loading?
 
-**Built-in Lazy Loading**:
-```typescript
-// Images lazy load by default
-<WeaverseImage loading="lazy" />
+**Images**: use Hydrogen's `Image` component, which emits native lazy loading
+and a responsive `srcset`:
 
-// Components can lazy load
-const LazyComponent = lazy(() => import('./heavy-component'));
+```tsx
+import { Image } from '@shopify/hydrogen';
+
+<Image data={product.featuredImage} loading="lazy" sizes="(min-width: 45em) 50vw, 100vw" />
+```
+
+For the raw Shopify image object stored by an `image` schema input (typed as
+`WeaverseImage`), pass it to Hydrogen's `Image` or your theme's own image
+component — `WeaverseImage` is a data type, not a component you can render.
+
+**Components**: split heavy code out with React's `lazy()` and `Suspense`:
+
+```tsx
+import { lazy, Suspense } from 'react';
+
+const HeavyComponent = lazy(() => import('./heavy-component'));
 
 <Suspense fallback={<ComponentSkeleton />}>
-  <LazyComponent />
+  <HeavyComponent />
 </Suspense>
 ```
 
-**Section-Level Lazy Loading**:
-```typescript
-export let schema = createSchema({
-  type: 'heavy-section',
-  lazyLoad: true,  // Loads when in viewport
-  settings: [...]
-});
-```
+**Section-level deferral**: the component schema has no `lazyLoad` option — defer
+work yourself, for example with an Intersection Observer that renders the heavy
+part only once the section scrolls into view:
 
-**Custom Implementations**:
-- Intersection Observer API
-- React hooks for viewport detection
-- Progressive content loading
+```tsx
+function HeavySection(props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return <div ref={ref}>{visible ? <HeavyContent /> : <ComponentSkeleton />}</div>;
+}
+```
 
 ### Does Weaverse support SSG/ISR?
 
 **Dependency Chain**: Weaverse → Shopify Hydrogen → React Router v7
 
-**Static Site Generation**: ✅ Via React Router v7
-- Pages pre-generated at build time through React Router's SSG capabilities
-- Content cached for fast delivery via Shopify Oxygen
-- Dynamic sections rendered on-demand
-
 **Server-Side Rendering**: ✅ Via Shopify Hydrogen
-- Real-time rendering for dynamic content
+- Every request is rendered on the server (`ssr: true` in `react-router.config.ts`)
 - Seamless hydration on the client
 - Powered by React Router v7's SSR architecture
 
-**Implementation**:
+**Static Site Generation / ISR**: ❌ Not part of the Weaverse model
+- Weaverse page data is fetched from the Builder API per request, so pages are
+  not pre-generated at build time
+- The equivalent speed-up is caching, not prerendering: use Hydrogen caching
+  strategies in your loaders plus the Oxygen edge cache
+
+**Implementation** — cache instead of prerender:
 ```typescript
-// React Router v7 static generation
 export async function loader({ params, context }) {
-  // Data fetched at build time for SSG
-  // Or at request time for SSR
   return {
     product: await context.storefront.query(PRODUCT_QUERY, {
-      variables: { handle: params.handle }
-    })
+      variables: { handle: params.handle },
+      cache: context.storefront.CacheLong(),
+    }),
   };
 }
 ```
 
-**Note**: SSG/ISR capabilities depend on React Router v7 features, which Shopify Hydrogen leverages and Weaverse inherits.
+**Note**: Content published in Studio becomes visible once the relevant cache
+entry expires or revalidates, so pick cache strategies that match how often your
+merchants publish.
 
 ---
 
@@ -1799,18 +1843,27 @@ npx vite-bundle-analyzer dist  # Visual bundle analysis
 ```
 
 **2. Image Optimization Problems**:
-```typescript
-// ❌ Incorrect - unoptimized images
-<img src="/large-image.png" />
+```tsx
+// ❌ Incorrect - unoptimized raw <img>
+<img src={image.url} />
 
-// ✅ Correct - optimized Weaverse images
-<WeaverseImage 
-  src="/large-image.png"
+// ✅ Correct - Hydrogen's Image component (responsive srcset + lazy loading)
+import { Image } from '@shopify/hydrogen';
+
+<Image
+  data={image}          // the value stored by an `image` schema input
   width={800}
   height={600}
   loading="lazy"
+  sizes="(min-width: 45em) 50vw, 100vw"
 />
 ```
+
+<Note>
+  `WeaverseImage` is a TypeScript type describing the image object an `image`
+  input stores — it is not a component. Render it with Hydrogen's `Image` or your
+  theme's own image component.
+</Note>
 
 **3. Component Performance Issues**:
 ```typescript
@@ -1910,13 +1963,15 @@ async function retryWithBackoff(fn, retries = 3) {
 
 **2. Weaverse API Limits**:
 ```typescript
-// Use built-in caching
+import { CacheLong } from '@shopify/hydrogen';
+
+// Use built-in caching. fetchWithCache takes (url, options) — the caching
+// strategy goes inside that single options object.
 export const loader = async ({ context }) => {
-  const data = await context.weaverse.fetchWithCache(
-    'api-endpoint',
-    { method: 'GET' },
-    CacheLong() // Cache for 1 day
-  );
+  const data = await context.weaverse.fetchWithCache('https://api.example.com/data', {
+    method: 'GET',
+    strategy: CacheLong(),
+  });
 };
 ```
 
@@ -2212,7 +2267,7 @@ Mock-ups or wireframes (if applicable)
 If you can't find your answer in this comprehensive FAQ:
 
 **Quick Help Options**:
-- 🔍 [Search Documentation](/docs) for detailed guides
+- 🔍 [Browse the documentation](/) for detailed guides
 - 💬 [Join our Slack](https://wvse.cc/weaverse-slack) for community support and real-time help
 - 🐛 [GitHub Issues](https://github.com/Weaverse/weaverse/issues) for bug reports
 - 💡 [GitHub Discussions](https://github.com/orgs/Weaverse/discussions) for feature requests
@@ -2223,9 +2278,8 @@ If you can't find your answer in this comprehensive FAQ:
 - 🏢 Enterprise support with dedicated account management
 
 **Learning Resources**:
-- 📚 [Complete Tutorial](resources/tutorial) (20-minute walkthrough)
-- 🎥 Video tutorials and walkthroughs
-- 📖 [Development Guide](/development-guide/index) for advanced topics
-- 🧪 [Example Components](resources/example-components) for inspiration
+- 📚 [Complete Tutorial](/resources/tutorial) (45-minute walkthrough)
+- 📖 [Development Guide](/development-guide/creating-components) for advanced topics
+- 🧪 [Example Components](/resources/example-components) for inspiration
 
 We're always here to help you build amazing Shopify storefronts with Weaverse! 🚀
