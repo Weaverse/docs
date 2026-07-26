@@ -23,7 +23,7 @@ import { WeaverseHydrogenRoot } from '@weaverse/hydrogen'
 ```typescript
 interface WeaverseHydrogenRootProps {
   components: HydrogenComponent[]
-  data?: WeaverseLoaderData | Promise<WeaverseLoaderData> | null
+  data?: WeaverseLoaderData | Promise<WeaverseLoaderData | null> | null
   errorComponent?: React.FC<{ error: Error | unknown }>
 }
 ```
