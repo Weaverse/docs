@@ -1,107 +1,112 @@
 ---
-title: WeaverseRoot
-description: The core rendering component for Weaverse content in React-based applications.
+title: WeaverseHydrogenRoot
+description: Render Weaverse page data in a Shopify Hydrogen route.
 published: true
 ---
 
-# WeaverseRoot
+# WeaverseHydrogenRoot
 
-The `WeaverseRoot` component is the primary renderer for Weaverse content in React applications. It serves as the entry point for rendering dynamic, data-driven Weaverse components based on the provided Weaverse context.
+`WeaverseHydrogenRoot` is the public Hydrogen renderer. It resolves `weaverseData` from the current React Router route, creates the Weaverse runtime, registers your theme components, and renders the page tree.
 
 ## Import
 
 ```tsx
-import { WeaverseRoot } from '@weaverse/hydrogen'
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen'
 ```
+
+<Note>
+  The lower-level `WeaverseRoot` component belongs to `@weaverse/react` and requires an initialized `Weaverse` runtime. Hydrogen applications should use `WeaverseHydrogenRoot` instead.
+</Note>
+
+## Type
+
+```typescript
+interface WeaverseHydrogenRootProps {
+  components: HydrogenComponent[]
+  data?: WeaverseLoaderData | Promise<WeaverseLoaderData> | null
+  errorComponent?: React.FC<{ error: Error | unknown }>
+}
+```
+
+## Basic Usage
+
+Return `weaverseData` from the route loader. The component automatically reads the closest route's loader data:
+
+```tsx
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen'
+import type { Route } from './+types/$'
+import { components } from '~/weaverse/components'
+
+export async function loader({ context }: Route.LoaderArgs) {
+  return {
+    weaverseData: await context.weaverse.loadPage(),
+  }
+}
+
+export default function WeaversePage() {
+  return <WeaverseHydrogenRoot components={components} />
+}
+```
+
+## Passing Data Explicitly
+
+Use the `data` prop when a layout and child route render different Weaverse pages on the same URL:
+
+```tsx
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen'
+import { useLoaderData } from 'react-router'
+import type { Route } from './+types/$'
+import { components } from '~/weaverse/components'
+
+export async function loader({ context }: Route.LoaderArgs) {
+  return {
+    weaverseData: await context.weaverse.loadPage(),
+  }
+}
+
+export default function WeaversePage() {
+  const { weaverseData } = useLoaderData<typeof loader>()
+
+  return (
+    <WeaverseHydrogenRoot
+      components={components}
+      data={weaverseData}
+    />
+  )
+}
+```
+
+The `data` prop accepts a resolved value or a promise. Passing `null` explicitly suppresses rendering.
 
 ## Props
 
-| Prop | Type | Description |
-| --- | --- | --- |
-| `context` | `Weaverse` | The Weaverse instance containing the project data and component registry. |
+### `components`
 
-## Type Definition
+- **Type**: `HydrogenComponent[]`
+- **Required**: Yes
+- **Description**: Component definitions available to the page renderer.
 
-```typescript
-interface WeaverseRootPropsType {
-  context: Weaverse;
-}
+### `data`
 
-const WeaverseRoot: React.FC<WeaverseRootPropsType>;
-```
+- **Type**: `WeaverseLoaderData | Promise<WeaverseLoaderData | null> | null`
+- **Required**: No
+- **Description**: Overrides automatic route-scoped `weaverseData` resolution. Promises are handled with React Router's `<Await>`.
 
-## Usage
+### `errorComponent`
 
-```tsx
-import { WeaverseRoot, useWeaverse } from '@weaverse/hydrogen'
+- **Type**: `React.FC<{ error: Error | unknown }>`
+- **Required**: No
+- **Description**: Rendered when page data cannot be resolved or rendering throws.
 
-export function App() {
-  const weaverse = useWeaverse()
-  
-  return (
-    <div className="app-container">
-      <Header />
-      <main>
-        <WeaverseRoot context={weaverse} />
-      </main>
-      <Footer />
-    </div>
-  )
-}
-```
+## Behavior
 
-## How It Works
-
-The `WeaverseRoot` component:
-
-1. Creates a React context provider that makes the Weaverse instance available throughout the component tree
-2. Renders the root component from the Weaverse project data
-3. Sets up the necessary DOM structure with data attributes for Weaverse Studio integration
-4. Establishes the component tree based on parent-child relationships defined in the project data
-5. Passes appropriate props and data to each component in the tree
-
-## Rendering Process
-
-1. The component subscribes to changes in the Weaverse instance using `useSyncExternalStore`
-2. It renders a container element with appropriate Weaverse data attributes
-3. It finds the root component ID from the Weaverse data
-4. It recursively renders each component in the tree using internal `ItemInstance` and `ItemComponent` components
-5. Each component receives its data and children components based on the Weaverse project structure
-
-## Example: Full Page Structure
-
-```tsx
-import { WeaverseRoot } from '@weaverse/hydrogen'
-import { useLoaderData } from '@remix-run/react'
-
-export default function Page() {
-  const { weaverseData } = useLoaderData()
-  
-  return (
-    <html lang="en">
-      <head>
-        <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>My Weaverse App</title>
-      </head>
-      <body>
-        <WeaverseRoot context={weaverseData} />
-      </body>
-    </html>
-  )
-}
-```
-
-## Notes
-
-- Only one `WeaverseRoot` component should be used per page
-- The component automatically handles the entire component tree rendering
-- No need to manually render children - the component handles parent-child relationships
-- The component adds necessary data attributes for Weaverse Studio integration
-- Returns `null` if no valid Weaverse context or project ID is provided
+- The closest route's `weaverseData` is used when `data` is omitted.
+- Multiple roots are supported for nested layouts and child routes.
+- `data={null}` returns `null` without rendering an error.
+- Missing automatically resolved data renders `errorComponent`.
 
 ## Related
 
-- [useWeaverse](/api-reference/use-weaverse) - Hook to access the Weaverse instance
-- WeaverseHydrogenRoot - Hydrogen-specific wrapper around WeaverseRoot
-- [useItemInstance](/api-reference/use-item-instance) - Access component instances in the tree
+- [withWeaverse](/api-reference/with-weaverse) - Set up root theme, translation, and Studio integration
+- [WeaverseClient](/api-reference/weaverse-client) - Load page and theme data
+- [useWeaverse](/api-reference/use-weaverse) - Access the active runtime
