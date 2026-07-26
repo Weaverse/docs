@@ -73,18 +73,17 @@ Every Weaverse component follows a consistent structure:
 
 1. **Imports**: Import necessary types and utilities from Weaverse and React
 2. **Interface**: Define the component's props interface
-3. **Component**: Create the component (with or without `forwardRef`, see note below)
+3. **Component**: Create the component and pass the React 19 `ref` prop plus the remaining Weaverse props to its root DOM element
 4. **Schema**: Export the schema that defines how the component appears in Weaverse Studio
 5. **Export**: Export the component as default
 
-> **Note about `forwardRef`**: While many examples use `forwardRef`, it's actually optional in Weaverse components. It helps pass the ref to the component's DOM element so that Weaverse Editor can render essential UI elements like overlays and toolbars in the editor. However, if you spread all props to your root DOM element (e.g., `<div {...props}>`), Weaverse will automatically detect the DOM element. Additionally, with React 19, `forwardRef` will become less necessary due to improvements in ref handling.
+> **Note about refs**: Current Pilot uses React 19, where `ref` is a normal prop. Pass it to the root DOM element and spread the remaining Weaverse props so Studio can attach overlays and toolbars. Existing `forwardRef` components still work, but new components do not need it.
 
 ### Basic Component Template
 
 ```tsx
 import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 import { createSchema } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';  // Optional but recommended for now
 
 interface MyComponentProps extends HydrogenComponentProps {
   // Add your custom props here
@@ -92,10 +91,7 @@ interface MyComponentProps extends HydrogenComponentProps {
   description?: string;
 }
 
-// Using forwardRef (recommended approach for React 18)
-const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
-  const { title, description, children, ...rest } = props;
-  
+function MyComponent({ ref, title, description, children, ...rest }: MyComponentProps) {
   return (
     <section ref={ref} {...rest}>
       {title && <h2>{title}</h2>}
@@ -103,20 +99,7 @@ const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
       {children}
     </section>
   );
-});
-
-// Alternative: Without forwardRef (will work if you spread props to root element)
-// function MyComponent(props: MyComponentProps) {
-//   const { title, description, children, ...rest } = props;
-//   
-//   return (
-//     <section {...rest}>  // Make sure to spread remaining props here
-//       {title && <h2>{title}</h2>}
-//       {description && <p>{description}</p>}
-//       {children}
-//     </section>
-//   );
-// }
+}
 
 export let schema = createSchema({
   type: 'my-component',
@@ -146,7 +129,7 @@ export default MyComponent;
 ### Key Elements
 
 1. **HydrogenComponentProps**: Base props interface that all Weaverse components extend
-2. **forwardRef**: Used to properly pass refs through the component tree (optional if props are spread correctly)
+2. **ref and root props**: Pass `ref` and the remaining Weaverse props to the component's root DOM element
 3. **type property in schema**: Unique identifier for the component (must be unique across all components)
 4. **settings**: Defines the UI controls in Weaverse Studio
 5. **children prop**: Components can render child components or elements
@@ -506,7 +489,7 @@ import type { LoaderFunctionArgs } from 'react-router';
 import { useLoaderData } from 'react-router';
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { handle } = params;
+  const { productHandle: handle } = params;
   const { storefront } = context;
 
   const { product } = await storefront.query(PRODUCT_QUERY, {
@@ -536,25 +519,28 @@ Weaverse components can define their own loaders, which fetch data specifically 
 
 ```tsx
 // app/sections/featured-product/index.tsx
-import type { ComponentLoaderArgs, HydrogenComponentProps } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';
+import type {
+  ComponentLoaderArgs,
+  HydrogenComponentProps,
+  WeaverseProduct,
+} from '@weaverse/hydrogen';
 import { PRODUCT_QUERY } from '~/graphql/queries';
 
 interface FeaturedProductData {
-  productHandle: string;
+  product: WeaverseProduct;
 }
 
 export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
-  if (!data?.productHandle) {
+  if (!data?.product?.handle) {
     return null;
   }
   
   const { product } = await storefront.query(PRODUCT_QUERY, {
     variables: {
-      handle: data.productHandle,
+      handle: data.product.handle,
     },
   });
 
@@ -563,12 +549,11 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
 
 type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
 
-const FeaturedProduct = forwardRef<HTMLElement, FeaturedProductProps>((props, ref) => {
-  const { loaderData, productHandle, ...rest } = props;
+function FeaturedProduct({ ref, loaderData, product: selectedProduct, ...rest }: FeaturedProductProps) {
   const product = loaderData?.product;
   
   if (!product) {
-    return <div>Select a product in the editor</div>;
+    return <section ref={ref} {...rest}>Select a product in the editor</section>;
   }
   
   return (
@@ -578,7 +563,7 @@ const FeaturedProduct = forwardRef<HTMLElement, FeaturedProductProps>((props, re
       {/* Product details */}
     </section>
   );
-});
+}
 
 export default FeaturedProduct;
 
@@ -591,7 +576,7 @@ export let schema = createSchema({
       inputs: [
         {
           type: 'product',
-          name: 'productHandle',
+          name: 'product',
           label: 'Product',
         },
       ],
@@ -1073,7 +1058,7 @@ This pattern works particularly well for components with multiple configurable a
   - Utilize TypeScript's utility types for prop manipulation
 
 - **Follow React's Best Practices**
-  - Always use `forwardRef` for all components
+  - With React 19, accept `ref` as a prop and pass it to the root DOM element; keep `forwardRef` only for existing components that already use it
   - Separate component logic from presentation
   - Extract reusable UI elements into smaller components
   - Use composition over inheritance

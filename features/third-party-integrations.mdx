@@ -483,19 +483,19 @@ export let schema = createSchema({
 });
 ```
 
-The Judge.me integration leverages Hydrogen's existing product route data by accessing it through the Remix loader:
+The Judge.me integration leverages Hydrogen's existing product route data by accessing it through the React Router loader:
 
 ```tsx
 // app/sections/judgeme-reviews/review-index.tsx
-import { useLoaderData } from "@remix-run/react";
-import type { ComponentLoaderArgs } from "@weaverse/hydrogen";
-import { createSchema } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
-import type { loader as productRouteLoader } from "~/routes/($locale).products.$productHandle";
+import type { ComponentProps } from "react";
+import { useLoaderData } from "react-router";
+import type { loader as productRouteLoader } from "~/routes/products/product";
 import ReviewForm from "./review-form";
 import { ReviewList } from "./review-list";
 
-let ReviewIndex = forwardRef<HTMLDivElement>((props, ref) => {
+interface ReviewIndexProps extends ComponentProps<"div"> {}
+
+function ReviewIndex({ ref, ...props }: ReviewIndexProps) {
   let { productReviews } = useLoaderData<typeof productRouteLoader>();
   return (
     <div
@@ -509,7 +509,7 @@ let ReviewIndex = forwardRef<HTMLDivElement>((props, ref) => {
       ) : null}
     </div>
   );
-});
+}
 
 export default ReviewIndex;
 ```

@@ -7,7 +7,7 @@ published: true
 This guide details how to integrate the Weaverse SDK into your **existing** Shopify Hydrogen project. By adding Weaverse, you empower your storefront with visual page building, theme customization through the Weaverse Studio, and access to a growing library of components, significantly speeding up development and content management.
 
 <Note>
-  **Weaverse v5 runs on React Router v7**, aligning with [Shopify Hydrogen's May 2025 release](https://hydrogen.shopify.dev/update/may-2025). Pick the version that matches your Hydrogen setup:
+  **Weaverse v5 runs on React Router v7**, aligning with Shopify Hydrogen's React Router migration. See the current [Hydrogen updates](https://hydrogen.shopify.dev/updates), then pick the version that matches your Hydrogen setup:
 
   - **Hydrogen on React Router v7** (2025.5.0 and newer): use `@weaverse/hydrogen@5` (latest)
   - **Hydrogen on Remix** (older releases): use `@weaverse/hydrogen@4` (legacy)
@@ -31,7 +31,7 @@ Before you start, ensure you have:
 
 ### Migration Consideration
 
-If you're currently on Hydrogen with Remix and want to move to React Router v7, follow the [official Shopify migration guide](https://hydrogen.shopify.dev/update/may-2025) first, then install Weaverse v5. See also the [Weaverse v5 migration guide](/migration-advanced/v5-migration). Alternatively, stay on Weaverse v4 with your current Remix setup.
+If you're currently on Hydrogen with Remix and want to move to React Router v7, review the current [Hydrogen updates](https://hydrogen.shopify.dev/updates) first, then install Weaverse v5. See also the [Weaverse v5 migration guide](/migration-advanced/v5-migration). Alternatively, stay on Weaverse v4 with your current Remix setup.
 
 ## Step 1: Install Weaverse SDK
 
@@ -332,6 +332,16 @@ import {
 import { components } from "~/weaverse/components";
 import { themeSchema } from "~/weaverse/schema.server";
 // ... your AppSession and getLocaleFromRequest helpers
+
+const additionalContext = {
+  // Add custom context values here.
+} as const;
+
+type AdditionalContextType = typeof additionalContext;
+
+declare global {
+  interface HydrogenAdditionalContext extends AdditionalContextType {}
+}
 
 export async function createHydrogenRouterContext(
   request: Request,

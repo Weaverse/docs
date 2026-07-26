@@ -28,10 +28,15 @@ graph LR
 ```tsx
 // app/sections/product-card/index.tsx
 // You write React components with schemas
-import { createSchema } from '@weaverse/hydrogen'
+import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen'
 
-function ProductCard({ title, price }) {
-  return <div>{title} - {price}</div>
+interface ProductCardProps extends HydrogenComponentProps {
+  title: string
+  price: string
+}
+
+function ProductCard({ ref, title, price, ...rest }: ProductCardProps) {
+  return <div ref={ref} {...rest}>{title} - {price}</div>
 }
 
 export default ProductCard

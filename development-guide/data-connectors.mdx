@@ -232,7 +232,7 @@ No code required for users - they just click and select from the visual interfac
 ### Example: Adding Custom API Data
 
 ```tsx
-// app/routes/_index.tsx
+// app/routes/home.tsx (registered with index("routes/home.tsx"))
 export async function loader() {
   // Fetch from your backend, CMS, or any API
   let announcement = await fetch('https://your-cms.com/announcement')

@@ -381,16 +381,20 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
       let origin = new URL(request.url).origin;
 
       const projectMap: Record<string, string> = {
-        "https://mystore.se": process.env.WEAVERSE_PROJECT_SWEDEN!,
-        "https://mystore.fr": process.env.WEAVERSE_PROJECT_FRANCE!,
-        "https://mystore.de": process.env.WEAVERSE_PROJECT_GERMANY!,
+        "https://mystore.se": hydrogenContext.env.WEAVERSE_PROJECT_SWEDEN!,
+        "https://mystore.fr": hydrogenContext.env.WEAVERSE_PROJECT_FRANCE!,
+        "https://mystore.de": hydrogenContext.env.WEAVERSE_PROJECT_GERMANY!,
       };
 
-      return projectMap[origin] || process.env.WEAVERSE_PROJECT_ID!;
+      return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
 ```
+
+<Note>
+The storefront runs in an Oxygen worker, so there is no `process.env`. Read runtime variables from `hydrogenContext.env` in your factory, or from `context.env` inside a route loader.
+</Note>
 
 ### Learn More
 

@@ -162,7 +162,7 @@ Routes for Shopify resources (product, collection, blog, article, Shopify pages)
 2. **Locate every route that calls `context.weaverse.loadPage(...)`** — `grep -rln "weaverse.loadPage" app/routes`.
 3. **For each, decide which recipe applies** (catch-all, home/index, or — optionally — template) and apply it. Routes that already build SEO from Shopify data stay as they are.
 4. **Remove legacy overrides** (see next section), if any.
-5. **Run `typecheck` and `build`.** Fix any `errorComponent` regression caused by the SDK bump (see [SDK 5.14 side effect](#sdk-514-side-effect-errorcomponent-prop-type)).
+5. **Run `typecheck` and `build`.** Fix any `errorComponent` regression caused by the SDK bump (see [SDK 5.14 side effect](#sdk-5-14-error-component-prop-type)).
 6. **Smoke test**: open a Weaverse page in Studio, set a Title and Description, save, view source on the storefront URL. The tags should appear.
 
 ---
@@ -185,7 +185,7 @@ Once Studio-edited SEO works, this layer is dead weight and competes with Weaver
 
 ---
 
-## SDK 5.14 side effect: `errorComponent` prop type
+## SDK 5-14 error component prop type
 
 `@weaverse/hydrogen` 5.14 narrowed `WeaverseHydrogenRoot`'s `errorComponent` prop to `React.FC<{ error: unknown }>`. If your theme passes a custom error component typed as `{ error?: { message; stack? } }`, TypeScript will now complain. The fix is to accept `unknown` and narrow at runtime:
 

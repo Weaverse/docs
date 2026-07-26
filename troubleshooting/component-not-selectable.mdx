@@ -126,7 +126,7 @@ export default MySection;
 ```
 
 <Note>
-With React 19, `forwardRef` becomes less necessary. If you spread all props (including `ref`) onto the root element, Weaverse can detect the DOM element automatically. See the [Weaverse Component guide](/development-guide/weaverse-component) for more details.
+  Current Pilot uses React 19, so new components can accept `ref` as a normal prop. Pass it to the root element and spread the remaining Weaverse props. Existing `forwardRef` components remain supported. See the [Weaverse Component guide](/development-guide/weaverse-component) for details.
 </Note>
 
 ---

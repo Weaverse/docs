@@ -9,7 +9,7 @@ featured: true # Highlight this guide
 
 We're excited to announce the release of **Weaverse v5**, marking a major milestone in our journey to provide the best developer experience for building Shopify Hydrogen storefronts. This guide provides all the information you need about this release, including how to upgrade your existing Weaverse Hydrogen project from Remix to React Router v7.
 
-Weaverse v5 introduces a major architectural change, migrating from Remix to React Router v7 to align with [Shopify Hydrogen's May 2025 release](https://hydrogen.shopify.dev/update/may-2025).
+Weaverse v5 introduces a major architectural change, migrating from Remix to React Router v7 to align with Shopify Hydrogen's framework migration. See the current [Hydrogen updates](https://hydrogen.shopify.dev/updates).
 
 ## What's New in v5?
 
@@ -33,7 +33,7 @@ Weaverse v5 introduces a major architectural change, migrating from Remix to Rea
 - Modern React patterns and best practices
 
 **🔮 Future-Ready**
-- Aligned with [Shopify Hydrogen May 2025 release](https://hydrogen.shopify.dev/update/may-2025)
+- Aligned with Shopify Hydrogen's React Router architecture
 - Compatible with the latest React ecosystem
 - Foundation for upcoming Weaverse features
 
@@ -134,7 +134,7 @@ In your Weaverse dashboard:
 Before starting the manual migration, ensure you have:
 
 1. **Shopify Hydrogen 2025.4.0** with all Remix Future Flags enabled
-2. **Node.js 20+** installed
+2. **Node.js 22.12 or newer** installed for the current Pilot project
 3. **All changes committed** to version control
 
 ### Step 1: Enable Remix Future Flags
@@ -340,6 +340,16 @@ import { createHydrogenContext } from "@shopify/hydrogen";
 import { WeaverseClient } from "@weaverse/hydrogen";
 import { components } from "~/weaverse/components";
 import { themeSchema } from "~/weaverse/schema.server";
+
+const additionalContext = {
+  // Add custom context values here.
+} as const;
+
+type AdditionalContextType = typeof additionalContext;
+
+declare global {
+  interface HydrogenAdditionalContext extends AdditionalContextType {}
+}
 
 export async function createHydrogenRouterContext(
   request: Request,
@@ -705,7 +715,7 @@ Ready to upgrade? Follow the steps above or [create a new project](/intro/quicks
 
 ## Additional Resources
 
-- [Shopify Hydrogen May 2025 Release](https://hydrogen.shopify.dev/update/may-2025)
+- [Shopify Hydrogen updates](https://hydrogen.shopify.dev/updates)
 - [React Router v7 Documentation](https://reactrouter.com/7.0.0)
 - [Weaverse Documentation](/)
 - [Full Weaverse Changelog](/changelog)

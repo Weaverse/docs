@@ -48,7 +48,7 @@ Using just the SDK would require building your own content management interface,
 ### What are the system requirements?
 
 **Development Environment**:
-- Node.js 22+ (required)
+- Node.js 22.12 or newer (required by the current Pilot project)
 - npm/pnpm package manager
 - Git for version control
 - Modern code editor (VS Code/Cursor recommended)
@@ -74,12 +74,7 @@ Pricing may vary based on features, usage, and business requirements.
 
 ### Is Weaverse production-ready?
 
-Yes! Weaverse powers production storefronts with:
-- React Router v7 stable release support
-- Comprehensive TypeScript coverage
-- Extensive testing and performance optimization
-- Enterprise-grade security and scalability
-- Active maintenance and regular updates
+Weaverse is used for production Hydrogen storefronts. Production readiness still depends on your own theme: test checkout, localization, caching, accessibility, analytics, and third-party integrations before launch.
 
 ### What's included in the Pilot theme?
 
@@ -90,7 +85,7 @@ The Pilot theme is a comprehensive starter theme including:
 - Cart and checkout integration
 - SEO optimization and structured data
 - Multi-language and multi-market support
-- Performance optimizations and Core Web Vitals compliance
+- Hydrogen SSR and theme-level performance controls
 
 ### How does Weaverse compare to other page builders?
 
@@ -100,7 +95,7 @@ Weaverse offers unique advantages:
 - ✅ React Router v7 (SSR) for optimal performance
 - ✅ TypeScript support for better developer experience
 - ✅ Component-based architecture for reusability
-- ✅ No runtime JavaScript bloat
+- ✅ Control over the storefront React code and dependencies
 
 **Developer Experience**:
 - ✅ Modern development workflow with hot reload
@@ -188,28 +183,28 @@ export let schema = createSchema({
   type: 'my-component',
   title: 'My Component',
   settings: [
-    // Validated at build time using Zod
+    // Validated by createSchema() in non-production environments
   ]
 });
 ```
 
 **Validation Features**:
-- Runtime schema validation with Zod
+- Development-time schema validation with Zod
 - TypeScript inference and autocompletion
-- Build-time error checking
 - Consistent validation rules across components
 
 ### Do I need forwardRef for components in React 19?
 
-**React 19 (Current)**: `forwardRef` is no longer needed! Components automatically forward refs:
+**React 19 (Current)**: `ref` can be declared as a normal prop. It is not forwarded automatically; pass it to the DOM element that Weaverse should select:
 ```typescript
-interface Props {
+import type { ComponentProps } from 'react';
+
+interface Props extends ComponentProps<'section'> {
   title: string;
-  className?: string;
 }
 
-function MyComponent(props: Props) {
-  return <section {...props}>{props.title}</section>;
+function MyComponent({ ref, title, ...rest }: Props) {
+  return <section ref={ref} {...rest}>{title}</section>;
 }
 ```
 
@@ -222,7 +217,7 @@ const MyComponent = forwardRef<HTMLElement, Props>((props, ref) => {
 
 **Weaverse Compatibility**:
 - ✅ React 19 components work seamlessly with Weaverse Studio
-- ✅ Automatic ref forwarding through props spreading
+- ✅ React 19's `ref` prop pattern works when the ref is attached to the root DOM element
 - ✅ No migration needed for existing forwardRef components
 - ✅ Both patterns supported for backward compatibility
 
@@ -231,7 +226,7 @@ const MyComponent = forwardRef<HTMLElement, Props>((props, ref) => {
 1. **Initial Load**: Server renders complete HTML
 2. **Hydration**: React attaches to existing DOM
 3. **Navigation**: React Router handles client-side routing
-4. **Data Loading**: Progressive data fetching for new routes
+4. **Data Loading**: React Router runs the loaders required by the new route
 5. **Component Updates**: Real-time updates from Studio
 
 **Hydration Mismatch Prevention**:
@@ -296,10 +291,10 @@ function MyComponent() {
 ### What's the build process for Weaverse projects?
 
 **Standard Hydrogen Build Process**:
-1. **Component Registration**: Weaverse discovers and registers your components
+1. **Component Registration**: Your static `components` array is imported into the Weaverse renderer
 2. **React Router Build**: Standard Vite/React Router compilation
 3. **Type Generation**: `npx react-router typegen` for route types
-4. **Asset Optimization**: Vite handles CSS, images, and bundling
+4. **Asset Build**: Vite handles CSS, imported assets, and JavaScript bundling
 
 **Development**: 
 ```bash
@@ -312,16 +307,15 @@ npm run build  # Optimized build with code splitting
 ```
 
 **Weaverse-Specific Steps**:
-- Component schemas are validated at build time
-- Studio connection established for live editing
-- Static page data is generated and cached
+- `createSchema()` validates schemas when the module is evaluated in non-production environments
+- The development server connects to Studio for live editing
+- At runtime, route loaders request page data and apply the caching strategy configured by the theme
 
 ### How does code splitting work with Weaverse components?
 
 **Automatic Code Splitting**:
 - Route-based splitting via React Router v7
-- Dynamic imports for heavy components
-- Component-level splitting for large sections
+- Any dynamic imports already defined by your application
 
 **Manual Code Splitting**:
 ```typescript
@@ -332,10 +326,7 @@ const HeavyComponent = lazy(() => import('./heavy-component'));
 // Use with Suspense boundary
 ```
 
-**Optimization Features**:
-- Automatic bundle analysis
-- Critical CSS inlining
-- Progressive loading strategies
+Weaverse does not automatically split every registered section. Use dynamic imports deliberately for heavy code and inspect the generated Vite chunks after a production build.
 
 ---
 
@@ -680,55 +671,15 @@ npm run dev  # Starts both Studio and Remix servers
 
 ### Can I A/B test different layouts?
 
-**Current Status**: Built-in A/B testing functionality is not currently available in Weaverse.
-
-**Alternative Approaches**:
-- Create multiple page versions manually and compare performance
-- Use external A/B testing tools at the application level
-- Implement feature flags in your custom components
-- Leverage Shopify's built-in analytics to compare page performance
-
-**Future Development**: A/B testing capabilities are being considered for future releases. Stay updated:
-- Join our [Slack community](https://wvse.cc/weaverse-slack) for the latest news
-- Join our [Slack community](https://wvse.cc/weaverse-slack) for feature updates
-- Ask questions in our [Slack community](https://wvse.cc/weaverse-slack)
-
-**Workarounds**:
-- Create duplicate pages with different layouts
-- Use URL parameters or routing to serve different versions
-- Monitor conversion metrics through Shopify Analytics or Google Analytics
+The SDK includes `@weaverse/experiments` for deterministic server-side variant assignment. It does not replace an analytics platform: persist the assignment, attach it to downstream events, and evaluate results in Shopify Analytics, GA4, or your own warehouse. See the [A/B testing section of the multi-project guide](/guides/multi-project-architecture).
 
 ### How do I backup/restore my designs?
 
-**Automatic Backups**:
-- Version history in Studio
-- Daily automated snapshots
-- Change logging and tracking
-
-**Manual Backups**:
-- Export page data as JSON
-- Code repository contains component definitions
-- Database backups include content data
-
-**Restoration Process**:
-1. Access version history in Studio
-2. Select restore point
-3. Confirm restoration
-4. Verify content integrity
+Keep component code, schemas, and theme configuration in version control. Backup and restore options for Studio-managed page data can depend on the account and current Studio capabilities; do not assume that self-service JSON export, version history, or point-in-time restore is available. Contact Weaverse support before a risky bulk edit or when content recovery is required.
 
 ### Is there a mobile app for editing?
 
-**Current Status**: Web-based editor optimized for desktop/tablet use
-
-**Mobile Considerations**:
-- Studio works on tablets (iPad, Android tablets)
-- Mobile browsers have limited functionality
-- Responsive preview available in all views
-
-**Roadmap**:
-- Native mobile app under consideration
-- PWA improvements planned
-- Enhanced mobile editing capabilities
+Studio is a web application; these docs do not document a native mobile editing app. Use a desktop browser for editing and use Studio's responsive preview plus real-device storefront testing to verify mobile layouts. Check with support for the current browser/device support policy.
 
 ---
 
@@ -746,10 +697,8 @@ Liquid page builders add. How it keeps the payload in check:
 - The client hydrates the already-rendered markup rather than building it
 
 **Bundling**:
-- One Vite-built bundle shared by every section — no duplicate frameworks
-- Tree-shaking and code splitting via Vite
-- Studio-only code (design mode, the editor bridge) is gated behind design mode
-  and out of the shopper-facing path
+- Vite applies tree-shaking and the code-splitting boundaries defined by the theme
+- All registered components can affect the client bundle, so inspect production output when adding large dependencies
 
 **Caching**:
 - Storefront API and Weaverse Builder API responses cached with Hydrogen caching
@@ -758,8 +707,7 @@ Liquid page builders add. How it keeps the payload in check:
 
 **Measure your own bundle**:
 ```bash
-npm run build                  # Check the build output for large chunks
-npx vite-bundle-analyzer dist  # Visual bundle analysis
+npm run build # Check the build output for large chunks
 ```
 
 <Note>
@@ -769,25 +717,7 @@ npx vite-bundle-analyzer dist  # Visual bundle analysis
 
 ### How does it compare to Liquid in performance?
 
-**Script Loading & Bundle Optimization**:
-- **Liquid**: Each app adds separate scripts with different frameworks/libraries → script conflicts and bloated sites
-- **Weaverse**: Single React-based bundle optimized with Vite → unified framework, no conflicts, optimized loading
-
-**Performance Advantages**:
-- ✅ **Unified Bundle**: All components share one React framework - no duplicate libraries
-- ✅ **Vite Optimization**: Tree-shaking, code splitting, and modern bundling
-- ✅ **Server-Side Rendering**: Markup rendered on the server with React Router v7
-- ✅ **Edge Caching**: Hydrogen caching strategies plus the Oxygen CDN
-- ✅ **Image Optimization**: Shopify CDN handles format conversion and responsive sizes
-
-**Architecture Comparison**:
-- **Liquid Apps**: Multiple scripts + different frameworks = bloated, conflict-prone
-- **Weaverse**: Single React bundle + Vite optimization = lean, cohesive
-
-**What this changes in practice**:
-- Eliminates script conflicts between different page builder apps
-- Removes duplicated framework code shipped by separate Liquid apps
-- Puts caching and rendering behaviour under your control in code
+The architectures are different, so there is no universal performance winner. A Weaverse storefront uses Hydrogen SSR, React hydration, Vite bundles, Shopify's image CDN, and the caching strategy defined by the theme. A Liquid storefront's cost depends heavily on its theme and installed app scripts. Compare the same pages, content, and third-party integrations using production builds and field data.
 
 <Note>
   Weaverse doesn't guarantee a specific Lighthouse score or load-time
@@ -797,28 +727,7 @@ npx vite-bundle-analyzer dist  # Visual bundle analysis
 
 ### What's the impact on Core Web Vitals?
 
-**Optimizations for Core Web Vitals**:
-
-**LCP (Largest Contentful Paint)**:
-- Above-the-fold content prioritized
-- Critical CSS inlined
-- Image optimization with proper sizing
-- Preload key resources
-
-**FID (First Input Delay)**:
-- Minimal JavaScript execution
-- Event handler optimization
-- Non-blocking resource loading
-
-**CLS (Cumulative Layout Shift)**:
-- Proper image dimensions
-- Font loading optimization
-- Skeleton loading states
-- Reserved space for dynamic content
-
-These are the techniques the themes use — the resulting scores depend on your
-own content and scripts, so validate them with field data (Core Web Vitals in
-Search Console) rather than assuming a target.
+Weaverse does not guarantee Core Web Vitals scores. Results depend on the selected sections, image sizing, fonts, app scripts, loader latency, and cache configuration. Test a production deployment with Lighthouse and monitor field data in Search Console. When a metric regresses, profile the affected route rather than assuming the page builder is the only source.
 
 ### How does image optimization work?
 
@@ -885,8 +794,7 @@ shopify hydrogen deploy
 
 # Automatic benefits:
 # - Global Cloudflare Worker deployment
-# - Edge caching at 200+ locations
-# - Built-in performance optimization
+# - Oxygen CDN and cache integration
 ```
 
 
@@ -894,25 +802,10 @@ shopify hydrogen deploy
 - Automatic static asset caching
 - Shopify API response caching
 - Geographic content distribution
-- Sub-100ms response times globally
 
 ### What's the typical build time?
 
-**Build Performance**:
-- **Small Project** (10-20 components): 30-60 seconds
-- **Medium Project** (50-100 components): 2-4 minutes  
-- **Large Project** (200+ components): 5-10 minutes
-
-**Build Optimization**:
-- Parallel component processing
-- Incremental builds in development
-- Cached dependency resolution
-- Optimized TypeScript compilation
-
-**CI/CD Considerations**:
-- Implement incremental deployments
-- Utilize persistent build machines
-- Optimize build processes for Shopify Oxygen
+There is no reliable component-count-to-build-time estimate. Build duration depends on dependencies, generated assets, type checking, the runner, and cache state. Record `npm run build` on the same CI runner over time and investigate regressions from that baseline.
 
 ### How do I implement lazy loading?
 
@@ -984,11 +877,13 @@ function HeavySection(props) {
 
 **Implementation** — cache instead of prerender:
 ```typescript
+import { CacheLong } from '@shopify/hydrogen';
+
 export async function loader({ params, context }) {
   return {
     product: await context.storefront.query(PRODUCT_QUERY, {
       variables: { handle: params.handle },
-      cache: context.storefront.CacheLong(),
+      cache: CacheLong(),
     }),
   };
 }
@@ -1037,22 +932,23 @@ function ProductCard({ product }) {
   return <div>...</div>;
 }
 
-// Weaverse-enabled version
-const ProductCard = forwardRef((props, ref) => {
-  return <div ref={ref} {...props}>...</div>;
-});
+// Weaverse-enabled version (React 19)
+function ProductCard({ ref, product, ...rest }) {
+  return <div ref={ref} {...rest}>...</div>;
+}
 
 export let schema = createSchema({
   type: 'product-card',
-  // Add schema configuration
+  title: 'Product card',
+  settings: [],
 });
 ```
 
 **Key Changes**:
-- Add Weaverse schema exports
-- Implement forwardRef patterns
-- Update component registration
-- Add Studio configuration
+- Export a valid Weaverse schema
+- Attach the React 19 `ref` prop to the component's root DOM element
+- Add the component to the static component registry
+- Define the settings merchants can edit in Studio
 
 ### What happens to my metafields and custom data?
 
@@ -1146,7 +1042,7 @@ export async function loader({ request, params }) {
 
 ### Is Weaverse compatible with Shopify's checkout extensibility?
 
-**Full Compatibility**: ✅ Weaverse works seamlessly with Shopify's modern checkout:
+Weaverse renders the storefront before checkout. Checkout extensibility runs in Shopify Checkout and is configured through Shopify apps, Functions, and UI extensions rather than through the Weaverse page renderer.
 
 **Checkout Extensions**:
 - Payment customizations
@@ -1154,69 +1050,15 @@ export async function loader({ request, params }) {
 - Order summary enhancements
 - Custom validation rules
 
-**Implementation**:
-```typescript
-// Checkout extension integration
-const checkoutUrl = await storefront.checkoutURL({
-  lineItems: cartItems,
-  extensions: {
-    'checkout-ui-extension': extensionData
-  }
-});
-```
-
-**Features Supported**:
-- Shopify Functions integration
-- Custom checkout fields
-- Third-party payment providers
-- Post-purchase extensions
+Send customers to the `checkoutUrl` returned by Hydrogen's cart API. Any checkout extension must be implemented and tested separately in Shopify Checkout.
 
 ### Can I migrate content from other page builders?
 
-**Professional Migration Service**: Contact our Weaverse team for assistance migrating from any platform to Weaverse Hydrogen.
-
-**We Handle Migrations From**:
-- ✅ **Shopify Page Builders**: PageFly, Shogun, GemPages, etc.
-- ✅ **WordPress**: Elementor, Gutenberg, WooCommerce sites
-- ✅ **Other Platforms**: Webflow, Squarespace, Magento, custom builds
-- ✅ **Legacy Shopify**: Online Store 2.0, older Liquid themes
-- ✅ **Existing Hydrogen**: Convert any Hydrogen project to use Weaverse
-
-**What's Included**:
-- Complete content and layout migration
-- Component recreation and optimization
-- SEO preservation and enhancement
-- Training on Weaverse workflow
-- Post-migration support
-
-**Get Started**: Join our [Slack community](https://wvse.cc/weaverse-slack) or contact support to discuss your migration needs.
+There is no universal automatic importer for third-party page-builder layouts. A migration normally requires mapping the source content model, rebuilding sections as Weaverse components, recreating page assignments, and planning URL/SEO redirects. Existing Hydrogen projects can follow the [integration guide](/migration-advanced/existing-hydrogen-integration). Contact the Weaverse team to confirm whether migration services are available for your source platform and scope.
 
 ### What about existing Shopify Plus customizations?
 
-**Full Plus Support**: All Shopify Plus features remain functional:
-
-**Plus Features**:
-- ✅ Shopify Scripts (Discount/Payment/Shipping)
-- ✅ Flow automation integration
-- ✅ B2B wholesale functionality
-- ✅ Multi-market and internationalization
-- ✅ Advanced analytics and reporting
-- ✅ Custom checkout processes
-
-**Script Integration**:
-```typescript
-// Shopify Scripts remain functional
-// Hydrogen cart integrates with Plus features
-const { cart } = await storefront.cartQuery({
-  // Plus-specific configurations work normally
-});
-```
-
-**Advanced Plus Workflows**:
-- Bulk order management
-- Custom pricing rules  
-- Inventory management integration
-- Advanced customer segmentation
+Weaverse does not replace Shopify Plus features, but a headless storefront must integrate each required feature explicitly. Audit B2B catalogs, Markets, customer accounts, Functions, checkout extensions, analytics, and any legacy Shopify Scripts during migration. Legacy Scripts should be migrated according to Shopify's current guidance rather than assumed to work through Hydrogen.
 
 ---
 
@@ -1226,9 +1068,8 @@ const { cart } = await storefront.cartQuery({
 
 **Primary APIs**:
 - **Storefront API**: Product data, cart operations, customer data
-- **Admin API**: Store configuration, webhook management (when needed)
-- **Webhooks**: Real-time updates for product/inventory changes
-- **GraphQL**: Primary query language for all API interactions
+- **Weaverse Builder API**: Published page and theme data
+- **Admin API / webhooks**: Only when your own server-side integration requires them
 
 **API Usage Patterns**:
 ```typescript
@@ -1237,29 +1078,13 @@ const { products } = await storefront.query(PRODUCTS_QUERY, {
   variables: { first: 20, query: 'available:true' }
 });
 
-// Webhook integration
-export const webhookHandler = async (topic, shop, body) => {
-  // Handle product updates, order notifications, etc.
-};
 ```
 
-**Rate Limiting**: Built-in handling with exponential backoff and caching strategies.
+Apply the caching and retry strategy appropriate to each API. The Weaverse SDK does not add a universal retry policy to arbitrary Storefront or Admin API calls.
 
 ### Can I use Shopify apps with Weaverse?
 
-**App Compatibility**: Most Shopify apps work seamlessly:
-
-**Fully Compatible**:
-- ✅ Payment apps (PayPal, Stripe, etc.)
-- ✅ Shipping apps (ShipStation, Easyship)
-- ✅ Marketing apps (Klaviyo, Mailchimp)
-- ✅ Analytics apps (Google Analytics, Hotjar)
-- ✅ Review apps (Yotpo, Judge.me)
-
-**Integration Required**:
-- 🔧 Theme-dependent apps (may need component recreation)
-- 🔧 Liquid-based apps (require React conversion)
-- 🔧 Checkout apps (use Shopify Functions instead)
+Compatibility depends on how the app integrates. Apps that only inject Liquid snippets will not automatically appear in a Hydrogen storefront. Apps with public APIs, React packages, web pixels, Functions, or checkout extensions can usually be integrated through their documented headless path. Verify each app individually.
 
 **Implementation Example**:
 ```typescript
@@ -1281,13 +1106,7 @@ const checkoutUrl = cart.checkoutUrl;
 window.location.href = checkoutUrl;
 ```
 
-**2. Custom Checkout Implementation**:
-```typescript
-// Build custom checkout with Storefront API
-const checkout = await storefront.checkoutCreate({
-  lineItems: cartItems
-});
-```
+Hydrogen does not provide a helper for building a replacement checkout. Create and update the cart with Hydrogen's cart API, then redirect to the cart's Shopify-hosted `checkoutUrl`.
 
 **Features**:
 - Mobile-optimized checkout flow
@@ -1298,12 +1117,7 @@ const checkout = await storefront.checkoutCreate({
 
 ### Does it support Shopify Markets and B2B?
 
-**Full Markets Support**: ✅
-- Multi-currency pricing
-- Localized content and URLs  
-- Region-specific shipping
-- Tax calculation by market
-- Payment method localization
+Shopify Markets behaviour comes from your Storefront API context, route locale, and Shopify configuration. Weaverse can render localized page content, but your theme must still pass the correct country/language context and test pricing, URLs, shipping, tax, and checkout behaviour per market.
 
 **Implementation**:
 ```typescript
@@ -1316,85 +1130,30 @@ const { products } = await storefront.query(PRODUCTS_QUERY, {
 });
 ```
 
-**B2B Functionality**: ✅
-- Wholesale pricing tiers
-- Custom catalog access
-- Volume discounts
-- Net payment terms
-- Purchase order integration
-
-**B2B Implementation**:
-```typescript
-// B2B customer detection
-const isB2BCustomer = customer?.tags?.includes('B2B');
-const pricing = isB2BCustomer ? wholesalePricing : retailPricing;
-```
+Shopify B2B requires the appropriate Shopify plan, customer-account flow, company/location context, and catalog-aware Storefront API queries. Checking a customer tag is not a complete B2B implementation; follow Shopify's current B2B guidance and validate the full buying flow.
 
 ### Can I use Shopify Flow and Scripts?
 
-**Shopify Flow**: ✅ Full compatibility
-- Automation triggers work normally
-- Webhook integrations maintained
-- Customer segmentation supported
-- Inventory management flows
+Shopify Flow runs on Shopify's platform rather than inside the Hydrogen renderer. Flows can continue to react to supported Shopify/app events, but verify any workflow that previously depended on Liquid theme code or storefront-injected scripts.
 
-**Shopify Scripts**: ✅ Complete support
-```ruby
-# Discount scripts work unchanged
-if cart.line_items.size > 2
-  discount = cart.subtotal_price * 0.1
-end
-```
-
-**Integration Points**:
-- Cart calculations respect Scripts
-- Checkout flow includes Script modifications
-- Shipping calculations use configured Scripts
-- Payment method filtering via Scripts
+Legacy Shopify Scripts are not a Hydrogen or Weaverse feature and should not be assumed to work unchanged. Migrate discount, delivery, payment, and validation logic to the applicable Shopify Functions or checkout-extensibility API, then test the resulting cart and checkout flow.
 
 ### How do customer accounts work?
 
 **Account Management**:
 ```typescript
-// Customer authentication
-export const loader = async ({ context }) => {
-  const customer = await context.session.get('customer');
-  if (!customer) {
-    return redirect('/account/login');
-  }
-  
-  return json({ customer });
-};
+// Current Pilot uses Hydrogen's Customer Account API client.
+export async function loader({ context }) {
+  await context.customerAccount.handleAuthStatus();
+  return {};
+}
 ```
 
-**Features Supported**:
-- Customer login/registration
-- Order history and tracking
-- Address management
-- Wishlist functionality
-- Account preferences
-
-**Custom Account Pages**:
-- Order detail views
-- Profile management
-- Subscription management
-- Reward program integration
+Current Pilot includes Customer Account API routes for authentication, profile details, orders, and addresses. Wishlists, subscriptions, rewards, and other account features require their own provider/API integration.
 
 ### Does it work with Shopify POS?
 
-**POS Integration**: ✅ Full support
-
-**Shared Features**:
-- Unified inventory management
-- Synchronized customer data
-- Consistent pricing across channels
-- Order fulfillment coordination
-
-**Implementation Considerations**:
-- Inventory updates reflect immediately
-- Customer accounts work across channels
-- Promotions and discounts synchronized
-- Analytics consolidated across touchpoints
+Weaverse renders the Hydrogen online storefront; it does not run inside Shopify POS. Products, inventory, customers, and orders may share Shopify backend data, but POS extensions, channel-specific pricing, discounts, identity, and analytics must be configured and tested separately.
 
 ### Can I use native Shopify search?
 
@@ -1407,77 +1166,15 @@ const { products } = await storefront.query(SEARCH_QUERY, {
 });
 ```
 
-**2. Enhanced Search Solutions**:
-- ✅ Algolia integration
-- ✅ Elasticsearch implementation
-- ✅ Custom search APIs
-- ✅ AI-powered search (Shopify Magic)
-
-**Search Features**:
-- Predictive search suggestions
-- Faceted filtering
-- Search analytics
-- Typo tolerance
-- Merchandising controls
+Third-party search providers such as Algolia or a custom search API can be integrated when they expose a supported headless API. Features such as predictive search, faceting, analytics, typo tolerance, and merchandising depend on the selected provider and your implementation.
 
 ### How do I handle subscriptions?
 
-**Subscription App Integration**:
-```typescript
-// ReCharge/Bold integration example
-const SubscriptionOptions = ({ productId }) => {
-  const subscriptionPlans = useSubscriptionPlans(productId);
-  
-  return (
-    <div>
-      {subscriptionPlans.map(plan => (
-        <SubscriptionPlan key={plan.id} plan={plan} />
-      ))}
-    </div>
-  );
-};
-```
-
-**Popular Subscription Apps**:
-- ReCharge (full integration support)
-- Bold Subscriptions (React components available)
-- Shopify Subscriptions (native support)
-
-**Implementation Features**:
-- Subscription plan selection
-- Billing frequency options
-- Pause/skip functionality
-- Customer portal integration
+Subscription support is provider-specific. Confirm that the app exposes a Hydrogen/headless API, then implement selling-plan selection in the storefront and use the provider's supported customer-portal flow. Liquid-only widgets do not automatically work in Hydrogen.
 
 ### What about Shopify Functions?
 
-**Full Functions Support**: ✅
-
-**Function Types**:
-- ✅ Discount functions
-- ✅ Shipping customization
-- ✅ Payment customization  
-- ✅ Cart validation
-- ✅ Fulfillment constraints
-
-**Implementation Example**:
-```typescript
-// Discount function integration
-export const applyDiscount = async (cart) => {
-  const discountAmount = await callShopifyFunction(
-    'discount-function-id',
-    { cart: cart.data }
-  );
-  
-  return discountAmount;
-};
-```
-
-**Development Workflow**:
-- Functions developed separately from theme
-- Integration via GraphQL API calls
-- Testing in development stores
-- Deployment via Shopify CLI
+Shopify Functions execute on Shopify's platform; storefront code does not call a Function directly. Build and deploy the Function through a Shopify app, configure it in Shopify Admin where required, and let the normal cart/checkout request invoke it. Weaverse sections may collect storefront input, but the Function's supported target and Shopify configuration determine the actual discount, delivery, payment, or validation behavior.
 
 ---
 
@@ -1494,13 +1191,11 @@ npx shopify hydrogen deploy
 ```
 - ✅ **Full Weaverse Support**: Complete integration with Weaverse Studio
 - ✅ **Native Shopify Integration**: Seamless Shopify API access
-- ✅ **Cloudflare Workers**: Global edge network (200+ data centers)
-- ✅ **Zero Configuration**: Deploy directly from Shopify CLI
-- ✅ **Automatic Scaling**: Handle traffic spikes automatically
+- Runs on Shopify's managed Oxygen worker platform
+- Uses Shopify's deployment and environment-variable workflow
+- Requires the same application-level validation, monitoring, and capacity testing as any production storefront
 
-
-
-**Recommendation**: Use Shopify Oxygen for all production deployments to ensure full Weaverse functionality.
+Oxygen is the primary deployment target for Pilot. Other worker or container targets require platform-specific adaptation; see the deployment guides for the required changes.
 
 ### How do I set up staging environments?
 
@@ -1839,7 +1534,6 @@ cat .env
 ```bash
 # Analyze bundle size
 npm run build  # Check build output for large chunks
-npx vite-bundle-analyzer dist  # Visual bundle analysis
 ```
 
 **2. Image Optimization Problems**:
@@ -1939,29 +1633,9 @@ function MyComponent() {
 
 ### API rate limiting
 
-**Rate Limit Issues**:
+Storefront API throttling and query limits depend on Shopify's current API policy and the access mode being used. Do not rely on a fixed requests-per-minute figure from this FAQ. Inspect the actual response, follow Shopify's current Storefront API limits guidance, reduce duplicate queries, and cache data where semantics allow it.
 
-**1. Shopify Storefront API Limits**:
-- **Rate**: 1000 requests per minute per IP
-- **Burst**: Up to 100 requests in 20 seconds
-- **Solutions**: Implement caching, batch requests, use webhooks
-
-```typescript
-// Implement exponential backoff
-async function retryWithBackoff(fn, retries = 3) {
-  try {
-    return await fn();
-  } catch (error) {
-    if (error.status === 429 && retries > 0) {
-      await new Promise(resolve => setTimeout(resolve, 2 ** (3 - retries) * 1000));
-      return retryWithBackoff(fn, retries - 1);
-    }
-    throw error;
-  }
-}
-```
-
-**2. Weaverse API Limits**:
+For repeated external requests from component loaders, use the cache helper exposed by the Weaverse client:
 ```typescript
 import { CacheLong } from '@shopify/hydrogen';
 
@@ -1975,12 +1649,7 @@ export const loader = async ({ context }) => {
 };
 ```
 
-**Best Practices**:
-- Implement request caching
-- Use CDN for static assets
-- Batch API requests when possible
-- Monitor rate limit headers
-- Implement graceful degradation
+The public Weaverse SDK documentation does not promise a fixed API quota. If a service returns throttling metadata, follow that service's documented retry policy rather than applying an unconditional generic retry loop.
 
 ### CORS and security issues
 
@@ -2095,19 +1764,7 @@ function MyComponent({ data }) {
 - [GitHub Discussions](https://github.com/orgs/Weaverse/discussions)
 - Code examples and issue tracking
 
-**Professional Support** (Paid):
-
-**1. Priority Support**:
-- Email support with guaranteed response times
-- Technical consultation sessions
-- Custom component development
-- Migration assistance
-
-**2. Enterprise Support**:
-- Dedicated account management
-- Custom training sessions
-- SLA guarantees
-- Priority feature development
+For professional or enterprise support, contact the Weaverse team for the current options and terms. Do not assume response-time or SLA commitments unless they are included in your agreement.
 
 ### How do I report bugs?
 
@@ -2198,35 +1855,7 @@ Mock-ups or wireframes (if applicable)
 
 ### Is there professional support?
 
-**Professional Support Options**:
-
-**1. Development Services**:
-- Custom component development
-- Theme customization and optimization
-- Migration from other platforms
-- Performance auditing and optimization
-- SEO optimization
-
-**2. Training Programs**:
-- Developer onboarding sessions
-- Team training workshops
-- Best practices consultation
-- Architecture review sessions
-
-**3. Enterprise Solutions**:
-- Priority technical support
-- Service Level Agreements (SLAs)
-- Dedicated account management
-- Custom feature development
-- White-label solutions
-
-**Support Channels**:
-- Email: support@weaverse.io
-- Scheduled consultation calls
-- Screen sharing technical sessions
-- Custom documentation creation
-
-**Pricing**: Contact sales team for professional support pricing based on specific needs.
+Contact the Weaverse team to confirm the professional-support, migration, training, enterprise, and SLA options available for your plan. Do not assume a response time, dedicated account manager, or included service unless it appears in your agreement. Start with [support@weaverse.io](mailto:support@weaverse.io) or the [Slack community](https://wvse.cc/weaverse-slack).
 
 ### Where's the community?
 

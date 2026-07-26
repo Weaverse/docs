@@ -65,15 +65,15 @@ Pilot uses React Router 7's manual route registry. Adding a file under `app/rout
 
 ### Handling Locales vs. Custom Page Handles
 
-In multilingual storefronts, the first segment of the URL may be a locale (e.g., `/en-us`) or a custom page handle. With the `:locale?` prefix, an unrecognized first segment falls through to the catch-all, so the catch-all resolves it as a custom page.
+In multilingual storefronts, the first segment of the URL may be a locale (e.g., `/en-us`) or a custom page handle. For a one-segment URL such as `/about`, React Router matches Pilot's index route inside the optional `:locale?` prefix. `routes/home.tsx` checks whether that segment is a supported locale; when it is not, the loader requests a `CUSTOM` page instead of the homepage.
 
 Pilot handles this in `app/.server/context.ts`: `getLocaleFromRequest()` only treats the first path segment as a locale when it matches an entry in `COUNTRIES`; otherwise the default locale is used and the segment stays part of the custom page path.
 
 > **Best Practice:** Keep your supported-locale list (`COUNTRIES`) as the single source of truth. Anything not in it is a custom page handle — you don't need per-route locale sniffing.
 
-### The Catch-All Route
+### The Home and Catch-All Routes
 
-Pilot's `app/routes/catch-all.tsx` loads the custom page with `type: "CUSTOM"` — the handle is resolved from the request URL, so no `handle` argument is needed:
+Pilot's `app/routes/catch-all.tsx` handles other unmatched paths with `type: "CUSTOM"`. The handle is resolved from the request URL, so no `handle` argument is needed. The home route uses the same page type for an unrecognized one-segment locale parameter:
 
 ```tsx
 // app/routes/catch-all.tsx
@@ -117,7 +117,7 @@ Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs` a
 > **Troubleshooting:** If your custom page is not rendering, check the handle, page publication status, and route setup.
 
 ### Dedicated Routes for Specific Custom Pages
-Root-level custom pages need no extra route — the catch-all already covers them. Register a dedicated route in `app/routes.ts` only when you want a different URL shape (e.g. nesting every campaign under `/promo/...`), and load it with `type: "CUSTOM"` too.
+Root-level custom pages need no extra route — Pilot's home/catch-all routing already covers them. Register a dedicated route in `app/routes.ts` only when you want a different URL shape (e.g. nesting every campaign under `/promo/...`), and load it with `type: "CUSTOM"` too.
 
 ---
 
@@ -138,8 +138,6 @@ Root-level custom pages need no extra route — the catch-all already covers the
 2. Click **Add Section** to drag in content blocks (banners, products, forms, etc.).
 3. Edit and arrange sections as needed. Use settings for layout, colors, and content.
 4. Save and preview.
-
-![Edit custom page](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_custom_page_edit.png)
 
 > **Best Practice:** Use global theme settings and reuse global sections for consistent branding across your storefront. Preview changes before publishing to ensure layout and content accuracy.
 

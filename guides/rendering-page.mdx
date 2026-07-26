@@ -412,27 +412,28 @@ Some routes in your Hydrogen theme may not use Weaverse's page system at all. Th
 
 ### Custom Page Approach
 
-Weaverse provides two ways to create custom pages:
+Use the page type that matches the resource being rendered:
 
-#### Option 1: PAGE Type with Handle
-For specific custom pages with defined handles:
+#### Shopify Page Resources: PAGE Type with Handle
+Use `PAGE` only for a Shopify Page resource, normally under `/pages/:pageHandle`:
 
 ```typescript
-// Example: About page with specific handle
+// app/routes/pages/regular-page.tsx
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { weaverse } = context;
+  const { pageHandle } = params;
   
   const weaverseData = await weaverse.loadPage({
     type: "PAGE",
-    handle: "about", // Specific page handle created in Studio
+    handle: pageHandle,
   });
   
   return { weaverseData };
 }
 ```
 
-#### Option 2: CUSTOM Type for Dynamic Routing  
-For catch-all routing where URL determines the page content:
+#### Weaverse Custom Pages: CUSTOM Type
+For a root-level custom page created in Studio, let Weaverse resolve the page from the current request URL:
 
 ```typescript
 // Example: Dynamic custom page routing
@@ -961,12 +962,10 @@ export default function AccountPage() {
 }
 ```
 
-**Alternative**: If you want to customize these pages visually, create custom Weaverse pages
+**Alternative**: If you intentionally want a functional route to render a Weaverse custom page instead, create that page in Studio at the same URL and load it as `CUSTOM` from the route.
 ```typescript
-// ✅ Alternative: Use PAGE type with custom page created in Studio (optional)
-weaverse.loadPage({ type: "PAGE", handle: "custom-search-page" })
-weaverse.loadPage({ type: "PAGE", handle: "custom-cart-page" })
-weaverse.loadPage({ type: "PAGE", handle: "custom-account-page" })
+// The current request URL determines which Studio custom page is loaded.
+const weaverseData = await weaverse.loadPage({ type: "CUSTOM" })
 ```
 
 #### 2. Missing Handle Parameter
@@ -1019,18 +1018,6 @@ export async function loader({ context }: LoaderFunctionArgs) {
   
   return { weaverseData };
 }
-```
-
-### Debug Mode
-
-Enable debug mode to troubleshoot page loading issues:
-
-```typescript
-// In your weaverse.config.ts
-export default defineConfig({
-  debug: process.env.NODE_ENV === "development",
-  // ... other config
-});
 ```
 
 ## Next Steps
