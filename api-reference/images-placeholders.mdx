@@ -1,12 +1,12 @@
 ---
 title: IMAGES_PLACEHOLDERS
-description: A collection of placeholder images for development in Weaverse Hydrogen themes.
+description: Placeholder image URLs exported by the Weaverse Hydrogen SDK.
 published: true
 ---
 
 # IMAGES_PLACEHOLDERS
 
-`IMAGES_PLACEHOLDERS` is a constant that provides a collection of placeholder image URLs for use during development in your Weaverse Hydrogen theme. These placeholders are useful for prototyping, default values, and testing before you have real content available.
+`IMAGES_PLACEHOLDERS` contains hosted placeholder image URLs for component presets and development.
 
 ## Import
 
@@ -14,111 +14,52 @@ published: true
 import { IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen'
 ```
 
-## Structure
+## Available Keys
 
-`IMAGES_PLACEHOLDERS` is an object with predefined keys for common image use cases in e-commerce themes:
+The current SDK exports these groups:
 
-```typescript
-const IMAGES_PLACEHOLDERS = {
-  logo_white: string;
-  logo_black: string;
-  image: string;
-  banner_1: string;
-  banner_2: string;
-  collection_1: string;
-  collection_2: string;
-  collection_3: string;
-  collection_4: string;
-  collection_5: string;
-  collection_6: string;
-  product_1: string;
-  product_2: string;
-  // ... more product placeholders (up to product_18)
-}
-```
+- `logo_white` and `logo_black`
+- `image`
+- `banner_1` and `banner_2`
+- `collection_1` through `collection_6`
+- `product_1` through `product_18`
 
 ## Usage
 
-### As default values in a component schema
-
 ```tsx
-import { createSchema, IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen';
+import {
+  createSchema,
+  IMAGES_PLACEHOLDERS,
+} from '@weaverse/hydrogen'
 
-export let schema = createSchema({
-  type: 'hero-section',
-  title: 'Hero Section',
+export const schema = createSchema({
+  type: 'hero-banner',
+  title: 'Hero Banner',
   settings: [
     {
-      group: 'Image',
+      group: 'Content',
       inputs: [
         {
           type: 'image',
-          name: 'backgroundImage',
-          label: 'Background Image',
-          defaultValue: IMAGES_PLACEHOLDERS.hero_1,
+          name: 'image',
+          label: 'Image',
+          defaultValue: IMAGES_PLACEHOLDERS.banner_1,
         },
       ],
     },
   ],
-});
+})
 ```
 
-### In a component for fallback images
-
 ```tsx
-import { IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen'
-
-export function ProductCard({ data }) {
-  const { image = IMAGES_PLACEHOLDERS.product_1 } = data
-  
+export function ProductPlaceholder() {
   return (
-    <div className="product-card">
-      <img src={image} alt="Product" />
-      {/* ... rest of component */}
-    </div>
+    <img
+      src={IMAGES_PLACEHOLDERS.product_1}
+      alt="Placeholder product"
+    />
   )
 }
 ```
 
-### For populating demo data
-
-```tsx
-import { IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen'
-
-export function createDemoProducts() {
-  return [
-    {
-      id: 'demo-1',
-      title: 'Demo Product 1',
-      image: IMAGES_PLACEHOLDERS.product_1,
-      price: 19.99,
-    },
-    {
-      id: 'demo-2',
-      title: 'Demo Product 2',
-      image: IMAGES_PLACEHOLDERS.product_2,
-      price: 29.99,
-    },
-    // More demo products
-  ]
-}
-```
-
-## Available Placeholders
-
-- **`logo_white`**: White version of a logo placeholder (600×200)
-- **`logo_black`**: Black version of a logo placeholder (600×200)
-- **`image`**: Generic image placeholder (1024×1024)
-- **`banner_1`**, **`banner_2`**: Banner/lifestyle image placeholders (1800×900)
-- **`collection_1`** through **`collection_6`**: Collection image placeholders for hats, shoes, glasses, lamps, bags, and watches (1024×1024)
-- **`product_1`** through **`product_18`**: Various product image placeholders for watches, bags, shoes, lamps, glasses, and hats (1024×1024)
-
-## Notes
-
-- All placeholders are served from Shopify CDN for reliable performance
-- The SVG placeholders are lightweight and load quickly
-- These placeholders should be replaced with real content in production
-
-## Related
-
-- [HydrogenComponentSchema](/api-reference/types) - Component schema type definition
+Use only exported keys. Accessing an unknown key such as `hero_1` returns `undefined` at runtime.

@@ -6,7 +6,7 @@ published: true
 
 # useParentInstance
 
-The `useParentInstance` hook allows a component to access its parent component's instance within the Weaverse component tree. This is useful for implementing child-parent communication patterns and accessing parent component data or methods.
+The `useParentInstance` hook looks up the current component's parent item store in the Weaverse runtime.
 
 ## Import
 
@@ -22,22 +22,25 @@ function useParentInstance(): WeaverseItemStore | null
 
 ## Returns
 
-- `WeaverseItemStore | null` - The parent component's instance, or `null` if no parent exists or can't be found
+- `WeaverseItemStore | null` — The parent item store, or `null` when the lookup does not find an instance.
+
+<Note>
+  In SDK v5.19.1, a missing parent ID falls back to the current item because `useParentInstance()` delegates to `useItemInstance(parentId || '')`. Root components therefore receive their own item store rather than `null`.
+</Note>
 
 ## Common Use Patterns
 
-### Accessing Loader Data
-
-The most common pattern is for child components to access loader data that was fetched by their parent component:
+### Accessing Parent Loader Data
 
 ```tsx
 import { useParentInstance } from '@weaverse/hydrogen'
 
 export function ProductItems() {
-  // Access the parent component's loader data
-  const parent = useParentInstance();
-  const { products } = parent.data.loaderData;
-  
+  const parent = useParentInstance()
+  const products = parent?.data.loaderData?.products
+
+  if (!products) return null
+
   return (
     <div className="product-grid">
       {products.nodes.map((product) => (
@@ -48,45 +51,18 @@ export function ProductItems() {
 }
 ```
 
-### Getting Product/Collection Data in Feature Sections
-
-Child components commonly use parent data to render products, collections, or other resources:
+### Reading Parent Configuration
 
 ```tsx
 import { useParentInstance } from '@weaverse/hydrogen'
 
-export function CollectionItems() {
-  const parent = useParentInstance();
-  const collections = parent.data.loaderData;
-  
-  if (!collections?.length) {
-    return <div>No collections available</div>;
-  }
-  
-  return (
-    <div className="collections-grid">
-      {collections.map((collection) => (
-        <CollectionCard 
-          key={collection.id} 
-          title={collection.title}
-          image={collection.image}
-          handle={collection.handle}
-        />
-      ))}
-    </div>
-  )
-}
-```
+export function ReviewItem() {
+  const parent = useParentInstance()
 
-### Accessing Configuration Settings
+  if (!parent) return null
 
-Children can access configuration settings from parent components to adapt their rendering:
+  const { showVerifiedBadge, verifiedBadgeText, showDate } = parent.data
 
-```tsx
-function ReviewItem() {
-  const parent = useParentInstance();
-  const { showVerifiedBadge, verifiedBadgeText, showDate, showCountry } = parent.data;
-  
   return (
     <div className="review-item">
       {/* Review content */}
@@ -99,36 +75,31 @@ function ReviewItem() {
 }
 ```
 
-### Fetching External Data
+### Fetching Data from Parent State
 
-Children can use parent data to determine what external data to fetch:
+Use React Router's `useFetcher` directly:
 
 ```tsx
-function JudgemeReview() {
-  const { useFetcher } = useRemixRuntime();
-  const { load, data: fetchData } = useFetcher();
-  const context = useParentInstance();
-  
-  // Get the product handle from the parent component
-  const handle = context?.data?.product?.handle;
-  const api = `/api/review/${handle}`;
-  
+import { useParentInstance } from '@weaverse/hydrogen'
+import { useEffect } from 'react'
+import { useFetcher } from 'react-router'
+
+export function JudgeMeReview() {
+  const { load, data } = useFetcher()
+  const parent = useParentInstance()
+  const handle = parent?.data.product?.handle
+
   useEffect(() => {
-    if (!handle) return;
-    load(api);
-  }, [handle, api, load]);
-  
-  // Render the reviews
+    if (handle) {
+      load(`/api/review/${handle}`)
+    }
+  }, [handle, load])
+
+  // Render the review data
 }
 ```
 
 ## Implementation Details
-
-The `useParentInstance` hook:
-
-1. Uses React's context API to access the current component's context, which includes the parent ID.
-2. Looks up the parent instance in the Weaverse component registry using the parent ID.
-3. Returns the parent component instance, which includes all its data and methods.
 
 ```tsx
 export let useParentInstance = () => {
@@ -137,15 +108,16 @@ export let useParentInstance = () => {
 }
 ```
 
+The empty-string fallback is significant because `useItemInstance()` treats a falsy ID as a request for the current item.
+
 ## When To Use
 
-- When a child component needs to access data or configuration from its parent.
-- When implementing coordinated behavior between parent and child components.
-- When you need to access loader data that was fetched at the parent level.
-- When a child component's rendering depends on parent component state or settings.
+- When a child component needs data or configuration from its parent
+- When implementing coordinated parent-child behavior
+- When a child's rendering depends on parent state
 
 ## Related
 
 - [useItemInstance](/api-reference/use-item-instance) - Access a specific component instance
 - [useChildInstances](/api-reference/use-child-instances) - Access child component instances
-- [useWeaverse](/api-reference/use-weaverse) - Access the Weaverse instance
+- [useWeaverse](/api-reference/use-weaverse) - Access the Weaverse runtime

@@ -6,198 +6,209 @@ published: true
 
 # Types
 
-This document outlines the key TypeScript interfaces and types used in the Weaverse Hydrogen package. Understanding these types is essential for building type-safe components and integrating with the Weaverse system.
+This page summarizes the primary public types exported by `@weaverse/hydrogen` and `@weaverse/schema`.
 
 ## Component Types
 
-### HydrogenComponent
+### `HydrogenComponent`
 
-Defines a component module that can be registered with Weaverse.
+A component definition registered with Weaverse. The default export can be a forwarded-ref component or a function component.
 
 ```typescript
-interface HydrogenComponent<T extends HydrogenComponentProps = any> {
-  default: ForwardRefExoticComponent<T>;
-  schema: HydrogenComponentSchema;
-  loader?: (args: ComponentLoaderArgs) => Promise<unknown>;
+type HydrogenComponent<T extends HydrogenComponentProps = any> = {
+  default:
+    | ForwardRefExoticComponent<T>
+    | ((props: T) => React.JSX.Element)
+  schema: HydrogenComponentSchema
+  loader?: (args: ComponentLoaderArgs) => Promise<unknown>
 }
 ```
 
-### HydrogenComponentProps
-
-Base props for any Weaverse Hydrogen component.
+### `HydrogenComponentProps`
 
 ```typescript
 interface HydrogenComponentProps<L = any> extends WeaverseElement {
-  className?: string;
-  loaderData?: L;
-  children?: React.JSX.Element[];
+  children?: React.JSX.Element[]
+  className?: string
+  loaderData?: L
 }
 ```
 
-### HydrogenComponentSchema (Legacy)
+### `HydrogenComponentSchema`
 
-> **⚠️ Deprecated**: Use the `createSchema()` function instead of manually defining schema types. See the [Component Schema](#component-schema) section above for the modern approach.
-
-For legacy reference, the manual schema interface was:
+`HydrogenComponentSchema` is the current public alias for `SchemaType`. The type itself is not deprecated; only `inspector` and `enabledOn` are deprecated.
 
 ```typescript
-// Legacy approach - use createSchema() instead
-interface HydrogenComponentSchema {
-  childTypes?: string[];
-  settings: InspectorGroup[];
-  inspector?: InspectorGroup[]; // Deprecated: use 'settings' instead
-  presets?: Omit<HydrogenComponentPresets, 'type'>;
-  limit?: number;
-  /** @deprecated Use enabled instead. */
+type HydrogenComponentSchema = SchemaType
+
+interface SchemaType {
+  title: string
+  type: string
+  childTypes?: string[]
+  settings?: InspectorGroup[]
+  /** @deprecated Use settings. */
+  inspector?: InspectorGroup[]
+  presets?: {
+    children?: ComponentPresets[]
+    [key: string]: any
+  }
+  limit?: number
+  enabled?: Resolvable<boolean, ComponentAvailabilityContext>
+  /** @deprecated Use enabled. */
   enabledOn?: {
-    pages?: ('*' | PageType)[];
-    groups?: ('*' | 'header' | 'footer' | 'body')[];
-  };
-  enabled?: Resolvable<boolean, ComponentAvailabilityContext>;
-  pages?: ('*' | PageType)[];
-  groups?: ('*' | 'header' | 'footer' | 'body')[];
+    pages?: PageType[]
+    groups?: Array<'*' | ComponentGroup>
+  }
 }
 ```
 
-**Migration**: Replace manual schema definitions with `createSchema()`:
+Use `createSchema()` to preserve type inference and development-time validation:
 
 ```tsx
-// Old approach
-export const schema: HydrogenComponentSchema = { /* ... */ };
+import { createSchema } from '@weaverse/hydrogen'
 
-// New approach
-export let schema = createSchema({ /* ... */ });
+export const schema = createSchema({
+  type: 'hero-banner',
+  title: 'Hero Banner',
+  settings: [],
+})
 ```
 
-### HydrogenComponentData
+`createSchema()` lazy-loads Zod validation in development. Production builds return the schema without loading Zod; use the explicit validation APIs when production-time validation is required.
 
-Data structure for a component instance.
+### `HydrogenComponentData`
 
 ```typescript
-interface HydrogenComponentData {
-  data?: { [key: string]: any };
-  children?: { id: string }[];
-  id: string;
-  createdAt?: string;
-  updatedAt?: string;
-  deletedAt?: string;
+interface HydrogenComponentData extends ElementData {
+  id: string
+  type: string
+  children?: { id: string }[]
+  data?: Record<
+    string,
+    ComponentDataValue | Record<string, unknown>
+  >
+  createdAt?: string
+  updatedAt?: string
+  deletedAt?: string
 }
 ```
 
 ## Inspector Types
 
-Types used for defining the settings UI in Weaverse Studio.
+The public types retain “Inspector” in their names for compatibility, but new schemas should use the `settings` property.
 
-> **Note**: These types are still called "Inspector" types for historical reasons, but they are used to define the `settings` property in component schemas. The `inspector` property itself has been deprecated in favor of `settings`.
-
-### InspectorGroup
+### `InspectorGroup`
 
 ```typescript
 interface InspectorGroup {
-  group: string;
-  inputs: (BasicInput | HeadingInput)[];
+  group: string
+  inputs: (BasicInput | HeadingInput)[]
 }
 ```
 
-### BasicInput
+### `BasicInput`
 
 ```typescript
-type BasicInput = Omit<CoreBasicInput, 'condition'> & {
-  shouldRevalidate?: boolean;
-  condition?:
-    | string
-    | ((data: ElementData, weaverse: WeaverseHydrogen) => boolean);
-};
+interface BasicInput {
+  type: InputType
+  name: string
+  label?: string
+  placeholder?: string
+  helpText?: string
+  configs?: ConfigsProps
+  defaultValue?: unknown
+  shouldRevalidate?: boolean
+  sensitive?: boolean
+  condition?: string | Function
+}
 ```
 
-### HeadingInput
+String conditions remain supported but are deprecated; prefer a function.
+
+### `HeadingInput`
 
 ```typescript
-type HeadingInput = {
-  type: 'heading';
-  label: string;
-  [key: string]: any;
-};
+interface HeadingInput {
+  type: 'heading'
+  label: string
+  [key: string]: unknown
+}
 ```
 
 ## Loader Types
 
-Types related to data loading and server integration.
-
-### ComponentLoaderArgs
+### `ComponentLoaderArgs`
 
 ```typescript
-type ComponentLoaderArgs<T = any, E = any> = {
-  data: T;
-  weaverse: WeaverseClient;
-};
-```
-
-### RouteLoaderArgs
-
-```typescript
-interface RouteLoaderArgs extends RemixOxygenLoaderArgs {
-  context: AppLoadContext & {
-    weaverse: WeaverseClient;
-  };
+type ComponentLoaderArgs<T = any, _E = any> = {
+  data: T
+  weaverse: WeaverseClient
 }
 ```
 
-### WeaverseLoaderData
+### `RouteLoaderArgs`
 
 ```typescript
-interface WeaverseLoaderData {
+interface RouteLoaderArgs extends LoaderFunctionArgs {
+  context: WeaverseRouteAppLoadContext
+}
+```
+
+`WeaverseRouteAppLoadContext` includes the Hydrogen context and a `weaverse: WeaverseClient` property.
+
+### `WeaverseLoaderData`
+
+```typescript
+type WeaverseLoaderData = {
   configs: Omit<WeaverseProjectConfigs, 'publicEnv'> & {
-    requestInfo: WeaverseLoaderRequestInfo;
-  };
-  page: HydrogenPageData;
-  project: HydrogenProjectType;
-  pageAssignment: HydrogenPageAssignment;
+    requestInfo: WeaverseLoaderRequestInfo
+  }
+  page: HydrogenPageData
+  project: HydrogenProjectType
+  pageAssignment?: HydrogenPageAssignment
 }
 ```
 
 ## Theme Types
 
-### HydrogenThemeSettings
+### `HydrogenThemeSettings`
 
 ```typescript
 type HydrogenThemeSettings = {
-  [key: string]: any;
-};
-```
-
-### HydrogenThemeSchema
-
-```typescript
-interface HydrogenThemeSchema {
-  info: {
-    name: string;
-    version: string;
-    author: string;
-    authorProfilePhoto: string;
-    documentationUrl: string;
-    supportUrl: string;
-  };
-  settings: InspectorGroup[];
-  inspector?: InspectorGroup[]; // Deprecated: use 'settings' instead
-  i18n?: {
-    urlStructure: 'url-path' | 'subdomain' | 'top-level-domain';
-    defaultLocale: WeaverseI18n;
-    shopLocales: WeaverseI18n[];
-  };
+  [key: string]: any
 }
 ```
 
-> **Note**: The `inspector` property has been deprecated in favor of `settings`. While `inspector` is still supported for backward compatibility, new theme schemas should use `settings`.
+### `HydrogenThemeSchema`
 
-## Miscellaneous Types
+```typescript
+type HydrogenThemeSchema = {
+  info: {
+    name: string
+    version: string
+    author: string
+    authorProfilePhoto: string
+    documentationUrl: string
+    supportUrl: string
+  }
+  /** @deprecated Use settings. */
+  inspector?: InspectorGroup[]
+  settings?: InspectorGroup[]
+  i18n?: {
+    urlStructure: 'url-path' | 'subdomain' | 'top-level-domain'
+    defaultLocale: WeaverseI18n
+    shopLocales: WeaverseI18n[]
+    staticContent?: Record<string, unknown>
+    translation?: boolean
+  }
+}
+```
 
-### PageType
-
-Enumerates supported page types in Shopify Hydrogen.
+## Page Types
 
 ```typescript
 type PageType =
+  | '*'
   | 'INDEX'
   | 'PRODUCT'
   | 'ALL_PRODUCTS'
@@ -206,115 +217,95 @@ type PageType =
   | 'PAGE'
   | 'BLOG'
   | 'ARTICLE'
-  | 'CUSTOM';
+  | 'CUSTOM'
 ```
 
-### Component Availability
+## Component Availability
 
-The canonical availability types are exported by `@weaverse/schema`:
-
-```typescript
-import type {
-  ComponentAvailabilityContext,
-  ComponentGroup,
-  Resolvable,
-} from '@weaverse/schema';
-```
-
-Their definitions are:
+The canonical types are exported by `@weaverse/schema` and re-exported by `@weaverse/hydrogen`:
 
 ```typescript
-type ComponentGroup = 'body' | 'header' | 'footer';
-
-type ComponentAvailabilityContext = {
+interface ComponentAvailabilityContext {
+  group: 'body' | 'header' | 'footer'
   page: {
-    id: string;
-    type: PageType;
-    handle: string;
-    locale: string;
-  };
-  group: ComponentGroup;
-};
+    id: string
+    type: PageType
+    handle: string
+    locale: string
+  }
+}
 
-type Resolvable<T, Context = unknown> =
+type ComponentGroup = 'body' | 'header' | 'footer'
+
+type Resolvable<T, Context> =
   | T
-  | ((context: Context) => T);
+  | ((context: Context) => T)
 ```
 
-A component schema accepts either a static boolean or a synchronous callback:
+Use `enabled` for static or synchronous conditional availability:
 
 ```typescript
-enabled?: Resolvable<boolean, ComponentAvailabilityContext>;
+const schema = createSchema({
+  type: 'product-details',
+  title: 'Product details',
+  enabled: ({ page, group }) =>
+    page.type === 'PRODUCT' && group === 'body',
+})
 ```
 
-`enabledOn` is deprecated; move its page and group checks into `enabled`. Existing schemas remain supported, and Studio combines both properties using AND semantics when both are present. Callback errors, Promises, and non-boolean results make the component unavailable for new insertion, while existing instances remain editable. The callback runs in the storefront preview and is not serialized over Studio RPC.
+`enabledOn` remains supported for backward compatibility but is deprecated. Avoid relying on undocumented behavior for thrown errors, promises, RPC serialization, or existing instances; these semantics are not part of the public SDK contract.
 
-Studio currently evaluates component insertion for the `body` group. `header` and `footer` are reserved for placement surfaces that support them in the future.
-
-### WeaverseI18n
-
-Internationalization configuration.
+## Internationalization
 
 ```typescript
 type WeaverseI18n = I18nBase & {
-  label?: string;
-  pathPrefix?: string;
-  [key: string]: any;
-};
+  label?: string
+  pathPrefix?: string
+  [key: string]: any
+}
 ```
 
 ## Usage Example
 
-Here's how you might use these types to define a component:
-
 ```tsx
-import type {
-  HydrogenComponent,
-  HydrogenComponentProps,
-} from '@weaverse/hydrogen';
-import { createSchema } from '@weaverse/hydrogen';
+import {
+  createSchema,
+  type ComponentLoaderArgs,
+  type HydrogenComponent,
+  type HydrogenComponentProps,
+} from '@weaverse/hydrogen'
 
-type HeroBannerProps = HydrogenComponentProps<{
-  featuredProducts: any[];
-}> & {
-  heading: string;
-  subheading?: string;
-  backgroundImage?: string;
-  textColor?: string;
-};
+type Product = {
+  id: string
+  title: string
+}
+
+type HeroLoaderData = {
+  featuredProducts: Product[]
+}
+
+type HeroBannerProps = HydrogenComponentProps<HeroLoaderData> & {
+  heading: string
+  subheading?: string
+}
 
 function HeroBanner({
   heading,
   subheading,
-  backgroundImage,
-  textColor = '#ffffff',
   loaderData,
 }: HeroBannerProps) {
-  const { featuredProducts } = loaderData || {};
-  
   return (
-    <div 
-      className="hero-banner" 
-      style={{ 
-        backgroundImage: `url(${backgroundImage})`,
-        color: textColor,
-      }}
-    >
+    <section>
       <h1>{heading}</h1>
       {subheading && <p>{subheading}</p>}
-      
-      {featuredProducts?.length > 0 && (
-        <div className="featured-products">
-          {featuredProducts.map(product => (
-            <div key={product.id}>{product.title}</div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+      {loaderData?.featuredProducts.map((product) => (
+        <div key={product.id}>{product.title}</div>
+      ))}
+    </section>
+  )
 }
 
-let schema = createSchema({
+const schema = createSchema({
   type: 'hero-banner',
   title: 'Hero Banner',
   settings: [
@@ -327,148 +318,53 @@ let schema = createSchema({
           label: 'Heading',
           defaultValue: 'Welcome to our store',
         },
-        {
-          type: 'text',
-          name: 'subheading',
-          label: 'Subheading',
-        },
-      ],
-    },
-    {
-      group: 'Styling',
-      inputs: [
-        {
-          type: 'image',
-          name: 'backgroundImage',
-          label: 'Background Image',
-        },
-        {
-          type: 'color',
-          name: 'textColor',
-          label: 'Text Color',
-          defaultValue: '#ffffff',
-        },
       ],
     },
   ],
-});
+})
 
-async function loader({ data, weaverse }) {
-  // Fetch featured products
-  const products = await weaverse.storefront.query('FEATURED_PRODUCTS_QUERY');
-  
+async function loader({
+  weaverse,
+}: ComponentLoaderArgs): Promise<HeroLoaderData> {
+  const { products } = await weaverse.storefront.query(
+    'FEATURED_PRODUCTS_QUERY'
+  )
+
   return {
-    featuredProducts: products?.data?.products?.nodes || [],
-  };
+    featuredProducts: products.nodes,
+  }
 }
 
-HeroBanner.defaultProps = {
-  heading: 'Welcome to our store',
-};
+const component: HydrogenComponent<HeroBannerProps> = {
+  default: HeroBanner,
+  schema,
+  loader,
+}
 
-export default HeroBanner;
-export { schema, loader };
+export default component
 ```
 
 ## Type Extensions
 
-Weaverse Hydrogen extends several types from Remix Oxygen and Shopify Hydrogen:
+A Hydrogen app can augment its load context and environment:
 
 ```typescript
-// Extend AppLoadContext with the weaverse client
 declare module '@shopify/remix-oxygen' {
-  export interface AppLoadContext {
-    weaverse: WeaverseClient;
+  interface AppLoadContext {
+    weaverse: WeaverseClient
   }
 }
 
-// Extend HydrogenEnv with Weaverse environment variables
 declare module '@shopify/hydrogen' {
   interface HydrogenEnv {
-    WEAVERSE_PROJECT_ID: string;
-    WEAVERSE_HOST: string;
-    WEAVERSE_API_KEY: string;
+    WEAVERSE_PROJECT_ID: string
+    WEAVERSE_HOST?: string
+    WEAVERSE_API_KEY: string
   }
 }
 ```
 
 ## Related
 
-- [WeaverseHydrogenRoot](/api-reference/weaverse-root) - The main component that uses these types
-- [WeaverseClient](/api-reference/weaverse-client) - Client for fetching Weaverse content
-
-### Component Schema
-
-The modern way to define component schemas is using the `createSchema()` function:
-
-```tsx
-import { createSchema } from '@weaverse/hydrogen';
-
-export let schema = createSchema({
-  type: 'my-component',
-  title: 'My Component',
-  settings: [
-    // ... settings configuration
-  ],
-});
-```
-
-The `createSchema()` function provides:
-- Runtime validation using Zod
-- Better TypeScript inference
-- Consistent validation across all schemas
-- Future-proof schema definitions
-
-### Schema Properties
-
-When using `createSchema()`, you can define the following properties:
-
-```tsx
-export let schema = createSchema({
-  title: string;                    // Display name in Weaverse Studio
-  type: string;                     // Unique component identifier
-  settings?: InspectorGroup[];      // UI controls configuration
-  childTypes?: string[];            // Allowed child component types
-  limit?: number;                   // Maximum instances allowed
-  enabledOn?: {                     // Deprecated: use enabled
-    pages?: PageType[];
-    groups?: ('*' | 'header' | 'footer' | 'body')[];
-  };
-  enabled?: Resolvable<             // Dynamic insertion availability
-    boolean,
-    ComponentAvailabilityContext
-  >;
-  presets?: {                       // Default values and children
-    children?: ComponentPresets[];
-    [key: string]: any;
-  };
-});
-```
-
-### Example Usage
-
-```tsx
-import { createSchema } from '@weaverse/hydrogen';
-
-export let schema = createSchema({
-  type: 'product-showcase',
-  title: 'Product Showcase',
-  settings: [
-    {
-      group: 'Content',
-      inputs: [
-        {
-          type: 'product',
-          name: 'product',
-          label: 'Featured Product',
-          shouldRevalidate: true,
-        },
-      ],
-    },
-  ],
-  enabled: ({ page, group }) =>
-    ['INDEX', 'COLLECTION'].includes(page.type) &&
-    group === 'body' &&
-    page.locale === 'en-us',
-});
-```
+- [WeaverseHydrogenRoot](/api-reference/weaverse-root) - Render Weaverse loader data
+- [WeaverseClient](/api-reference/weaverse-client) - Fetch Weaverse content

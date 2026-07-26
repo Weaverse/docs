@@ -1,61 +1,60 @@
 ---
 title: useWeaverse
-description: Hook for accessing the global Weaverse instance in Weaverse Hydrogen components.
+description: Hook for accessing the active Weaverse runtime in Hydrogen components.
 published: true
 ---
 
 # useWeaverse
 
-The `useWeaverse` hook provides access to the global Weaverse instance, giving components access to page data, the component registry, and other essential Weaverse functionality. It serves as the main entry point for interacting with the Weaverse system.
+The `useWeaverse` hook returns the active Weaverse runtime. In Hydrogen themes, use the `WeaverseHydrogen` generic when you need Hydrogen-specific page data and runtime properties.
 
 ## Import
 
 ```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
+import { useWeaverse, type WeaverseHydrogen } from '@weaverse/hydrogen'
 ```
 
 ## Type
 
 ```typescript
-function useWeaverse(): WeaverseInstance
+function useWeaverse<T = Weaverse>(): T
 ```
 
 ## Returns
 
-- `WeaverseInstance` - The Weaverse instance containing global state and methods
+- `T` — The active Weaverse runtime. It defaults to the core `Weaverse` type.
 
 ## Common Use Patterns
 
-### Accessing Component Registry
+### Accessing Component Instances
 
-Look up specific component instances from anywhere in your application:
+The `itemInstances` registry maps component instance IDs to their item stores:
 
 ```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
+import { useWeaverse, type WeaverseHydrogen } from '@weaverse/hydrogen'
 
 export function NavigationControls() {
-  const { itemInstances } = useWeaverse()
-  
-  // Access header and announcement bar instances directly
+  const { itemInstances } = useWeaverse<WeaverseHydrogen>()
+
   const header = itemInstances.get('site-header')
   const announcementBar = itemInstances.get('announcement-bar')
-  
+
   const toggleAnnouncementBar = () => {
     if (announcementBar) {
-      announcementBar.updateData({
-        isVisible: !announcementBar.data.isVisible
+      announcementBar.setData({
+        isVisible: !announcementBar.data.isVisible,
       })
     }
   }
-  
+
   const toggleStickyHeader = () => {
     if (header) {
-      header.updateData({
-        isSticky: !header.data.isSticky
+      header.setData({
+        isSticky: !header.data.isSticky,
       })
     }
   }
-  
+
   return (
     <div className="nav-controls">
       <button onClick={toggleAnnouncementBar}>
@@ -71,15 +70,15 @@ export function NavigationControls() {
 
 ### Accessing Page Data
 
-Get access to the current page's data structure:
+Specify `WeaverseHydrogen` to get the Hydrogen page data type:
 
 ```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
+import { useWeaverse, type WeaverseHydrogen } from '@weaverse/hydrogen'
 
 export function PageInfo() {
-  const { data } = useWeaverse()
+  const { data } = useWeaverse<WeaverseHydrogen>()
   const { id, name, items } = data
-  
+
   return (
     <div className="page-info">
       <h1>Current Page: {name}</h1>
@@ -94,23 +93,20 @@ export function PageInfo() {
 
 ### `itemInstances`
 
-- **Type**: `Map<string, WeaverseItemStore>`
-- **Description**: Registry of all component instances available in the current page
+Registry mapping component instance IDs to their item stores.
 
 ### `data`
 
-- **Type**: `HydrogenPageData`
-- **Description**: Current page data including its ID, name, and component items
+The current project data. For `WeaverseHydrogen`, this is `HydrogenPageData`, which includes the page ID, name, root ID, and component items.
 
 ### `elementRegistry`
 
-- **Type**: `Map<string, HTMLElement>`
-- **Description**: Registry mapping component IDs to their DOM elements
+Registry mapping component **types** to their registered component definitions. It is not a registry of DOM elements or component instance IDs.
 
 ## When To Use
 
-- When you need to find and interact with components that aren't in the current component tree
-- When you need access to page-level configuration data
+- When you need to find and interact with components outside the current component tree
+- When you need access to page-level runtime data
 
 ## Related
 

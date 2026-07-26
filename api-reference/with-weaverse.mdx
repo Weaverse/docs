@@ -1,38 +1,94 @@
 ---
 title: withWeaverse
-description: The withWeaverse HOC enhances your root component, allowing it to access Weaverse-specific properties and methods.
+description: Wrap a React Router root Layout with Weaverse theme, translation, and Studio integration.
 published: true
 ---
 
-**`withWeaverse`** HOC is a crucial part of the architecture. It wraps the root component and any error boundaries to
-ensure that Weaverse functionalities are available throughout the application.
+# withWeaverse
 
-## Usage
+`withWeaverse` wraps the root route `Layout` with the theme settings store, translation provider, and Studio connection bridge.
 
-Implement **`withWeaverse`** in your root component and error boundary components to provide them with Weaverse
-integration. This process allows the components to access the loaded Weaverse theme settings and other context-specific
-data provided by Weaverse.
+Use it on `Layout`, not only on the default route component. React Router keeps `Layout` mounted around both the matched route and `ErrorBoundary`, so the Studio connection remains available during loader, render, and 404 errors.
 
-Here's a basic example of how to wrap your root component with **`withWeaverse`**:
+## Import
 
 ```tsx
 import { withWeaverse } from '@weaverse/hydrogen'
+```
 
-function App() {
-  // Your component logic
+## Type
+
+```typescript
+type WithWeaverseOptions = {
+  t?: TranslateFunction
 }
 
-export default withWeaverse(App)
+function withWeaverse(
+  Component: React.ComponentType<any>,
+  options?: WithWeaverseOptions
+): (props: React.JSX.IntrinsicAttributes) => React.JSX.Element
 ```
 
-Similarly, for an error boundary component:
+## Root Loader Requirement
+
+Return the result of `loadThemeSettings()` under the `weaverseTheme` key in the root loader:
 
 ```tsx
-export const ErrorBoundary = withWeaverse(ErrorBoundaryComponent)
+import type { Route } from './+types/root'
+
+export async function loader({ context }: Route.LoaderArgs) {
+  return {
+    weaverseTheme: await context.weaverse.loadThemeSettings(),
+  }
+}
 ```
 
-## How It Works
+The theme store reads `weaverseTheme.theme`, while the translation provider also uses `staticContent` and `merchantOverrides` from this response.
 
-By wrapping a component with **`withWeaverse`**, the component gains access to the Weaverse context, which includes
-theme settings, page configurations, and other essential data loaded via the Weaverse client. This allows for consistent
-use of Weaverse features across the entire app.
+## Usage
+
+Export the wrapped component as the root route `Layout`:
+
+```tsx
+import { withWeaverse } from '@weaverse/hydrogen'
+import type { ReactNode } from 'react'
+
+function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <head />
+      <body>{children}</body>
+    </html>
+  )
+}
+
+export const Layout = withWeaverse(RootLayout)
+```
+
+Do not wrap the default route component and `ErrorBoundary` separately. When an error occurs, React Router replaces the default component but keeps `Layout` mounted.
+
+## External Translation Function
+
+Pass a translation function through the optional second argument when integrating another i18n system:
+
+```tsx
+export const Layout = withWeaverse(RootLayout, { t })
+```
+
+The provided function has the highest priority in the translation resolution chain.
+
+## What It Provides
+
+`withWeaverse` mounts:
+
+- `ThemeSettingsStoreContext`
+- `TranslationProvider`
+- `StudioConnect`
+
+It does **not** create the page-level `WeaverseContext`. That runtime context is created by `WeaverseHydrogenRoot` when it renders a page.
+
+## Related
+
+- [WeaverseHydrogenRoot](/api-reference/weaverse-root) - Render the Weaverse page runtime
+- [useThemeSettings](/api-reference/use-theme-settings) - Read global theme settings
+- [WeaverseClient](/api-reference/weaverse-client) - Load root theme settings
