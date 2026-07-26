@@ -6,7 +6,7 @@ published: true
 
 # useWeaverse
 
-The `useWeaverse` hook provides access to the global Weaverse instance, giving components access to page data, component registry, theme settings, and other essential Weaverse functionality. It serves as the main entry point for interacting with the Weaverse system.
+The `useWeaverse` hook provides access to the global Weaverse instance, giving components access to page data, the component registry, and other essential Weaverse functionality. It serves as the main entry point for interacting with the Weaverse system.
 
 ## Import
 
@@ -25,36 +25,6 @@ function useWeaverse(): WeaverseInstance
 - `WeaverseInstance` - The Weaverse instance containing global state and methods
 
 ## Common Use Patterns
-
-### Accessing Global Theme Settings
-
-Get access to global theme settings that apply across the entire storefront:
-
-```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
-
-export function GlobalFooter() {
-  const { themeSettings } = useWeaverse()
-  const { copyrightText, showSocialLinks, socialLinks } = themeSettings
-  
-  return (
-    <footer className="site-footer">
-      <div className="footer-content">
-        {showSocialLinks && socialLinks && (
-          <div className="social-links">
-            {socialLinks.map(link => (
-              <a key={link.platform} href={link.url} target="_blank" rel="noopener">
-                {link.platform}
-              </a>
-            ))}
-          </div>
-        )}
-        <div className="copyright">{copyrightText}</div>
-      </div>
-    </footer>
-  )
-}
-```
 
 ### Accessing Component Registry
 
@@ -107,77 +77,30 @@ Get access to the current page's data structure:
 import { useWeaverse } from '@weaverse/hydrogen'
 
 export function PageInfo() {
-  const { page } = useWeaverse()
-  const { type, handle, title, sections } = page
+  const { data } = useWeaverse()
+  const { id, name, items } = data
   
   return (
     <div className="page-info">
-      <h1>Current Page: {title}</h1>
-      <div>Page Type: {type}</div>
-      <div>Handle: {handle}</div>
-      <div>Total Sections: {sections.length}</div>
+      <h1>Current Page: {name}</h1>
+      <div>Page ID: {id}</div>
+      <div>Total Items: {items.length}</div>
     </div>
-  )
-}
-```
-
-### Global Event Handling
-
-Listen to and dispatch global events across the Weaverse ecosystem:
-
-```tsx
-import { useWeaverse } from '@weaverse/hydrogen'
-import { useEffect } from 'react'
-
-export function CartSyncComponent() {
-  const { eventBus } = useWeaverse()
-  
-  useEffect(() => {
-    // Listen for cart updates from any component
-    const unsubscribe = eventBus.on('cart:updated', (cartData) => {
-      console.log('Cart was updated:', cartData)
-      // Update UI based on cart changes
-    })
-    
-    return () => {
-      unsubscribe()
-    }
-  }, [])
-  
-  const addToCart = (productId, quantity) => {
-    // Dispatch cart event that other components can listen for
-    eventBus.emit('cart:add', { productId, quantity })
-  }
-  
-  return (
-    <button onClick={() => addToCart('product-123', 1)}>
-      Add to Cart
-    </button>
   )
 }
 ```
 
 ## Core Properties
 
-### `themeSettings`
-
-- **Type**: `HydrogenThemeSettings`
-- **Description**: Global theme settings like colors, typography, and layout options
-
 ### `itemInstances`
 
 - **Type**: `Map<string, WeaverseItemStore>`
 - **Description**: Registry of all component instances available in the current page
 
-### `page`
+### `data`
 
-- **Type**: `WeaversePage`
-- **Description**: Current page data including type, handle, and sections
-
-### `eventBus`
-
-- **Type**: `EventBus`
-- **Description**: Publish-subscribe system for cross-component communication
+- **Type**: `HydrogenPageData`
+- **Description**: Current page data including its ID, name, and component items
 
 ### `elementRegistry`
 
@@ -186,9 +109,7 @@ export function CartSyncComponent() {
 
 ## When To Use
 
-- When you need to access global theme settings
 - When you need to find and interact with components that aren't in the current component tree
-- When implementing global state management or event handling
 - When you need access to page-level configuration data
 
 ## Related
