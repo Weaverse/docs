@@ -1,12 +1,12 @@
 ---
 title: getSelectedProductOptions
-description: Utility function that extracts selected product options from URL search parameters for product variant selection.
+description: Parse selected Shopify product options from request query parameters.
 published: true
 ---
 
 # getSelectedProductOptions
 
-The `getSelectedProductOptions` utility extends [Shopify Hydrogen's utility of the same name](https://shopify.dev/docs/api/hydrogen/2025-01/utilities/getselectedproductoptions) to provide a cleaner implementation for Weaverse applications. It extracts customer-selected product options from URL search parameters, allowing you to fetch the correct product variant based on customer selections.
+`getSelectedProductOptions` delegates to Shopify Hydrogen's utility and removes Weaverse-only query parameters before returning product options.
 
 ## Import
 
@@ -17,78 +17,33 @@ import { getSelectedProductOptions } from '@weaverse/hydrogen'
 ## Type
 
 ```typescript
-function getSelectedProductOptions(request: Request): SelectedOptionInput[]
+function getSelectedProductOptions(
+  request: Request
+): SelectedOptionInput[]
 ```
 
-## Parameters
+## Filtering
 
-- `request: Request` - The incoming request object from a Remix/Hydrogen loader function
+The wrapper removes:
 
-## Returns
+- `isDesignMode`
+- Parameters whose names start with `weaverse`
 
-- `SelectedOptionInput[]` - An array of selected option objects with `name` and `value` properties that can be passed directly to Shopify's Storefront API
+All other parameter names are preserved exactly as they appear in the URL.
 
-## Implementation Details
+## Example
 
-Weaverse's implementation enhances Shopify's utility by filtering out internal parameters that should not be treated as product options:
+For this request:
+
+```text
+https://example.com/products/t-shirt?Color=Blue&Size=XL&isDesignMode=true
+```
 
 ```tsx
-export function getSelectedProductOptions(
-  request: Request,
-): SelectedOptionInput[] {
-  // First calls Shopify's implementation
-  let options = hydrogen_getSelectedProductOptions(request)
-  
-  // Then filters out Weaverse-specific parameters
-  return options.filter(
-    ({ name }) => name !== 'isDesignMode' && !name.startsWith('weaverse'),
-  )
-}
+const selectedOptions = getSelectedProductOptions(request)
 ```
 
-This ensures that Weaverse design mode parameters and other internal options don't interfere with product variant selection.
-
-## Common Use Pattern
-
-### In Product Page Loaders
-
-This utility is typically used in a product page's loader function to fetch the correct product variant based on URL parameters:
-
-```tsx
-import { getSelectedProductOptions } from "@weaverse/hydrogen";
-import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
-import type { ProductQuery } from "storefront-api.generated";
-
-export async function loader({ params, request, context }: LoaderFunctionArgs) {
-  const { productHandle: handle } = params;
-  const { storefront } = context;
-  
-  // Extract selected options from URL search params
-  const selectedOptions = getSelectedProductOptions(request);
-  
-  // Use selected options to fetch the correct product variant
-  const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-    variables: {
-      handle,
-      selectedOptions,
-      country: storefront.i18n.country,
-      language: storefront.i18n.language,
-    },
-  });
-  
-  // Rest of your loader logic...
-  return { product };
-}
-```
-
-## How It Works
-
-The function works in two steps:
-
-1. It first leverages Shopify Hydrogen's implementation to extract search parameters from the request URL and convert them to the `SelectedOptionInput` format
-2. It then filters the results to exclude any options named 'isDesignMode' or starting with 'weaverse', which are used internally by the Weaverse system
-
-For example, a URL like `/products/t-shirt?option[Color]=Blue&option[Size]=XL&isDesignMode=true` would result in:
+The result is:
 
 ```json
 [
@@ -97,16 +52,43 @@ For example, a URL like `/products/t-shirt?option[Color]=Blue&option[Size]=XL&is
 ]
 ```
 
-Note that the `isDesignMode` parameter has been automatically filtered out.
+If the URL uses bracketed parameter names, those names remain bracketed:
 
-## When To Use
+```text
+?option[Color]=Blue&option[Size]=XL
+```
 
-- When implementing product pages with variant selection
-- When you need to fetch specific product variants based on URL parameters
-- In Hydrogen loaders that require selected product options for Storefront API queries
+```json
+[
+  { "name": "option[Color]", "value": "Blue" },
+  { "name": "option[Size]", "value": "XL" }
+]
+```
+
+## Loader Usage
+
+```tsx
+import { getSelectedProductOptions } from '@weaverse/hydrogen'
+import type { LoaderFunctionArgs } from '@shopify/remix-oxygen'
+
+export async function loader({
+  request,
+  context,
+  params,
+}: LoaderFunctionArgs) {
+  const selectedOptions = getSelectedProductOptions(request)
+
+  const { product } = await context.storefront.query(PRODUCT_QUERY, {
+    variables: {
+      handle: params.handle,
+      selectedOptions,
+    },
+  })
+
+  return { product }
+}
+```
 
 ## Related
 
-- [Shopify Hydrogen's getSelectedProductOptions](https://shopify.dev/docs/api/hydrogen/2025-01/utilities/getselectedproductoptions) - Original implementation that this function extends
-- [Shopify's Storefront API Product Variants](https://shopify.dev/docs/api/storefront/latest/objects/productvariant)
-- [WeaverseHydrogenRoot](/api-reference/weaverse-root) - For rendering product content with the selected variant
+- [Shopify Hydrogen `getSelectedProductOptions`](https://shopify.dev/docs/api/hydrogen/latest/utilities/getselectedproductoptions)

@@ -1,79 +1,77 @@
 ---
-title: 'Introduction'
-description: 'Complete API reference for Weaverse Hydrogen development'
+title: Introduction
+sidebarTitle: Overview
+published: true
+description: Learn about the Weaverse SDK API reference for building Shopify Hydrogen storefronts.
 ---
 
 # API Reference
 
-This section provides comprehensive documentation for all Weaverse Hydrogen APIs, hooks, components, and utilities. Whether you're building custom components, integrating with Shopify, or extending Weaverse functionality, you'll find detailed information here.
+The Weaverse SDK provides the runtime, React bindings, Hydrogen integration, and schema utilities used to build Weaverse-powered storefronts.
 
-<Tip>
-  Looking for the **REST API** to access page content from external applications? See the [Content API](/content-api/overview) documentation.
-</Tip>
+## SDK Packages
 
-## Core Concepts
+### `@weaverse/hydrogen`
 
-Weaverse Hydrogen provides a powerful set of APIs for building visual, drag-and-drop storefronts. The API is organized around several key concepts:
+The primary package for Shopify Hydrogen applications. It includes:
 
-- **Components**: Reusable UI elements with visual configuration
-- **Hooks**: React hooks for accessing Weaverse state and functionality
-- **Utilities**: Helper functions for common tasks
-- **Types**: TypeScript interfaces and type definitions
+- `WeaverseClient` for server-side page and theme loading
+- `WeaverseHydrogenRoot` for page rendering
+- Hydrogen hooks, component types, and utilities
+- Re-exports from `@weaverse/react` and `@weaverse/schema`
 
-## Getting Started
+### `@weaverse/react`
 
-<CardGroup cols={2}>
-  <Card title="Components" icon="cube" href="/api-reference/weaverse-root">
-    Core rendering components for Weaverse content
-  </Card>
-  <Card title="Hooks" icon="atom" href="/api-reference/use-weaverse">
-    React hooks for accessing Weaverse functionality
-  </Card>
-  <Card title="Types" icon="code" href="/api-reference/types">
-    TypeScript interfaces and type definitions
-  </Card>
-  <Card title="Utilities" icon="wrench" href="/api-reference/get-selected-product-options">
-    Helper functions for common development tasks
-  </Card>
-</CardGroup>
+React bindings shared by framework integrations, including runtime contexts, hooks, and the lower-level `WeaverseRoot` renderer.
 
-## Package Structure
+### `@weaverse/core`
 
-Weaverse Hydrogen is distributed as multiple packages:
+Framework-independent runtime classes, item stores, events, and core data types.
 
-- **`@weaverse/hydrogen`** - Main package with components, hooks, and utilities
-- **`@weaverse/react`** - Core React rendering engine
-- **`@weaverse/core`** - Low-level Weaverse functionality
-- **`@weaverse/shopify`** - Shopify-specific components and integrations
+### `@weaverse/schema`
 
-## Import Patterns
+Schema definitions, Studio input types, availability types, and validation utilities.
+
+## Basic Usage
 
 ```tsx
-// Core hooks and components
-import { useWeaverse, WeaverseRoot } from '@weaverse/hydrogen'
+import {
+  WeaverseHydrogenRoot,
+  useWeaverse,
+  type WeaverseHydrogen,
+} from '@weaverse/hydrogen'
+import { components } from '~/weaverse/components'
 
-// Utilities
-import { getSelectedProductOptions, IMAGES_PLACEHOLDERS } from '@weaverse/hydrogen'
+export function WeaversePage() {
+  return <WeaverseHydrogenRoot components={components} />
+}
 
-// Types
-import type { HydrogenComponent, HydrogenComponentProps } from '@weaverse/hydrogen'
-```
+export function RuntimeInfo() {
+  const weaverse = useWeaverse<WeaverseHydrogen>()
 
-## TypeScript Support
-
-All APIs are fully typed with TypeScript. We recommend enabling strict mode in your `tsconfig.json`:
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noImplicitAny": true
-  }
+  return <span>{weaverse.data.name}</span>
 }
 ```
 
-## Need Help?
+## API Categories
 
-- **[Development Guide](/development-guide/index)** - Step-by-step development tutorials
-- **[Community](/community/community)** - Connect with other developers
-- **[FAQ](resources/faq)** - Common questions and solutions
+<CardGroup cols={2}>
+  <Card title="Hooks" icon="code" href="/api-reference/use-weaverse">
+    Access the Weaverse runtime, item stores, child instances, parent instances, and theme settings.
+  </Card>
+  <Card title="Components" icon="cube" href="/api-reference/weaverse-root">
+    Render Weaverse pages and initialize Hydrogen root providers.
+  </Card>
+  <Card title="Client" icon="server" href="/api-reference/weaverse-client">
+    Load page data, theme settings, and custom page metadata on the server.
+  </Card>
+  <Card title="Types and Utilities" icon="brackets-curly" href="/api-reference/types">
+    Reference public TypeScript contracts and helper functions.
+  </Card>
+</CardGroup>
+
+## Getting Help
+
+- [GitHub](https://github.com/Weaverse/weaverse)
+- [Community](https://community.weaverse.io)
+- [FAQ](/resources/faq)
