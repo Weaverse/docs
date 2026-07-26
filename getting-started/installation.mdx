@@ -12,7 +12,7 @@ Get Weaverse installed and running in your Shopify Hydrogen project quickly and 
 
 ## Prerequisites
 
-- **Node.js 18+** - [Download here](https://nodejs.org/)
+- **Node.js 22.12+** - [Download here](https://nodejs.org/)
 - **A Shopify store** - Development store or paid plan
 - **Basic terminal knowledge** - For running commands
 
@@ -47,7 +47,7 @@ npx @weaverse/cli@latest create --template=pilot --project-id=your-project-id --
 cd my-store && npm run dev
 ```
 
-**Available templates**: `pilot`, `naturelle`, `minimal`
+**Available templates**: `pilot`, `naturelle`, `aspen`, `maison`
 
 ---
 
@@ -101,7 +101,7 @@ After installation:
 ## Common Issues
 
 ### CLI Command Fails
-- Ensure Node.js 18+ installed: `node --version`
+- Ensure Node.js 22.12+ installed: `node --version`
 - Clear npm cache: `npm cache clean --force`
 
 ### Studio Preview Not Loading
@@ -118,49 +118,59 @@ After installation:
 
 After installation, you can start building custom sections. Here's a simple example:
 
-```typescript
-// app/sections/Hero.tsx
-import { forwardRef } from 'react';
+```tsx
+// app/sections/hero/index.tsx
+import { createSchema } from '@weaverse/hydrogen';
+import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 
-export type HeroProps = {
+interface HeroProps extends HydrogenComponentProps {
   heading: string;
   description: string;
-  className?: string;
-};
+}
 
-export let schema = {
-  title: 'Hero Section',
-  type: 'hero',
-  settings: [
-    {
-      group: 'Content',
-      inputs: [
-        { type: 'text', name: 'heading', label: 'Heading', defaultValue: 'Welcome' },
-        { type: 'textarea', name: 'description', label: 'Description' }
-      ]
-    }
-  ]
-};
+function Hero(props: HeroProps) {
+  const { heading, description, className, ...rest } = props;
 
-export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
-  let { heading, description, className = '' } = props;
-  
   return (
-    <section ref={ref} className={`py-12 px-4 max-w-7xl mx-auto ${className}`}>
+    <section {...rest} className={`py-12 px-4 max-w-7xl mx-auto ${className || ''}`}>
       <div className="text-center">
         <h1 className="text-4xl font-bold">{heading}</h1>
         <p className="mt-6 text-lg text-gray-600">{description}</p>
       </div>
     </section>
   );
+}
+
+export default Hero;
+
+export const schema = createSchema({
+  type: 'hero',
+  title: 'Hero Section',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        { type: 'text', name: 'heading', label: 'Heading', defaultValue: 'Welcome' },
+        { type: 'textarea', name: 'description', label: 'Description' },
+      ],
+    },
+  ],
 });
 ```
 
 ## Development Workflow
 
 1. **Create component** in `app/sections/` or `app/components/`
-2. **Define schema** with configurable properties
-3. **Register in** `weaverse.config.ts`
+2. **Define schema** with `createSchema()` and configurable properties
+3. **Register it** in `app/weaverse/components.ts` by adding the module to the `components` array:
+
+   ```ts
+   // app/weaverse/components.ts
+   import type { HydrogenComponent } from '@weaverse/hydrogen';
+   import * as Hero from '~/sections/hero';
+
+   export const components: HydrogenComponent[] = [Hero];
+   ```
 4. **Test in Studio** at `https://studio.weaverse.io/projects/your-project-id`
 
 ## Next Steps

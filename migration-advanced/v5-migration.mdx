@@ -93,11 +93,18 @@ Follow the manual migration steps to upgrade your current project in place.
 
 ```bash
 # Create a new Weaverse project with React Router v7
-npx @weaverse/cli@latest create my-upgraded-project --theme pilot
+npx @weaverse/cli@latest create \
+  --template=pilot \
+  --project-id="your-project-id" \
+  --project-name=my-upgraded-project
 
 # Navigate to the new project
 cd my-upgraded-project
 ```
+
+<Note>
+  The CLI takes named flags — there is no positional project-name argument and no `--theme` flag. Use `--template` (`pilot`, `naturelle`, `aspen`, or `maison`), `--project-id`, and `--project-name`. Run `npx @weaverse/cli@latest` with no arguments to list the available templates.
+</Note>
 
 ### Step 2: Migrate Your Customizations
 
@@ -203,10 +210,16 @@ export default defineConfig({
 
 ```bash
 npm install --force \
-  @weaverse/hydrogen@5.0.0 \
-  @shopify/hydrogen@2025.5.0 \
-  @shopify/remix-oxygen@3.0.0 \
-  @shopify/cli@3.80.4
+  @weaverse/hydrogen@latest \
+  @shopify/hydrogen@latest \
+  react-router@^7 \
+  @react-router/dev@^7
+```
+
+Then remove the Remix packages that React Router v7 replaces:
+
+```bash
+npm uninstall @remix-run/react @remix-run/dev @shopify/remix-oxygen
 ```
 
 ### Step 6: Update TypeScript Configuration
@@ -215,7 +228,22 @@ Update `env.d.ts`:
 
 ```typescript
 // env.d.ts
-declare module 'react-router' {
+import type { HydrogenEnv, HydrogenSessionData } from "@shopify/hydrogen";
+import type { WeaverseClient } from "@weaverse/hydrogen";
+import type { createHydrogenRouterContext } from "./app/.server/context";
+import type { I18nLocale } from "./app/types/others";
+
+declare module "react-router" {
+  import type { Storefront as StorefrontBase } from "@shopify/hydrogen";
+
+  interface AppLoadContext
+    extends Awaited<ReturnType<typeof createHydrogenRouterContext>> {
+    // To change the context type, change the return of createHydrogenRouterContext()
+    storefront: Omit<StorefrontBase, "i18n"> & { i18n: I18nLocale };
+    weaverse: WeaverseClient;
+    additionalContext: HydrogenAdditionalContext;
+  }
+
   // TODO: remove this once we've migrated to `Route.LoaderArgs` for our loaders
   interface LoaderFunctionArgs {
     context: AppLoadContext;
@@ -225,9 +253,14 @@ declare module 'react-router' {
   interface ActionFunctionArgs {
     context: AppLoadContext;
   }
-  // ... rest of your types
+
+  interface SessionData extends HydrogenSessionData {}
 }
 ```
+
+<Note>
+  The module being augmented is now `react-router`, not `@shopify/remix-oxygen`. Declaring `weaverse: WeaverseClient` here is what gives you typed `context.weaverse` in every loader.
+</Note>
 
 Update `tsconfig.json`:
 
@@ -241,6 +274,12 @@ Update `tsconfig.json`:
   ],
   "compilerOptions": {
     "rootDirs": [".", "./.react-router/types"],
+    "types": [
+      "@shopify/oxygen-workers-types",
+      "react-router",
+      "@shopify/hydrogen/react-router-types",
+      "vite/client"
+    ]
     // ... rest of options
   }
 }
@@ -269,7 +308,289 @@ import { useLoaderData } from 'react-router';
 import type { LoaderFunctionArgs } from 'react-router';
 ```
 
-### Step 9: Test and Verify
+### Step 9: Move the App Context to `app/.server/context.ts`
+
+Hydrogen on React Router v7 builds its context with `createHydrogenContext()`, which returns a **`RouterContextProvider` class instance**. Rename your context factory to `createHydrogenRouterContext`, move it to `app/.server/context.ts`, and attach the Weaverse client with `Object.assign` so the class instance survives:
+
+**Before (v4 with Remix):**
+
+```typescript
+// app/lib/context.ts — v4, legacy
+export async function createAppLoadContext(request, env, executionContext) {
+  const hydrogenContext = createHydrogenContext({ /* ... */ });
+
+  return {
+    ...hydrogenContext,
+    weaverse: new WeaverseClient({
+      ...hydrogenContext,
+      request,
+      cache,
+      themeSchema,
+      components,
+    }),
+  };
+}
+```
+
+**After (v5 with React Router v7):**
+
+```typescript
+// app/.server/context.ts
+import { createHydrogenContext } from "@shopify/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen";
+import { components } from "~/weaverse/components";
+import { themeSchema } from "~/weaverse/schema.server";
+
+export async function createHydrogenRouterContext(
+  request: Request,
+  env: Env,
+  executionContext: ExecutionContext,
+) {
+  const waitUntil = executionContext.waitUntil.bind(executionContext);
+  const [cache, session] = await Promise.all([
+    caches.open("hydrogen"),
+    AppSession.init(request, [env.SESSION_SECRET]),
+  ]);
+
+  const hydrogenContext = createHydrogenContext(
+    {
+      env,
+      request,
+      cache,
+      waitUntil,
+      session,
+      i18n: getLocaleFromRequest(request),
+      cart: {
+        queryFragment: CART_QUERY_FRAGMENT,
+        mutateFragment: CART_MUTATION_FRAGMENT,
+      },
+    },
+    additionalContext,
+  );
+
+  const weaverse = new WeaverseClient({
+    ...hydrogenContext,
+    request,
+    cache,
+    themeSchema,
+    components,
+  });
+
+  // Add weaverse directly to the hydrogenContext instance.
+  // This preserves the RouterContextProvider class instance.
+  Object.assign(hydrogenContext, { weaverse });
+
+  return hydrogenContext;
+}
+```
+
+<Warning>
+  Spreading the context (`return { ...hydrogenContext, weaverse }`) flattens the `RouterContextProvider` into a plain object and breaks Hydrogen's context APIs at runtime. Always mutate the instance with `Object.assign`.
+</Warning>
+
+Update `server.ts` to import the renamed factory and pass the instance straight through:
+
+```typescript
+// server.ts
+import { createHydrogenRouterContext } from "~/.server/context";
+
+const hydrogenContext = await createHydrogenRouterContext(
+  request,
+  env,
+  executionContext,
+);
+
+const handleRequest = createRequestHandler({
+  build: remixBuild, // from "virtual:react-router/server-build"
+  mode: process.env.NODE_ENV,
+  getLoadContext: () => hydrogenContext,
+});
+```
+
+### Step 10: Update `entry.server.tsx`
+
+Swap `RemixServer` for `ServerRouter` and retype the context parameter. The Weaverse CSP helper (`app/weaverse/csp.ts`) now takes `HydrogenRouterContextProvider` instead of the Remix `AppLoadContext`.
+
+**Before (v4 with Remix):**
+
+```tsx
+import { RemixServer } from "@remix-run/react";
+import type { AppLoadContext, EntryContext } from "@shopify/remix-oxygen";
+```
+
+**After (v5 with React Router v7):**
+
+```tsx
+import {
+  createContentSecurityPolicy,
+  type HydrogenRouterContextProvider,
+} from "@shopify/hydrogen";
+import type { EntryContext } from "react-router";
+import { ServerRouter } from "react-router";
+import { getWeaverseCsp } from "~/weaverse/csp";
+
+export default async function handleRequest(
+  request: Request,
+  responseStatusCode: number,
+  responseHeaders: Headers,
+  reactRouterContext: EntryContext,
+  context: HydrogenRouterContextProvider,
+) {
+  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+    ...getWeaverseCsp(request, context),
+    shop: {
+      checkoutDomain:
+        context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
+      storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
+    },
+  });
+
+  const body = await renderToReadableStream(
+    <NonceProvider>
+      <ServerRouter
+        context={reactRouterContext}
+        url={request.url}
+        nonce={nonce}
+      />
+    </NonceProvider>,
+    { nonce, signal: request.signal, onError(error) { console.error(error); } },
+  );
+
+  responseHeaders.set("Content-Type", "text/html");
+  // Switch to "Content-Security-Policy" once your directives are complete.
+  responseHeaders.set("Content-Security-Policy-Report-Only", header);
+
+  return new Response(body, {
+    headers: responseHeaders,
+    status: responseStatusCode,
+  });
+}
+```
+
+Update `app/weaverse/csp.ts` to match:
+
+```typescript
+// app/weaverse/csp.ts
+import type { HydrogenRouterContextProvider } from "@shopify/hydrogen";
+
+export function getWeaverseCsp(
+  request: Request,
+  context: HydrogenRouterContextProvider,
+) {
+  // ... unchanged directive logic
+}
+```
+
+### Step 11: Move `withWeaverse` from the Default Export to `Layout`
+
+This is the most commonly missed change. In v5, `withWeaverse` wraps the **`Layout`** export — the component that renders the HTML document — while the default `App` export stays plain.
+
+**Before (v4 with Remix):**
+
+```tsx
+// app/root.tsx — v4, legacy
+import { Outlet } from "@remix-run/react";
+import { withWeaverse } from "@weaverse/hydrogen";
+
+function App() {
+  return <Outlet />;
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  return <html>{/* ... */}</html>;
+}
+
+export default withWeaverse(App);
+```
+
+**After (v5 with React Router v7):**
+
+```tsx
+// app/root.tsx
+import { useThemeSettings, withWeaverse } from "@weaverse/hydrogen";
+import { Outlet, useRouteLoaderData } from "react-router";
+import { GlobalStyle } from "./weaverse/style";
+
+function App() {
+  return <Outlet />;
+}
+
+export const Layout = withWeaverse(function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const nonce = useNonce();
+  const data = useRouteLoaderData<RootLoader>("root");
+  const { topbarText } = useThemeSettings<ThemeSettings>();
+
+  return (
+    <html lang={data?.selectedLocale?.language}>
+      <head>
+        <Meta />
+        <Links />
+        <GlobalStyle />
+      </head>
+      <body>
+        <main>{children}</main>
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
+});
+
+export default App;
+```
+
+### Step 12: Convert File-Based Routes to `app/routes.ts`
+
+React Router v7 uses config-based routing. Replace your `($locale).*` flat-route filenames with explicit entries wrapped in Hydrogen's `hydrogenRoutes()`:
+
+**Before (v4 with Remix flat routes):**
+
+```
+app/routes/($locale)._index.tsx
+app/routes/($locale).products.$productHandle.tsx
+app/routes/($locale).collections.$collectionHandle.tsx
+```
+
+**After (v5 — `app/routes.ts` + feature folders):**
+
+```typescript
+// app/routes.ts
+import {
+  index,
+  prefix,
+  type RouteConfig,
+  route,
+} from "@react-router/dev/routes";
+import { hydrogenRoutes } from "@shopify/hydrogen";
+
+export default hydrogenRoutes([
+  ...prefix(":locale?", [
+    index("routes/home.tsx"),
+    route("pages/:pageHandle", "routes/pages/regular-page.tsx"),
+    route("sitemap-weaverse.xml", "routes/seo/sitemap-weaverse.xml.ts"),
+    ...prefix("collections", [
+      index("routes/collections/list.tsx"),
+      route(":collectionHandle", "routes/collections/collection.tsx"),
+    ]),
+    ...prefix("products", [
+      index("routes/products/list.tsx"),
+      route(":productHandle", "routes/products/product.tsx"),
+    ]),
+    // Serves Weaverse CUSTOM pages
+    route("*", "routes/catch-all.tsx"),
+  ]),
+]) satisfies RouteConfig;
+```
+
+<Tip>
+  Keep the `route("*", "routes/catch-all.tsx")` entry — without it, custom pages created in Weaverse Studio will 404.
+</Tip>
+
+### Step 13: Test and Verify
 
 Run the following commands to verify your migration:
 

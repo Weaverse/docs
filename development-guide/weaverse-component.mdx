@@ -156,8 +156,8 @@ export default MyComponent;
 For more complex components, you may need to handle data loading, custom styling, or complex props management:
 
 ```tsx
-import { Await, useLoaderData } from "@remix-run/react";
 import { createSchema } from "@weaverse/hydrogen";
+import { Await, useLoaderData } from "react-router";
 import { Suspense, forwardRef } from "react";
 import type { ProductCardFragment } from "storefront-api.generated";
 import Heading, { type HeadingProps, headingInputs } from "~/components/heading";
@@ -493,27 +493,28 @@ export let schema = createSchema({
 
 In a Weaverse Hydrogen project, there are two distinct types of loader functions:
 
-1. **Remix Route Loaders**: These loaders are used in Remix route files (`routes/*.tsx`) and follow the Remix conventions
+1. **Route Loaders**: These loaders are used in React Router v7 route files (`app/routes/**/*.tsx`) and follow the React Router conventions
 2. **Weaverse Component Loaders**: These loaders are defined in Weaverse component files and enable server-side data fetching at the component level
 
-### Remix Route Loaders
+### Route Loaders
 
-In Remix route files, you define loaders that run on the server and provide data to all components rendered by that route:
+In React Router route files, you define loaders that run on the server and provide data to all components rendered by that route:
 
 ```tsx
-// app/routes/products.$handle.tsx
-import { json, type LoaderArgs } from '@shopify/remix-oxygen';
-import { useLoaderData } from '@remix-run/react';
+// app/routes/products/product.tsx
+import type { LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
 
-export async function loader({ params, context }: LoaderArgs) {
+export async function loader({ params, context }: LoaderFunctionArgs) {
   const { handle } = params;
   const { storefront } = context;
-  
+
   const { product } = await storefront.query(PRODUCT_QUERY, {
     variables: { handle },
   });
-  
-  return json({ product });
+
+  // Return a plain object — `json()` is no longer needed in React Router v7
+  return { product };
 }
 
 export default function ProductRoute() {
@@ -602,22 +603,23 @@ export let schema = createSchema({
 ### Key Differences
 
 1. **Scope**:
-   - Remix loaders provide data to an entire route
+   - Route loaders provide data to an entire route
    - Weaverse component loaders provide data only to the specific component
 
 2. **Access**:
-   - Remix loader data is accessed via the `useLoaderData()` hook
+   - Route loader data is accessed via the `useLoaderData()` hook
    - Weaverse component loader data is received via `props.loaderData`
 
 3. **Arguments**:
-   - Remix loaders receive `{ params, request, context }`
-   - Weaverse component loaders receive `{ weaverse, data, request }` where:
-     - `weaverse`: Contains Weaverse-specific utilities and context
+   - Route loaders receive `{ params, request, context }`
+   - Weaverse component loaders receive `{ weaverse, data }` where:
+     - `weaverse`: The `WeaverseClient` instance — Storefront API access, `fetchWithCache`, `env`, and the current `request`
      - `data`: Contains the component's configured data from the editor
-     - `request`: The original request object
+
+   There is no `context` argument in `ComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
 
 4. **Use cases**:
-   - Use Remix loaders for route-level data like page information
+   - Use route loaders for route-level data like page information
    - Use Weaverse component loaders for component-specific data
 
 ### Data Flow Between Components
@@ -652,9 +654,9 @@ export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> 
 2. **Error Handling**: Implement proper error handling in your loaders:
 
 ```tsx
-export async function loader({ context }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: ComponentLoaderArgs) {
   try {
-    const data = await fetchData();
+    const data = await fetchData(weaverse);
     return { data };
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -666,8 +668,8 @@ export async function loader({ context }: ComponentLoaderArgs) {
 3. **Data Transformation**: Transform data in the loader before passing it to the component:
 
 ```tsx
-export async function loader({ context }: ComponentLoaderArgs) {
-  const rawData = await fetchData();
+export async function loader({ weaverse }: ComponentLoaderArgs) {
+  const rawData = await fetchData(weaverse);
   return {
     data: transformData(rawData), // Transform data for easier consumption
   };
@@ -677,12 +679,13 @@ export async function loader({ context }: ComponentLoaderArgs) {
 4. **Caching**: Leverage Hydrogen's built-in caching mechanisms and Weaverse's utilities for improved performance:
 
 ```tsx
-import { CacheLong, fetchSync } from '@shopify/hydrogen';
+import { CacheLong } from '@shopify/hydrogen';
 
-export async function loader({ context }: ComponentLoaderArgs) {
-  const { storefront, fetchWithCache } = context.weaverse;
-  
+export async function loader({ weaverse }: ComponentLoaderArgs) {
+  const { storefront, fetchWithCache } = weaverse;
+
   // Using Weaverse's fetchWithCache utility (recommended)
+  // Signature: fetchWithCache(url, options) — the cache strategy goes in `options.strategy`
   const data = await fetchWithCache(
     'https://api.example.com/data',
     {
@@ -690,12 +693,12 @@ export async function loader({ context }: ComponentLoaderArgs) {
       headers: {
         'Content-Type': 'application/json',
       },
-    },
-    CacheLong() // Use appropriate cache strategy
+      strategy: CacheLong(), // Use appropriate cache strategy
+    }
   );
-  
-  // Or using Hydrogen's fetchSync with caching strategy
-  const { product } = await fetchSync(
+
+  // POST requests work the same way — the body is part of the cache key
+  const product = await fetchWithCache(
     'https://my-api.com/data',
     {
       method: 'POST',
@@ -703,12 +706,10 @@ export async function loader({ context }: ComponentLoaderArgs) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: 'my-product' }),
-    },
-    {
-      cache: CacheLong(), // Use appropriate cache strategy: CacheNone, CacheShort, CacheLong, or custom
+      strategy: CacheLong(),
     }
-  ).json();
-  
+  );
+
   // Or using storefront API with caching
   const { collection } = await storefront.query(
     `query CollectionDetails($handle: String!) {
@@ -731,10 +732,12 @@ export async function loader({ context }: ComponentLoaderArgs) {
 
 **Weaverse's `fetchWithCache`** is a convenient utility that simplifies cached data fetching from external APIs:
 
-- Available through `context.weaverse.fetchWithCache`
+- Available on the `weaverse` loader argument as `weaverse.fetchWithCache`
+- Takes exactly two arguments: `fetchWithCache(url, options)`
 - Automatically handles JSON parsing
-- Applies the specified caching strategy
-- Provides a cleaner syntax compared to Hydrogen's native `fetchSync`
+- Applies the caching strategy passed as `options.strategy` (defaults to a short custom strategy)
+- Includes the URL, method, body, and project ID in the cache key, so POST requests cache correctly
+- Bypasses the cache automatically while in Studio design mode
 
 Hydrogen provides several caching strategies out of the box:
 
@@ -755,11 +758,9 @@ const cacheStrategy = CacheLong({
 });
 
 // Use with Weaverse's fetchWithCache
-const { weaverse } = context;
 const data = await weaverse.fetchWithCache(
   'https://api.example.com/data',
-  { method: 'GET' },
-  cacheStrategy
+  { method: 'GET', strategy: cacheStrategy }
 );
 
 // Or use in storefront query

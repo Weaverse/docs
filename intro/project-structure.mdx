@@ -13,23 +13,25 @@ The Weaverse Hydrogen theme follows a modern Shopify Hydrogen structure, optimiz
 ```text
 🌳 my-theme
 ├── 📁 app/
-│   ├── 📁 components/     # Reusable UI components
-│   ├── 📁 graphql/       # GraphQL queries and fragments
-│   ├── 📁 hooks/         # Custom React hooks
-│   ├── 📁 routes/        # Application routes
-│   ├── 📁 sections/      # Theme sections
-│   ├── 📁 styles/        # Global styles and Tailwind
-│   ├── 📁 types/         # TypeScript definitions
-│   ├── 📁 utils/         # Helper functions
-│   ├── 📁 weaverse/      # Weaverse configuration
+│   ├── 📁 .server/            # Server-only modules (load context, root loaders)
+│   ├── 📁 components/         # Reusable UI components
+│   ├── 📁 graphql/            # GraphQL queries and fragments
+│   ├── 📁 hooks/              # Custom React hooks
+│   ├── 📁 routes/             # Application routes
+│   ├── 📁 sections/           # Theme sections
+│   ├── 📁 styles/             # Global styles and Tailwind CSS entry
+│   ├── 📁 types/              # TypeScript definitions
+│   ├── 📁 utils/              # Helper functions
+│   ├── 📁 weaverse/           # Weaverse configuration
 │   ├── 📄 entry.client.tsx
 │   ├── 📄 entry.server.tsx
+│   ├── 📄 routes.ts           # Route configuration
 │   └── 📄 root.tsx
-├── 📁 public/            # Static assets
-├── 📄 server.ts          # Server configuration
-├── 📄 vite.config.ts     # Build configuration
-├── 📄 tailwind.config.js # Tailwind settings
-└── 📄 .env              # Environment variables
+├── 📁 public/                 # Static assets
+├── 📄 server.ts               # Oxygen request handler
+├── 📄 vite.config.ts          # Build configuration (includes the Tailwind v4 plugin)
+├── 📄 react-router.config.ts  # React Router configuration
+└── 📄 .env                    # Environment variables
 ```
 
 ## Key Directories
@@ -53,36 +55,22 @@ export function Button({ children, className = '', ...props }) {
 ### `/app/sections`
 Theme sections for Weaverse Studio:
 ```tsx
-// Example: app/sections/Hero.tsx
-import { forwardRef } from 'react';
+// Example: app/sections/hero/index.tsx
+import { createSchema } from '@weaverse/hydrogen';
+import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 
-export type HeroProps = {
+interface HeroProps extends HydrogenComponentProps {
   heading: string;
   description: string;
-  className?: string;
-};
+}
 
-export let schema = {
-  title: 'Hero',
-  type: 'hero',
-  settings: [
-    {
-      group: 'Content',
-      inputs: [
-        { type: 'text', name: 'heading', label: 'Heading' },
-        { type: 'textarea', name: 'description', label: 'Description' }
-      ]
-    }
-  ]
-};
+function Hero(props: HeroProps) {
+  const { heading, description, className, ...rest } = props;
 
-export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
-  let { heading, description, className = '' } = props;
-  
   return (
-    <section 
-      ref={ref}
-      className={`py-12 px-4 max-w-7xl mx-auto ${className}`}
+    <section
+      {...rest}
+      className={`py-12 px-4 max-w-7xl mx-auto ${className || ''}`}
     >
       <div className="text-center">
         <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
@@ -94,50 +82,127 @@ export let Hero = forwardRef<HTMLElement, HeroProps>((props, ref) => {
       </div>
     </section>
   );
-});
+}
 
-Hero.displayName = 'Hero';
+export default Hero;
+
+export const schema = createSchema({
+  type: 'hero',
+  title: 'Hero',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        { type: 'text', name: 'heading', label: 'Heading' },
+        { type: 'textarea', name: 'description', label: 'Description' },
+      ],
+    },
+  ],
+});
 ```
 
 ### `/app/weaverse`
 Core Weaverse configuration files:
-- `components.ts` - Component registry
+- `components.ts` - Component registry (the `components` array passed to `WeaverseClient`)
 - `schema.server.ts` - Theme schema
-- `create-weaverse.server.ts` - Client setup
+- `index.tsx` - `WeaverseContent` renderer and page-data validation
+- `style.tsx` - Global styles generated from theme settings
+- `csp.ts` - Content Security Policy directives for Studio
 
 ## Essential Files
 
-### `server.ts`
-Server configuration and Weaverse client integration:
+### `app/.server/context.ts`
+Creates the Hydrogen router context and attaches the Weaverse client to it:
 ```ts
+import { createHydrogenContext } from '@shopify/hydrogen';
 import { WeaverseClient } from '@weaverse/hydrogen';
+import {
+  CART_MUTATION_FRAGMENT,
+  CART_QUERY_FRAGMENT,
+} from '~/graphql/fragments';
 import { components } from '~/weaverse/components';
 import { themeSchema } from '~/weaverse/schema.server';
 
-export async function createAppLoadContext(request, env, executionContext) {
-  // Initialize Hydrogen context
-  let hydrogenContext = createHydrogenContext({
+export async function createHydrogenRouterContext(
+  request: Request,
+  env: Env,
+  executionContext: ExecutionContext,
+) {
+  const waitUntil = executionContext.waitUntil.bind(executionContext);
+  const [cache, session] = await Promise.all([
+    caches.open('hydrogen'),
+    AppSession.init(request, [env.SESSION_SECRET]),
+  ]);
+
+  const hydrogenContext = createHydrogenContext({
     env,
     request,
     cache,
     waitUntil,
     session,
     i18n: getLocaleFromRequest(request),
-    cart: { queryFragment: CART_QUERY_FRAGMENT },
+    cart: {
+      queryFragment: CART_QUERY_FRAGMENT,
+      mutateFragment: CART_MUTATION_FRAGMENT,
+    },
   });
 
-  // Initialize Weaverse client
-  return {
+  const weaverse = new WeaverseClient({
     ...hydrogenContext,
-    weaverse: new WeaverseClient({
-      ...hydrogenContext,
-      request,
-      cache,
-      themeSchema,
-      components,
-    }),
-  };
+    request,
+    cache,
+    themeSchema,
+    components,
+  });
+
+  // Add weaverse directly to the hydrogenContext instance.
+  // This preserves the RouterContextProvider class instance — do not
+  // return a spread copy such as `{ ...hydrogenContext, weaverse }`.
+  Object.assign(hydrogenContext, { weaverse });
+
+  return hydrogenContext;
 }
+```
+
+### `server.ts`
+The Oxygen request handler. It builds the context and hands it to React Router — the Weaverse client itself is created in `app/.server/context.ts`:
+```ts
+import * as remixBuild from 'virtual:react-router/server-build';
+import { storefrontRedirect } from '@shopify/hydrogen';
+import { createRequestHandler } from '@shopify/hydrogen/oxygen';
+import { createHydrogenRouterContext } from '~/.server/context';
+
+export default {
+  async fetch(
+    request: Request,
+    env: Env,
+    executionContext: ExecutionContext,
+  ): Promise<Response> {
+    const hydrogenContext = await createHydrogenRouterContext(
+      request,
+      env,
+      executionContext,
+    );
+
+    const handleRequest = createRequestHandler({
+      build: remixBuild,
+      mode: process.env.NODE_ENV,
+      getLoadContext: () => hydrogenContext,
+    });
+
+    const response = await handleRequest(request);
+
+    if (response.status === 404) {
+      return storefrontRedirect({
+        request,
+        response,
+        storefront: hydrogenContext.storefront,
+      });
+    }
+
+    return response;
+  },
+};
 ```
 
 ### `entry.server.tsx`
