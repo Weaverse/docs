@@ -316,7 +316,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
   return { weaverseData };
 }
 
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse, storefront } = context;
   let { productHandle } = params;
@@ -715,7 +716,8 @@ To compare both, open **Control (A)** to review the baseline, then open **Varian
 To test a single route without affecting the rest of the site, resolve the experiment in that route's loader and pass the chosen `projectId` to `loadPage()`:
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 import { getExperiments } from "@weaverse/experiments/server";
 import { data } from "react-router";
 
@@ -1043,7 +1045,8 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 #### Conditional Route Override
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
   let { productHandle } = params;
@@ -1068,7 +1071,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 #### Dynamic Route Override Based on Parameters
 
 ```typescript
-// app/routes/collections.$collectionHandle.tsx
+// app/routes/collections/collection.tsx
+// Registered in app/routes.ts as route(":collectionHandle", "routes/collections/collection.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
   let { collectionHandle } = params;

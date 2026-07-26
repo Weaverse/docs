@@ -12,12 +12,13 @@ While Weaverse provides a built-in `useTranslation()` hook for simple `{ {variab
 
 ## How It Works
 
-Weaverse's resolution chain allows you to inject an `externalT` function into the `withWeaverse` configuration. When provided, Weaverse evaluates translations in the following priority:
+Weaverse's resolution chain allows you to inject an external translator function into the `withWeaverse` configuration. When provided, Weaverse evaluates translations in the following priority:
 
 1. **External t (i18next)** ← Highest priority
-2. **Merchant Overrides** (from Weaverse Studio)
-3. **Static Content** (`schema.i18n.staticContent`)
-4. **Translation Key** ← Fallback
+2. **Live design-mode overrides** (unsaved edits in the Weaverse Studio editor)
+3. **Published merchant overrides** (translations saved in Weaverse Studio)
+4. **Static theme content** (`schema.i18n.staticContent`)
+5. **Raw translation key** ← Fallback
 
 By routing translations through `i18next` first and gracefully falling back to Weaverse if strings aren't matched, your components enjoy full i18next capabilities while giving non-technical merchants complete control inside the Weaverse builder.
 
@@ -35,100 +36,145 @@ npm install i18next
 
 ## Step 2: Create the i18n Bridge
 
-Create an initialization and bridge file (e.g., `app/utils/i18n.ts`) that holds your `i18next` singleton and the adapter function (`weaverseT`) expected by Weaverse.
+Create a bridge file (e.g., `app/utils/i18n.ts`) that builds a **request-scoped** `i18next` instance and the adapter function expected by Weaverse.
+
+<Warning>
+Do **not** use a module-global `i18next` singleton and call `changeLanguage()` from your root loader. Pilot server-renders every request in the same worker isolate (see `app/entry.server.tsx`), so concurrent requests for different locales would race on shared language state and leak one visitor's language into another's HTML. Create or clone an instance per request instead.
+</Warning>
 
 ```typescript
-import i18next from 'i18next';
+import { createInstance, type i18n as I18nInstance } from 'i18next';
 import type { TranslateFunction } from '@weaverse/hydrogen';
 
-// 1. Singleton initialization
-let initPromise: Promise<void> | null = null;
-function ensureInit() {
-  if (initPromise) return initPromise;
-  
-  initPromise = i18next.init({
+// 1. Build a fresh, fully isolated instance for one request.
+export async function createI18nForRequest(
+  locale: string,
+  translations: Record<string, any>,
+): Promise<I18nInstance> {
+  const lng = locale.toLowerCase().split(/[-_]/)[0]; // Map 'EN_US' -> 'en'
+  const instance = createInstance();
+
+  await instance.init({
+    lng,
     fallbackLng: 'en',
+    resources: { [lng]: { translation: translations } },
     interpolation: { escapeValue: false }, // React already safeguards against XSS
     compatibilityJSON: 'v4', // Required for advanced pluralizations (_one, _other)
     saveMissing: false,
-  }).then(() => undefined);
-  
-  return initPromise;
+  });
+
+  return instance;
 }
 
-// 2. Safely initialize translation state per-request (Server / Client)
-export async function initI18n(locale: string, translations: Record<string, any>) {
-  const lang = locale.toLowerCase().split('_')[0]; // Map 'EN_US' -> 'en'
-  await ensureInit();
+// 2. Wrap an instance in the translator Weaverse expects.
+export function createWeaverseT(instance: I18nInstance): TranslateFunction {
+  return (key, variables) => {
+    if (!instance.isInitialized) return key;
 
-  if (!i18next.hasResourceBundle(lang, 'translation')) {
-    i18next.addResourceBundle(lang, 'translation', translations, true, false);
-  }
+    const result = instance.t(key, variables as object | undefined);
 
-  if (i18next.language !== lang) {
-    await i18next.changeLanguage(lang);
-  }
+    // If no translation is found, return the raw key so Weaverse can handle
+    // its own fallbacks (merchant overrides, static content) gracefully.
+    return typeof result === 'string' ? result : key;
+  };
 }
-
-// 3. The `externalT` adapter for Weaverse
-export const weaverseT: TranslateFunction = (key, variables) => {
-  if (!i18next.isInitialized) return key;
-  
-  const result = i18next.t(key, variables as object | undefined);
-  
-  // If no translation is found, return the raw key so Weaverse can handle fallbacks gracefully!
-  return typeof result === 'string' ? result : key;
-};
 ```
+
+<Note>
+On the browser there is only one visitor, so a single client-side instance is fine — the isolation requirement is a **server** concern. The code above works for both: create the instance once per request on the server, and once per page load on the client.
+</Note>
 
 ---
 
 ## Step 3: Configure Weaverse at the Root level
 
-You now need to inject `weaverseT` into Weaverse and guarantee `initI18n` runs before your app renders the React tree. Open your `app/root.tsx` (or equivalent layout file).
+You now need a translator that Weaverse can call, without reintroducing shared server state. Open your `app/root.tsx` (or equivalent layout file).
 
-### Add the `externalT` injection:
-Pass the `weaverseT` instance to your `withWeaverse` wrapper configuration.
-
-```typescript
-// app/root.tsx
-import { weaverseT } from '~/utils/i18n';
-// ...
-export const Layout = withWeaverse(RootLayout, { t: weaverseT });
-```
-
-### Initialize the language on the Server:
-Inside your route `loader`, extract the storefront locale and explicitly trigger `initI18n` using your base JSON bundle.
+### Create the instance per request in the loader:
+The root `loader` runs once per request, so it is the right place to build the request's instance. Return the resolved locale so the component tree can rebuild the same instance on the client.
 
 ```typescript
 // app/root.tsx
-import { initI18n } from '~/utils/i18n';
+import { createI18nForRequest, createWeaverseT } from '~/utils/i18n';
 import baseTranslations from '~/i18n/en.json';
 
 export async function loader(args: LoaderFunctionArgs) {
   const data = await loadData(args);
-  
-  // E.g., data.locale is the Hydrogen active locale prefix
-  await initI18n(data.locale, baseTranslations); 
 
-  return data;
+  // `data.locale` is the Hydrogen active locale (e.g. from
+  // context.storefront.i18n). The instance lives only for this request.
+  const i18n = await createI18nForRequest(data.locale, baseTranslations);
+  const t = createWeaverseT(i18n);
+
+  // Use `t` for any server-side string work in this loader. Do not stash the
+  // instance in a module-level variable — that is exactly the leak we avoid.
+  return { ...data, locale: data.locale, greeting: t('common.greeting') };
 }
 ```
 
-### Sync Client Hydration:
-If the user transitions languages seamlessly via client-side routing, add a `useEffect` within the `RootLayout` implementation to sync `i18next` on the browser.
+### Wire the translator into `withWeaverse`:
+`withWeaverse` is called at module scope, so the `t` you hand it must be a *stable* function. Make that stable function a thin delegate over a per-render-tree instance held in React context — the delegate is shared, the language state is not.
 
 ```tsx
-export function RootLayout() {
-  const { locale } = useRouteLoaderData<typeof loader>('root');
-  
-  useEffect(() => {
-    if (locale) initI18n(locale, baseTranslations);
-  }, [locale]);
-  
-  return (/* Your Layout UI */);
+// app/utils/i18n-context.tsx
+import { createContext, useContext, useState } from 'react';
+import { createInstance, type i18n as I18nInstance } from 'i18next';
+import type { TranslateFunction } from '@weaverse/hydrogen';
+import { createWeaverseT } from '~/utils/i18n';
+import baseTranslations from '~/i18n/en.json';
+
+const I18nContext = createContext<I18nInstance | null>(null);
+
+export function I18nProvider({
+  locale,
+  children,
+}: {
+  locale: string;
+  children: React.ReactNode;
+}) {
+  // One instance per render tree. `useState` initialiser runs once per tree,
+  // so concurrent SSR renders never share it.
+  const [instance] = useState(() => {
+    const lng = locale.toLowerCase().split(/[-_]/)[0];
+    const i18n = createInstance();
+    i18n.init({
+      lng,
+      fallbackLng: 'en',
+      resources: { [lng]: { translation: baseTranslations } },
+      interpolation: { escapeValue: false },
+      compatibilityJSON: 'v4',
+    });
+    return i18n;
+  });
+
+  return <I18nContext.Provider value={instance}>{children}</I18nContext.Provider>;
 }
+
+// Stable module-level translator: safe to pass to `withWeaverse` because it
+// holds no language state of its own — it reads the current tree's instance.
+export const weaverseT: TranslateFunction = (key, variables) => {
+  const instance = useContext(I18nContext);
+  if (!instance) return key;
+  return createWeaverseT(instance)(key, variables);
+};
 ```
+
+```tsx
+// app/root.tsx
+import { I18nProvider, weaverseT } from '~/utils/i18n-context';
+
+function RootLayout({ children }: { children: React.ReactNode }) {
+  const { locale } = useRouteLoaderData<typeof loader>('root');
+
+  return <I18nProvider locale={locale}>{children}</I18nProvider>;
+}
+
+export const Layout = withWeaverse(RootLayout, { t: weaverseT });
+```
+
+<Warning>
+Whatever wiring you choose, the invariant is the same: **never mutate a module-global i18next instance from a loader or during SSR.** `changeLanguage()` on a shared instance is a cross-request data leak, not just a stale-render bug.
+</Warning>
 
 ---
 
@@ -160,7 +206,7 @@ export function CartItemCount({ count }: { count: number }) {
 
 ## Summary Checklist
 - Install `i18next`.
-- Create an i18n bridge script containing a secure async init method and the `weaverseT` proxy.
-- Pass the localized locale variable to `initI18n` in `root.tsx` loader.
-- Wrap `RootLayout` via `withWeaverse(RootLayout, { t: weaverseT })`.
+- Create an i18n bridge that builds a **new instance per request** (`createInstance()`), never a mutated module-global singleton.
+- Create the request's instance in the `root.tsx` loader from the active storefront locale.
+- Hold the instance in React context and pass a stateless delegate to `withWeaverse(RootLayout, { t: weaverseT })`.
 - Enjoy full i18next pluralization combined with Weaverse's visual translation integration!

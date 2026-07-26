@@ -76,46 +76,41 @@ As long as your route loader calls `context.weaverse.loadPage()` with the correc
 
 **Standard Loader Logic (Example for Products):**
 
-Your loader should look similar to the standard implementation, focusing on fetching Shopify data and then calling `loadPage`.
+Your loader should look similar to the standard implementation, focusing on fetching Shopify data and then calling `loadPage`. Pilot's product route already does this — it lives at `app/routes/products/product.tsx` and is registered in `app/routes.ts` as `route(":productHandle", "routes/products/product.tsx")` inside the `products` prefix.
 
 ```tsx
-// app/routes/($locale).products.$productHandle.tsx
-import type { LoaderFunctionArgs } from "@shopify/remix-oxygen";
-import { WeaverseContent } from "~/weaverse";
+// app/routes/products/product.tsx
+// Registered in app/routes.ts — a file under app/routes/ is not a route by itself.
+import type { LoaderFunctionArgs } from "react-router";
+import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 // ... other imports (storefront query, etc.)
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { handle } = params;
+  const { productHandle } = params;
   const { storefront, weaverse } = context;
 
-  // 1. Fetch product data from Shopify
+  // 1. Fetch product data from Shopify. `storefront.query` throws on
+  //    transport/GraphQL errors, so wrap it in try/catch if you need to.
   const { product } = await storefront.query(/*... PRODUCT_QUERY ...*/, {
-    variables: { handle /* ... */ },
+    variables: { handle: productHandle /* ... */ },
   });
 
   if (!product) { throw new Response(null, { status: 404 }); }
 
   // 2. Load Weaverse Page Data (Handles Custom Templates Automatically)
-  // Simply provide the type and handle. Weaverse checks for assignments.
-  let weaverseData;
-  try {
-    weaverseData = await weaverse.loadPage({
-      type: "PRODUCT",
-      handle: handle,
-    });
-  } catch (error) {
-    console.error(`Error loading Weaverse data for product ${handle}:`, error);
-    // Implement fallback or throw error
-    throw new Response("Could not load page data.", { status: 500 });
-  }
+  //    Simply provide the type and handle. Weaverse checks for assignments.
+  const weaverseData = await weaverse.loadPage({
+    type: "PRODUCT",
+    handle: productHandle,
+  });
 
-  // Ensure data was loaded successfully
-  if (!weaverseData?.page?.id /* Add robust check */) {
-    console.error(`Failed to load Weaverse page data for product ${handle}`);
-    throw new Response("Could not load page data.", { status: 500 });
-  }
+  // 3. `loadPage()` returns `WeaverseLoaderData | null` — on failure it
+  //    resolves to `null` rather than throwing, so a try/catch around it
+  //    would never fire. Check the result instead; Pilot's
+  //    `validateWeaverseData` helper throws a 404 for a missing page.
+  validateWeaverseData(weaverseData);
 
-  // 3. Return all necessary data
+  // 4. Return all necessary data (a plain object — no `json()`)
   return { product, weaverseData /* ... other data */ };
 }
 

@@ -24,9 +24,12 @@ The CSP is constructed as follows:
 #### Example: getWeaverseCsp Implementation
 
 ```ts
-import type { AppLoadContext } from "@shopify/remix-oxygen";
+import type { HydrogenRouterContextProvider } from "@shopify/hydrogen";
 
-export function getWeaverseCsp(request: Request, context: AppLoadContext) {
+export function getWeaverseCsp(
+  request: Request,
+  context: HydrogenRouterContextProvider,
+) {
   let url = new URL(request.url);
   let weaverseHost = url.searchParams.get("weaverseHost") || context.env.WEAVERSE_HOST;
   let isDesignMode = url.searchParams.get("weaverseHost");
@@ -63,15 +66,19 @@ export function getWeaverseCsp(request: Request, context: AppLoadContext) {
 The CSP configuration is passed to Shopify's `createContentSecurityPolicy`, which generates the appropriate policy header and nonce for your React app:
 
 ```tsx
-import { createContentSecurityPolicy } from "@shopify/hydrogen";
+import {
+  createContentSecurityPolicy,
+  type HydrogenRouterContextProvider,
+} from "@shopify/hydrogen";
+import type { EntryContext } from "react-router";
 import { getWeaverseCsp } from "~/weaverse/csp";
 
 export default async function handleRequest(
   request: Request,
   responseStatusCode: number,
   responseHeaders: Headers,
-  remixContext: EntryContext,
-  context: AppLoadContext,
+  reactRouterContext: EntryContext,
+  context: HydrogenRouterContextProvider,
 ) {
   const { nonce, header, NonceProvider } = createContentSecurityPolicy({
     ...getWeaverseCsp(request, context),

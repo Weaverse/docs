@@ -68,7 +68,8 @@ When `loadPage()` is called, Weaverse determines the locale using this priority:
 The most reliable and recommended approach is to explicitly pass the `locale` parameter to `loadPage()`.
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { weaverse } = context;

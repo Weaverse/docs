@@ -223,7 +223,8 @@ const weaverse = new WeaverseClient({
   themeSchema,
   components,
   projectId: () => {
-    let origin = request.url.origin;
+    // `request.url` is a string — parse it before reading `origin`.
+    let origin = new URL(request.url).origin;
 
     if (origin === "https://mystore.se") {
       return "project-sweden-123"; // Swedish market project

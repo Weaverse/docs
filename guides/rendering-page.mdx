@@ -58,13 +58,21 @@ Weaverse supports the following page types:
 - **`COLLECTION`** - Collection/category listing pages  
 
 #### Content Pages
-- **`PAGE`** - Custom pages created in Weaverse Studio
+- **`PAGE`** - **Shopify Page resources** (the pages you manage in Shopify admin), loaded with the page's `handle`
 - **`BLOG`** - Blog listing pages
 - **`ARTICLE`** - Individual blog post pages
 
 #### Special Pages
 - **`INDEX`** - Homepage
-- **`CUSTOM`** - Custom pages created in Weaverse Studio (no specific handle needed)
+- **`CUSTOM`** - **Weaverse custom pages** created in Weaverse Studio; resolved from the request URL, so no `handle` is passed
+
+<Warning>
+`PAGE` and `CUSTOM` are easy to confuse. Use `CUSTOM` for pages you built in Weaverse Studio — Pilot serves these from `app/routes/catch-all.tsx` and resolves the handle from the request URL. Use `PAGE` **with a `handle`** only for Shopify Page resources, the way Pilot's `app/routes/pages/regular-page.tsx` serves `/pages/:pageHandle`.
+</Warning>
+
+<Note>
+Pilot uses React Router 7's **manual route registry** in `app/routes.ts`. Creating a file under `app/routes/` does not create a route — the module has to be registered with `route()`/`index()` before any URL reaches it. Route module code imports `LoaderFunctionArgs`, `MetaFunction`, and `useLoaderData` from `react-router`, and loaders return plain objects rather than `json()`.
+</Note>
 
 ## Working with Locales
 
@@ -98,7 +106,8 @@ Weaverse provides three methods for detecting the current locale, with a clear p
 The most reliable method is to explicitly pass the `locale` parameter to `loadPage()`:
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { weaverse } = context;
@@ -161,7 +170,11 @@ const weaverseData = await weaverse.loadPage({
 #### Auto-Detection Example
 
 ```typescript
-// app/routes/($locale).products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as:
+//   ...prefix(":locale?", [
+//     ...prefix("products", [route(":productHandle", "routes/products/product.tsx")]),
+//   ])
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { weaverse, storefront } = context;
@@ -185,7 +198,8 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 #### Explicit Locale Example
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { weaverse } = context;
@@ -413,7 +427,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     handle: "about", // Specific page handle created in Studio
   });
   
-  return data({ weaverseData });
+  return { weaverseData };
 }
 ```
 
@@ -429,7 +443,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     type: "CUSTOM", // No handle needed - URL determines content
   });
   
-  return data({ weaverseData });
+  return { weaverseData };
 }
 ```
 
@@ -439,12 +453,27 @@ This approach allows you to create visually customizable pages using Weaverse's 
 
 The official Pilot template demonstrates this mixed approach. Here are examples from actual implementation:
 
+Both routes below are registered inside the `:locale?` prefix block of Pilot's `app/routes.ts`:
+
+```ts
+// app/routes.ts (excerpt)
+...prefix(":locale?", [
+  index("routes/home.tsx"),
+  // …all concrete routes…
+  route("*", "routes/catch-all.tsx"),
+]),
+```
+
 ```typescript
 // Homepage with dynamic routing (from Pilot template)
-// app/routes/($locale)._index.tsx
+// app/routes/home.tsx — registered as index("routes/home.tsx")
+import { getWeaverseSeoMeta, type PageType } from "@weaverse/hydrogen";
+import { getSeoMeta } from "@shopify/hydrogen";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { pathPrefix } = context.storefront.i18n;
-  const locale = pathPrefix.slice(1);
+  const locale = pathPrefix?.slice(1) || "";
   let type: PageType = "INDEX";
 
   if (params.locale && params.locale.toLowerCase() !== locale) {
@@ -457,13 +486,26 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     context.storefront.query<ShopQuery>(SHOP_QUERY),
   ]);
 
-  return { shop, weaverseData };
+  validateWeaverseData(weaverseData);
+
+  // INDEX keeps the theme's code-defined homepage SEO; CUSTOM pages served by
+  // this route take their SEO from Weaverse in the `meta` export below.
+  const seo = type === "INDEX" ? seoPayload.home({ shop }) : null;
+
+  return { shop, weaverseData, seo };
 }
+
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  if (data?.seo) {
+    return getSeoMeta(data.seo as SeoConfig);
+  }
+  return getWeaverseSeoMeta(data?.weaverseData);
+};
 ```
 
 ```typescript
 // Catch-all route for custom pages (from Pilot template)
-// app/routes/($locale).$.tsx
+// app/routes/catch-all.tsx — registered as route("*", "routes/catch-all.tsx")
 export async function loader({ context }: LoaderFunctionArgs) {
   const weaverseData = await context.weaverse.loadPage({
     type: "CUSTOM",
@@ -481,13 +523,14 @@ export default function CustomPage() {
 ```
 
 This pattern shows how Pilot handles custom pages:
-1. **Homepage route** (`_index.tsx`) detects when a URL parameter isn't a locale and switches to `"CUSTOM"` type
-2. **Catch-all route** (`$.tsx`) handles any remaining unmatched routes as custom Weaverse pages
+1. **Homepage route** (`home.tsx`) detects when a URL parameter isn't a locale and switches to `"CUSTOM"` type
+2. **Catch-all route** (`catch-all.tsx`) handles any remaining unmatched routes as custom Weaverse pages, loading them as `CUSTOM` — never as `PAGE` + handle
 3. Both routes use `validateWeaverseData()` to ensure the page exists before rendering
+4. SEO precedence is **route-specific**: Pilot deliberately keeps its code-defined SEO for the real `INDEX` homepage and only defers to `getWeaverseSeoMeta()` for `CUSTOM` pages
 
 ```typescript
-// Search page without Weaverse (from Pilot template) 
-// app/routes/($locale).search.tsx
+// Search page without Weaverse (from Pilot template)
+// app/routes/search/index.tsx — registered as route("search", "routes/search/index.tsx")
 export default function Search() {
   const { searchTerm, products } = useLoaderData<typeof loader>();
   
@@ -507,7 +550,7 @@ export default function Search() {
 
 ```typescript
 // Account page without Weaverse (from Pilot template)
-// app/routes/($locale).account.tsx  
+// app/routes/account/dashboard/index.tsx — registered under the `account` prefix
 export default function Account() {
   const { customer } = useLoaderData<typeof loader>();
   
@@ -529,14 +572,15 @@ Here's the standard pattern for implementing Weaverse page rendering in a React 
 ### 1. Route Loader
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts — see the note in Supported Page Types above.
 import type { LoaderFunctionArgs } from "react-router";
-import { data } from "@shopify/remix-oxygen";
+import { validateWeaverseData } from "~/weaverse";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { storefront, weaverse } = context;
-  
+
   // Load both Shopify data and Weaverse page data in parallel
   const [productData, weaverseData] = await Promise.all([
     storefront.query(PRODUCT_QUERY, {
@@ -547,15 +591,21 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
       handle: productHandle,
     }),
   ]);
-  
+
   if (!productData.product) {
     throw new Response("Product not found", { status: 404 });
   }
-  
-  return data({
+
+  // `loadPage()` returns `WeaverseLoaderData | null` — it resolves to `null`
+  // on failure instead of throwing, so check the result explicitly.
+  validateWeaverseData(weaverseData);
+
+  // Return a plain object. Reach for `data()` from `react-router` only when
+  // you need to attach custom status codes or headers to the response.
+  return {
     product: productData.product,
     weaverseData,
-  });
+  };
 }
 ```
 
@@ -576,7 +626,8 @@ export default function ProductPage() {
 ### Product Page
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { storefront, weaverse } = context;
@@ -591,14 +642,15 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     }),
   ]);
   
-  return data({ product, weaverseData });
+  return { product, weaverseData };
 }
 ```
 
 ### Collection Page
 
 ```typescript
-// app/routes/collections.$collectionHandle.tsx
+// app/routes/collections/collection.tsx
+// Registered in app/routes.ts as route(":collectionHandle", "routes/collections/collection.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { collectionHandle } = params;
   const { storefront, weaverse } = context;
@@ -613,14 +665,15 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     }),
   ]);
   
-  return data({ collection, weaverseData });
+  return { collection, weaverseData };
 }
 ```
 
 ### Custom Page
 
 ```typescript
-// app/routes/pages.$pageHandle.tsx
+// app/routes/pages/regular-page.tsx
+// Registered in app/routes.ts as route("pages/:pageHandle", "routes/pages/regular-page.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { pageHandle } = params;
   const { storefront, weaverse } = context;
@@ -635,14 +688,15 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     }),
   ]);
   
-  return data({ page, weaverseData });
+  return { page, weaverseData };
 }
 ```
 
 ### Blog Page
 
 ```typescript
-// app/routes/blogs.$blogHandle._index.tsx
+// app/routes/blogs/blog.tsx
+// Registered in app/routes.ts as route(":blogHandle", "routes/blogs/blog.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { blogHandle } = params;
   const { storefront, weaverse } = context;
@@ -657,18 +711,18 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     }),
   ]);
   
-  return data({ blog, weaverseData });
+  return { blog, weaverseData };
 }
 ```
 
 ### Homepage
 
 ```typescript
-// app/routes/($locale)._index.tsx
+// app/routes/home.tsx — registered as index("routes/home.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   const { pathPrefix } = context.storefront.i18n;
-  const locale = pathPrefix.slice(1);
+  const locale = pathPrefix?.slice(1) || "";
   
   let type: PageType = "INDEX";
   
@@ -683,46 +737,53 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     weaverse.loadPage({ type }),
   ]);
   
-  return data({ shop, weaverseData });
+  return { shop, weaverseData };
 }
 ```
 
 ## Custom Pages
 
-Custom pages are created in Weaverse Studio and can be rendered using the `PAGE` type:
+Custom pages are built in Weaverse Studio and are rendered with the **`CUSTOM`** type. Weaverse resolves which custom page to serve from the request URL, so you do not pass a `handle`.
 
-### Creating Custom Routes
+### Root-Level Custom Pages Need No New Route
 
-For user-friendly URLs, create custom routes that map to Weaverse pages:
+Pilot's catch-all already covers every unmatched URL, so a custom page published at `/about` is served without touching `app/routes.ts`:
 
 ```typescript
-// app/routes/($locale).about.tsx - Maps /about to a Weaverse page
+// app/routes/catch-all.tsx — registered as route("*", "routes/catch-all.tsx")
 export async function loader({ context }: LoaderFunctionArgs) {
-  const { weaverse } = context;
-  
-  const weaverseData = await weaverse.loadPage({
-    type: "PAGE",
-    handle: "about", // This should match the page handle in Weaverse Studio
+  const weaverseData = await context.weaverse.loadPage({
+    type: "CUSTOM", // handle comes from the request URL
   });
-  
-  return data({ weaverseData });
+
+  validateWeaverseData(weaverseData);
+
+  return { weaverseData };
 }
 
-export default function AboutPage() {
+export default function CustomPage() {
   return <WeaverseContent />;
 }
 ```
 
-### Dynamic Custom Pages
+Add a dedicated route only when you want a *different* URL shape (for example nesting campaigns under `/promo/...`) — and load it with `type: "CUSTOM"` too. Remember to register it in `app/routes.ts`:
 
-Create a catch-all route for dynamic custom pages:
+```ts
+// app/routes.ts
+route("promo/:campaignHandle", "routes/promo/campaign.tsx"),
+```
+
+### Shopify Pages (`PAGE` + handle)
+
+`PAGE` is for **Shopify Page resources**, not for Weaverse custom pages. Pilot serves these at `/pages/:pageHandle`:
 
 ```typescript
-// app/routes/($locale).pages.$pageHandle.tsx
+// app/routes/pages/regular-page.tsx
+// Registered as route("pages/:pageHandle", "routes/pages/regular-page.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { pageHandle } = params;
   const { storefront, weaverse } = context;
-  
+
   // Load both Shopify page data and Weaverse page data in parallel
   const [{ page }, weaverseData] = await Promise.all([
     storefront.query(PAGE_QUERY, {
@@ -739,7 +800,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     throw new Response("Page not found", { status: 404 });
   }
   
-  return data({ page, weaverseData });
+  return { page, weaverseData };
 }
 ```
 
@@ -764,7 +825,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     throw new Response("Page not found", { status: 404 });
   }
   
-  return data({ weaverseData });
+  return { weaverseData };
 }
 ```
 
@@ -956,7 +1017,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
     handle,
   });
   
-  return data({ weaverseData });
+  return { weaverseData };
 }
 ```
 

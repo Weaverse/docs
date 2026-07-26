@@ -1,101 +1,121 @@
 ---
 title: "Deploy to Cloudflare Workers"
-description: "Deploy your Hydrogen storefront to Cloudflare Workers for fast, globally distributed hosting"
+description: "Migrate a Weaverse Hydrogen theme from Oxygen to Cloudflare Workers, step by step"
 published: true
 ---
 
-# Deploying Weaverse theme with Cloudflare Workers
+# Deploying a Weaverse Theme to Cloudflare Workers
 
-This comprehensive guide walks you through deploying your Hydrogen storefront to Cloudflare Workers, providing a fast, globally distributed hosting solution for your e-commerce site.
+<Warning>
+**This is a migration, not a supported preset.** Weaverse themes (Pilot, Naturelle) ship configured for **Shopify Oxygen** — the Oxygen Vite plugin, the Oxygen request handler, and Oxygen worker types. There is **no** Cloudflare plugin, `wrangler` config, Cloudflare worker entry, or `cf-*` script in the theme. Everything on this page is something **you add yourself**.
+
+For production storefronts, use [Shopify Oxygen](/guides/deployment/oxygen). Only take this path if you have a concrete reason to host on Cloudflare, and budget time to validate the result end to end.
+</Warning>
+
+## What your theme ships with today
+
+Before changing anything, it helps to see exactly what you are migrating away from. In the current Pilot theme:
+
+| File | Current state |
+| --- | --- |
+| `vite.config.ts` | Uses `oxygen()` from `@shopify/mini-oxygen/vite` alongside `hydrogen()` and `reactRouter()` |
+| `server.ts` | Module-format `fetch(request, env, executionContext)` handler built on `createRequestHandler` from `@shopify/hydrogen/oxygen` |
+| `react-router.config.ts` | `presets: [hydrogenPreset()]`, `ssr: true`, `buildDirectory: "dist"` |
+| `env.d.ts` | References `@shopify/oxygen-workers-types` for the worker globals |
+| `package.json` | Scripts are `dev` / `build` / `preview` / `start` via the Shopify CLI — no `deploy`, `cf-dev`, `cf-typegen`, or `check` |
+| `wrangler.json` | **Does not exist** |
+| `.gitignore` | Already ignores `.env` and `.wrangler/` |
+
+Nothing below is pre-configured. Treat each step as a change you are making to your own fork.
 
 ## Prerequisites
 
-Before you begin, ensure you have the following:
+- **Node.js**: `>=22.12.0` (this is the `engines.node` requirement of the current Pilot theme)
+- **Cloudflare account**: sign up at [cloudflare.com](https://cloudflare.com)
+- **Shopify store**: active store with Storefront API access
+- **Weaverse project**: a configured project ID for your storefront
+- A working Oxygen build first — run `npm run build` and confirm it succeeds before you start migrating
 
-- **Node.js**: Version 20.0.0 or higher
-- **Cloudflare Account**: Sign up at [cloudflare.com](https://cloudflare.com) if you haven't already
-- **Wrangler CLI**: Install globally with `npm install -g wrangler`
-- **Shopify Store**: Active Shopify store with Storefront API access
-- **Weaverse Project**: Configured Weaverse project for your storefront
+## Quick Flow
 
-### Required Dependencies
+<Steps>
+  <Step title="Add the Cloudflare dependencies">
+    `npm i -D wrangler @cloudflare/vite-plugin`
+  </Step>
+  <Step title="Swap the Oxygen Vite plugin for the Cloudflare plugin">
+    Edit `vite.config.ts`.
+  </Step>
+  <Step title="Create wrangler.json">
+    Point `main` at your worker entry and enable `nodejs_compat`.
+  </Step>
+  <Step title="Add your own npm scripts">
+    `deploy`, `cf-dev`, `cf-typegen`, `check` — none of these exist yet.
+  </Step>
+  <Step title="Upload secrets and deploy">
+    `npx wrangler secret bulk .dev.vars` then `npx wrangler deploy`.
+  </Step>
+</Steps>
 
-Install the Cloudflare Vite plugin, which is essential for building your application for the Cloudflare Workers runtime:
+The rest of this page expands each step.
+
+## 1. Install the Cloudflare toolchain
 
 ```bash
-npm install @cloudflare/vite-plugin
+npm install --save-dev wrangler @cloudflare/vite-plugin
+```
+
+`@cloudflare/vite-plugin` builds your app for the `workerd` runtime as Cloudflare runs it. `wrangler` is the CLI used to configure, preview, and deploy the worker.
+
+## 2. Update `vite.config.ts`
+
+Your theme currently registers the Oxygen plugin. Replace it with the Cloudflare plugin — running both is not supported, since each one owns the SSR environment.
+
+```diff vite.config.ts
+  import { reactRouter } from "@react-router/dev/vite";
++ import { cloudflare } from "@cloudflare/vite-plugin";
+  import { hydrogen } from "@shopify/hydrogen/vite";
+- import { oxygen } from "@shopify/mini-oxygen/vite";
+  import tailwindcss from "@tailwindcss/vite";
+  import { defineConfig } from "vite";
+
+  export default defineConfig(({ isSsrBuild }) => ({
+    plugins: [
+      hydrogen(),
+-     oxygen(),
++     cloudflare({ viteEnvironment: { name: "ssr" } }),
+      reactRouter(),
+      tailwindcss(),
+    ],
+    build: {
+      assetsInlineLimit: 0,
+    },
+    // ...keep the rest of your existing config
+  }));
 ```
 
 <Note>
-All dependencies should be installed before proceeding with the deployment steps.
+Keep `assetsInlineLimit: 0`. Pilot sets this so no asset is inlined as a data URI, which keeps the storefront compatible with a strict Content-Security-Policy. See [Content Security Policy](/features/content-security).
 </Note>
 
-## Configuration Overview
+Removing `oxygen()` also removes the local Oxygen preview that `npm run dev` and `npm run preview` rely on. Decide up front whether you are keeping an Oxygen path for local development or moving entirely to `wrangler dev`.
 
-Your project includes optimized configurations for Cloudflare Workers deployment. Here's what you need to know about the key configuration files.
+## 3. Review your worker entry
 
-<Note>
-These configurations are pre-optimized for Cloudflare Workers. You typically won't need to modify them unless you have specific requirements.
-</Note>
+`server.ts` already exports a module-format worker — a default object with an `async fetch(request, env, executionContext)` method — which is the shape Cloudflare Workers expects. What is *not* portable is the Oxygen-specific plumbing around it:
 
-### React Router Configuration
+- `createRequestHandler` is imported from `@shopify/hydrogen/oxygen`
+- `env.d.ts` pulls worker globals from `@shopify/oxygen-workers-types`
+- `createHydrogenRouterContext` builds the Hydrogen context from Oxygen's `env` binding shape
 
-The `react-router.config.ts` file is configured for server-side rendering (SSR) deployment:
+<Warning>
+Shopify does not publish a Cloudflare Workers entry for Hydrogen. You will need to verify that the Oxygen request handler, session storage, and caching behave correctly on Cloudflare, and adjust `server.ts` if they do not. Test this before pointing production traffic at it.
+</Warning>
 
-```typescript
-import type { Config } from "@react-router/dev/config";
+## 4. Create `wrangler.json`
 
-export default {
-  appDirectory: "app",
-  buildDirectory: "dist",
-  ssr: true,
-  future: {
-    v8_viteEnvironmentApi: true,
-  },
-} satisfies Config;
-```
+This file does not exist in the theme — create it in the project root:
 
-**Key settings for Cloudflare deployment:**
-- `ssr: true` - Enables server-side rendering for optimal performance
-- `v8_viteEnvironmentApi: true` - Enables support for the [Vite Environment API](https://reactrouter.com/upgrading/future#futurev8_viteenvironmentapi) (requires Vite 6+)
-
-### Vite Configuration
-
-The `vite.config.ts` file includes Cloudflare-specific plugins and build optimizations:
-
-```typescript
-...
-import { cloudflare } from "@cloudflare/vite-plugin";
-...
-
-export default defineConfig({
-  plugins: [
-    hydrogen(),
-    reactRouter(),
-    cloudflare({ viteEnvironment: { name: "ssr" } }),
-    // oxygen(), // Commented out for Cloudflare deployment
-    tsconfigPaths(),
-    tailwindcss(),
-  ],
-  build: {
-    assetsInlineLimit: 0, // Strict CSP compliance
-  },
-  // ... additional SSR optimizations
-});
-```
-
-**Cloudflare-specific configurations:**
-- `@cloudflare/vite-plugin` with SSR environment configuration
-- `assetsInlineLimit: 0` ensures Content-Security-Policy compliance
-- Oxygen deployment plugin is commented out (not needed for Cloudflare)
-
-## Environment Setup
-
-### 1. Configure wrangler.json
-
-Your `wrangler.json` file manages project configuration. Update it with your project details:
-
-```json
+```json wrangler.json
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "your-project-name",
@@ -110,290 +130,153 @@ Your `wrangler.json` file manages project configuration. Update it with your pro
 }
 ```
 
-**Key configuration fields:**
-- `name` - Your project name (becomes part of deployment URL)
-- `main` - Entry point for your worker
-- `compatibility_date` - Cloudflare Workers runtime compatibility
-- `keep_vars` - Preserve existing environment variables upon deployment
-- `observability` - Enable production monitoring
-- `upload_source_maps` - Better error tracking in production
+| Field | Purpose |
+| --- | --- |
+| `name` | Project name — becomes part of the `*.workers.dev` URL |
+| `main` | Worker entry point |
+| `compatibility_date` | Pins the `workerd` runtime behavior |
+| `compatibility_flags` | `nodejs_compat` is required by Hydrogen's Node built-in usage |
+| `keep_vars` | Preserves dashboard-set variables across deploys |
+| `observability` | Enables Workers logs and metrics |
+| `upload_source_maps` | Readable stack traces in production |
 
 <Tip>
-If your Cloudflare account is associated with multiple accounts (e.g., personal and organization), add the `account_id` field to your `wrangler.json` to specify which account to deploy to:
-
-```json
-{
-  "account_id": "<your-cloudflare-account-id>",
-  ...
-}
-```
-
-You can find your Account ID in the [Cloudflare Dashboard](https://dash.cloudflare.com) under **Workers & Pages** → **Overview** (right sidebar).
+If your Cloudflare login has access to multiple accounts, add `"account_id": "<your-cloudflare-account-id>"` so Wrangler does not prompt. Find it in the [Cloudflare Dashboard](https://dash.cloudflare.com) under **Workers & Pages** → **Overview** (right sidebar).
 </Tip>
 
-### 2. Configure Environment Variables
+## 5. Configure environment variables
 
-Create a `.dev.vars` file in your project root to manage your environment variables securely.
+Wrangler reads local development values from `.dev.vars`. Create one from your existing `.env` values:
 
-```text
+```text .dev.vars
 NODE_ENV=production
-WEAVERSE_HOST=https://studio.weaverse.io
 SESSION_SECRET=your-secure-session-secret
-JUDGEME_PUBLIC_TOKEN=your-judgeme-public-token
-JUDGEME_PRIVATE_API_TOKEN=your-judgeme-private-api-token
-KLAVIYO_PRIVATE_API_TOKEN=your-klaviyo-private-api-token
-STORE_EMAIL=your-store-email@domain.com
-WEAVERSE_PROJECT_ID=your-weaverse-project-id
-PUBLIC_STOREFRONT_API_TOKEN=your-shopify-storefront-api-token
 PUBLIC_STORE_DOMAIN=your-shopify-store.myshopify.com
+PUBLIC_STOREFRONT_API_TOKEN=your-shopify-storefront-api-token
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=your-customer-account-api-client-id
 SHOP_ID=your-shop-id
-PUBLIC_CUSTOMER_ACCOUNT_API_URL=https://shopify.com/your-shop-id
+WEAVERSE_PROJECT_ID=your-weaverse-project-id
+WEAVERSE_HOST=https://studio.weaverse.io
 ```
 
-**Pushing Variables:**
-To securely upload your secrets to Cloudflare, run the following command:
+Add any optional variables your theme uses (`JUDGEME_PRIVATE_API_TOKEN`, `KLAVIYO_PRIVATE_API_TOKEN`, `PUBLIC_GOOGLE_GTM_ID`, and so on) — see `.env.example` in your theme for the authoritative list.
+
+Upload them as Worker secrets:
 
 ```bash
 npx wrangler secret bulk .dev.vars
 ```
 
 <Note>
-Setting `NODE_ENV` to `"production"` is crucial to prevent Hydrogen from adding virtual routes during the build process, which can cause deployment issues.
+Setting `NODE_ENV=production` prevents Hydrogen from injecting its development-only virtual routes into the production build.
 </Note>
 
 <Warning>
-Make sure to add `.dev.vars` to your `.gitignore` file to prevent committing sensitive information to version control.
+Add `.dev.vars` to `.gitignore`. The theme already ignores `.env` and `.wrangler/`, but **not** `.dev.vars` — add it yourself.
 </Warning>
 
-## Available Scripts
+## 6. Add npm scripts
 
-Your project includes several npm scripts specifically designed for Cloudflare Workers deployment:
+None of these scripts exist in the theme. Add the ones you need to `package.json`:
 
-```json
+```json package.json
 {
   "scripts": {
-    /// other scripts...
     "cf-typegen": "wrangler types && react-router typegen",
-    "check": "tsc && react-router build && wrangler deploy --dry-run",
-    "deploy": "wrangler deploy",
-    "cf-dev": "wrangler dev --port 8787"
+    "cf-dev": "wrangler dev --port 8787",
+    "check": "tsc --noEmit && react-router build && wrangler deploy --dry-run",
+    "deploy": "wrangler deploy"
   }
 }
 ```
 
-**Script Reference:**
-- `cf-typegen` - Generates TypeScript types for Cloudflare Workers and React Router
-- `check` - Performs comprehensive validation: TypeScript checking, React Router build, and dry-run deployment
-- `deploy` - Deploys your application to Cloudflare Workers
-- `cf-dev` - Runs the application locally in the Cloudflare Workers environment for testing
+| Script | What it does |
+| --- | --- |
+| `cf-typegen` | Generates Worker binding types plus React Router route types |
+| `cf-dev` | Runs the app locally in `workerd` on port 8787 |
+| `check` | Type check, build, and dry-run deploy — catches config errors before shipping |
+| `deploy` | Publishes the worker |
 
-## Deployment Steps
-
-Follow these steps to deploy your storefront to Cloudflare Workers:
-
-### 1. Authenticate with Cloudflare
-
-Begin by authenticating your Wrangler CLI with your Cloudflare account:
+## 7. Deploy
 
 ```bash
-wrangler login
-```
+# Authenticate (opens your browser)
+npx wrangler login
 
-This command will open your browser for authentication. Follow the prompts to log in to your Cloudflare account.
-
-### 2. Install Dependencies
-
-Install all project dependencies:
-
-```bash
+# Install and build
 npm install
-```
-
-### 3. Build the Application
-
-Build your application for production deployment:
-
-```bash
 npm run build
-```
 
-This command performs several important tasks:
-- Generates GraphQL types from your queries
-- Builds the application bundle optimized for production
-- Prepares assets for the Cloudflare Workers runtime environment
-
-### 4. Test Locally (Optional but Recommended)
-
-Before deploying to production, test your application locally in the Cloudflare Workers environment:
-
-```bash
+# Test in the Workers runtime locally
 npm run cf-dev
-```
 
-This starts a local development server on port 8787 that accurately simulates the Cloudflare Workers runtime, allowing you to verify your application works correctly before deployment.
-
-<Tip>
-Always test locally before deploying to production to catch potential issues early.
-</Tip>
-
-### 5. Run Pre-deployment Validation
-
-Execute comprehensive pre-deployment checks to catch potential issues:
-
-```bash
+# Validate before shipping
 npm run check
-```
 
-This validation script performs:
-- TypeScript type checking to ensure code quality
-- React Router build validation
-- Cloudflare Workers dry-run deployment to identify configuration problems
-
-### 6. Deploy to Production
-
-Deploy your application to Cloudflare Workers:
-
-```bash
+# Ship it
 npm run deploy
 ```
 
-Alternatively, you can deploy directly using Wrangler:
+Wrangler prints the live URL on success, typically `https://your-project-name.<subdomain>.workers.dev`.
+
+## Post-Deployment
+
+### Stream logs
 
 ```bash
-wrangler deploy
+npx wrangler tail
 ```
 
-Upon successful deployment, Wrangler will provide you with your live application URL.
+Keep this running during your first smoke test so runtime errors surface immediately.
 
-<Note>
-Your storefront is now live on Cloudflare Workers! The deployment URL will be displayed in your terminal.
-</Note>
+### Custom domain
 
-## Post-Deployment Verification
+1. Open the [Cloudflare Dashboard](https://dash.cloudflare.com)
+2. **Workers & Pages** → select your worker
+3. **Settings** → **Domains & Routes**
+4. Add your domain and configure routes
 
-After successful deployment, Wrangler will display your application's live URL (typically `https://your-project-name.your-subdomain.workers.dev`).
+See also [Custom Domain and DNS](/guides/deployment/custom-domain-and-dns).
 
-### Monitor Deployment Status
+### Git-connected builds
 
-Monitor your deployment in real-time and check for any runtime errors:
+1. **Workers & Pages** → your worker → **Settings** → **Builds**
+2. **Connect** a Git repository and authorize access
+3. Select the repository and branch
+4. Build command `npm run build`, output directory `dist`
 
-```bash
-wrangler tail
-```
-
-This command streams live logs from your deployed application, helping you identify and debug any issues.
-
-<Note>
-Keep the log tail running during your initial testing to catch any runtime errors immediately.
-</Note>
-
-### Configure Custom Domain (Optional)
-
-To use your own domain instead of the default Workers subdomain:
-
-1. Access your [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Navigate to **Workers & Pages**
-3. Select your deployed worker
-4. Go to the **Settings** tab
-5. Find the **Domains & Routes** section
-6. Add your custom domain(s) and configure routing rules
-
-<Tip>
-Ensure your domain's DNS is properly configured to point to Cloudflare before adding it to your worker.
-</Tip>
-
-### Connect Git Repository for Automatic Deployments
-
-Enable automatic deployments whenever you push changes to your Git repository:
-
-1. Access your [Cloudflare Dashboard](https://dash.cloudflare.com)
-2. Navigate to **Workers & Pages**
-3. Select your deployed worker application
-4. Go to the **Settings** tab
-5. Find the **Builds** section
-6. Click **Connect** in Git repository
-7. Authorize Cloudflare to access your GitHub, GitLab, or Bitbucket account
-8. Select your repository and branch (typically `main` or `master`)
-9. Configure build settings:
-   - **Build command**: `npm run build`
-   - **Build output directory**: `dist`
-   - **Root directory**: Leave empty unless your project is in a subdirectory
-
-<Note>
-Once connected, Cloudflare will automatically deploy your application whenever you push commits to the configured branch.
-</Note>
-
-<Tip>
-You can configure different branches for staging and production environments by setting up multiple Workers with different Git branch configurations.
-</Tip>
-
-## Troubleshooting
-
-### Common Issues and Solutions
-
-1. **Build Failures**
-   - Verify Node.js version 20.0.0 or higher is installed
-   - Ensure all dependencies are installed: `npm install`
-   - Check for TypeScript errors: `npm run typecheck`
-
-2. **Environment Variables**
-   - Verify all required variables are uploaded using `wrangler secret bulk .dev.vars`
-   - Verify variable names match exactly (case-sensitive)
-   - Ensure sensitive values are properly escaped
-
-3. **Session Secret**
-   - Generate a secure, random string for `SESSION_SECRET`
-   - Use at least 32 characters for security
-   - Never reuse secrets across environments
-
-4. **Shopify API Configuration**
-   - Verify your Storefront API token has correct permissions
-   - Confirm your store domain and Shop ID are accurate
-   - Check that Customer Account API is properly configured
-
-### Performance Optimization
-
-- **Observability**: Enable in `wrangler.json` for production monitoring
-- **Source Maps**: Upload source maps for better error tracking
-- **Caching**: Leverage Cloudflare's caching features for static assets
-- **Analytics**: Monitor performance with Cloudflare's analytics dashboard
-
-### Deployment Rollback
-
-If you need to rollback to a previous deployment:
+### Rollback
 
 ```bash
-# List all deployments
-wrangler deployments list
-
-# Rollback to a specific deployment
-wrangler deployments rollback <deployment-id>
+npx wrangler deployments list
+npx wrangler deployments rollback <deployment-id>
 ```
 
 <Warning>
-Rolling back will immediately redirect all traffic to the previous deployment. Ensure you test thoroughly before rolling back in production.
+A rollback shifts all traffic immediately. Verify the target deployment is healthy first.
 </Warning>
 
-<Note>
-If you encounter persistent issues not covered in this guide, don't hesitate to reach out to our community or support team for assistance.
-</Note>
+## Troubleshooting
+
+**Build fails after removing `oxygen()`**
+`npm run dev`, `npm run preview`, and `npm run start` all go through the Shopify CLI's Oxygen sandbox. Once the Oxygen plugin is gone, use `npm run cf-dev` instead.
+
+**`nodejs_compat` errors at runtime**
+Confirm the flag is in `wrangler.json` and that `compatibility_date` is recent enough for the Node compatibility mode your dependencies need.
+
+**Missing environment variables in production**
+`.dev.vars` is local-only. Values reach production only after `npx wrangler secret bulk .dev.vars`, or by setting them in the dashboard. Names are case-sensitive.
+
+**Weaverse Studio preview does not connect**
+Check `WEAVERSE_PROJECT_ID` and `WEAVERSE_HOST` are present as Worker secrets, and that the deployed URL is registered on your Weaverse project. See [Preview Errors](/troubleshooting/preview-errors).
+
+**Session or cache behaves differently than on Oxygen**
+Expected — this is the least-validated part of the migration. Compare against an Oxygen deployment before going live.
 
 ## Additional Resources
 
-### Official Documentation
-
-- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/) - Comprehensive guide to Cloudflare Workers
-- [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/) - Complete command reference
-- [Shopify Hydrogen Deployment Guide](https://shopify.dev/custom-storefronts/hydrogen/deployment) - Hydrogen-specific deployment information
-
-### Weaverse Resources
-
-- [Weaverse Documentation](https://weaverse.io/docs) - Learn more about Weaverse platform features
-- [Weaverse Community](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) - Get help from the community
-
-### Support
-
-If you encounter issues not covered in this guide:
-- Join our [Slack Community](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg) for real-time support
-- Contact [Weaverse Support](https://weaverse.io/support) for enterprise assistance
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
+- [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/)
+- [Shopify: Self-hosting Hydrogen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments/self-hosting)
+- [Deploy to Oxygen](/guides/deployment/oxygen) — the supported path
+- [Weaverse Community on Slack](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg)
