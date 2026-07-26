@@ -10,7 +10,7 @@ This guide explains how to implement custom URL structures in your Shopify Hydro
 
 ## Overview
 
-While Hydrogen and Remix provide powerful routing capabilities, you might want URLs that are more SEO-friendly, aligned with marketing campaigns, localized, or simply structured differently from Shopify's defaults. Examples include:
+While Hydrogen and React Router 7 provide powerful routing capabilities, you might want URLs that are more SEO-friendly, aligned with marketing campaigns, localized, or simply structured differently from Shopify's defaults. Examples include:
 
 *   `/sale/:campaignName` (for a marketing landing page)
 *   `/fr/produits/:productHandle` (for a localized product page)
@@ -21,22 +21,26 @@ Weaverse enables this by decoupling the URL structure from the content rendering
 
 ## Core Concept: `loadPage` Drives Content
 
-The key principle is that the content Weaverse renders is determined by the parameters you pass to the `context.weaverse.loadPage()` function within your Remix route's `loader`, specifically the `type` and `handle` arguments.
+The key principle is that the content Weaverse renders is determined by the parameters you pass to the `context.weaverse.loadPage()` function within your route module's `loader`, specifically the `type` and `handle` arguments.
 
--   **`type`**: Tells Weaverse *what kind* of content to load (e.g., `'PRODUCT'`, `'COLLECTION'`, `'PAGE'`). See [Rendering Weaverse Pages](/guides/rendering-page#supported-page-types) for a full list of types.
--   **`handle`**: Tells Weaverse *which specific instance* of that content type to load (e.g., the handle of a specific product, collection, or Weaverse custom page).
+-   **`type`**: Tells Weaverse *what kind* of content to load (e.g., `'PRODUCT'`, `'COLLECTION'`, `'PAGE'`, `'CUSTOM'`). See [Rendering Weaverse Pages](/guides/rendering-page#supported-page-types) for a full list of types.
+-   **`handle`**: Tells Weaverse *which specific instance* of that content type to load (e.g., the handle of a specific product or collection). `CUSTOM` pages are resolved from the request URL, so they need no `handle`.
 
 Custom routing, therefore, involves:
-1.  Creating a new Remix route file that matches your desired URL pattern.
-2.  Implementing a `loader` function in that file.
-3.  Inside the `loader`, extracting the necessary identifier (like a handle) from the URL parameters.
-4.  Calling `context.weaverse.loadPage()` with the **explicit `type`** corresponding to the content you want to display and the extracted `handle`.
+1.  Creating a route module for your desired URL pattern.
+2.  **Registering that module in `app/routes.ts`** — Pilot uses React Router 7's manual route registry, so creating a file under `app/routes/` does not register a route by itself.
+3.  Implementing a `loader` in that module and extracting the identifier (like a handle) from the URL parameters.
+4.  Calling `context.weaverse.loadPage()` with the **explicit `type`** corresponding to the content you want to display, plus the extracted `handle` when the type needs one.
 
 Weaverse then fetches the appropriate page data based on these parameters, regardless of the actual URL structure.
 
+<Note>
+Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs`, `MetaFunction`, and `useLoaderData` from `react-router` (not from `@remix-run/react` or `@shopify/remix-oxygen`), and return plain objects from loaders instead of `json()`.
+</Note>
+
 ## Relationship to Custom Pages & Templates
 
--   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/features/custom-pages) created in Weaverse. You'd create a custom route (e.g., `/guides/$handle.tsx`) and call `loadPage({ type: 'PAGE', handle })` in the loader.
+-   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/features/custom-pages) built in Weaverse. Load those with `loadPage({ type: 'CUSTOM' })` — Weaverse resolves the page from the request URL. Reserve `type: 'PAGE'` **with a `handle`** for Shopify Page resources, the way Pilot's `app/routes/pages/regular-page.tsx` serves `/pages/:pageHandle`.
 -   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](/features/custom-templates). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
 
 ---
@@ -45,27 +49,57 @@ Weaverse then fetches the appropriate page data based on these parameters, regar
 
 Let's walk through creating a custom route to display a product page at `/item/:productHandle` instead of the standard `/products/:productHandle`.
 
-### Step 1: Create the Route File
+### Step 1: Create the Route Module
 
-Create a new file in your Hydrogen project at `app/routes/($locale).item.$productHandle.tsx`.
+Create a new module in your Hydrogen project at `app/routes/items/item.tsx`. The file path is just a module location — the URL comes from the registration in the next step.
 
--   `($locale)`: Optional, includes standard localization if your project uses it.
--   `item`: This is our custom URL segment, replacing `products`.
--   `$productHandle`: This is the dynamic segment Remix captures from the URL (e.g., `classic-varsity-jacket`).
+### Step 2: Register the Route in `app/routes.ts`
 
-### Step 2: Implement the Loader Function
+Pilot defines its routes explicitly with React Router 7's route helpers, so a new file under `app/routes/` is **not** reachable until you add it to the registry. Add your pattern inside the `:locale?` prefix block so the route inherits the storefront's locale prefix:
 
-Inside `app/routes/($locale).item.$productHandle.tsx`, implement the `loader` function:
+```ts
+// app/routes.ts
+import {
+  index,
+  prefix,
+  route,
+  type RouteConfig,
+} from "@react-router/dev/routes";
+import { hydrogenRoutes } from "@shopify/hydrogen";
+
+export default hydrogenRoutes([
+  // …
+  ...prefix(":locale?", [
+    index("routes/home.tsx"),
+    // Custom URL → your own module. `:productHandle` is the dynamic segment
+    // (e.g. `classic-varsity-jacket`), exposed to the loader as
+    // `params.productHandle`.
+    route("item/:productHandle", "routes/items/item.tsx"),
+    // …existing routes…
+    route("*", "routes/catch-all.tsx"),
+  ]),
+]) satisfies RouteConfig;
+```
+
+-   `:locale?` — the optional locale prefix Pilot already applies to storefront routes.
+-   `item/:productHandle` — your custom URL pattern, replacing `products/:productHandle`.
+-   The second argument is the module path **relative to `app/`**.
+
+<Tip>
+React Router ranks a concrete pattern like `item/:productHandle` above the `*` catch-all, so placement inside the block does not matter — but keep it inside the `:locale?` prefix, otherwise `/fr/item/...` will fall through to the catch-all.
+</Tip>
+
+### Step 3: Implement the Loader Function
 
 ```tsx
-// app/routes/($locale).item.$productHandle.tsx
-import { json, type LoaderFunctionArgs } from "@shopify/remix-oxygen";
+// app/routes/items/item.tsx
 import { getSeoMeta } from "@shopify/hydrogen";
-import { WeaverseContent } from "~/weaverse";
+import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 // Import your product query (ensure it fetches necessary data)
 import { PRODUCT_QUERY } from "~/graphql/queries"; // Example path
-import { seoPayload } from "~/utils/seo.server"; // Example path
+import { seoPayload } from "~/.server/seo"; // Example path
 
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   const { language, country } = context.storefront.i18n;
@@ -79,66 +113,54 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 
   const { storefront, weaverse } = context;
 
-  // 2. Fetch Weaverse page data AND necessary Shopify data in parallel
-  try {
-    const [weaverseData, shopifyProductData] = await Promise.all([
-      // 3. Call loadPage with EXPLICIT type 'PRODUCT' and the extracted handle
-      weaverse.loadPage({
-        type: "PRODUCT", // <- Explicitly state the content type
+  // 2. Fetch Weaverse page data AND necessary Shopify data in parallel.
+  //    `storefront.query` throws on transport/GraphQL errors; `loadPage`
+  //    does not — it resolves to `null` instead (see step 3 below).
+  const [weaverseData, shopifyProductData] = await Promise.all([
+    // Call loadPage with EXPLICIT type 'PRODUCT' and the extracted handle
+    weaverse.loadPage({
+      type: "PRODUCT", // <- Explicitly state the content type
+      handle: productHandle,
+    }),
+    // Fetch the actual product data needed for SEO, analytics, etc.
+    storefront.query(PRODUCT_QUERY, {
+      variables: {
         handle: productHandle,
-      }),
-      // Fetch the actual product data needed for SEO, analytics, etc.
-      storefront.query(PRODUCT_QUERY, {
-        variables: {
-          handle: productHandle,
-          country: country,
-          language: language,
-          // Ensure selectedOptions are handled if your query uses them
-        },
-      }),
-      // Add other parallel fetches if needed (e.g., reviews)
-    ]);
+        country,
+        language,
+        // Ensure selectedOptions are handled if your query uses them
+      },
+    }),
+    // Add other parallel fetches if needed (e.g., reviews)
+  ]);
 
-    // Handle product not found in Shopify
-    if (!shopifyProductData?.product) {
-      throw new Response("Product data not found", { status: 404 });
-    }
-
-    // Handle page not found in Weaverse (check for fallback or missing ID)
-    // A missing Weaverse page might still be okay if you have fallback rendering,
-    // but often indicates a configuration issue.
-    if (!weaverseData?.page?.id || weaverseData.page.id.includes("fallback")) {
-       console.warn(`Weaverse page data not found for product handle: ${productHandle} at custom route /item/${productHandle}. Verify configuration.`);
-      // Decide if this should be a 404 or if you want to proceed.
-      // Throwing 404 might be safer if Weaverse layout is essential.
-      // throw new Response("Page layout not found", { status: 404 });
-    }
-
-    // 4. Prepare SEO data using the fetched Shopify product
-    const seo = seoPayload.product({
-      product: shopifyProductData.product,
-      url: request.url, // Use the current request URL for SEO context
-    });
-
-    // 5. Return all data needed by the component
-    return json({
-      weaverseData,
-      product: shopifyProductData.product,
-      seo,
-      // Add other data as needed
-    });
-
-  } catch (error) {
-    console.error(`Error loading data for custom route /item/${productHandle}:`, error);
-    if (error instanceof Response) {
-      throw error; // Re-throw existing Response errors (like 404s)
-    }
-    throw new Response("Error loading page data", { status: 500 });
+  // 3. Handle product not found in Shopify
+  if (!shopifyProductData?.product) {
+    throw new Response("Product data not found", { status: 404 });
   }
+
+  // 4. `loadPage()` returns `WeaverseLoaderData | null` — it resolves to `null`
+  //    on failure rather than throwing, so check the result explicitly.
+  //    Pilot's `validateWeaverseData` helper throws a 404 for a missing page
+  //    (and for the fallback page outside design mode).
+  validateWeaverseData(weaverseData);
+
+  // 5. Prepare SEO data using the fetched Shopify product
+  const seo = seoPayload.product({
+    product: shopifyProductData.product,
+    url: request.url, // Use the current request URL for SEO context
+  });
+
+  // 6. Return all data needed by the component (a plain object — no `json()`)
+  return {
+    weaverseData,
+    product: shopifyProductData.product,
+    seo,
+  };
 }
 
 // Standard meta function for SEO using the prepared seo object
-export const meta = ({ data }: { data?: { seo: any } }) => {
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return getSeoMeta(data?.seo);
 };
 ```
@@ -147,16 +169,20 @@ export const meta = ({ data }: { data?: { seo: any } }) => {
 -   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/item/...`.
 -   **Extract `productHandle`:** Get the handle from `params`.
 -   **Fetch Shopify Data:** You still need to fetch the corresponding Shopify product data for SEO, potentially for component data binding (though Weaverse handles much of this), and analytics. Use `Promise.all` for efficiency.
--   **Error Handling:** Check for both missing Shopify data and missing/fallback Weaverse page data. Log warnings or throw errors as appropriate for your application's needs.
+-   **Nullable Weaverse data:** `loadPage()` never rejects on a load failure — it logs and resolves to `null`. A `try/catch` around it catches nothing, so branch on the result (or hand it to `validateWeaverseData`). Keep `try/catch` for the operations that really do throw, such as `storefront.query`.
 
-### Step 3: Render the Weaverse Content
+<Warning>
+If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null`. Passing a missing page straight to `<WeaverseContent />` renders the error component.
+</Warning>
+
+### Step 4: Render the Weaverse Content
 
 The component itself remains simple, primarily rendering `<WeaverseContent />` which uses the `weaverseData` fetched in the loader.
 
 ```tsx
-// app/routes/($locale).item.$productHandle.tsx (continued)
+// app/routes/items/item.tsx (continued)
 
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData } from "react-router";
 import { Analytics } from "@shopify/hydrogen"; // For analytics
 
 export default function CustomProductRoute() {
@@ -200,17 +226,22 @@ Now, visiting `/item/your-product-handle` will render the Weaverse product page 
 ### Localized Collection Route
 
 -   **Desired URL:** `/fr/collections-en-vedette/:collectionHandle`
--   **Route File:** `app/routes/($locale).collections-en-vedette.$collectionHandle.tsx`
+-   **Route Module:** `app/routes/collections/featured-collection.tsx`
+-   **Registration:** `route("collections-en-vedette/:collectionHandle", "routes/collections/featured-collection.tsx")` inside the `:locale?` block
 -   **Loader `loadPage` Call:** `weaverse.loadPage({ type: 'COLLECTION', handle: params.collectionHandle })`
 -   **Loader Shopify Data Fetch:** Query for the specific collection data using `params.collectionHandle`.
 
 ### Marketing Campaign Page (using Weaverse Custom Page)
 
--   **Assumption:** You created a "Custom Page" in Weaverse Studio with the handle `summer-sale-2025`.
--   **Desired URL:** `/promo/summer-sale-2025`
--   **Route File:** `app/routes/promo.$campaignHandle.tsx`
--   **Loader `loadPage` Call:** `weaverse.loadPage({ type: 'PAGE', handle: params.campaignHandle })`
+-   **Assumption:** You built a "Custom Page" in Weaverse Studio with the handle `summer-sale-2025`.
+-   **Desired URL:** `/summer-sale-2025`
+-   **Route Module:** already covered by Pilot's catch-all, `app/routes/catch-all.tsx`, registered as `route("*", "routes/catch-all.tsx")`
+-   **Loader `loadPage` Call:** `weaverse.loadPage({ type: 'CUSTOM' })` — the handle comes from the request URL, so no `handle` argument
 -   **Loader Shopify Data Fetch:** Likely none needed unless the page displays specific dynamic products/collections queried separately.
+
+<Note>
+Root-level custom pages need no new route at all: Pilot's catch-all already resolves any unmatched URL as a `CUSTOM` page. Add a dedicated route only when you want a *different* URL shape (e.g. nesting every campaign under `/promo/...`), and load it with `type: 'CUSTOM'` too.
+</Note>
 
 ---
 
@@ -223,7 +254,8 @@ Custom routes can be combined with Weaverse's localization features to support m
 When implementing custom routes, you can explicitly pass the `locale` parameter to `loadPage()` to ensure the correct localized content is loaded:
 
 ```typescript
-// app/routes/($locale).item.$productHandle.tsx
+// app/routes/items/item.tsx
+// Registered as: route("item/:productHandle", "routes/items/item.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
   let { productHandle } = params;
@@ -237,6 +269,7 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
     locale, // Explicitly specify locale for custom route
   });
 
+  // `loadPage()` resolves to `null` on failure — it does not throw.
   if (!weaverseData) {
     throw new Response("Product not found", { status: 404 });
   }
@@ -251,7 +284,8 @@ Create locale-specific custom routes with different URL structures per market:
 
 ```typescript
 // Swedish store: /vara/:productHandle (Swedish for "item")
-// app/routes/($locale).vara.$productHandle.tsx
+// app/routes/items/item-sv.tsx
+// Registered as: route("vara/:productHandle", "routes/items/item-sv.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -267,7 +301,8 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
 ```typescript
 // French store: /article/:productHandle (French for "item")
-// app/routes/($locale).article.$productHandle.tsx
+// app/routes/items/item-fr.tsx
+// Registered as: route("article/:productHandle", "routes/items/item-fr.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -286,18 +321,25 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 Combine custom routing with dynamic locale detection:
 
 ```typescript
-// app/routes/promo.$campaignHandle.tsx
+// app/routes/promo/campaign.tsx
+// Registered as: route("promo/:campaignHandle", "routes/promo/campaign.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
   // Determine locale from subdomain, cookie, or header
   let locale = determineLocaleFromRequest(request);
 
+  // Weaverse custom pages are loaded as CUSTOM and resolved from the request
+  // URL. `PAGE` + `handle` is for Shopify Page resources served under
+  // /pages/:pageHandle.
   let weaverseData = await weaverse.loadPage({
-    type: "PAGE",
-    handle: params.campaignHandle,
+    type: "CUSTOM",
     locale, // Use dynamically determined locale
   });
+
+  if (!weaverseData) {
+    throw new Response("Page not found", { status: 404 });
+  }
 
   return { weaverseData, locale };
 }
@@ -321,28 +363,46 @@ function determineLocaleFromRequest(request: Request): string {
 For top-level domain or subdomain-based localization, combine custom routing with multi-project architecture:
 
 ```typescript
-// server.ts or weaverse initialization
-const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  request,
-  cache,
-  themeSchema,
-  components,
-  projectId: () => {
-    let origin = new URL(request.url).origin;
+// app/.server/context.ts
+export async function createHydrogenRouterContext(
+  request: Request,
+  env: Env,
+  executionContext: ExecutionContext,
+) {
+  // …cache/session setup…
+  const hydrogenContext = createHydrogenContext({ /* … */ }, additionalContext);
 
-    // Route to different projects based on domain
-    if (origin === "https://mystore.se") {
-      return "project-sweden-123";
-    } else if (origin === "https://mystore.fr") {
-      return "project-france-456";
-    }
+  const weaverse = new WeaverseClient({
+    ...hydrogenContext,
+    request,
+    cache,
+    themeSchema,
+    components,
+    projectId: () => {
+      let origin = new URL(request.url).origin;
 
-    return process.env.WEAVERSE_PROJECT_ID;
-  },
-});
+      // Route to different projects based on domain
+      if (origin === "https://mystore.se") {
+        return "project-sweden-123";
+      }
+      if (origin === "https://mystore.fr") {
+        return "project-france-456";
+      }
 
-// app/routes/vara.$productHandle.tsx (Swedish custom route)
+      return env.WEAVERSE_PROJECT_ID;
+    },
+  });
+
+  // Attach `weaverse` to the existing context instance. Do NOT build a new
+  // object by spreading `hydrogenContext` — that would discard the
+  // RouterContextProvider class instance React Router 7 expects.
+  Object.assign(hydrogenContext, { weaverse });
+
+  return hydrogenContext;
+}
+
+// app/routes/items/item-sv.tsx (Swedish custom route)
+// Registered as: route("vara/:productHandle", "routes/items/item-sv.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -371,7 +431,8 @@ See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)
 
 ## Important Considerations
 
--   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, etc.). Refer to the [Supported Page Types](/guides/rendering-page#supported-page-types).
+-   **Register Every Route:** A module under `app/routes/` is unreachable until it appears in `app/routes.ts`. If a custom URL 404s or renders your catch-all page, check the registry first.
+-   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, CUSTOM, etc.). Use `CUSTOM` for Weaverse custom pages and `PAGE` + `handle` for Shopify Pages. Refer to the [Supported Page Types](/guides/rendering-page#supported-page-types).
 -   **Fetch Necessary Shopify Data:** If your custom route replaces a standard route (like product or collection), remember to fetch the corresponding Shopify data in your loader for SEO, analytics, or any components that might need it directly.
 -   **Generating Links:** Linking to these custom routes from within your application (e.g., in navigation or product grids) will require using the correct path (`/item/...`, `/fr/collections-en-vedette/...`) instead of the default Shopify paths. You might need custom link-building logic or helper functions.
 -   **SEO & Sitemaps:** Standard sitemap generation might not automatically include these custom routes. You may need to manually add them to your `sitemap.xml` logic. Ensure canonical URLs are correctly set (perhaps pointing to the standard Shopify URL if preferred, or self-referencing the custom URL if it's the primary one). Consult SEO best practices.

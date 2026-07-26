@@ -73,18 +73,17 @@ Every Weaverse component follows a consistent structure:
 
 1. **Imports**: Import necessary types and utilities from Weaverse and React
 2. **Interface**: Define the component's props interface
-3. **Component**: Create the component (with or without `forwardRef`, see note below)
+3. **Component**: Create the component and pass the React 19 `ref` prop plus the remaining Weaverse props to its root DOM element
 4. **Schema**: Export the schema that defines how the component appears in Weaverse Studio
 5. **Export**: Export the component as default
 
-> **Note about `forwardRef`**: While many examples use `forwardRef`, it's actually optional in Weaverse components. It helps pass the ref to the component's DOM element so that Weaverse Editor can render essential UI elements like overlays and toolbars in the editor. However, if you spread all props to your root DOM element (e.g., `<div {...props}>`), Weaverse will automatically detect the DOM element. Additionally, with React 19, `forwardRef` will become less necessary due to improvements in ref handling.
+> **Note about refs**: Current Pilot uses React 19, where `ref` is a normal prop. Pass it to the root DOM element and spread the remaining Weaverse props so Studio can attach overlays and toolbars. Existing `forwardRef` components still work, but new components do not need it.
 
 ### Basic Component Template
 
 ```tsx
 import type { HydrogenComponentProps } from '@weaverse/hydrogen';
 import { createSchema } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';  // Optional but recommended for now
 
 interface MyComponentProps extends HydrogenComponentProps {
   // Add your custom props here
@@ -92,10 +91,7 @@ interface MyComponentProps extends HydrogenComponentProps {
   description?: string;
 }
 
-// Using forwardRef (recommended approach for React 18)
-const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
-  const { title, description, children, ...rest } = props;
-  
+function MyComponent({ ref, title, description, children, ...rest }: MyComponentProps) {
   return (
     <section ref={ref} {...rest}>
       {title && <h2>{title}</h2>}
@@ -103,20 +99,7 @@ const MyComponent = forwardRef<HTMLElement, MyComponentProps>((props, ref) => {
       {children}
     </section>
   );
-});
-
-// Alternative: Without forwardRef (will work if you spread props to root element)
-// function MyComponent(props: MyComponentProps) {
-//   const { title, description, children, ...rest } = props;
-//   
-//   return (
-//     <section {...rest}>  // Make sure to spread remaining props here
-//       {title && <h2>{title}</h2>}
-//       {description && <p>{description}</p>}
-//       {children}
-//     </section>
-//   );
-// }
+}
 
 export let schema = createSchema({
   type: 'my-component',
@@ -146,7 +129,7 @@ export default MyComponent;
 ### Key Elements
 
 1. **HydrogenComponentProps**: Base props interface that all Weaverse components extend
-2. **forwardRef**: Used to properly pass refs through the component tree (optional if props are spread correctly)
+2. **ref and root props**: Pass `ref` and the remaining Weaverse props to the component's root DOM element
 3. **type property in schema**: Unique identifier for the component (must be unique across all components)
 4. **settings**: Defines the UI controls in Weaverse Studio
 5. **children prop**: Components can render child components or elements
@@ -156,8 +139,8 @@ export default MyComponent;
 For more complex components, you may need to handle data loading, custom styling, or complex props management:
 
 ```tsx
-import { Await, useLoaderData } from "@remix-run/react";
 import { createSchema } from "@weaverse/hydrogen";
+import { Await, useLoaderData } from "react-router";
 import { Suspense, forwardRef } from "react";
 import type { ProductCardFragment } from "storefront-api.generated";
 import Heading, { type HeadingProps, headingInputs } from "~/components/heading";
@@ -493,27 +476,28 @@ export let schema = createSchema({
 
 In a Weaverse Hydrogen project, there are two distinct types of loader functions:
 
-1. **Remix Route Loaders**: These loaders are used in Remix route files (`routes/*.tsx`) and follow the Remix conventions
+1. **Route Loaders**: These loaders are used in React Router v7 route files (`app/routes/**/*.tsx`) and follow the React Router conventions
 2. **Weaverse Component Loaders**: These loaders are defined in Weaverse component files and enable server-side data fetching at the component level
 
-### Remix Route Loaders
+### Route Loaders
 
-In Remix route files, you define loaders that run on the server and provide data to all components rendered by that route:
+In React Router route files, you define loaders that run on the server and provide data to all components rendered by that route:
 
 ```tsx
-// app/routes/products.$handle.tsx
-import { json, type LoaderArgs } from '@shopify/remix-oxygen';
-import { useLoaderData } from '@remix-run/react';
+// app/routes/products/product.tsx
+import type { LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
 
-export async function loader({ params, context }: LoaderArgs) {
-  const { handle } = params;
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const { productHandle: handle } = params;
   const { storefront } = context;
-  
+
   const { product } = await storefront.query(PRODUCT_QUERY, {
     variables: { handle },
   });
-  
-  return json({ product });
+
+  // Return a plain object — `json()` is no longer needed in React Router v7
+  return { product };
 }
 
 export default function ProductRoute() {
@@ -535,25 +519,28 @@ Weaverse components can define their own loaders, which fetch data specifically 
 
 ```tsx
 // app/sections/featured-product/index.tsx
-import type { ComponentLoaderArgs, HydrogenComponentProps } from '@weaverse/hydrogen';
-import { forwardRef } from 'react';
+import type {
+  ComponentLoaderArgs,
+  HydrogenComponentProps,
+  WeaverseProduct,
+} from '@weaverse/hydrogen';
 import { PRODUCT_QUERY } from '~/graphql/queries';
 
 interface FeaturedProductData {
-  productHandle: string;
+  product: WeaverseProduct;
 }
 
 export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
-  if (!data?.productHandle) {
+  if (!data?.product?.handle) {
     return null;
   }
   
   const { product } = await storefront.query(PRODUCT_QUERY, {
     variables: {
-      handle: data.productHandle,
+      handle: data.product.handle,
     },
   });
 
@@ -562,12 +549,11 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
 
 type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
 
-const FeaturedProduct = forwardRef<HTMLElement, FeaturedProductProps>((props, ref) => {
-  const { loaderData, productHandle, ...rest } = props;
+function FeaturedProduct({ ref, loaderData, product: selectedProduct, ...rest }: FeaturedProductProps) {
   const product = loaderData?.product;
   
   if (!product) {
-    return <div>Select a product in the editor</div>;
+    return <section ref={ref} {...rest}>Select a product in the editor</section>;
   }
   
   return (
@@ -577,7 +563,7 @@ const FeaturedProduct = forwardRef<HTMLElement, FeaturedProductProps>((props, re
       {/* Product details */}
     </section>
   );
-});
+}
 
 export default FeaturedProduct;
 
@@ -590,7 +576,7 @@ export let schema = createSchema({
       inputs: [
         {
           type: 'product',
-          name: 'productHandle',
+          name: 'product',
           label: 'Product',
         },
       ],
@@ -602,22 +588,23 @@ export let schema = createSchema({
 ### Key Differences
 
 1. **Scope**:
-   - Remix loaders provide data to an entire route
+   - Route loaders provide data to an entire route
    - Weaverse component loaders provide data only to the specific component
 
 2. **Access**:
-   - Remix loader data is accessed via the `useLoaderData()` hook
+   - Route loader data is accessed via the `useLoaderData()` hook
    - Weaverse component loader data is received via `props.loaderData`
 
 3. **Arguments**:
-   - Remix loaders receive `{ params, request, context }`
-   - Weaverse component loaders receive `{ weaverse, data, request }` where:
-     - `weaverse`: Contains Weaverse-specific utilities and context
+   - Route loaders receive `{ params, request, context }`
+   - Weaverse component loaders receive `{ weaverse, data }` where:
+     - `weaverse`: The `WeaverseClient` instance — Storefront API access, `fetchWithCache`, `env`, and the current `request`
      - `data`: Contains the component's configured data from the editor
-     - `request`: The original request object
+
+   There is no `context` argument in `ComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
 
 4. **Use cases**:
-   - Use Remix loaders for route-level data like page information
+   - Use route loaders for route-level data like page information
    - Use Weaverse component loaders for component-specific data
 
 ### Data Flow Between Components
@@ -652,9 +639,9 @@ export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> 
 2. **Error Handling**: Implement proper error handling in your loaders:
 
 ```tsx
-export async function loader({ context }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: ComponentLoaderArgs) {
   try {
-    const data = await fetchData();
+    const data = await fetchData(weaverse);
     return { data };
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -666,8 +653,8 @@ export async function loader({ context }: ComponentLoaderArgs) {
 3. **Data Transformation**: Transform data in the loader before passing it to the component:
 
 ```tsx
-export async function loader({ context }: ComponentLoaderArgs) {
-  const rawData = await fetchData();
+export async function loader({ weaverse }: ComponentLoaderArgs) {
+  const rawData = await fetchData(weaverse);
   return {
     data: transformData(rawData), // Transform data for easier consumption
   };
@@ -677,12 +664,13 @@ export async function loader({ context }: ComponentLoaderArgs) {
 4. **Caching**: Leverage Hydrogen's built-in caching mechanisms and Weaverse's utilities for improved performance:
 
 ```tsx
-import { CacheLong, fetchSync } from '@shopify/hydrogen';
+import { CacheLong } from '@shopify/hydrogen';
 
-export async function loader({ context }: ComponentLoaderArgs) {
-  const { storefront, fetchWithCache } = context.weaverse;
-  
+export async function loader({ weaverse }: ComponentLoaderArgs) {
+  const { storefront, fetchWithCache } = weaverse;
+
   // Using Weaverse's fetchWithCache utility (recommended)
+  // Signature: fetchWithCache(url, options) — the cache strategy goes in `options.strategy`
   const data = await fetchWithCache(
     'https://api.example.com/data',
     {
@@ -690,12 +678,12 @@ export async function loader({ context }: ComponentLoaderArgs) {
       headers: {
         'Content-Type': 'application/json',
       },
-    },
-    CacheLong() // Use appropriate cache strategy
+      strategy: CacheLong(), // Use appropriate cache strategy
+    }
   );
-  
-  // Or using Hydrogen's fetchSync with caching strategy
-  const { product } = await fetchSync(
+
+  // POST requests work the same way — the body is part of the cache key
+  const product = await fetchWithCache(
     'https://my-api.com/data',
     {
       method: 'POST',
@@ -703,12 +691,10 @@ export async function loader({ context }: ComponentLoaderArgs) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: 'my-product' }),
-    },
-    {
-      cache: CacheLong(), // Use appropriate cache strategy: CacheNone, CacheShort, CacheLong, or custom
+      strategy: CacheLong(),
     }
-  ).json();
-  
+  );
+
   // Or using storefront API with caching
   const { collection } = await storefront.query(
     `query CollectionDetails($handle: String!) {
@@ -731,10 +717,12 @@ export async function loader({ context }: ComponentLoaderArgs) {
 
 **Weaverse's `fetchWithCache`** is a convenient utility that simplifies cached data fetching from external APIs:
 
-- Available through `context.weaverse.fetchWithCache`
+- Available on the `weaverse` loader argument as `weaverse.fetchWithCache`
+- Takes exactly two arguments: `fetchWithCache(url, options)`
 - Automatically handles JSON parsing
-- Applies the specified caching strategy
-- Provides a cleaner syntax compared to Hydrogen's native `fetchSync`
+- Applies the caching strategy passed as `options.strategy` (defaults to a short custom strategy)
+- Includes the URL, method, body, and project ID in the cache key, so POST requests cache correctly
+- Bypasses the cache automatically while in Studio design mode
 
 Hydrogen provides several caching strategies out of the box:
 
@@ -755,11 +743,9 @@ const cacheStrategy = CacheLong({
 });
 
 // Use with Weaverse's fetchWithCache
-const { weaverse } = context;
 const data = await weaverse.fetchWithCache(
   'https://api.example.com/data',
-  { method: 'GET' },
-  cacheStrategy
+  { method: 'GET', strategy: cacheStrategy }
 );
 
 // Or use in storefront query
@@ -1072,7 +1058,7 @@ This pattern works particularly well for components with multiple configurable a
   - Utilize TypeScript's utility types for prop manipulation
 
 - **Follow React's Best Practices**
-  - Always use `forwardRef` for all components
+  - With React 19, accept `ref` as a prop and pass it to the root DOM element; keep `forwardRef` only for existing components that already use it
   - Separate component logic from presentation
   - Extract reusable UI elements into smaller components
   - Use composition over inheritance

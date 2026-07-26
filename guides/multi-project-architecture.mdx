@@ -110,20 +110,28 @@ const weaverse = new WeaverseClient({
 });
 
 // Dynamic projectId (multi-project - recommended)
-const weaverse = new WeaverseClient({
-  // ...
-  projectId: () => {
-    let origin = new URL(request.url).origin;
+// `hydrogenContext` and `request` are the values the factory received. On
+// Oxygen the runtime env arrives with the request — there is no `process.env`.
+export function createWeaverseClient({
+  hydrogenContext,
+  request,
+  /* ...rest */
+}: CreateWeaverseClientArgs) {
+  return new WeaverseClient({
+    // ...
+    projectId: () => {
+      let origin = new URL(request.url).origin;
 
-    if (origin === "https://mystore.se") {
-      return "project-sweden-456";
-    } else if (origin === "https://mystore.fr") {
-      return "project-france-789";
-    }
+      if (origin === "https://mystore.se") {
+        return "project-sweden-456";
+      } else if (origin === "https://mystore.fr") {
+        return "project-france-789";
+      }
 
-    return process.env.WEAVERSE_PROJECT_ID;
-  },
-});
+      return hydrogenContext.env.WEAVERSE_PROJECT_ID;
+    },
+  });
+}
 ```
 
 #### 2. Route-Level (loadPage)
@@ -229,7 +237,8 @@ Build a global storefront with different domains per country, each with market-s
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
 import { WeaverseClient } from "@weaverse/hydrogen";
-import type { HydrogenContext, HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
+import type { HydrogenContext } from "@shopify/hydrogen";
+import type { HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
 
 export function createWeaverseClient(args: {
   hydrogenContext: HydrogenContext;
@@ -249,18 +258,22 @@ export function createWeaverseClient(args: {
     projectId: () => {
       let origin = new URL(request.url).origin;
 
-      // Map domains to project IDs
+      // Map domains to project IDs — runtime env comes from the Hydrogen context
       const projectMap: Record<string, string> = {
-        "https://mystore.se": process.env.WEAVERSE_PROJECT_SWEDEN!,
-        "https://mystore.fr": process.env.WEAVERSE_PROJECT_FRANCE!,
-        "https://mystore.de": process.env.WEAVERSE_PROJECT_GERMANY!,
+        "https://mystore.se": hydrogenContext.env.WEAVERSE_PROJECT_SWEDEN!,
+        "https://mystore.fr": hydrogenContext.env.WEAVERSE_PROJECT_FRANCE!,
+        "https://mystore.de": hydrogenContext.env.WEAVERSE_PROJECT_GERMANY!,
       };
 
-      return projectMap[origin] || process.env.WEAVERSE_PROJECT_ID!;
+      return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
 ```
+
+<Note>
+On Oxygen the storefront runs in a worker, so there is no `process.env`. Read runtime variables from `hydrogenContext.env` inside your factory, or from `context.env` inside a route loader.
+</Note>
 
 #### Environment Variables
 
@@ -278,7 +291,7 @@ WEAVERSE_PROJECT_GERMANY=project-germany-012     # Germany: mystore.de
 // app/entry.server.tsx or server.ts
 import { createWeaverseClient } from "~/lib/weaverse/weaverse.server";
 import { themeSchema } from "~/weaverse/schema.server";
-import { components } from "~/weaverse";
+import { components } from "~/weaverse/components";
 
 export default {
   async fetch(request: Request, env: Env, context: ExecutionContext) {
@@ -292,11 +305,9 @@ export default {
       components,
     });
 
-    // Weaverse automatically uses correct project based on domain
-    return handleRequest(request, {
-      ...hydrogenContext,
-      weaverse,
-    });
+    // Preserve the RouterContextProvider instance React Router expects.
+    Object.assign(hydrogenContext, { weaverse });
+    return handleRequest(request, hydrogenContext);
   },
 };
 ```
@@ -304,7 +315,8 @@ export default {
 #### Route Usage
 
 ```typescript
-// app/routes/($locale)._index.tsx
+// app/routes/home.tsx
+// Registered inside the :locale? prefix with index("routes/home.tsx")
 export async function loader({ context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -316,7 +328,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
   return { weaverseData };
 }
 
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse, storefront } = context;
   let { productHandle } = params;
@@ -419,31 +432,33 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
       let url = new URL(request.url);
       let origin = url.origin;
 
+      let { env } = hydrogenContext;
+
       // Market-specific projects
       if (origin === "https://mystore.se") {
-        return process.env.WEAVERSE_PROJECT_SWEDEN!;
+        return env.WEAVERSE_PROJECT_SWEDEN!;
       }
 
       if (origin === "https://mystore.fr") {
-        return process.env.WEAVERSE_PROJECT_FRANCE!;
+        return env.WEAVERSE_PROJECT_FRANCE!;
       }
 
       if (origin === "https://mystore.de") {
-        return process.env.WEAVERSE_PROJECT_GERMANY!;
+        return env.WEAVERSE_PROJECT_GERMANY!;
       }
 
-      // Development/staging fallback
-      if (process.env.NODE_ENV !== "production") {
-        return process.env.WEAVERSE_PROJECT_ID!;
+      // Local-development fallback
+      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+        return env.WEAVERSE_PROJECT_ID!;
       }
 
       // Default production project (e.g., .com)
-      return process.env.WEAVERSE_PROJECT_DEFAULT!;
+      return env.WEAVERSE_PROJECT_DEFAULT!;
     },
   });
 }
 
-// app/routes/_index.tsx
+// app/routes/home.tsx (registered with index("routes/home.tsx"))
 export async function loader({ context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -535,8 +550,8 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
       {
         id: "green-theme-test",
         variants: [
-          { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! },
-          { id: "b", projectId: process.env.WEAVERSE_PROJECT_VARIANT_B! },
+          { id: "control", projectId: hydrogenContext.env.WEAVERSE_PROJECT_CONTROL! },
+          { id: "b", projectId: hydrogenContext.env.WEAVERSE_PROJECT_VARIANT_B! },
         ],
       },
     ],
@@ -578,7 +593,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 #### Adjusting the traffic split
 
-Variant `weight` is relative — omit it for an even split. For an 80/20 test, weight the variant down (only the ratio matters):
+Variant `weight` is relative — omit it for an even split. For an 80/20 test, weight the variant down (only the ratio matters). This runs in the same factory as above, so `hydrogenContext.env` is still the source of the runtime variables:
 
 ```typescript
 let { projectId } = getExperiments(request, {
@@ -586,8 +601,8 @@ let { projectId } = getExperiments(request, {
     {
       id: "green-theme-test",
       variants: [
-        { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! }, // weight 1
-        { id: "b", weight: 0.25, projectId: process.env.WEAVERSE_PROJECT_VARIANT_B! }, // ~20%
+        { id: "control", projectId: hydrogenContext.env.WEAVERSE_PROJECT_CONTROL! }, // weight 1
+        { id: "b", weight: 0.25, projectId: hydrogenContext.env.WEAVERSE_PROJECT_VARIANT_B! }, // ~20%
       ],
     },
   ],
@@ -715,20 +730,21 @@ To compare both, open **Control (A)** to review the baseline, then open **Varian
 To test a single route without affecting the rest of the site, resolve the experiment in that route's loader and pass the chosen `projectId` to `loadPage()`:
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 import { getExperiments } from "@weaverse/experiments/server";
 import { data } from "react-router";
 
 export async function loader({ context, params, request }: LoaderFunctionArgs) {
-  let { weaverse } = context;
+  let { weaverse, env } = context;
 
   let { projectId, assignments, headers } = getExperiments(request, {
     experiments: [
       {
         id: "pdp-layout-test",
         variants: [
-          { id: "control", projectId: process.env.WEAVERSE_PROJECT_CONTROL! },
-          { id: "b", projectId: process.env.WEAVERSE_PROJECT_PRODUCT_VARIANT_B! },
+          { id: "control", projectId: env.WEAVERSE_PROJECT_CONTROL! },
+          { id: "b", projectId: env.WEAVERSE_PROJECT_PRODUCT_VARIANT_B! },
         ],
       },
     ],
@@ -839,11 +855,11 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
 
       // Map subdomains to brand projects
       const brandProjects: Record<string, string> = {
-        "brand-a": process.env.WEAVERSE_PROJECT_BRAND_A!,
-        "brand-b": process.env.WEAVERSE_PROJECT_BRAND_B!,
+        "brand-a": hydrogenContext.env.WEAVERSE_PROJECT_BRAND_A!,
+        "brand-b": hydrogenContext.env.WEAVERSE_PROJECT_BRAND_B!,
       };
 
-      return brandProjects[subdomain] || process.env.WEAVERSE_PROJECT_ID!;
+      return brandProjects[subdomain] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
@@ -861,14 +877,15 @@ WEAVERSE_PROJECT_ID=project-default-789  # Fallback
 #### Brand-Specific Product Filtering
 
 ```typescript
-// app/routes/products._index.tsx
+// app/routes/products/list.tsx
+// Registered inside prefix("products", [...]) as index("routes/products/list.tsx")
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse, storefront } = context;
   let url = new URL(request.url);
   let brand = url.hostname.split(".")[0];
 
   // Load Weaverse page (brand-specific layout)
-  let weaverseData = await weaverse.loadPage({ type: "COLLECTION_LIST" });
+  let weaverseData = await weaverse.loadPage({ type: "ALL_PRODUCTS" });
 
   // Filter Shopify products by brand tag
   let brandTag = brand === "brand-a" ? "Premium" : "Affordable";
@@ -913,23 +930,24 @@ export function detectBrand(request: Request): Brand {
   return "default";
 }
 
-export function getBrandConfig(brand: Brand) {
+// The runtime env is passed in — this module has no access to `process.env`.
+export function getBrandConfig(brand: Brand, env: Env) {
   const configs = {
     "brand-a": {
       name: "Premium Brand",
-      projectId: process.env.WEAVERSE_PROJECT_BRAND_A!,
+      projectId: env.WEAVERSE_PROJECT_BRAND_A!,
       productTag: "Premium",
       theme: "luxury",
     },
     "brand-b": {
       name: "Affordable Brand",
-      projectId: process.env.WEAVERSE_PROJECT_BRAND_B!,
+      projectId: env.WEAVERSE_PROJECT_BRAND_B!,
       productTag: "Affordable",
       theme: "value",
     },
     "default": {
       name: "Default Store",
-      projectId: process.env.WEAVERSE_PROJECT_ID!,
+      projectId: env.WEAVERSE_PROJECT_ID!,
       productTag: null,
       theme: "default",
     },
@@ -945,7 +963,7 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
   let { hydrogenContext, request, cache, themeSchema, components } = args;
 
   let brand = detectBrand(request);
-  let brandConfig = getBrandConfig(brand);
+  let brandConfig = getBrandConfig(brand, hydrogenContext.env);
 
   let weaverse = new WeaverseClient({
     ...hydrogenContext,
@@ -959,13 +977,14 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
   return { weaverse, brand, brandConfig };
 }
 
-// app/routes/products._index.tsx
+// app/routes/products/list.tsx
+// Registered inside prefix("products", [...]) as index("routes/products/list.tsx")
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse, brand, brandConfig } = await createWeaverseClient({
     // ... args
   });
 
-  let weaverseData = await weaverse.loadPage({ type: "COLLECTION_LIST" });
+  let weaverseData = await weaverse.loadPage({ type: "ALL_PRODUCTS" });
 
   // Filter products by brand tag
   let filters = brandConfig.productTag
@@ -1024,16 +1043,16 @@ Override the default project for specific routes using the `projectId` parameter
 #### Basic Route Override
 
 ```typescript
-// app/routes/special-campaign.$slug.tsx
-export async function loader({ params, context }: LoaderFunctionArgs) {
-  let { weaverse } = context;
-  let { slug } = params;
+// app/routes/special-campaign.tsx
+// Registered in app/routes.ts as:
+// route("special-campaign/:slug", "routes/special-campaign.tsx")
+export async function loader({ context }: LoaderFunctionArgs) {
+  let { weaverse, env } = context;
 
   // This route uses a special campaign project
   let weaverseData = await weaverse.loadPage({
-    type: "PAGE",
-    handle: slug,
-    projectId: process.env.WEAVERSE_PROJECT_CAMPAIGN!, // Route-level override
+    type: "CUSTOM",
+    projectId: env.WEAVERSE_PROJECT_CAMPAIGN, // Route-level override
   });
 
   return { weaverseData };
@@ -1043,16 +1062,19 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 #### Conditional Route Override
 
 ```typescript
-// app/routes/products.$productHandle.tsx
+// app/routes/products/product.tsx
+// Registered in app/routes.ts as route(":productHandle", "routes/products/product.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
-  let { weaverse } = context;
+  let { weaverse, env } = context;
   let { productHandle } = params;
+
+  if (!productHandle) throw new Response("product", { status: 404 });
 
   // Use special project for featured products
   let isFeaturedProduct = productHandle.startsWith("featured-");
 
   let projectId = isFeaturedProduct
-    ? process.env.WEAVERSE_PROJECT_FEATURED!
+    ? env.WEAVERSE_PROJECT_FEATURED!
     : undefined; // Use default from WeaverseClient
 
   let weaverseData = await weaverse.loadPage({
@@ -1068,16 +1090,19 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 #### Dynamic Route Override Based on Parameters
 
 ```typescript
-// app/routes/collections.$collectionHandle.tsx
+// app/routes/collections/collection.tsx
+// Registered in app/routes.ts as route(":collectionHandle", "routes/collections/collection.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
-  let { weaverse } = context;
+  let { weaverse, env } = context;
   let { collectionHandle } = params;
+
+  if (!collectionHandle) throw new Response("collection", { status: 404 });
 
   // Map specific collections to different projects
   const collectionProjectMap: Record<string, string> = {
-    "vip-collection": process.env.WEAVERSE_PROJECT_VIP!,
-    "black-friday": process.env.WEAVERSE_PROJECT_SALE!,
-    "new-arrivals": process.env.WEAVERSE_PROJECT_NEW!,
+    "vip-collection": env.WEAVERSE_PROJECT_VIP!,
+    "black-friday": env.WEAVERSE_PROJECT_SALE!,
+    "new-arrivals": env.WEAVERSE_PROJECT_NEW!,
   };
 
   let projectId = collectionProjectMap[collectionHandle];
@@ -1120,6 +1145,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 
 ### Advanced Routing Patterns
 
+Each snippet below is the `projectId` option of the `createWeaverseClient` factory shown earlier, so `request` and `hydrogenContext` (and therefore `hydrogenContext.env`) are in scope.
+
 #### Path-Based Routing
 
 ```typescript
@@ -1127,18 +1154,19 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 projectId: () => {
   let url = new URL(request.url);
   let path = url.pathname;
+  let { env } = hydrogenContext;
 
   // /pro routes use premium project
   if (path.startsWith("/pro")) {
-    return process.env.WEAVERSE_PROJECT_PRO!;
+    return env.WEAVERSE_PROJECT_PRO!;
   }
 
   // /basic routes use basic project
   if (path.startsWith("/basic")) {
-    return process.env.WEAVERSE_PROJECT_BASIC!;
+    return env.WEAVERSE_PROJECT_BASIC!;
   }
 
-  return process.env.WEAVERSE_PROJECT_ID!;
+  return env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1149,12 +1177,13 @@ projectId: () => {
 projectId: () => {
   let url = new URL(request.url);
   let variant = url.searchParams.get("variant");
+  let { env } = hydrogenContext;
 
   if (variant === "b") {
-    return process.env.WEAVERSE_PROJECT_VARIANT_B!;
+    return env.WEAVERSE_PROJECT_VARIANT_B!;
   }
 
-  return process.env.WEAVERSE_PROJECT_CONTROL!;
+  return env.WEAVERSE_PROJECT_CONTROL!;
 }
 ```
 
@@ -1169,7 +1198,7 @@ projectId: () => {
     return projectHeader;
   }
 
-  return process.env.WEAVERSE_PROJECT_ID!;
+  return hydrogenContext.env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1182,24 +1211,25 @@ projectId: () => {
   let origin = url.origin;
   let path = url.pathname;
   let subdomain = url.hostname.split(".")[0];
+  let { env } = hydrogenContext;
 
   // Priority 1: Domain-based (highest priority)
   if (origin === "https://mystore.se") {
-    return process.env.WEAVERSE_PROJECT_SWEDEN!;
+    return env.WEAVERSE_PROJECT_SWEDEN!;
   }
 
   // Priority 2: Subdomain-based
   if (subdomain === "premium") {
-    return process.env.WEAVERSE_PROJECT_PREMIUM!;
+    return env.WEAVERSE_PROJECT_PREMIUM!;
   }
 
   // Priority 3: Path-based
   if (path.startsWith("/campaign")) {
-    return process.env.WEAVERSE_PROJECT_CAMPAIGN!;
+    return env.WEAVERSE_PROJECT_CAMPAIGN!;
   }
 
   // Default
-  return process.env.WEAVERSE_PROJECT_ID!;
+  return env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1232,6 +1262,8 @@ Ensure your CDN caches correctly per project:
 
 ```typescript
 // Add project ID to cache key
+import { data } from "react-router";
+
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
@@ -1247,7 +1279,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
   let weaverseData = await weaverse.loadPage({ type: "INDEX" });
 
-  return json({ weaverseData }, { headers });
+  return data({ weaverseData }, { headers });
 }
 ```
 
@@ -1370,12 +1402,12 @@ Step-by-step guide to migrate from single-project to multi-project architecture.
 
           // Add your routing logic
           const projectMap: Record<string, string> = {
-            "https://mystore.se": process.env.WEAVERSE_PROJECT_SWEDEN!,
-            "https://mystore.fr": process.env.WEAVERSE_PROJECT_FRANCE!,
-            "https://mystore.de": process.env.WEAVERSE_PROJECT_GERMANY!,
+            "https://mystore.se": hydrogenContext.env.WEAVERSE_PROJECT_SWEDEN!,
+            "https://mystore.fr": hydrogenContext.env.WEAVERSE_PROJECT_FRANCE!,
+            "https://mystore.de": hydrogenContext.env.WEAVERSE_PROJECT_GERMANY!,
           };
 
-          return projectMap[origin] || process.env.WEAVERSE_PROJECT_ID!;
+          return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
         },
       });
     }
@@ -1401,10 +1433,8 @@ Step-by-step guide to migrate from single-project to multi-project architecture.
           components,
         });
 
-        return handleRequest(request, {
-          ...hydrogenContext,
-          weaverse,
-        });
+        Object.assign(hydrogenContext, { weaverse });
+        return handleRequest(request, hydrogenContext);
       },
     };
     ```
@@ -1698,7 +1728,7 @@ projectId: () => {
   console.log("Request origin:", origin);
   console.log("Selected project:", projectMap[origin] || "default");
 
-  return projectMap[origin] || process.env.WEAVERSE_PROJECT_ID!;
+  return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1780,15 +1810,14 @@ console.log("Assigned variant:", variant);
 **Debug:**
 ```typescript
 // Verify projectId is being passed
-export async function loader({ context, params }: LoaderFunctionArgs) {
+export async function loader({ context }: LoaderFunctionArgs) {
   let { weaverse } = context;
-  let projectId = process.env.WEAVERSE_PROJECT_CAMPAIGN!;
+  let projectId = context.env.WEAVERSE_PROJECT_CAMPAIGN;
 
   console.log("Route-level projectId:", projectId);
 
   let weaverseData = await weaverse.loadPage({
-    type: "PAGE",
-    handle: params.slug,
+    type: "CUSTOM",
     projectId, // Make sure this is defined
   });
 
@@ -1803,7 +1832,7 @@ export async function loader({ context, params }: LoaderFunctionArgs) {
 - Using wrong parameter syntax
 
 **Solutions:**
-- Verify environment variable exists: `console.log(process.env.WEAVERSE_PROJECT_CAMPAIGN)`
+- Verify the runtime environment variable exists: `console.log(context.env.WEAVERSE_PROJECT_CAMPAIGN)`
 - Ensure projectId is not undefined before passing
 - Check spelling: it's `projectId` not `project_id` or `projectID`
 - Use optional chaining: `projectId: myProjectId || undefined`
@@ -1812,36 +1841,41 @@ export async function loader({ context, params }: LoaderFunctionArgs) {
 
 ## Advanced Topics
 
+Except where noted, each snippet below is the `projectId` option inside `createWeaverseClient`, where `request` and `hydrogenContext.env` are in scope.
+
 ### Dynamic Project Selection
 
 **Based on User Attributes:**
 ```typescript
-// Route based on user tier (from database or session)
-projectId: async () => {
-  let user = await getUser(request);
+// Resolve asynchronous user/session data before constructing WeaverseClient.
+// The projectId callback itself is synchronous.
+let user = await getUser(request);
+let projectId = user.tier === "premium"
+  ? hydrogenContext.env.WEAVERSE_PROJECT_PREMIUM
+  : hydrogenContext.env.WEAVERSE_PROJECT_STANDARD;
 
-  if (user.tier === "premium") {
-    return process.env.WEAVERSE_PROJECT_PREMIUM!;
-  }
-
-  return process.env.WEAVERSE_PROJECT_STANDARD!;
-}
+let weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  projectId,
+  // ...cache, themeSchema, components
+});
 ```
 
 **Based on Geographic Location:**
 ```typescript
-// Use edge computing for geo-based routing
+// Oxygen forwards the visitor's country on the request
 projectId: () => {
-  // Cloudflare example
-  let country = request.headers.get("CF-IPCountry");
+  let country = request.headers.get("oxygen-buyer-country");
+  let { env } = hydrogenContext;
 
   const countryProjects: Record<string, string> = {
-    "SE": process.env.WEAVERSE_PROJECT_SWEDEN!,
-    "FR": process.env.WEAVERSE_PROJECT_FRANCE!,
-    "DE": process.env.WEAVERSE_PROJECT_GERMANY!,
+    "SE": env.WEAVERSE_PROJECT_SWEDEN!,
+    "FR": env.WEAVERSE_PROJECT_FRANCE!,
+    "DE": env.WEAVERSE_PROJECT_GERMANY!,
   };
 
-  return countryProjects[country] || process.env.WEAVERSE_PROJECT_ID!;
+  return (country ? countryProjects[country] : undefined) || env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1853,14 +1887,15 @@ projectId: () => {
 // Special markets get dedicated projects
 projectId: () => {
   let origin = new URL(request.url).origin;
+  let { env } = hydrogenContext;
 
   // Japan gets dedicated project (unique branding)
   if (origin === "https://mystore.jp") {
-    return process.env.WEAVERSE_PROJECT_JAPAN!;
+    return env.WEAVERSE_PROJECT_JAPAN!;
   }
 
   // All other markets use single project with locale
-  return process.env.WEAVERSE_PROJECT_DEFAULT!;
+  return env.WEAVERSE_PROJECT_DEFAULT!;
 }
 ```
 
@@ -1872,14 +1907,15 @@ projectId: () => {
 projectId: () => {
   let url = new URL(request.url);
   let featureFlag = url.searchParams.get("feature");
+  let { env } = hydrogenContext;
 
   // Beta project for testing new features
   if (featureFlag === "beta") {
-    return process.env.WEAVERSE_PROJECT_BETA!;
+    return env.WEAVERSE_PROJECT_BETA!;
   }
 
   // Production project (stable)
-  return process.env.WEAVERSE_PROJECT_PROD!;
+  return env.WEAVERSE_PROJECT_PROD!;
 }
 ```
 

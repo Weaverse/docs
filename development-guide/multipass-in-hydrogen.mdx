@@ -104,7 +104,6 @@ export async function action({request, context}: ActionFunctionArgs) {
       CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS,
       {
         variables: {multipassToken},
-        cache: context.storefront.CacheNone(),
       },
     );
 
@@ -146,6 +145,7 @@ export async function action({request, context}: ActionFunctionArgs) {
 In legacy customer account routes, read the stored token from `context.session`.
 
 ```ts
+import {CacheNone} from '@shopify/hydrogen';
 import {redirect, type LoaderFunctionArgs} from 'react-router';
 
 const CUSTOMER_QUERY = `#graphql
@@ -182,7 +182,7 @@ export async function loader({context}: LoaderFunctionArgs) {
     variables: {
       customerAccessToken: token.accessToken,
     },
-    cache: context.storefront.CacheNone(),
+    cache: CacheNone(),
   });
 
   if (!customer) {

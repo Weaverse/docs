@@ -256,9 +256,18 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 The preview uses PostMessage/RPC for Studio communication:
 
 ```javascript
-// Check if Weaverse is loaded in preview
-window.weaverseStudio?.version // Should return version number
+// Check whether the Weaverse storefront runtime booted in the preview.
+// @weaverse/hydrogen stores runtimes by Weaverse page ID.
+const runtime = Object.values(window.__weaverses ?? {})[0]
+runtime?.sdkVersion // e.g. "5.19.1" when a runtime is mounted
+runtime?.isDesignMode // true when the page is rendered inside Studio
+
+window.__weaverses // Record<pageId, WeaverseHydrogen>
 ```
+
+<Note>
+Check the storefront runtimes in `window.__weaverses`, not the Studio bridge. The bridge object is an internal implementation detail and does not expose a stable `version` field.
+</Note>
 
 ### Clear Studio Cache
 
@@ -286,7 +295,7 @@ If you've tried all troubleshooting steps and still experiencing issues:
 
 2. **Community Support**
    - Join [Weaverse Discord](https://discord.gg/weaverse)
-   - Search [GitHub Discussions](https://github.com/weaverse/discussions)
+   - Search [GitHub Discussions](https://github.com/orgs/Weaverse/discussions)
 
 3. **Contact Support**
    - Email: support@weaverse.io
@@ -314,7 +323,7 @@ If you've tried all troubleshooting steps and still experiencing issues:
    ```
 
 3. **Use recommended Node.js version**
-   - Node.js 18+ (LTS recommended)
+   - Node.js 22.12 or newer for the current Pilot template
    - Check with `node --version`
 
 4. **Monitor terminal output**

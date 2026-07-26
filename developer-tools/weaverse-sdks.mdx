@@ -54,7 +54,7 @@ npm install @weaverse/react
 
 **Basic Usage:**
 ```jsx
-import { Weaverse } from '@weaverse/core';
+import { registerElement, Weaverse } from '@weaverse/core';
 import { WeaverseRoot } from '@weaverse/react';
 
 // Initialize Weaverse
@@ -63,16 +63,23 @@ const weaverse = new Weaverse({
   data: yourWeaverseData
 });
 
-// Register your components
-weaverse.registerElement({
+// Register your components.
+// Registration is static — the registry is shared across every Weaverse
+// instance. Use the exported `registerElement`, or `Weaverse.registerElement`.
+registerElement({
   type: 'Button',
   Component: ButtonComponent,
   schema: {
     title: 'Button',
     type: 'Button',
-    settings: {
-      // Configuration options
-    }
+    settings: [
+      {
+        group: 'Content',
+        inputs: [
+          // Input configurations
+        ]
+      }
+    ]
   }
 });
 
@@ -83,6 +90,11 @@ function App() {
   );
 }
 ```
+
+<Note>
+  `registerElement` keys the registry by `type` and ignores a re-registration of
+  a type that already exists, so register each element type once.
+</Note>
 
 ### `@weaverse/hydrogen`
 
@@ -101,28 +113,39 @@ npm install @weaverse/hydrogen
 ```
 
 **Basic Usage:**
-```jsx
+```tsx
+// app/weaverse/index.tsx
 import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { GenericError } from '~/components/root/generic-error';
+import { components } from './components';
 
-export default function App() {
+export function WeaverseContent() {
   return (
-    <WeaverseHydrogenRoot>
-      {/* Your app content */}
-    </WeaverseHydrogenRoot>
+    <WeaverseHydrogenRoot
+      components={components}
+      errorComponent={GenericError}
+    />
   );
 }
 ```
 
+`WeaverseHydrogenRoot` takes no children — it renders the Weaverse page resolved
+for the current React Router route. Its props are:
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| `components` | `HydrogenComponent[]` | Yes | Theme components available to the page renderer |
+| `data` | `WeaverseLoaderData \| Promise<WeaverseLoaderData \| null> \| null` | No | Explicit `weaverseData` payload that bypasses automatic route-scoped resolution. Pass `null` to suppress rendering |
+| `errorComponent` | `React.FC<{ error: Error \| unknown }>` | No | Component rendered when page data cannot be resolved |
+
 ### `@weaverse/cli`
 
-A command-line tool included in the SDK, aiding developers in creating, managing, and deploying Weaverse Hydrogen themes
-with ease and efficiency.
+The command-line scaffolding tool for creating a Weaverse Hydrogen project from a supported template.
 
 **Key Features:**
 - Project scaffolding with templates
-- Development workflow utilities
-- Project configuration tools
-- Build and deployment helpers
+- Non-interactive project configuration through CLI flags
+- Dependency installation and optional development-server startup
 
 **Usage:**
 ```bash
@@ -175,20 +198,30 @@ This configuration helps maintain code quality and consistency across Weaverse p
 
 The Weaverse SDK packages are designed to work together seamlessly, but each can also be used independently based on your project needs:
 
-| Package | Compatible With | Required Dependencies |
-|---------|----------------|----------------------|
-| `@weaverse/core` | Any JavaScript project | None |
-| `@weaverse/react` | React 18+ applications | `@weaverse/core` |
-| `@weaverse/hydrogen` | Shopify Hydrogen | `@weaverse/core`, `@weaverse/react` |
-| `@weaverse/cli` | Node.js environment | None |
-| `@weaverse/biome` | Any JavaScript/TypeScript project | None (depends on `@biomejs/biome`) |
+| Package | Compatible With | Node.js | Runtime Dependencies |
+|---------|----------------|---------|----------------------|
+| `@weaverse/core` | Any JavaScript project | `>=18` | None |
+| `@weaverse/react` | React applications | `>=18` | `@weaverse/core`, `react` `>=19`, `react-dom` `>=19`, `clsx` |
+| `@weaverse/hydrogen` | Shopify Hydrogen storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `@shopify/hydrogen` `>=2025.5`, `@shopify/remix-oxygen` `3`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` |
+| `@weaverse/schema` | Any JavaScript/TypeScript project | - | `zod` `^4` |
+| `@weaverse/cli` | Node.js environment | `>=18` | None (run via `npx`) |
+| `@weaverse/biome` | Any JavaScript/TypeScript project | - | None (peer: `@biomejs/biome`) |
 
 ## System Requirements
 
-- **Node.js**: v18.0.0 or higher
+Requirements differ per package — check the table above for the exact package you
+install. For the `@weaverse/hydrogen` package:
+
+- **Node.js**: v20.0.0 or higher
+- **React / React DOM**: v19.0.0 or higher
+- **React Router**: v7 (not React Router DOM)
+- **Shopify Hydrogen**: 2025.5 or higher
 - **npm**: v7.0.0 or higher (or equivalent package manager)
-- **React**: v18.0.0 or higher (for React-based packages)
-- **Shopify Hydrogen**: Latest version recommended (for Hydrogen integration)
+
+<Note>
+  A generated theme may require a newer Node.js version than the SDK package.
+  The current Pilot template declares Node.js `>=22.12.0`.
+</Note>
 
 ## Getting Started
 
@@ -215,5 +248,5 @@ The Weaverse team is actively working on improving these packages and expanding 
 
 - [Weaverse Documentation](/)
 - [API Reference](/api-reference/introduction)
-- [Example Projects](https://weaverse.io/examples)
-- [Community Forum](https://github.com/Weaverse/weaverse/discussions)
+- [Example Components](/resources/example-components)
+- [Community Forum](https://github.com/orgs/Weaverse/discussions)

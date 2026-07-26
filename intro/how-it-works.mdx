@@ -25,25 +25,41 @@ graph LR
 ### 1. Developer Experience
 
 **Code Components Once**
-```typescript
+```tsx
+// app/sections/product-card/index.tsx
 // You write React components with schemas
-export function ProductCard({ title, price }) {
-  return <div>{title} - {price}</div>
+import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen'
+
+interface ProductCardProps extends HydrogenComponentProps {
+  title: string
+  price: string
 }
 
-export const schema = {
+function ProductCard({ ref, title, price, ...rest }: ProductCardProps) {
+  return <div ref={ref} {...rest}>{title} - {price}</div>
+}
+
+export default ProductCard
+
+export const schema = createSchema({
   type: 'product-card',
   title: 'Product Card',
-  settings: [/* configuration */]
-}
+  settings: [/* configuration */],
+})
 ```
 
-**Register Components**  
-```typescript
-// Components are registered in your Weaverse config
-export const components = {
-  'product-card': ProductCard,
-}
+**Register Components**
+
+Each component module is imported as a namespace (so Weaverse can read both the
+default export and its `schema`) and added to the `components` array in
+`app/weaverse/components.ts`:
+
+```ts
+// app/weaverse/components.ts
+import type { HydrogenComponent } from '@weaverse/hydrogen'
+import * as ProductCard from '~/sections/product-card'
+
+export const components: HydrogenComponent[] = [ProductCard]
 ```
 
 ### 2. Merchant Experience
@@ -61,14 +77,14 @@ export const components = {
 
 ### 3. Runtime Performance
 
-**Zero Runtime Overhead**
-- Components are pre-rendered at build time
-- No client-side JavaScript for page building
+**No Page-Builder Runtime for Shoppers**
+- Pages are server-rendered by Hydrogen on each request, using the page data loaded from Weaverse
+- The Studio editing bridge only loads in design mode, not on the live storefront
 - Only your component logic ships to browsers
 
 **Optimized Builds**
 - Automatic image optimization
-- Code splitting by page
+- Code splitting by route
 - Server-side rendering with Hydrogen
 
 ## Key Concepts
@@ -90,7 +106,9 @@ export const components = {
 Every Weaverse component includes a schema that defines:
 
 ```typescript
-export const schema = {
+import { createSchema } from '@weaverse/hydrogen'
+
+export const schema = createSchema({
   type: 'unique-component-name',
   title: 'Human-readable Title',
   settings: [
@@ -106,12 +124,11 @@ export const schema = {
       ]
     }
   ]
-}
+})
 ```
 
 This schema automatically generates:
 - Visual editor controls
-- TypeScript types
 - Validation rules
 - Default values
 
@@ -119,15 +136,15 @@ This schema automatically generates:
 
 1. **Build Time**: Schemas define available components
 2. **Edit Time**: Merchants configure component instances  
-3. **Runtime**: Pre-rendered HTML serves to visitors
+3. **Request Time**: Hydrogen loads the page data from Weaverse and server-renders the HTML
 4. **Hydration**: Interactive components become functional
 
 ## Integration with Hydrogen
 
 Weaverse leverages Hydrogen's architecture:
 
-- **React Router v7**: File-based routing with type safety
-- **Server Components**: Fast initial page loads
+- **React Router v7**: Route modules with loaders and type-safe route config
+- **Streaming SSR**: Fast initial page loads with deferred non-critical data
 - **Shopify APIs**: Native product and cart integration
 - **Performance**: Optimized for Core Web Vitals
 

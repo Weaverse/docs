@@ -316,22 +316,57 @@ function MyComponent(props: MyComponentProps) {
 
 ### Schema Type Safety
 
-You can extract types from your schema:
+Schemas are runtime configuration, not a source of TypeScript types — there is no
+type helper that infers props from a schema. Declare an interface for the values
+your inputs produce and keep it in sync with the schema's `name` fields:
 
 ```tsx
-import type { InferInput } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen";
+import type { HydrogenComponentProps } from "@weaverse/hydrogen";
 
-export const schema = createSchema({
-  // ... schema definition
-});
+interface MyComponentData {
+  heading: string;
+  layout: "grid" | "list";
+}
 
-// Extract the props type from schema
-type MyComponentProps = InferInput<typeof schema> & HydrogenComponentProps;
+interface MyComponentProps extends HydrogenComponentProps, MyComponentData {}
 
 function MyComponent(props: MyComponentProps) {
   // Fully typed component
 }
+
+export default MyComponent;
+
+export const schema = createSchema({
+  type: "my-component",
+  title: "My Component",
+  settings: [
+    {
+      group: "Content",
+      inputs: [
+        { type: "text", name: "heading", label: "Heading" },
+        {
+          type: "select",
+          name: "layout",
+          label: "Layout",
+          configs: {
+            options: [
+              { value: "grid", label: "Grid" },
+              { value: "list", label: "List" },
+            ],
+          },
+        },
+      ],
+    },
+  ],
+});
 ```
+
+<Tip>
+  In development (`NODE_ENV !== 'production'`), `createSchema()` validates the
+  schema and logs any issues it finds, so malformed settings surface early. The
+  validation is skipped in production builds.
+</Tip>
 
 ## Data Loading
 
@@ -639,4 +674,4 @@ export const schema = createSchema({
 **Component not selectable in Studio?** If your component renders but can't be clicked or edited, you're likely not spreading props correctly or returning `null`. See the [Component Not Selectable](/troubleshooting/component-not-selectable) guide to fix it.
 </Warning>
 
-For more examples, check out the [Example Components](resources/example-components) and join our [Slack community](https://wvse.cc/weaverse-slack) for help.
+For more examples, check out the [Example Components](/resources/example-components) and join our [Slack community](https://wvse.cc/weaverse-slack) for help.

@@ -877,10 +877,10 @@ export let schema = createSchema({
 
 #### 3. Gradual Migration
 
-During the transition period, you can keep both properties. The system will use `settings` as the primary source and fall back to `inspector` if `settings` is not available:
+During the transition period you can keep both properties. When only one is present, that one is used — `inspector` alone additionally logs a deprecation warning. When **both** are present, Weaverse concatenates them, with the `settings` groups rendered first and the `inspector` groups appended after:
 
 ```tsx
-// Transition approach (will show deprecation warning)
+// Transition approach — renders BOTH sets of groups
 export let schema = createSchema({
   type: 'my-component',
   title: 'My Component',
@@ -899,7 +899,9 @@ export let schema = createSchema({
 });
 ```
 
-**Note**: When both properties exist, only `settings` will be used. The `inspector` property is ignored to prevent duplication.
+<Warning>
+`settings` does **not** replace or override `inspector`. The SDK concatenates both arrays before extracting defaults and registering the schema, so a group copied into `settings` without deleting the original is submitted twice to Studio. Remove each `inspector` group as soon as you have migrated it.
+</Warning>
 
 ## Troubleshooting
 

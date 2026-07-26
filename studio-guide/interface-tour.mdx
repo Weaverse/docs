@@ -62,11 +62,15 @@ Studio settings are available from the settings popover in the workspace. This p
 ![Weaverse Studio Theme Info](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/theme-info.webp?v=1743410159)
 
 - **Preferences:** Manage editor preferences and workspace behavior.
-- **Project:** View or update project-level settings, including the Project ID and API key used in your Hydrogen `.env` file.
+- **Project:** View or update project-level settings, including the **Project ID**. This is the only Studio value a standard Hydrogen setup needs — copy it into your theme's `.env` as `WEAVERSE_PROJECT_ID`.
 - **Preview URL:** Configure the storefront URL Studio should load, such as `http://localhost:3456` during local development.
 - **Domains:** Configure custom domains when your project uses Weaverse-hosted storefront features.
 - **Activity:** Review recent project activity and editing history.
 - **Theme:** View theme information such as name, author, and version from `themeSchema.info` in `~/weaverse/schema.server.ts`.
+
+<Note>
+API tokens are not part of this Studio-to-Hydrogen setup. Content API credentials are generated separately (as `content_api` tokens) and are only needed when an external application calls Weaverse's APIs. See [API Access](/features/api-access).
+</Note>
 
 ## Common Editing Flow
 

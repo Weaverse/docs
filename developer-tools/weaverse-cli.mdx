@@ -31,7 +31,7 @@ The `create` command is essential for starting new Weaverse Hydrogen projects. I
 - Downloads and extracts the selected template
 - Sets up environment variables, including your `WEAVERSE_PROJECT_ID` and a generated `SESSION_SECRET`
 - Installs necessary dependencies (optional)
-- Starts the development server (optional)
+- Starts the development server (optional — prompted interactively, opt-in with `--dev` in non-interactive runs)
 
 #### Available Templates
 
@@ -48,13 +48,21 @@ Weaverse CLI currently supports the following templates:
 
 | Option | Description | Required | Default |
 | --- | --- | --- | --- |
-| **`--template`** | Template name (`pilot`, `naturelle`, `aspen`, or `maison`) | Yes | - |
-| **`--project-id`** | Your Weaverse project ID | Yes | - |
-| **`--project-name`** | Name for your project directory. Prompted in interactive mode; required with `--yes`/`--ci` | No | Prompted |
+| **`--template`** | Template name (`pilot`, `naturelle`, `aspen`, or `maison`). Prompted in interactive mode; must be passed in non-interactive mode | Yes | - |
+| **`--project-id`** | Your Weaverse project ID. Prompted in interactive mode; must be passed in non-interactive mode | Yes | - |
+| **`--project-name`** | Name for your project directory. Prompted in interactive mode; defaulted when omitted in non-interactive mode | No | Prompted / defaulted |
 | **`--commit`** | Specific Git commit hash to use | No | Latest from main branch |
 | **`--no-install`** | Skip dependency installation and dev server start | No | false |
-| **`-y`, `--yes`** | Non-interactive mode. Fail fast when required options are missing | No | false |
+| **`--dev`** | Start the development server after install. Use `--no-dev` to skip the prompt and not start it | No | Prompted (interactive) / off (non-interactive) |
+| **`-y`, `--yes`** | Non-interactive mode: never prompt, fail fast on missing required options | No | false |
+| **`--ci`** | Alias for `--yes` | No | false |
 | **`-f`, `--force`** | Overwrite the target directory when it already exists | No | false |
+
+<Note>
+  The CLI also runs non-interactively on its own when stdin isn't a TTY (piped
+  input, CI, or a coding agent), or when `CI=true` is set — `--yes`/`--ci` just
+  force that mode explicitly.
+</Note>
 
 #### Usage Examples
 
@@ -88,6 +96,12 @@ npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3
 npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3c44uhjh --project-name=my-hydrogen-storefront --no-install -y
 ```
 
+**Non-interactive setup that also starts the dev server:**
+
+```txt data-line-numbers=false
+npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3c44uhjh --project-name=my-store --dev -y
+```
+
 ## Workflow
 
 When you run the `create` command, the CLI will:
@@ -97,7 +111,14 @@ When you run the `create` command, the CLI will:
 3. Configure environment variables (including your Weaverse project ID)
 4. Generate a secure local `SESSION_SECRET`
 5. Install dependencies using npm (unless `--no-install` is specified)
-6. Start the development server (unless `--no-install` is specified)
+6. Start the development server — in interactive mode the CLI asks first; in
+   non-interactive mode it only starts when `--dev` is passed, so agent and CI
+   runs return instead of hanging on a blocking server
+
+<Warning>
+  `npm run dev` is a long-running, blocking process. Leave `--dev` off in CI and
+  agent-driven runs, then start the server yourself with `cd my-store && npm run dev`.
+</Warning>
 
 After completion, you'll see instructions for the next steps to take.
 
@@ -119,7 +140,7 @@ full command, complete with the project ID and project name, ensuring accuracy.
 
 **Dependency Installation Fails**
 - Try running `npm install --legacy-peer-deps` manually in the project directory
-- Ensure you have the latest version of Node.js installed (v18+)
+- Ensure you have a supported version of Node.js installed. The current Pilot template declares Node.js `>=22.12.0`; the `@weaverse/hydrogen` package itself declares Node.js `>=20`
 - Check for errors in your project's package.json
 
 **Development Server Won't Start**

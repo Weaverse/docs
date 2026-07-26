@@ -15,14 +15,14 @@ Weaverse bridges the gap between developer flexibility and merchant usability by
 - **Visual Studio**: Drag-and-drop page builder for merchants
 - **Component Library**: Pre-built sections and reusable components
 - **Developer APIs**: Full control over components, data, and styling
-- **Performance First**: Zero runtime overhead with optimized builds
-- **Type Safety**: Full TypeScript support with React 19 Compiler
+- **Performance First**: Server-rendered pages with no page-builder runtime shipped to shoppers
+- **Type Safety**: Full TypeScript support on React 19
 - **React Router v7**: Modern routing with enhanced developer experience
 
 ## Quick Links
 
 - [📚 5-Minute Quickstart](/intro/quickstart) - Get a demo site running locally
-- [⚡ Installation Guide](getting-started/installation) - Add Weaverse to your project
+- [⚡ Installation Guide](/getting-started/installation) - Add Weaverse to your project
 
 ## Architecture Overview
 
@@ -31,13 +31,14 @@ Weaverse projects follow a modern Hydrogen structure optimized for visual editin
 ```
 my-hydrogen-store/
 ├── app/
+│   ├── .server/             # Server-only modules (load context, root loaders)
 │   ├── components/          # Reusable UI components
-│   ├── sections/            # Weaverse page sections  
-│   ├── routes/              # React Router v7 pages
-│   ├── lib/                 # Utilities and helpers
-│   └── weaverse/            # Weaverse configuration
+│   ├── sections/            # Weaverse page sections
+│   ├── routes/              # React Router v7 route modules
+│   ├── utils/               # Utilities and helpers
+│   └── weaverse/            # Weaverse configuration (component registry, theme schema)
 ├── public/                  # Static assets
-├── weaverse.config.ts       # Theme configuration
+├── server.ts                # Oxygen request handler
 └── package.json
 ```
 
@@ -54,14 +55,14 @@ my-hydrogen-store/
 ## Learning Path
 
 1. **Start Here**: Follow our [Quickstart Guide](/intro/quickstart)
-2. **Understand**: Read [Core Concepts](core-concepts) to learn how Weaverse works
+2. **Understand**: Read [Core Concepts](/core-concepts) to learn how Weaverse works
 3. **Build**: Follow the [Development Guide](/development-guide/index) to create components
 4. **Deploy**: Use our [Deployment Guide](/guides/deployment) to go live
 
 ## Need Help?
 
 - 💬 [Community Forum](/community/community) - Connect with other developers
-- 📖 [FAQ](resources/faq) - Common questions and answers
-- 📚 [Complete Tutorial](resources/tutorial) - Step-by-step walkthrough
+- 📖 [FAQ](/resources/faq) - Common questions and answers
+- 📚 [Complete Tutorial](/resources/tutorial) - Step-by-step walkthrough
 
 Ready to build amazing Shopify storefronts? Let's get started! 🚀

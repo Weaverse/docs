@@ -1,161 +1,200 @@
 ---
 title: "Deploy with Docker"
-description: "Learn how to deploy your Weaverse theme using Docker, with a specific example for Fly.io deployment"
+description: "Containerize your Weaverse theme and deploy it to any cloud provider, with a worked Fly.io example"
 published: true
 ---
 
 # Deploying Weaverse Themes with Docker
 
-> **Important**: For production deployments, use [Shopify Oxygen](/guides/deployment/oxygen). Docker deployment is recommended only for development and testing.
->
-> Note: mini-oxygen in Docker simulates the Workers environment and requires environment variables to be set via `.env` file, not through cloud platform settings.
->
-> For a complete working example, check out our [Naturelle Demo Repository](https://github.com/Weaverse/naturelle-demo) which demonstrates Docker deployment configuration in a real Weaverse theme project.
+<Note>
+For production storefronts, use [Shopify Oxygen](/guides/deployment/oxygen) — it is the officially supported target for Hydrogen. Docker is a good fit for development, testing, review apps, and infrastructure you must control yourself.
+</Note>
 
-For other options to deploy your Hydrogen project, including platforms like Vercel, Netlify, and Cloudflare Workers, please refer to the [Shopify documentation on self-hosting Hydrogen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments/self-hosting).
+For other self-hosting targets, see the [Shopify documentation on self-hosting Hydrogen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments/self-hosting). For a real-world containerized theme, the [Naturelle Demo Repository](https://github.com/Weaverse/naturelle-demo) shows a working Docker setup.
 
-## Understanding Docker Deployment
+## Quick Flow
 
-Docker deployment for Weaverse themes uses mini-oxygen, a Node.js-based simulation of the Shopify Workers environment. This approach has several important characteristics:
+<Steps>
+  <Step title="Add a Dockerfile and .dockerignore">
+    Multi-stage build; `.dockerignore` must exclude `.env*`.
+  </Step>
+  <Step title="Build the image with no secrets in it">
+    `docker build -t my-storefront .`
+  </Step>
+  <Step title="Supply configuration at run time">
+    `docker run --env-file .env -p 3000:3000 my-storefront`
+  </Step>
+  <Step title="Deploy">
+    `fly secrets set ...` then `fly deploy` (or the equivalent for your platform).
+  </Step>
+</Steps>
 
-1. **Environment Simulation**:
-   - Runs in Node.js instead of actual Workers runtime
-   - Some Worker-specific features might behave differently
-   - Useful for development and testing, but not ideal for production
+## How it works
 
-2. **Network Binding**:
-   - Requires special handling for host binding (localhost → 0.0.0.0)
-   - Enables access from outside the container
-   - Essential for cloud deployment scenarios
+The container runs `npm run start`, which is `shopify hydrogen preview` — a Node-based simulation of the Oxygen Workers runtime. Two consequences matter:
 
-3. **Environment Variables**:
-   - Must use `.env` file approach
-   - Cloud platform environment settings won't work
-   - Simulates Worker environment variable access
+1. **Runtime differences.** Worker-specific behavior, caching, and performance characteristics are simulated, not identical to Oxygen. Validate anything runtime-sensitive before relying on it.
+2. **Network binding.** The preview server binds to `localhost` by default, which is unreachable from outside the container. It has to listen on `0.0.0.0` for the container to serve traffic.
+
+## Security rules
+
+<Warning>
+**Never `COPY` a `.env` file into the image, and never bake credentials into a build layer.** Docker image layers are readable by anyone who can pull the image — `docker history` and layer extraction expose them, and deleting the file in a later layer does not remove it from the earlier one. Secrets belong in the runtime environment, not the image.
+</Warning>
+
+Concretely:
+
+- Add `.env*` to `.dockerignore` so env files never enter the build context.
+- Do not use `ENV` or build args for tokens, API keys, or `SESSION_SECRET`.
+- Pass configuration at container start: `--env-file`, `-e`, your orchestrator's secret store, or `fly secrets`.
+- Rotate any credential that has already been committed to an image or to Git.
 
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) (latest stable version)
-- [Node.js](https://nodejs.org/) (LTS version)
-- [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/) (for Fly.io deployment)
-- A Weaverse theme project
+- [Node.js](https://nodejs.org/) — the Pilot theme requires `>=22.12.0`
+- [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/) if you are following the Fly example
+- A Weaverse theme project that builds locally (`npm run build` succeeds)
 
 ## Configuration Files
 
-### 1. Dockerfile
+### 1. `.dockerignore`
 
-Create a `Dockerfile` in your project root:
+Create this **first**, so the build context never contains secrets or junk:
 
-```bash
-FROM node:lts-bookworm-slim as base
+```plaintext .dockerignore
+# Secrets — never send these to the Docker daemon
+.env
+.env.*
+.dev.vars
 
-# Install essential SSL and security certificates
+# Dependencies
+node_modules
+
+# Logs and temporary files
+*.log
+.DS_Store
+.cache
+
+# Version control
+.git
+.github
+
+# Build outputs
+dist
+.react-router
+.shopify
+
+# Tests
+test-results
+playwright-report
+```
+
+<Tip>
+`.env.example` is safe to keep out too — the pattern `.env.*` excludes it, and the image does not need it.
+</Tip>
+
+### 2. `Dockerfile`
+
+```dockerfile Dockerfile
+# Pilot requires Node >=22.12.0
+FROM node:22-bookworm-slim AS base
+
+# SSL and CA certificates for outbound Shopify/Weaverse API calls
 RUN apt-get update && \
     apt-get install -y --no-install-recommends openssl ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Build stage for compiling and preparing the application
-FROM base as build
+# ---- Build stage ----
+FROM base AS build
 WORKDIR /myapp
 
-# Install dependencies using package files
 COPY package*.json .npmrc ./
 RUN npm ci
 
-# Copy all source files
 COPY . .
 
-# Patch the workerd configuration for container compatibility
-# This is necessary because:
-# 1. Default localhost binding doesn't work in containers
-# 2. External access requires 0.0.0.0 binding
-# 3. Both Shopify CLI and Hydrogen files need patching
-RUN set -e && \
-    WORKERD_FILE=$(find node_modules/@shopify/cli/dist -type f -name "workerd-*.js") && \
-    if [ -f "$WORKERD_FILE" ]; then \
-        sed -i -e 's|host: "localhost"|host: "0.0.0.0"|' "$WORKERD_FILE"; \
-    else \
-        echo "workerd file not found" && exit 1; \
-    fi && \
-    HYDROGEN_WORKERD_FILE="node_modules/@shopify/cli-hydrogen/dist/lib/mini-oxygen/workerd.js" && \
-    if [ -f "$HYDROGEN_WORKERD_FILE" ]; then \
-        sed -i -e 's|host: "localhost"|host: "0.0.0.0"|' "$HYDROGEN_WORKERD_FILE"; \
-    else \
-        echo "hydrogen workerd file not found" && exit 1; \
-    fi
+# Bind the preview server to 0.0.0.0 so the container is reachable.
+# This patches CLI internals, so the file paths shift between versions —
+# the step warns rather than fails if a path is gone, but re-check it
+# after upgrading @shopify/cli or @shopify/mini-oxygen.
+RUN set -eu; \
+    patched=0; \
+    for f in \
+      $(find node_modules/@shopify -type f -name "workerd*.js" 2>/dev/null); do \
+        if grep -q 'host: "localhost"' "$f"; then \
+            sed -i -e 's|host: "localhost"|host: "0.0.0.0"|' "$f"; \
+            echo "patched host binding in $f"; \
+            patched=1; \
+        fi; \
+    done; \
+    [ "$patched" = "1" ] || echo "WARNING: no workerd host binding patched — verify the container is reachable"
 
-# Build the application
 RUN npm run build
 
-# Production stage with minimal footprint
-FROM base as production
+# ---- Production stage ----
+FROM base AS production
 WORKDIR /myapp
 
-# Set runtime environment
 ENV NODE_ENV=production
-ENV FLY="true"
-ENV PORT="3000"
+ENV PORT=3000
 
-# Copy only necessary files from build stage
+# Copy build output only. No .env, no credentials — configuration is
+# injected at run time.
 COPY --from=build /myapp/dist /myapp/dist
 COPY --from=build /myapp/node_modules /myapp/node_modules
 COPY --from=build /myapp/package.json /myapp/package.json
-COPY --from=build /myapp/.env /myapp/.env
 
 EXPOSE 3000
 CMD ["npm", "run", "start"]
 ```
 
-### 2. .dockerignore
+<Note>
+`npm run start` runs `shopify hydrogen preview`, which lives in `@shopify/cli` — a dev dependency. That is why the production stage copies the full `node_modules` from the build stage rather than running `npm ci --omit=dev`.
+</Note>
 
-Create a `.dockerignore` to optimize build context and improve security:
+### 3. Environment variables
 
-```plaintext
-# Dependencies
-/node_modules
+Keep a local `.env` for development (it is already in the theme's `.gitignore`), and use `.env.example` as the reference list of variables your theme reads:
 
-# Logs and temporary files
-*.log
-.DS_Store
-/.cache
-
-# Version control
-.git
-
-# Build outputs
-/dist
-
-# Shopify specific
-/.shopify
+```plaintext .env
+SESSION_SECRET=your-session-secret
+PUBLIC_STORE_DOMAIN=your-store.myshopify.com
+PUBLIC_STOREFRONT_API_TOKEN=your-storefront-api-token
+PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=your-customer-account-client-id
+SHOP_ID=your-shop-id
+WEAVERSE_PROJECT_ID=your-weaverse-project-id
 ```
 
-### 3. Environment Configuration
+Run the container with those values injected at start time. Before deploying, verify that the installed Shopify CLI version exposes the process environment as Hydrogen worker bindings:
 
-Create a `.env` file in your project root:
+```bash
+docker build -t my-storefront .
 
-```plaintext
-# Shopify Configuration
-SHOPIFY_STORE_DOMAIN=your-store.myshopify.com
-SHOPIFY_STOREFRONT_API_TOKEN=your-token
+# From a local env file (the file stays on your machine)
+docker run --rm -p 3000:3000 --env-file .env my-storefront
 
-# Additional configurations as needed
-# PUBLIC_STORE_DOMAIN=your-public-domain.com
-# SESSION_SECRET=your-session-secret
+# Or individually
+docker run --rm -p 3000:3000 \
+  -e SESSION_SECRET=... \
+  -e PUBLIC_STORE_DOMAIN=your-store.myshopify.com \
+  -e WEAVERSE_PROJECT_ID=... \
+  my-storefront
 ```
+
+<Tip>
+Exercise a route that reads the required bindings after the container starts. If your CLI version does not forward the process environment, write a `.env` file at container **start** from the injected values via an entrypoint script — never at build time. The file then exists only in the running container's writable layer, not in the distributable image.
+</Tip>
 
 ## Cloud Deployment (Fly.io)
 
-### 1. Fly.io Configuration
+### 1. `fly.toml`
 
-Create `fly.toml`:
-
-```toml
-# Application Configuration
+```toml fly.toml
 app = 'your-app-name'
 primary_region = 'sin'
 
-# HTTP Service Configuration
 [http_service]
   internal_port = 3000
   force_https = true
@@ -163,66 +202,73 @@ primary_region = 'sin'
   auto_start_machines = true
   min_machines_running = 0
 
-# Virtual Machine Configuration
 [[vm]]
   memory = '1024mb'
   cpu_kind = 'shared'
   cpus = 1
 ```
 
-### 2. Deployment Steps
+<Warning>
+Do not put tokens or `SESSION_SECRET` in the `[env]` section of `fly.toml` — that file is committed to Git. Use `fly secrets` instead.
+</Warning>
 
-1. Initialize deployment:
+### 2. Set secrets
+
+Fly secrets are encrypted at rest and injected into the machine's environment at run time:
+
 ```bash
-fly launch
+fly secrets set \
+  SESSION_SECRET=... \
+  PUBLIC_STORE_DOMAIN=your-store.myshopify.com \
+  PUBLIC_STOREFRONT_API_TOKEN=... \
+  PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=... \
+  SHOP_ID=... \
+  WEAVERSE_PROJECT_ID=...
+
+# Import a whole local env file at once
+fly secrets import < .env
+
+# Review what is set (names only, values are never shown)
+fly secrets list
 ```
 
-2. Deploy the application:
+Setting a secret triggers a rolling restart so the new values take effect.
+
+### 3. Deploy
+
 ```bash
+fly launch   # first time only — generates/updates fly.toml
 fly deploy
-```
 
-3. Monitor deployment:
-```bash
-# Check status
 fly status
-
-# View logs
 fly logs
 ```
 
-## Troubleshooting Guide
+The same pattern applies elsewhere: ECS task definition secrets, Cloud Run `--set-secrets`, Kubernetes `Secret` + `envFrom`, Render/Railway environment settings. All of them inject variables into the process environment, which is exactly what the container expects.
 
-### Common Issues and Solutions
+## Troubleshooting
 
-1. **Build Failures**:
-   - Verify Node.js version compatibility
-   - Check for missing dependencies
-   - Ensure Docker has enough resources
+**Container starts but nothing responds on the mapped port**
+The host binding patch did not apply. Check the build log for the `WARNING: no workerd host binding patched` line and re-check the CLI file layout for your `@shopify/cli` version.
 
-2. **Runtime Errors**:
-   - Check container logs: `fly logs`
-   - Verify environment variables
-   - Confirm port configurations
+**Build failures**
+Confirm the Node version in the base image satisfies the theme's `engines.node` (`>=22.12.0`), that `npm run build` succeeds locally, and that Docker has enough memory allocated.
 
-3. **Performance Issues**:
-   - Monitor resource usage
-   - Check for memory leaks
-   - Verify network connectivity
+**Missing configuration at run time**
+Check the values actually reached the container: `docker exec <container> printenv | sort`, or `fly ssh console -C printenv`. Variable names are case-sensitive.
+
+**Weaverse Studio preview does not load**
+Verify `WEAVERSE_PROJECT_ID` is set in the running environment and that the deployed URL is registered on your Weaverse project. See [Preview Errors](/troubleshooting/preview-errors).
 
 ## Limitations and Considerations
 
-1. **Worker Environment Simulation**:
-   - Not all Worker features are available
-   - Performance characteristics differ
-   - Some APIs might behave differently
+1. **Runtime simulation** — `shopify hydrogen preview` approximates the Workers runtime in Node. Not every Worker API or performance characteristic matches Oxygen.
+2. **Image size** — the production stage ships the full `node_modules` because the preview server is part of the Shopify CLI.
+3. **Operational ownership** — scaling, TLS, log retention, and monitoring are yours to configure. [Oxygen](/guides/deployment/oxygen) handles these for you.
 
-2. **Environment Variables**:
-   - Must use `.env` file approach
-   - No support for cloud platform env settings
-   - Careful management of sensitive data required
+## Related
 
-3. **Production Readiness**:
-   - Consider using Shopify Oxygen for production
-   - Docker deployment best for development/testing
-   - Monitor resource usage and performance 
+- [Deploy to Oxygen](/guides/deployment/oxygen) — the recommended production path
+- [Deploy to Cloudflare Workers](/guides/deployment/workers)
+- [Custom Domain and DNS](/guides/deployment/custom-domain-and-dns)
+- [Shopify: Self-hosting Hydrogen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments/self-hosting)
