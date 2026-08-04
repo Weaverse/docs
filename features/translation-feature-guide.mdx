@@ -111,6 +111,130 @@ Recommended setup rules:
 2. Use stable keys that describe the UI meaning, not the current copy.
 3. Treat these default values as the source-language content for your project.
 
+## Editing theme strings from global theme settings
+
+By default, `i18n.staticContent` keys are only editable inside the `Translation Manager`. If you want merchants to edit a specific string (or swap a per-language image) right from **global theme settings**, expose it with one of two dedicated input types:
+
+| Input type | Value it stores | Studio control |
+| --- | --- | --- |
+| `translation-key` | A translatable string | Text input |
+| `translation-image` | An image URL, translatable per language | Media picker |
+
+<Note>
+  These input types require `@weaverse/hydrogen` `5.20.1` or higher (which ships `@weaverse/schema` `0.14.0`). On earlier versions TypeScript rejects them with *"Type `'translation-image'` is not assignable to type `InputType`."*
+</Note>
+
+### The one rule that makes these different
+
+For every other input type, `name` is the **component prop** that receives the value. For these two, `name` is a **dot-notation key into `i18n.staticContent`** — the same key you pass to `t()`.
+
+```ts
+// Every other input: `name` is a prop
+{ type: 'text', name: 'heading' }        // → props.heading
+
+// Translation inputs: `name` is a content key
+{ type: 'translation-key', name: 'cart.general.title' }   // → t('cart.general.title')
+```
+
+The consequence is important: values are stored **per locale** in the translation store, not in theme settings data. They never show up in your theme settings object or in component props — `t()` is the only way to read them back.
+
+### Declaring them in the theme schema
+
+Add them to the theme schema's `settings` array, which is a list of `{ group, inputs }` groups:
+
+```ts
+import staticContent from '~/i18n/en.json'
+
+export const schema = {
+  i18n: {
+    translation: true,
+    staticContent,
+  },
+  settings: [
+    {
+      group: 'Cart',
+      inputs: [
+        {
+          type: 'translation-key',
+          name: 'cart.general.title',
+          label: 'Cart title',
+          helpText: 'Shown at the top of the cart drawer.',
+        },
+        {
+          type: 'translation-key',
+          name: 'cart.general.checkout',
+          label: 'Checkout button',
+        },
+      ],
+    },
+  ],
+}
+```
+
+Each `name` must match a key that already exists in your `i18n.staticContent` JSON — that file stays the source of truth for the default language.
+
+### Reading the values back
+
+Exactly as you would any other theme string — with `t()`:
+
+```tsx
+import { useTranslation } from "@weaverse/hydrogen";
+
+export function CartHeader() {
+  const { t } = useTranslation();
+
+  return (
+    <div>
+      <h2>{t("cart.general.title")}</h2>
+      <button>{t("cart.general.checkout")}</button>
+    </div>
+  );
+}
+```
+
+### Per-language images
+
+`translation-image` stores an **image URL** rather than a sentence, so a merchant can ship different artwork per language — a banner with baked-in text, a locale-specific badge, a regional payment logo.
+
+Alt text is not bundled in. Pair the image with its own `translation-key` input:
+
+```ts
+{
+  group: 'Homepage promo',
+  inputs: [
+    {
+      type: 'translation-image',
+      name: 'promo.banner.image',
+      label: 'Promo banner',
+      helpText: 'Merchants can upload a different image per language.',
+    },
+    {
+      type: 'translation-key',
+      name: 'promo.banner.alt',
+      label: 'Promo banner alt text',
+    },
+  ],
+}
+```
+
+Both read back through the same `t()` lookup — the image one returns a URL string:
+
+```tsx
+export function PromoBanner() {
+  const { t } = useTranslation();
+
+  return <img src={t("promo.banner.image")} alt={t("promo.banner.alt")} />;
+}
+```
+
+<Warning>
+  Use these two input types in the **theme** schema's `settings` only. They are not meant for component/section schemas — a section input's `name` must be a real component prop, and these deliberately are not.
+</Warning>
+
+<Tip>
+  Reach for these when a string is worth surfacing to merchants without opening the `Translation Manager` — a promo headline, a shipping notice, a seasonal banner. For the long tail of UI strings, leave them in `i18n.staticContent` and translate them in the manager's `Theme` scope.
+</Tip>
+
 ## The two content scopes
 
 The manager splits everything translatable into two scopes, shown in the left navigation:
@@ -233,6 +357,8 @@ For the smoothest rollout, use this order:
 4. **Strings stay untranslated after Auto-Translate:** re-run Auto-Translate for that page/language, or fill the remaining rows by hand. Use the `Untranslated` filter. Static keys not declared in `i18n.staticContent` won't appear.
 5. **Static / theme keys missing:** run `Sync Theme Keys` in the Theme scope, and confirm `schema.i18n.staticContent` exists.
 6. **Source language changed:** use `Re-sync Keys` instead of recreating all translations.
+7. **`Type '"translation-image"' is not assignable to type 'InputType'`:** your installed `@weaverse/schema` predates these input types. Upgrade to `@weaverse/hydrogen@5.20.1` or higher, which pins `@weaverse/schema@0.14.0`. Upgrading `@weaverse/schema` alone is not enough if `@weaverse/hydrogen` still pins an older version — check with `npm ls @weaverse/schema`.
+8. **A `translation-key` input shows nothing in Studio:** its `name` must match a key that exists in `i18n.staticContent`. Unlike other inputs, `name` is a content key, not a component prop — a typo silently yields an empty field.
 
 ## Limits & behavior
 
