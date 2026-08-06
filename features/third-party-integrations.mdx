@@ -347,7 +347,13 @@ This pattern is ideal for:
 
 ## Real-World Examples
 
-Let's explore two real implementations: Ali Reviews and Judge.me integrations.
+For a complete, theme-independent Judge.me walkthrough, see the dedicated guide:
+
+<Card title="Integrate Judge.me Reviews with Shopify Hydrogen" icon="star" href="/hydrogen-integrations/judgeme-reviews">
+  Keep the private API key on the server, proxy review data through Hydrogen, and expose the UI as an editable Weaverse section.
+</Card>
+
+The Ali Reviews example below demonstrates the same general component-loader pattern.
 
 ### Ali Reviews Integration
 
@@ -447,92 +453,6 @@ The implementation:
 2. Uses a loader to securely fetch reviews from the Ali Reviews API
 3. Structures the component to render Ali Review data
 4. Supports child components for customizable review display
-
-### Judge.me Reviews Integration
-
-Judge.me is another popular reviews platform that can be integrated with Weaverse:
-
-```tsx
-// app/sections/judgeme-reviews/index.tsx
-import type { ComponentLoaderArgs } from "@weaverse/hydrogen";
-import { forwardRef } from "react";
-import { Section, type SectionProps } from "~/components/section";
-
-let JudgemeReviewSection = forwardRef<HTMLElement, SectionProps>(
-  (props, ref) => {
-    let { children, loaderData, ...rest } = props;
-    return (
-      <Section ref={ref} {...rest} overflow="unset">
-        {children}
-      </Section>
-    );
-  },
-);
-
-export default JudgemeReviewSection;
-
-export let schema = createSchema({
-  type: "judgeme-reviews",
-  title: "Judgeme Reviews",
-  enabledOn: {
-    pages: ["PRODUCT"], // Only enable on product pages
-  },
-  // Schema configuration...
-  childTypes: ["heading", "paragraph", "judgeme-review--index"],
-  // Preset configuration...
-});
-```
-
-The Judge.me integration reads the current product from the React Router loader, then fetches reviews from a resource route. Current Pilot keeps review data out of the product loader and loads it on demand:
-
-```tsx
-// app/sections/judgeme-reviews/index.tsx
-import { useEffect, type ComponentProps } from "react";
-import { useLoaderData } from "react-router";
-import type { loader as productRouteLoader } from "~/routes/products/product";
-import { usePrefixPathWithLocale } from "~/hooks/use-prefix-path-with-locale";
-import type { JudgemeReviewsData } from "~/types/judgeme";
-import { useJudgemeStore } from "./store";
-
-interface ReviewIndexProps extends ComponentProps<"div"> {}
-
-function ReviewIndex({ ref, children, ...props }: ReviewIndexProps) {
-  const { product } = useLoaderData<typeof productRouteLoader>();
-  const { setData } = useJudgemeStore();
-  const reviewsAPI = usePrefixPathWithLocale(
-    `/api/product/${product?.handle}/reviews`,
-  );
-
-  useEffect(() => {
-    if (!product?.handle) return;
-
-    fetch(reviewsAPI)
-      .then((response) => {
-        if (!response.ok) throw new Error(`Review request failed: ${response.status}`);
-        return response.json();
-      })
-      .then((reviews: JudgemeReviewsData) => setData(reviews));
-  }, [product?.handle, reviewsAPI, setData]);
-
-  return (
-    <div
-      ref={ref}
-      {...props}
-      className="flex flex-col md:flex-row md:gap-10 gap-5"
-    >
-      {children}
-    </div>
-  );
-}
-
-export default ReviewIndex;
-```
-
-This approach:
-
-1. Reuses the product already loaded by the Hydrogen route
-2. Defers the third-party review request until the component renders
-3. Keeps review pagination and caching independent from the product loader
 
 ## Common Integration Challenges
 
