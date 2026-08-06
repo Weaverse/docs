@@ -90,7 +90,6 @@
               "features/global-sections",
               "features/navigation-menus",
               "features/third-party-integrations",
-              "features/contact-form-klaviyo",
               "features/mobile-app-pwa"
             ]
           },
@@ -227,6 +226,12 @@
             ]
           },
           {
+            "group": "Hydrogen Integrations",
+            "pages": [
+              "hydrogen-integrations/contact-form-klaviyo"
+            ]
+          },
+          {
             "group": "Migration",
             "pages": [
               "migration-advanced/index",
@@ -349,6 +354,10 @@
     {
       "source": "/themes-templates/:slug*",
       "destination": "/hydrogen-themes/:slug*"
+    },
+    {
+      "source": "/features/contact-form-klaviyo",
+      "destination": "/hydrogen-integrations/contact-form-klaviyo"
     }
   ],
   "footer": {
