@@ -1,0 +1,306 @@
+---
+title: Integrate Judge.me Reviews with Shopify Hydrogen
+description: Build a Judge.me product reviews integration for a Shopify Hydrogen storefront with server-side API access, ratings, pagination, and optional review submission.
+published: true
+---
+
+# Integrate Judge.me Reviews with Shopify Hydrogen
+
+Judge.me provides product ratings, review widgets, and review-management APIs for Shopify stores. In a Hydrogen storefront, the safest integration keeps the Judge.me credential on the server and exposes only the review data or widget HTML that the storefront needs.
+
+This guide describes a theme-independent architecture. File names and route conventions are examples; adapt them to your Hydrogen project. The [Weaverse Pilot theme](https://github.com/Weaverse/pilot) is included as a working reference, not as a required project structure.
+
+## What you will build
+
+```text
+Product page
+    │
+    │ GET /api/product/:handle/reviews?page=1
+    ▼
+Hydrogen resource route
+    │
+    │ authenticated server-to-server request
+    ▼
+Judge.me API
+    │
+    └── rating badge, review widget, or structured reviews
+```
+
+The same resource route can optionally accept review submissions, but public writes need stronger validation and abuse protection than read-only requests.
+
+## Choose the response shape
+
+Judge.me supports two useful approaches:
+
+| Approach | Best for | Trade-off |
+|---|---|---|
+| **Widget HTML** | Fast setup with Judge.me's existing review markup | Less control over the generated markup |
+| **Structured review data** | Fully custom review cards, filters, and pagination | More mapping, styling, and API handling |
+
+For most storefronts, start with the widget endpoints. Judge.me documents their HTML responses as sanitized and safe to embed. Move to structured data only when your design requires full control.
+
+## Prerequisites
+
+- Judge.me installed and configured for the Shopify store.
+- A Judge.me private API key.
+- The Shopify store domain, such as `example.myshopify.com`.
+- A Hydrogen project with a server runtime such as Shopify Oxygen.
+
+Add the values to local and deployed environment configuration:
+
+```bash
+JUDGEME_PRIVATE_API_TOKEN=your-private-api-key
+PUBLIC_STORE_DOMAIN=example.myshopify.com
+```
+
+<Warning>
+  `JUDGEME_PRIVATE_API_TOKEN` is a server credential. Never expose it through a `PUBLIC_` variable, browser bundle, component setting, or client request.
+</Warning>
+
+## Create a server-side Judge.me client
+
+Judge.me recommends sending private API keys in the `X-Api-Token` header. Keep authentication in one helper so UI components never handle the credential.
+
+```ts
+const JUDGEME_API = "https://api.judge.me/api/v1";
+
+type JudgeMeEnv = {
+  JUDGEME_PRIVATE_API_TOKEN: string;
+  PUBLIC_STORE_DOMAIN: string;
+};
+
+export async function fetchJudgeMe<T>(
+  pathname: string,
+  params: Record<string, string | number>,
+  env: JudgeMeEnv,
+): Promise<T> {
+  const url = new URL(`${JUDGEME_API}${pathname}`);
+  url.search = new URLSearchParams({
+    shop_domain: env.PUBLIC_STORE_DOMAIN,
+    ...Object.fromEntries(
+      Object.entries(params).map(([key, value]) => [key, String(value)]),
+    ),
+  }).toString();
+
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json",
+      "X-Api-Token": env.JUDGEME_PRIVATE_API_TOKEN,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Response("Judge.me request failed", {
+      status: response.status,
+    });
+  }
+
+  return response.json() as Promise<T>;
+}
+```
+
+## Add a Hydrogen resource route
+
+The route below proxies Judge.me's product-review widget. It accepts the product handle and pagination values but reads authentication only from the server environment.
+
+```ts
+import { data, type LoaderFunctionArgs } from "react-router";
+import { fetchJudgeMe } from "~/lib/judgeme.server";
+
+type WidgetResponse = {
+  widget?: string;
+};
+
+export async function loader({
+  request,
+  params,
+  context,
+}: LoaderFunctionArgs) {
+  const productHandle = params.productHandle;
+  if (!productHandle) {
+    throw new Response("Product handle is required", { status: 400 });
+  }
+
+  const searchParams = new URL(request.url).searchParams;
+  const page = Math.max(Number(searchParams.get("page")) || 1, 1);
+  const perPage = Math.min(
+    Math.max(Number(searchParams.get("per_page")) || 5, 1),
+    20,
+  );
+
+  const result = await fetchJudgeMe<WidgetResponse>(
+    "/widgets/product_review",
+    {
+      handle: productHandle,
+      page,
+      per_page: perPage,
+    },
+    context.env,
+  );
+
+  return data({ html: result.widget ?? "" });
+}
+```
+
+Register it using your project's routing convention. For a React Router configuration file, that can look like:
+
+```ts
+route(
+  "api/product/:productHandle/reviews",
+  "routes/api/product-reviews.ts",
+)
+```
+
+The route path and source filename are not part of the Judge.me contract. Choose names that fit your theme and keep localized route prefixes in mind.
+
+## Render the reviews in Hydrogen
+
+Load the full review widget when the section is needed instead of blocking every product-page request. A compact rating badge can still be fetched with the product loader when it is important for the initial render.
+
+```tsx
+import { useEffect } from "react";
+import { useFetcher } from "react-router";
+
+export function ProductReviews({ productHandle }: { productHandle: string }) {
+  const { load, state, data } = useFetcher<{ html: string }>();
+
+  useEffect(() => {
+    if (productHandle) {
+      load(`/api/product/${productHandle}/reviews?page=1&per_page=5`);
+    }
+  }, [productHandle, load]);
+
+  if (state !== "idle" && !data) {
+    return <p>Loading reviews…</p>;
+  }
+
+  if (!data?.html) {
+    return <p>No reviews yet.</p>;
+  }
+
+  return <div dangerouslySetInnerHTML={{ __html: data.html }} />;
+}
+```
+
+<Note>
+  Only inject the widget HTML returned directly by Judge.me. Do not pass visitor input or arbitrary CMS content through `dangerouslySetInnerHTML`.
+</Note>
+
+For localized storefronts, generate the resource-route URL with the same locale helper used elsewhere in the theme rather than hardcoding an unprefixed path.
+
+## Make the reviews editable in Weaverse
+
+Wrap the review UI in a Weaverse section when merchants should control its heading, description, spacing, colors, or page placement from Studio. Keep API credentials in the server environment; expose only presentation settings in the schema.
+
+```tsx
+import { createSchema } from "@weaverse/hydrogen";
+
+export const schema = createSchema({
+  type: "judgeme-reviews",
+  title: "Judge.me Reviews",
+  enabledOn: {
+    pages: ["PRODUCT"],
+  },
+  settings: [
+    {
+      group: "Content",
+      inputs: [
+        {
+          type: "text",
+          name: "heading",
+          label: "Heading",
+          defaultValue: "Customer Reviews",
+        },
+      ],
+    },
+  ],
+});
+```
+
+Register the section according to your theme's component registry. The section can render Judge.me's widget HTML directly or map structured review data into editable child components.
+
+## Add rating badges
+
+Judge.me's `GET /widgets/preview_badge` endpoint returns a compact rating badge for product pages, cards, and quick views. Use the same server helper with a product `handle` or external Shopify product ID.
+
+```ts
+const badge = await fetchJudgeMe<{ badge?: string }>(
+  "/widgets/preview_badge",
+  { handle: productHandle },
+  context.env,
+);
+```
+
+For rating badges visible above the fold, fetch them during the owning route or section loader so the initial HTML does not shift after hydration. Cache the result using the storefront's normal caching strategy.
+
+## Optional: accept review submissions
+
+Judge.me also supports creating reviews through its reviews API. If your storefront exposes a submission form:
+
+1. Submit to your Hydrogen resource route, never directly from the browser to Judge.me.
+2. Validate the product, reviewer name, email, rating, and body on the server.
+3. Add rate limiting and bot protection before forwarding the request.
+4. Return Judge.me errors as safe, user-facing messages without exposing credentials or raw upstream payloads.
+5. Revalidate or refresh the review list only after Judge.me accepts the submission.
+
+Read-only display and public review submission are separate security boundaries. Launch display first unless storefront submissions are a confirmed requirement.
+
+## Pilot reference implementation
+
+The Pilot theme demonstrates this architecture with its own project conventions:
+
+<CardGroup cols={2}>
+  <Card title="Review resource route" icon="route" href="https://github.com/Weaverse/pilot/blob/main/app/routes/api/reviews.ts">
+    Server-side Judge.me requests for badges, review widgets, pagination, and submissions.
+  </Card>
+  <Card title="Reviews section" icon="star" href="https://github.com/Weaverse/pilot/tree/main/app/sections/judgeme-reviews">
+    A Weaverse product-page section with summary, list, pagination, and form components.
+  </Card>
+  <Card title="Rating badge" icon="star-half-stroke" href="https://github.com/Weaverse/pilot/blob/main/app/sections/main-product/judgeme-stars-rating.tsx">
+    Compact Judge.me ratings reused across product surfaces.
+  </Card>
+  <Card title="Route registration" icon="code-branch" href="https://github.com/Weaverse/pilot/blob/main/app/routes.ts">
+    React Router registration for the localized reviews resource route.
+  </Card>
+</CardGroup>
+
+Pilot is an implementation example, not a required dependency. Reuse the server-only authentication boundary and data flow while adapting components, routes, state management, and styling to your storefront.
+
+## Production checklist
+
+- Private API token is available only on the server.
+- Store domain matches the shop connected to Judge.me.
+- Product handles or external IDs resolve to the expected Judge.me products.
+- Pagination inputs are bounded before calling Judge.me.
+- Empty, loading, error, and no-review states render without layout jumps.
+- Resource-route URLs preserve the active locale when required.
+- Review responses are cached appropriately; write requests are not cached.
+- Public submission routes have validation, rate limiting, and bot protection.
+
+## Troubleshooting
+
+| Symptom | Likely cause / fix |
+|---|---|
+| 401 or authentication error | Check `JUDGEME_PRIVATE_API_TOKEN`, the `X-Api-Token` header, and the connected shop domain. |
+| Empty widget for a reviewed product | Confirm the product handle or external Shopify ID matches the product imported into Judge.me. |
+| Reviews appear only after a visible layout shift | Load a compact badge or initial summary server-side, and reserve space for the deferred list. |
+| Works on the default locale only | Build the resource-route URL with your locale-aware path helper. |
+| Pagination returns unexpectedly large requests | Clamp `page` and `per_page` before forwarding them. |
+| Submission works locally but is abused in production | Add server validation, rate limiting, and bot protection; never rely on browser validation alone. |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Third-party Integration" icon="plug" href="/features/third-party-integrations">
+    General patterns for external services in Weaverse Hydrogen themes.
+  </Card>
+  <Card title="Data Connectors" icon="link" href="/development-guide/data-connectors">
+    Make route and API data available to editable components.
+  </Card>
+  <Card title="Custom Routing" icon="route" href="/features/custom-routing">
+    Define resource routes in a React Router-based Hydrogen storefront.
+  </Card>
+  <Card title="Judge.me API documentation" icon="book" href="https://judge.me/api/docs">
+    Authentication, widgets, reviews, and endpoint parameters.
+  </Card>
+</CardGroup>
