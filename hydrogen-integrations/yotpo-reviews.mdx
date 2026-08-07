@@ -1,0 +1,277 @@
+---
+title: Integrate Yotpo Reviews with Shopify Hydrogen
+description: Add Yotpo rating and review widgets to Shopify Hydrogen product pages with correct product IDs, SPA reinitialization, CSP, and Weaverse settings.
+published: true
+---
+
+# Integrate Yotpo Reviews with Shopify Hydrogen
+
+Yotpo Reviews provides product star ratings, review lists, media, and review submission widgets. In a Shopify Hydrogen storefront, Yotpo's widget loader must be initialized explicitly and refreshed after client-side product navigation.
+
+This guide is based on maintained Weaverse Hydrogen implementations. The component names and schema below are portable examples, not required project structure.
+
+## What you will build
+
+```text
+Hydrogen product loader
+    │ Shopify product GID
+    ▼
+Yotpo widget component
+    │ numeric Shopify product ID + widget instance ID
+    ▼
+Yotpo browser loader
+    │
+    ├── star rating widget
+    └── reviews widget
+```
+
+The widget approach is usually the fastest integration because Yotpo owns review rendering and submission behavior. Use the Reviews API only when the storefront requires fully custom markup or server-rendered aggregate data.
+
+## Prerequisites
+
+- Yotpo Reviews installed and connected to the Shopify store.
+- The Yotpo app key.
+- A configured Yotpo widget instance ID for each widget type.
+- Products synchronized to Yotpo using the same numeric Shopify product IDs.
+
+The app key and widget instance ID are browser-visible widget identifiers. A Yotpo secret key or API access token must remain server-only and must never be placed in Studio settings.
+
+## Extract the Shopify numeric product ID
+
+Hydrogen returns GraphQL IDs such as `gid://shopify/Product/1234567890`. Yotpo's Shopify catalog normally identifies the product by the trailing numeric ID.
+
+```ts
+export function getNumericShopifyId(gid: string | undefined) {
+  if (!gid) return "";
+  return gid.match(/\/(\d+)$/)?.[1] ?? "";
+}
+```
+
+Confirm this mapping against the product identifier in the Yotpo catalog before launch. A correct widget configuration cannot compensate for mismatched product IDs.
+
+## Load the Yotpo widget script once
+
+```ts
+type YotpoWindow = Window & {
+  yotpoWidgetsContainer?: {
+    initWidgets?: () => void;
+  };
+};
+
+const scriptPromises = new Map<string, Promise<void>>();
+
+export function loadYotpoWidgets(appKey: string) {
+  if (typeof window === "undefined" || !appKey) {
+    return Promise.resolve();
+  }
+
+  const existingPromise = scriptPromises.get(appKey);
+  if (existingPromise) return existingPromise;
+
+  const src = `https://cdn-widgetsrepository.yotpo.com/v1/loader/${appKey}`;
+  const promise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(
+      `script[src="${src}"]`,
+    );
+
+    if ((window as YotpoWindow).yotpoWidgetsContainer) {
+      resolve();
+      return;
+    }
+
+    const script = existing ?? document.createElement("script");
+    script.addEventListener("load", () => resolve(), { once: true });
+    script.addEventListener("error", () => reject(new Error("Yotpo failed to load")), {
+      once: true,
+    });
+
+    if (!existing) {
+      script.src = src;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+  });
+
+  scriptPromises.set(appKey, promise);
+  return promise;
+}
+
+export function initializeYotpoWidgets() {
+  (window as YotpoWindow).yotpoWidgetsContainer?.initWidgets?.();
+}
+```
+
+## Render a star-rating widget
+
+```tsx
+import { useEffect } from "react";
+import {
+  initializeYotpoWidgets,
+  loadYotpoWidgets,
+} from "~/lib/yotpo.client";
+import { getNumericShopifyId } from "~/lib/shopify-id";
+
+type YotpoRatingProps = {
+  appKey: string;
+  instanceId: string;
+  productGid: string;
+};
+
+export function YotpoRating({
+  appKey,
+  instanceId,
+  productGid,
+}: YotpoRatingProps) {
+  const productId = getNumericShopifyId(productGid);
+
+  useEffect(() => {
+    if (!productId) return;
+
+    loadYotpoWidgets(appKey)
+      .then(initializeYotpoWidgets)
+      .catch((error) => console.error(error));
+  }, [appKey, productId]);
+
+  if (!(appKey && instanceId && productId)) return null;
+
+  return (
+    <div
+      key={`${instanceId}-${productId}`}
+      className="yotpo-widget-instance"
+      data-yotpo-instance-id={instanceId}
+      data-yotpo-product-id={productId}
+      data-yotpo-cart-product-id={productId}
+      data-yotpo-section-id="product"
+    />
+  );
+}
+```
+
+Use the review-list widget in the same way with its own `instanceId`. Widget-specific attributes should come from the Yotpo widget configuration rather than another storefront's markup.
+
+## Reinitialize after Hydrogen navigation
+
+Yotpo scans the DOM when its script first loads. Hydrogen can replace one product route with another without reloading the document, so the new widget element may not be discovered automatically.
+
+The example above handles this in two ways:
+
+- The product ID is part of the React `key`, forcing a fresh widget container.
+- `initWidgets()` runs whenever the product ID changes.
+
+Test repeated navigation cycles, not only the first transition. A widget may render on the first revisit and fail later if loader state is reused incorrectly.
+
+## Configure a strict CSP
+
+Allow Yotpo's widget loader in `script-src`:
+
+```ts
+const csp = {
+  scriptSrc: ["https://cdn-widgetsrepository.yotpo.com"],
+};
+```
+
+Yotpo widgets can request additional API, image, font, or frame hosts depending on enabled features. Inspect violations on a deployed storefront and add only the exact Yotpo hosts required by the selected widgets.
+
+## Make the widget editable in Weaverse
+
+The app key and instance ID are public widget configuration, so they can be Studio settings when merchants need to switch widgets without a deployment.
+
+```tsx
+import { createSchema } from "@weaverse/hydrogen";
+
+export const schema = createSchema({
+  type: "yotpo-reviews",
+  title: "Yotpo Reviews",
+  enabledOn: { pages: ["PRODUCT"] },
+  settings: [
+    {
+      group: "Yotpo",
+      inputs: [
+        {
+          type: "text",
+          name: "appKey",
+          label: "Yotpo app key",
+          defaultValue: "",
+        },
+        {
+          type: "text",
+          name: "instanceId",
+          label: "Widget instance ID",
+          defaultValue: "",
+        },
+      ],
+    },
+  ],
+});
+```
+
+<Warning>
+  Never expose the Yotpo secret key, OAuth token, or private API credential in this schema. Custom API calls that require authentication belong in a server-only helper or resource route.
+</Warning>
+
+## Optional: use the Reviews API
+
+Choose server-side API access when you need custom review cards, server-rendered aggregate ratings, custom pagination, or review data outside Yotpo's widgets.
+
+A safe API architecture should:
+
+1. Keep private credentials in the Hydrogen server environment.
+2. Accept only a bounded product ID, page, and page size.
+3. Cache read-only review lists and aggregate ratings.
+4. Map upstream data into a small storefront response.
+5. Treat review submission as a separate, rate-limited write route.
+6. Return generic errors without exposing upstream payloads or tokens.
+
+Do not fetch private Yotpo APIs directly from a browser component.
+
+## Add structured data carefully
+
+Only emit `AggregateRating` or `Review` JSON-LD when the values were loaded for the current product and are visible or meaningfully represented on the page. Avoid combining stale cached counts with a different product after client-side navigation.
+
+When Yotpo owns rich-snippet output, verify that your custom SEO layer does not emit duplicate aggregate-rating markup.
+
+## Test the integration
+
+1. Confirm Yotpo contains the current Shopify product ID.
+2. Verify star rating and review widgets on products with and without reviews.
+3. Navigate product A → product B → product A several times.
+4. Change variants without changing the product and confirm the widget stays stable.
+5. Test direct page loads and client-side navigation.
+6. Check CSP and script errors in the browser console.
+7. Verify mobile layout and review-submission dialogs.
+8. Confirm product IDs, app keys, and instance IDs differ correctly between environments.
+
+## Troubleshooting
+
+### The widget is empty
+
+- Confirm the app key and widget instance ID belong to the same Yotpo account.
+- Confirm the numeric Shopify product ID exists in Yotpo.
+- Inspect CSP and network errors.
+- Ensure the widget is enabled in Yotpo.
+
+### It works on hard refresh but not navigation
+
+Call `window.yotpoWidgetsContainer?.initWidgets?.()` after the product ID changes and remount the widget container with a product-specific key.
+
+### Reviews appear under the wrong product
+
+Verify the Shopify GID-to-numeric-ID conversion and Yotpo catalog mapping. Do not use a variant ID where Yotpo expects a product ID.
+
+## Production checklist
+
+- The Yotpo catalog uses the same Shopify product IDs as Hydrogen.
+- Public widget IDs are separated from private API credentials.
+- The loader is deduplicated.
+- Widgets reinitialize after SPA navigation.
+- CSP is restricted to required Yotpo hosts.
+- Products with zero reviews have intentional fallback UI.
+- Structured data is current and not duplicated.
+
+## Official resources
+
+- [Yotpo new widgets overview](https://support.yotpo.com/docs/new-widgets-overview)
+- [Add the Yotpo reviews widget](https://support.yotpo.com/docs/adding-the-reviews-widget)
+- [Add the Yotpo star rating](https://support.yotpo.com/docs/adding-the-star-rating)
+- [Load Yotpo after AJAX navigation](https://support.yotpo.com/docs/loading-yotpo-with-ajax)
+- [Yotpo Reviews API](https://apidocs.yotpo.com/reference/retrieve-reviews-for-a-product)
