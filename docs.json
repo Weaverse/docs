@@ -232,7 +232,8 @@
               "hydrogen-integrations/judgeme-reviews",
               "hydrogen-integrations/shopify-inbox",
               "hydrogen-integrations/hubspot-forms",
-              "hydrogen-integrations/yotpo-reviews"
+              "hydrogen-integrations/yotpo-reviews",
+              "hydrogen-integrations/trustpilot-reviews"
             ]
           },
           {
