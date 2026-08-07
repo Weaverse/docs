@@ -233,7 +233,8 @@
               "hydrogen-integrations/shopify-inbox",
               "hydrogen-integrations/hubspot-forms",
               "hydrogen-integrations/yotpo-reviews",
-              "hydrogen-integrations/trustpilot-reviews"
+              "hydrogen-integrations/trustpilot-reviews",
+              "hydrogen-integrations/instagram-feed"
             ]
           },
           {
