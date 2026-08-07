@@ -230,7 +230,8 @@
             "pages": [
               "hydrogen-integrations/contact-form-klaviyo",
               "hydrogen-integrations/judgeme-reviews",
-              "hydrogen-integrations/shopify-inbox"
+              "hydrogen-integrations/shopify-inbox",
+              "hydrogen-integrations/hubspot-forms"
             ]
           },
           {

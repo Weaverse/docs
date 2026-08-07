@@ -1,0 +1,281 @@
+---
+title: Integrate HubSpot Forms with Shopify Hydrogen
+description: Submit Shopify Hydrogen contact and lead forms to HubSpot through a validated server route with consent, bot protection, and safe error handling.
+published: true
+---
+
+# Integrate HubSpot Forms with Shopify Hydrogen
+
+HubSpot forms can collect contact, sample-request, wholesale, and product-enquiry leads from a Shopify Hydrogen storefront. The most portable architecture submits the storefront form to a Hydrogen action, validates it on the server, and forwards only approved fields to HubSpot.
+
+This guide is based on maintained Weaverse Hydrogen implementations. File names and route paths are examples, not required project structure.
+
+## What you will build
+
+```text
+Hydrogen form
+    │ POST form data
+    ▼
+Hydrogen action or resource route
+    │ validate, rate-limit, map fields
+    ▼
+HubSpot Forms submission API
+    │
+    └── HubSpot contact and form-submission record
+```
+
+A server boundary lets you enforce validation, consent, bot protection, and a stable response shape without coupling the UI to HubSpot.
+
+## Prerequisites
+
+- A published HubSpot form.
+- The HubSpot account ID and form GUID.
+- HubSpot internal field names for every submitted field.
+- A Hydrogen server runtime such as Shopify Oxygen.
+
+Add the identifiers to local and deployed environment configuration:
+
+```bash
+HUBSPOT_PORTAL_ID=your-account-id
+HUBSPOT_FORM_GUID=your-form-guid
+```
+
+The Forms submission endpoint does not require a private access token, but keeping the identifiers server-side makes environment changes and abuse controls easier. If you later call HubSpot CRM APIs, keep that private app token in a separate server-only variable.
+
+## Create the server-side submission helper
+
+```ts
+type HubSpotField = {
+  name: string;
+  value: string;
+};
+
+type HubSpotEnv = {
+  HUBSPOT_PORTAL_ID: string;
+  HUBSPOT_FORM_GUID: string;
+};
+
+export async function submitHubSpotForm(
+  fields: HubSpotField[],
+  env: HubSpotEnv,
+) {
+  const { HUBSPOT_PORTAL_ID, HUBSPOT_FORM_GUID } = env;
+  if (!(HUBSPOT_PORTAL_ID && HUBSPOT_FORM_GUID)) {
+    throw new Error("HubSpot form is not configured");
+  }
+
+  const endpoint =
+    "https://api.hsforms.com/submissions/v3/integration/submit/" +
+    `${encodeURIComponent(HUBSPOT_PORTAL_ID)}/` +
+    encodeURIComponent(HUBSPOT_FORM_GUID);
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      fields,
+      context: {
+        pageName: "Storefront contact form",
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    console.error("HubSpot form submission failed", response.status);
+    throw new Error("HubSpot form submission failed");
+  }
+}
+```
+
+Do not log the request body because it contains customer personal data.
+
+## Add a Hydrogen action
+
+Accept only known fields and bound their sizes before sending them upstream.
+
+```ts
+import { data, type ActionFunctionArgs } from "react-router";
+import { submitHubSpotForm } from "~/lib/hubspot.server";
+
+function text(formData: FormData, name: string, maxLength: number) {
+  const value = formData.get(name);
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+export async function action({
+  request,
+  context,
+}: ActionFunctionArgs) {
+  if (request.method !== "POST") {
+    throw new Response("Method not allowed", { status: 405 });
+  }
+
+  const formData = await request.formData();
+  const firstName = text(formData, "firstName", 80);
+  const lastName = text(formData, "lastName", 80);
+  const email = text(formData, "email", 254);
+  const message = text(formData, "message", 2_000);
+  const consent = formData.get("consent") === "on";
+
+  if (!(firstName && email && message)) {
+    return data({ ok: false, error: "Complete the required fields." }, { status: 400 });
+  }
+
+  if (!/^\S+@\S+\.\S+$/.test(email)) {
+    return data({ ok: false, error: "Enter a valid email address." }, { status: 400 });
+  }
+
+  if (!consent) {
+    return data({ ok: false, error: "Consent is required." }, { status: 400 });
+  }
+
+  try {
+    await submitHubSpotForm(
+      [
+        { name: "firstname", value: firstName },
+        { name: "lastname", value: lastName },
+        { name: "email", value: email },
+        { name: "message", value: message },
+      ],
+      context.env,
+    );
+
+    return data({ ok: true });
+  } catch {
+    return data(
+      { ok: false, error: "We could not send your request. Try again." },
+      { status: 502 },
+    );
+  }
+}
+```
+
+Register the file using your project's route convention, for example:
+
+```ts
+route("api/hubspot-form", "routes/api/hubspot-form.ts")
+```
+
+<Warning>
+  HubSpot field names are account-specific internal names, not their visible labels. Confirm each name in the form definition instead of guessing or copying a client implementation.
+</Warning>
+
+## Build the Hydrogen form
+
+`useFetcher` submits without navigating away and exposes pending and response state.
+
+```tsx
+import { useFetcher } from "react-router";
+
+type Result = { ok: boolean; error?: string };
+
+export function ContactForm() {
+  const fetcher = useFetcher<Result>();
+  const submitting = fetcher.state !== "idle";
+
+  if (fetcher.data?.ok) {
+    return <p>Thanks. We received your message.</p>;
+  }
+
+  return (
+    <fetcher.Form method="post" action="/api/hubspot-form">
+      <label>
+        First name
+        <input name="firstName" autoComplete="given-name" required />
+      </label>
+      <label>
+        Last name
+        <input name="lastName" autoComplete="family-name" />
+      </label>
+      <label>
+        Email
+        <input name="email" type="email" autoComplete="email" required />
+      </label>
+      <label>
+        Message
+        <textarea name="message" maxLength={2000} required />
+      </label>
+      <label>
+        <input name="consent" type="checkbox" required />
+        I agree to the privacy policy.
+      </label>
+
+      {fetcher.data?.error ? <p role="alert">{fetcher.data.error}</p> : null}
+      <button disabled={submitting} type="submit">
+        {submitting ? "Sending…" : "Send message"}
+      </button>
+    </fetcher.Form>
+  );
+}
+```
+
+For localized storefronts, generate the action URL with the same locale-aware route helper used elsewhere in the theme.
+
+## Map product and enquiry context
+
+A product sample or wholesale form often needs additional context such as product title, SKU, URL, enquiry type, or company name. Treat browser-submitted product data as untrusted.
+
+Prefer sending a Shopify product ID or handle, then resolve authoritative product details on the server before mapping them to HubSpot. If that is unnecessary, validate and bound every hidden value exactly like visible inputs.
+
+## Handle consent correctly
+
+A checked box in your storefront does not automatically configure HubSpot's legal-consent model. If the HubSpot form requires `legalConsentOptions`:
+
+1. Copy the required subscription type and consent wording from the form's HubSpot configuration.
+2. Display the same consent meaning to the shopper.
+3. Include HubSpot's required legal-consent payload in the server request.
+4. Keep proof of consent aligned with your privacy policy and regional requirements.
+
+Do not infer marketing consent from a general contact-form submission.
+
+## Add abuse protection
+
+A public form route should include:
+
+- Server-side field validation.
+- Request-size and field-length limits.
+- Rate limiting by a privacy-aware key.
+- Bot protection such as hCaptcha or Turnstile.
+- Generic upstream errors that do not reveal HubSpot responses.
+- Logging that excludes names, emails, messages, and tokens.
+
+See the [Klaviyo contact-form guide](/hydrogen-integrations/contact-form-klaviyo) for a complete hCaptcha pattern that can be reused before the HubSpot request.
+
+## Use the form with Weaverse
+
+Wrap the form in a Weaverse section when merchants should control its heading, description, layout, or page placement. Keep field names and server configuration in code or deployment settings; exposing arbitrary HubSpot field names in Studio can create invalid or unsafe mappings.
+
+Useful Studio settings include:
+
+- Heading and introductory text.
+- Submit and success labels.
+- Layout and spacing.
+- Optional product-context display.
+
+## Test the integration
+
+1. Submit every valid form variant.
+2. Confirm the submission appears on the correct HubSpot form.
+3. Check that each value maps to the intended property.
+4. Test malformed emails, overlong fields, missing consent, and duplicate clicks.
+5. Simulate a HubSpot failure and confirm the storefront returns a generic retry message.
+6. Verify bot protection and rate limiting.
+7. Repeat submission after client-side route navigation.
+8. Test localized route prefixes and translated messages.
+
+## Production checklist
+
+- The account ID and form GUID point to the intended environment.
+- Field names match the published HubSpot form.
+- Private CRM tokens never reach the browser.
+- Consent semantics match HubSpot and the storefront policy.
+- Validation, bot protection, and rate limits run before HubSpot.
+- PII is excluded from logs.
+- Success is confirmed in HubSpot, not only in the browser.
+
+## Official resources
+
+- [HubSpot Forms API guide](https://developers.hubspot.com/docs/api-reference/legacy/marketing/forms/guide)
+- [HubSpot API authentication](https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth)
+- [Klaviyo contact form with hCaptcha](/hydrogen-integrations/contact-form-klaviyo)
+- [Build custom Weaverse components](/development-guide/creating-components)
