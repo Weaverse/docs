@@ -84,20 +84,22 @@ import { useParentInstance } from '@weaverse/hydrogen'
 import { useEffect } from 'react'
 import { useFetcher } from 'react-router'
 
-export function JudgeMeReview() {
+export function ProductReviewList() {
   const { load, data } = useFetcher()
   const parent = useParentInstance()
   const handle = parent?.data.product?.handle
 
   useEffect(() => {
     if (handle) {
-      load(`/api/review/${handle}`)
+      load(`/api/product/${handle}/reviews`)
     }
   }, [handle, load])
 
   // Render the review data
 }
 ```
+
+The route name is project-specific. See [Integrate Judge.me Reviews with Shopify Hydrogen](/hydrogen-integrations/judgeme-reviews) for a complete server-side example.
 
 ## Implementation Details
 

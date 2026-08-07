@@ -202,14 +202,14 @@ function ProductCard({ title, price, description }: ProductCardProps) {
 ```tsx
 // app/routes/product.$handle.tsx
 import { getProduct } from '~/lib/shopify'
+import { getProductReviews } from '~/lib/reviews.server'
 
 export async function loader({ params }: LoaderFunctionArgs) {
   let product = await getProduct(params.handle)
 
-  // Fetch reviews from Judge.me, Yotpo, or any review service
-  let reviewsData = await fetch(
-    `https://judge.me/api/reviews?product=${product.id}`
-  ).then(res => res.json())
+  // Fetch reviews through a server-only integration adapter.
+  // The adapter owns vendor authentication and response mapping.
+  let reviewsData = await getProductReviews(product.id)
 
   return {
     product,
@@ -228,6 +228,8 @@ Now in Studio, users can visually select:
 - `{{routes/product.reviews.items[0].text}}` → First review text
 
 No code required for users - they just click and select from the visual interface.
+
+For a complete server-side implementation, see [Integrate Judge.me Reviews with Shopify Hydrogen](/hydrogen-integrations/judgeme-reviews).
 
 ### Example: Adding Custom API Data
 

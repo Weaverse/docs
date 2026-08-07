@@ -44,10 +44,10 @@ This is a significant architectural difference from traditional approaches:
 | **Client-side JS injection** | Browser fetches after page load | Not indexed until JS runs | Layout shift, slower TTI | Keys exposed in bundle |
 | **Custom middleware** | Separate server layer | Depends on implementation | Extra network hop | Secure, but more infra |
 
-With Weaverse, integrating a reviews API like Judge.me or Ali Reviews is the same pattern as fetching Shopify data — write a loader, return the data, render it server-side. No script tags, no layout shifts, no SEO gaps.
+With Weaverse, a reviews integration such as Judge.me can render compact ratings or initial reviews server-side, then defer heavier review lists and pagination behind a Hydrogen resource route. Credentials stay on the server, while the storefront controls when and how much review data it loads.
 
 <Tip>
-  See real-world integration examples in the [Third-Party Integration](/features/third-party-integrations) guide.
+  See the [Judge.me Reviews for Hydrogen](/hydrogen-integrations/judgeme-reviews) walkthrough and the general [Third-Party Integration](/features/third-party-integrations) guide.
 </Tip>
 
 ## Infrastructure and Reliability

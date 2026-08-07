@@ -1,0 +1,314 @@
+---
+title: Integrate an Instagram Feed with Shopify Hydrogen
+description: Build a secure Instagram Graph API feed for Shopify Hydrogen with server-only tokens, media mapping, short caching, token refresh, and Weaverse controls.
+published: true
+---
+
+# Integrate an Instagram Feed with Shopify Hydrogen
+
+The Instagram API with Instagram Login lets a Hydrogen storefront display recent images, videos, and carousel posts from a connected professional Instagram account. The access token must stay on the server; browser components should receive only normalized media data.
+
+This guide is based on a maintained Weaverse Hydrogen implementation that handles signed media URLs, carousel children, errors, and long-lived token refresh. Adapt the files and route boundaries to your project.
+
+## What you will build
+
+```text
+Weaverse Instagram section
+    │ server loader
+    ▼
+Hydrogen server
+    │ access token + short cache
+    ▼
+Instagram Graph API
+    │
+    └── normalized images, videos, carousels, captions, and permalinks
+```
+
+## Prerequisites
+
+- A Meta app configured for Instagram API with Instagram Login.
+- A connected Instagram professional account.
+- The permissions required to read the account's media.
+- A long-lived Instagram user access token.
+- A Hydrogen server runtime such as Shopify Oxygen.
+
+Add the token to local and deployed server environment configuration:
+
+```bash
+INSTAGRAM_ACCESS_TOKEN=your-long-lived-token
+INSTAGRAM_ACCOUNT_ID=me
+```
+
+<Warning>
+  `INSTAGRAM_ACCESS_TOKEN` is a server credential. Never prefix it with `PUBLIC_`, add it to a browser bundle, or expose it as a Weaverse Studio setting.
+</Warning>
+
+## Define a storefront media shape
+
+Keep Instagram's response details out of the UI by mapping them into a small stable type.
+
+```ts
+type InstagramMediaType = "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
+
+type InstagramItem = {
+  id: string;
+  type: InstagramMediaType;
+  displayUrl: string;
+  mediaUrl: string;
+  permalink: string;
+  caption: string;
+  timestamp: string;
+  children: Array<{
+    id: string;
+    type: InstagramMediaType;
+    displayUrl: string;
+    mediaUrl: string;
+  }>;
+};
+```
+
+Videos need `thumbnail_url` for the image tile because their `media_url` points to the video file. Carousel posts need their `children` field requested explicitly.
+
+## Fetch media on the server
+
+```ts
+const GRAPH_API = "https://graph.instagram.com";
+const GRAPH_VERSION = "v23.0";
+const MEDIA_FIELDS = [
+  "id",
+  "caption",
+  "media_type",
+  "media_url",
+  "permalink",
+  "thumbnail_url",
+  "timestamp",
+  "children{id,media_type,media_url,thumbnail_url}",
+].join(",");
+
+function mapMedia(media: any) {
+  const displayUrl =
+    media.media_type === "VIDEO" ? media.thumbnail_url : media.media_url;
+
+  if (!(displayUrl && media.permalink)) return null;
+
+  return {
+    id: media.id,
+    type: media.media_type,
+    displayUrl,
+    mediaUrl: media.media_url ?? displayUrl,
+    permalink: media.permalink,
+    caption: media.caption ?? "",
+    timestamp: media.timestamp ?? "",
+    children: (media.children?.data ?? [])
+      .map((child: any) => {
+        const childDisplayUrl =
+          child.media_type === "VIDEO"
+            ? child.thumbnail_url
+            : child.media_url;
+        return childDisplayUrl
+          ? {
+              id: child.id,
+              type: child.media_type,
+              displayUrl: childDisplayUrl,
+              mediaUrl: child.media_url ?? childDisplayUrl,
+            }
+          : null;
+      })
+      .filter(Boolean),
+  };
+}
+
+export async function fetchInstagramFeed(
+  env: {
+    INSTAGRAM_ACCESS_TOKEN?: string;
+    INSTAGRAM_ACCOUNT_ID?: string;
+  },
+  limit = 12,
+) {
+  const token = env.INSTAGRAM_ACCESS_TOKEN;
+  if (!token) return { items: [], error: "Instagram is not configured." };
+
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+  const accountId = env.INSTAGRAM_ACCOUNT_ID || "me";
+  const url = new URL(`${GRAPH_API}/${GRAPH_VERSION}/${accountId}/media`);
+  url.searchParams.set("fields", MEDIA_FIELDS);
+  url.searchParams.set("limit", String(safeLimit));
+  url.searchParams.set("access_token", token);
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.error("Instagram media request failed", response.status);
+      return { items: [], error: "Instagram posts are unavailable." };
+    }
+
+    const result = await response.json() as {
+      data?: unknown[];
+      error?: { code?: number; message?: string };
+    };
+
+    if (result.error || !Array.isArray(result.data)) {
+      console.error("Instagram returned an invalid media response");
+      return { items: [], error: "Instagram posts are unavailable." };
+    }
+
+    return {
+      items: result.data.map(mapMedia).filter(Boolean),
+      error: null,
+    };
+  } catch (error) {
+    console.error("Instagram media request failed", error);
+    return { items: [], error: "Instagram posts are unavailable." };
+  }
+}
+```
+
+The access token appears in the upstream URL, so never log the URL or raw upstream error body.
+
+## Cache media briefly
+
+Instagram media URLs are signed CDN URLs that expire. A cache lifetime that works for product or CMS data can serve broken Instagram images.
+
+Use a short public cache with stale-while-revalidate, for example:
+
+```ts
+const instagramCache = CacheCustom({
+  mode: "public",
+  maxAge: 3600,
+  staleWhileRevalidate: 43_200,
+});
+```
+
+When using `weaverse.fetchWithCache`, pass the same bounded URL and cache strategy through the component loader. If you use the platform Cache API directly, exclude the token from human-readable logs and cache diagnostics.
+
+## Load data in a Weaverse section
+
+A server component loader can read presentation settings, fetch Instagram, and return normalized data to the section.
+
+```ts
+import type { ComponentLoaderArgs } from "@weaverse/hydrogen";
+
+export async function loader({
+  weaverse,
+  data,
+}: ComponentLoaderArgs<{ itemCount?: number }>) {
+  const itemCount = Math.min(Math.max(data.itemCount ?? 8, 1), 24);
+  const result = await fetchInstagramFeed(weaverse.env, itemCount);
+
+  return {
+    items: result.items,
+    error: result.error,
+  };
+}
+```
+
+Expose only presentation choices in the schema:
+
+- Heading and link label.
+- Number of posts.
+- Grid columns and spacing.
+- Media-type filters.
+- Caption and lightbox behavior.
+
+Do not expose the account token in Studio.
+
+## Render the feed
+
+```tsx
+export function InstagramFeed({
+  items,
+}: {
+  items: InstagramItem[];
+}) {
+  if (!items.length) return null;
+
+  return (
+    <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+      {items.map((item) => (
+        <a
+          key={item.id}
+          href={item.permalink}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <img
+            src={item.displayUrl}
+            alt={item.caption || "Instagram post"}
+            loading="lazy"
+          />
+        </a>
+      ))}
+    </div>
+  );
+}
+```
+
+If the section opens media in a lightbox, use `children` for carousel slides and the video `mediaUrl` for playback. Keep the Instagram permalink available as an accessible fallback.
+
+## Refresh long-lived tokens
+
+Long-lived Instagram tokens expire and can be refreshed through:
+
+```text
+GET https://graph.instagram.com/refresh_access_token
+    ?grant_type=ig_refresh_token
+    &access_token=SERVER_TOKEN
+```
+
+A durable rotation flow should:
+
+1. Refresh before the token's expiry window.
+2. Run refresh work in the background when the runtime supports `waitUntil`.
+3. Persist the returned token and its expiry in server-controlled storage.
+4. Back off after failures instead of retrying on every page request.
+5. Fall back to the current token until it actually expires.
+6. Alert the team when refresh continues to fail.
+
+Oxygen environment variables cannot be changed at runtime. Store the rotating token in a secure database, secret store, or restricted Shopify shop metafield written through the Admin API. Never return that metafield to the browser or Storefront API.
+
+## Handle API version changes
+
+Pin the Graph API version in one server module, not across components. Before Meta retires that version:
+
+- Read the Instagram Platform changelog.
+- Update the version and requested fields.
+- Run media and token-refresh tests.
+- Verify images, videos, and carousels on a deployed storefront.
+
+Do not reuse examples written for the retired Instagram Basic Display API.
+
+## Configure CSP
+
+Server-side Graph requests do not require browser `connect-src` access. The browser still loads signed Instagram CDN media, so a strict CSP may need the current Instagram image/video hosts in `img-src` and `media-src`.
+
+Inspect the returned media URLs and browser violations in the deployed environment. Avoid allowing all Meta domains when only specific CDN origins are required.
+
+## Test the integration
+
+1. Test image, video, and carousel posts.
+2. Test an account with fewer posts than the requested limit.
+3. Confirm an expired or invalid token produces safe fallback UI.
+4. Verify no token appears in HTML, browser requests, Studio data, or logs.
+5. Test cache expiry and stale-while-revalidate behavior.
+6. Test lightbox and external links on mobile and desktop.
+7. Run token-refresh tests with a mock upstream response.
+8. Navigate between pages repeatedly and confirm the same canonical feed state does not flicker or reorder unexpectedly.
+
+## Production checklist
+
+- Instagram Login, not the retired Basic Display API, is configured.
+- The token stays server-only.
+- API version and fields are centralized.
+- Request limits are bounded.
+- Signed media URLs use a short cache.
+- Videos and carousels map to renderable media.
+- Token refresh persists safely and backs off on failure.
+- Errors never expose API responses or credentials.
+
+## Official resources
+
+- [Instagram API with Instagram Login](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login)
+- [Get started with Instagram Login](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/get-started)
+- [Instagram Platform overview](https://developers.facebook.com/documentation/instagram-platform)
+- [Weaverse component loaders](/development-guide/data-fetching)
+- [Environment setup](/development-guide/environment-setup)

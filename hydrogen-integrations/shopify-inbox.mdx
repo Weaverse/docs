@@ -1,0 +1,237 @@
+---
+title: Integrate Shopify Inbox with Shopify Hydrogen
+description: Add Shopify Inbox online-store chat to a Shopify Hydrogen storefront with safe client-side loading, CSP configuration, and SPA verification.
+published: true
+---
+
+# Integrate Shopify Inbox with Shopify Hydrogen
+
+Shopify Inbox gives shoppers a chat launcher connected to the Inbox app in Shopify admin. A Hydrogen storefront can load the same storefront chat runtime without depending on a Liquid theme.
+
+This guide uses the loader pattern implemented in the [Weaverse Pilot theme](https://github.com/Weaverse/pilot). It is a working reference, not a required component or stable Shopify API contract.
+
+## What you will build
+
+```text
+Hydrogen root layout
+    │
+    │ loads after the browser window is ready
+    ▼
+Shopify storefront chat loader
+    │
+    ├── floating chat launcher
+    └── Shopify-hosted conversation UI
+```
+
+The loader runs entirely in the browser. Your Hydrogen server only exposes the public store domain and Inbox shop ID that the script needs.
+
+## Prerequisites
+
+- Shopify Inbox installed for the store.
+- Online store chat enabled and configured in the Shopify Inbox app.
+- The store's `myshopify.com` domain.
+- The Inbox shop ID from the app's online-store chat configuration.
+- A deployed HTTPS environment for final verification.
+
+Add the public identifiers to local and deployed environment configuration:
+
+```bash
+PUBLIC_STORE_DOMAIN=example.myshopify.com
+PUBLIC_SHOPIFY_INBOX_SHOP_ID=your-inbox-shop-id
+```
+
+These values are sent to Shopify's browser loader and are not private API credentials. Do not expose unrelated Admin API or Customer Account API tokens.
+
+## Create a client-side loader
+
+Shopify's storefront chat loader reads the store and launcher settings from its own script URL. Load it once, after the page reaches the `load` state, to avoid duplicate initialization.
+
+```tsx
+import { useEffect, useMemo } from "react";
+
+type ShopifyInboxProps = {
+  shopDomain: string;
+  shopId: string;
+};
+
+const LOADER_BASE =
+  "https://cdn.shopify.com/shopifycloud/shopify_chat/storefront";
+
+export function ShopifyInbox({
+  shopDomain,
+  shopId,
+}: ShopifyInboxProps) {
+  const src = useMemo(() => {
+    if (!(shopDomain && shopId)) return "";
+
+    const params = new URLSearchParams({
+      v: "1",
+      api_env: "production",
+      shop_id: shopId,
+      shop: shopDomain,
+      c: "#000000",
+      s: "icon",
+      p: "bottom_right",
+      vp: "lowest",
+      t: "chat_with_us",
+      i: "chat_bubble",
+    });
+
+    return `${LOADER_BASE}/shopifyChatV1.js?${params}`;
+  }, [shopDomain, shopId]);
+
+  useEffect(() => {
+    if (!src) return;
+
+    function injectLoader() {
+      if (document.getElementById("shopify-inbox-loader")) return;
+
+      const script = document.createElement("script");
+      script.id = "shopify-inbox-loader";
+      script.async = true;
+      script.src = src;
+      document.head.appendChild(script);
+    }
+
+    if (document.readyState === "complete") {
+      injectLoader();
+      return;
+    }
+
+    window.addEventListener("load", injectLoader, { once: true });
+    return () => window.removeEventListener("load", injectLoader);
+  }, [src]);
+
+  return null;
+}
+```
+
+<Note>
+  The abbreviated query parameters are consumed by Shopify's chat loader. Treat them and the generated DOM as implementation details that may change; verify the integration whenever Shopify updates Inbox behavior.
+</Note>
+
+## Mount Inbox in the Hydrogen root
+
+Render the loader once in the application root so client-side route changes do not create duplicate chat instances.
+
+```tsx
+export default function App() {
+  const data = useLoaderData<typeof loader>();
+
+  return (
+    <html lang={data.locale.language.toLowerCase()}>
+      <head>
+        <Meta />
+        <Links />
+      </head>
+      <body>
+        <Outlet />
+        <ScrollRestoration />
+        <Scripts />
+        {data.publicEnv.PUBLIC_SHOPIFY_INBOX_SHOP_ID ? (
+          <ShopifyInbox
+            shopDomain={data.publicEnv.PUBLIC_STORE_DOMAIN}
+            shopId={data.publicEnv.PUBLIC_SHOPIFY_INBOX_SHOP_ID}
+          />
+        ) : null}
+      </body>
+    </html>
+  );
+}
+```
+
+Return only the public values from the root loader:
+
+```ts
+return data({
+  publicEnv: {
+    PUBLIC_STORE_DOMAIN: context.env.PUBLIC_STORE_DOMAIN,
+    PUBLIC_SHOPIFY_INBOX_SHOP_ID:
+      context.env.PUBLIC_SHOPIFY_INBOX_SHOP_ID,
+  },
+});
+```
+
+## Update the Content Security Policy
+
+A strict CSP must allow Shopify's loader and chat network requests. Merge these hosts into the existing Hydrogen and Weaverse policy instead of replacing it:
+
+```ts
+const csp = {
+  scriptSrc: ["https://cdn.shopify.com"],
+  connectSrc: ["https://*.shopifysvc.com"],
+};
+```
+
+Shopify can change the hosts used by Inbox. Test with the browser console on the deployed storefront and add only the blocked Shopify hosts the current widget requires. Avoid broad `*` sources.
+
+## Handle modals and bottom-sheet overlays
+
+The fixed Inbox launcher can overlap cart drawers, quick-shop dialogs, account modals, or cookie banners. Prefer layout spacing first. If the launcher must be hidden while an overlay is open, isolate that behavior in one utility and restore it when the overlay closes.
+
+Do not depend on Shopify's internal iframe IDs, shadow-DOM selectors, or web-component structure unless you accept that the workaround can break after a vendor update. Shopify does not expose a documented storefront API for pre-filling or sending a message from your custom button.
+
+## Use Inbox with Weaverse
+
+Keep the global loader in the Hydrogen root. A Weaverse section can expose a merchant-facing “Message us” call to action, but the Inbox runtime itself should not be mounted separately in each section.
+
+Recommended Studio settings are presentation-only:
+
+- Button label and style.
+- Section spacing and colors.
+- Whether the call to action is displayed.
+
+Keep the shop domain and Inbox shop ID in deployment configuration so preview and production environments can use different stores safely.
+
+## Test the integration
+
+1. Deploy the storefront to an HTTPS preview or production domain.
+2. Open the site in a private browser session.
+3. Confirm the chat launcher appears once.
+4. Start a conversation and confirm it arrives in Shopify Inbox.
+5. Navigate between at least three Hydrogen routes and revisit the first route.
+6. Open and close cart, quick-shop, account, and consent overlays.
+7. Check the browser console for CSP, duplicate-script, and network errors.
+8. Verify behavior on mobile and desktop.
+
+<Warning>
+  Shopify's bot protection can prevent the Inbox widget from loading on `localhost`. A local failure is not conclusive; final verification must use a deployed domain.
+</Warning>
+
+## Troubleshooting
+
+### The launcher does not appear
+
+- Confirm online-store chat is enabled in Shopify Inbox.
+- Confirm both public identifiers are present in the deployed environment.
+- Check for CSP errors involving `cdn.shopify.com` or Shopify service hosts.
+- Verify on a deployed HTTPS URL instead of localhost.
+
+### The launcher appears twice
+
+Mount the loader only in the root and keep a stable script ID. Do not add the same script in both document markup and a React effect.
+
+### The launcher disappears after initial load
+
+Injecting the loader too early can conflict with its window-load behavior. Wait until `document.readyState === "complete"` or attach a one-time `load` listener, as shown above.
+
+### Chat overlaps another fixed element
+
+Adjust the launcher position in the loader parameters or reserve safe space in the page layout. Use DOM-level hiding only as a documented, tested fallback.
+
+## Production checklist
+
+- Inbox is enabled for the correct Shopify store.
+- Only public Inbox identifiers reach the browser.
+- The loader is mounted once in the root.
+- CSP allows the minimum required Shopify hosts.
+- Overlay and mobile behavior are verified.
+- Route changes do not duplicate or remove the widget.
+- A real message reaches the Inbox team.
+
+## Official resources
+
+- [Shopify Inbox](https://help.shopify.com/en/manual/inbox)
+- [Set up online store chat](https://help.shopify.com/en/manual/inbox/online-store-chat)
+- [Pilot Shopify Inbox component](https://github.com/Weaverse/pilot/blob/main/app/components/shopify-inbox.tsx)
+- [Hydrogen Content Security Policy](/features/content-security)
