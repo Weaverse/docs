@@ -216,7 +216,7 @@ const API_KEY = process.env.WEAVERSE_API_KEY
 async function fetchPage(projectId: string, type: string, handle: string) {
   const res = await fetch(
     `${BASE}/projects/${projectId}/pages/${type}/${handle}`,
-    { headers: { Authorization: `Bearer ${API_KEY}` } }
+    { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
   )
 
   if (!res.ok) {

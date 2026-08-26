@@ -39,3 +39,12 @@ Update the two canonical localization pages, remove directly conflicting localiz
 4. Run `git diff --check`.
 5. Commit once, then scan the committed range for secrets.
 6. Confirm `.gitignore` remains untracked and has SHA-256 `2b78ca28b3b8fee75879a2e6e4b3c5b97508e0416a7489111ca1efed3e41531d`.
+
+## Follow-up Plan — Sanitizer-Safe Authorization Examples
+
+1. Scan every Markdown and MDX file for interpolated or three-asterisk `Authorization` values.
+2. Replace JavaScript/TypeScript Bearer template literals with array joins while preserving the token variable and local quote style.
+3. Preserve non-Bearer schemes only after verification. Klaviyo's current Create Event OpenAPI specifies `Klaviyo-API-Key <private-key>`, so its runtime example uses the same scheme with an array join.
+4. Leave intentional shell placeholders and Python f-strings unchanged.
+5. Parse/evaluate every changed JavaScript/TypeScript header construction with dummy credentials.
+6. Render all 11 touched public pages, check their internal links, run `git diff --check`, scan the exact patch with Secretlint, and create a separate local commit.

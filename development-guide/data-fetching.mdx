@@ -247,7 +247,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductDetail
     
     // Reviews from third-party API
     fetchWithCache(`https://api.reviews.example/products/${productHandle}`, {
-      headers: { 'Authorization': `Bearer ${env.REVIEWS_API_KEY}` }
+      headers: { 'Authorization': ['Bearer', env.REVIEWS_API_KEY].join(' ') }
     }),
     
     // Inventory data from ERP system

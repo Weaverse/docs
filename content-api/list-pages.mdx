@@ -121,7 +121,7 @@ Returns a paginated list of page assignments in a project. Each assignment maps 
 
     const res = await fetch(
       `https://studio.weaverse.io/api/v1/content/projects/${projectId}/pages?${params}`,
-      { headers: { Authorization: `Bearer ${API_KEY}` } }
+      { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
     )
     const { data: pages, nextCursor } = await res.json()
     ```

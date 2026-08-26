@@ -69,7 +69,7 @@ Creates a page in a project. Two kinds of page are creatable:
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${API_KEY}`,
+          Authorization: ['Bearer', API_KEY].join(' '),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

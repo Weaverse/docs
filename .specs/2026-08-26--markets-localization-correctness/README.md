@@ -43,3 +43,13 @@ The implementation contract is grounded in Pilot's released localization work at
 - Changing Pilot, Builder, Shopify, Weaverse, Customer Account, or deployment configuration.
 - Promising equivalent localized routes that the application cannot prove exist.
 - Claiming a Shopify Markets or Customer Account mutation exists without an exact verified current Admin GraphQL operation.
+
+## Follow-up: Sanitizer-Safe Authorization Examples
+
+The committed Admin API Proxy TypeScript example exposed a credential-redaction corruption pattern shared by other runtime examples. The follow-up keeps each verified scheme but avoids interpolating credentials inside an `Authorization` template literal.
+
+- [x] All 14 JavaScript/TypeScript Bearer examples build the value with `['Bearer', token].join(' ')` or the local double-quote equivalent.
+- [x] The Klaviyo event example uses `['Klaviyo-API-Key', token].join(' ')`, matching Klaviyo's current Create Event OpenAPI security scheme.
+- [x] Intentional shell placeholders and Python Bearer f-strings remain unchanged.
+- [x] A repository-wide Markdown/MDX scan finds no interpolated or three-asterisk runtime `Authorization` value.
+- [x] Every touched public page renders through Mintlify, and all touched-page internal links resolve.

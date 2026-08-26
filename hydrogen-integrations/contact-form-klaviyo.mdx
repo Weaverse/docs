@@ -124,7 +124,7 @@ const res = await fetch("https://a.klaviyo.com/api/events", {
     accept: "application/vnd.api+json",
     revision: "2024-10-15",
     "content-type": "application/vnd.api+json",
-    Authorization: `Klaviyo-API-Key ${apiToken}`,
+    Authorization: ["Klaviyo-API-Key", apiToken].join(" "),
   },
   body: JSON.stringify(payload),
 });

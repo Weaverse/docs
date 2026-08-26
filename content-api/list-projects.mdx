@@ -82,7 +82,7 @@ Returns a paginated list of all projects in your shop.
     ```typescript
     const res = await fetch(
       'https://studio.weaverse.io/api/v1/content/projects?limit=10',
-      { headers: { Authorization: `Bearer ${API_KEY}` } }
+      { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
     )
     const { data: projects, nextCursor } = await res.json()
     ```

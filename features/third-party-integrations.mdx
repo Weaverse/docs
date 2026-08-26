@@ -155,7 +155,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
          `https://api.third-party.com/resources/${resourceId}?limit=${itemsToShow}`,
          {
            headers: {
-             'Authorization': `Bearer ${env.THIRD_PARTY_API_KEY}`,
+             'Authorization': ['Bearer', env.THIRD_PARTY_API_KEY].join(' '),
              'Content-Type': 'application/json'
            },
            // Use Hydrogen's caching to optimize performance
@@ -247,7 +247,7 @@ export const loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>
   
   return await fetchWithCache('https://api.third-party.com/data', {
     headers: {
-      'Authorization': `Bearer ${env.API_KEY}`
+      'Authorization': ['Bearer', env.API_KEY].join(' ')
     }
   })
 }
@@ -404,7 +404,7 @@ export let loader = async ({
       {
         method: "GET",
         headers: {
-          Authorization: `Bearer ${aliReviewsApiKey}`,
+          Authorization: ["Bearer", aliReviewsApiKey].join(" "),
           "Content-Type": "application/json",
         },
       },
@@ -468,7 +468,7 @@ Most third-party APIs require authentication. Here are the common approaches:
      
      return await weaverse.fetchWithCache('https://api.example.com/data', {
        headers: {
-         'Authorization': `Bearer ${env.THIRD_PARTY_API_KEY}`
+         'Authorization': ['Bearer', env.THIRD_PARTY_API_KEY].join(' ')
        }
      })
    }
@@ -490,7 +490,7 @@ Most third-party APIs require authentication. Here are the common approaches:
      
      return await weaverse.fetchWithCache('https://api.example.com/data', {
        headers: {
-         'Authorization': `Bearer ${accessToken}`
+         'Authorization': ['Bearer', accessToken].join(' ')
        }
      })
    }

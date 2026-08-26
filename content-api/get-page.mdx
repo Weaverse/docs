@@ -291,7 +291,7 @@ Official renderers exist for [React, Vue, Svelte, Astro, React Native](https://w
       const params = locale ? `?locale=${locale}` : ''
       const res = await fetch(
         `https://studio.weaverse.io/api/v1/content/projects/${projectId}/pages/${type}/${handle}${params}`,
-        { headers: { Authorization: `Bearer ${API_KEY}` } }
+        { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
       )
 
       if (!res.ok) {

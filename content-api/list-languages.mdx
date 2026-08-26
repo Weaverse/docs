@@ -88,7 +88,7 @@ Returns all languages configured for a project, including locale codes, display 
     ```typescript
     const res = await fetch(
       `https://studio.weaverse.io/api/v1/content/projects/${projectId}/languages`,
-      { headers: { Authorization: `Bearer ${API_KEY}` } }
+      { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
     )
     const { data: languages } = await res.json()
 

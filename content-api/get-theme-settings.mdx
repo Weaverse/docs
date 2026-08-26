@@ -174,7 +174,7 @@ In the default `weaverse` format the same `copyright` field is returned as the o
     const locale = 'fr-fr'
     const res = await fetch(
       `https://studio.weaverse.io/api/v1/content/projects/${projectId}/theme-settings?locale=${locale}`,
-      { headers: { Authorization: `Bearer ${API_KEY}` } }
+      { headers: { Authorization: ['Bearer', API_KEY].join(' ') } }
     )
     const { theme, staticTranslations } = await res.json()
 

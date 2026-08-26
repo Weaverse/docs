@@ -42,7 +42,7 @@ async function adminGraphql<T>(query: string, variables = {}) {
   const response = await fetch(ADMIN_GRAPHQL_URL, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: ["Bearer", apiKey].join(" "),
       "Content-Type": "application/json",
     },
     body: JSON.stringify({query, variables}),
