@@ -1,260 +1,160 @@
 ---
-title: Markets and Localization  
-description: Learn how Weaverse enables you to build and manage a multilingual storefront effortlessly.  
-published: true  
+title: "Markets and Localization"
+description: "Configure Shopify Markets and Weaverse localization from one verified market definition."
+published: true
 ---
 
 ## Overview
 
-Shopify Markets helps merchants expand their business to a global audience by creating shopping experiences in local languages and currencies.
+A localized storefront is one routing and commerce system, not a set of unrelated language pages. Define each market once, then derive every localized surface from that definition:
 
-Weaverse provides a streamlined solution for creating and managing multilingual storefronts. This guide walks you through the process of setting up localization in your Hydrogen theme with Weaverse, allowing you to customize content for various markets and audiences.
+- URL prefixes and the exact set of supported market routes
+- Shopify Storefront API country and language context
+- Weaverse locale and localized page data
+- links, redirects, and React Router data requests
+- cart buyer identity and checkout continuity
+- `<html lang>` and `dir`
+- canonical URLs, `hreflang`, and sitemap entries
 
-### Quick Demo
+<Warning>
+Shopify can accept an unsupported country, language, or currency context and silently return the default market. Enable every configured combination in Shopify Admin, then read back the Storefront API localization and currency before launch.
+</Warning>
 
-For a quick overview of the localization process, watch this video demonstration:
+## Configure Only Markets You Sell In
 
-[![Localization Demo](https://img.youtube.com/vi/LJy_KxVeUcs/0.jpg)](https://www.youtube.com/watch?v=LJy_KxVeUcs)
-
-## Prerequisites
-
-Before implementing localization, ensure your project is up-to-date with the latest versions of the Hydrogen library and the `@weaverse/hydrogen` package:
-
-```bash
-npx shopify hydrogen upgrade
-npm install @weaverse/hydrogen@latest
-```
-
-## Implementation Steps
-
-### Step 1: Add a Country Selector
-
-Follow [Shopify’s Country Selector guide](https://shopify.dev/docs/storefronts/headless/hydrogen/markets/country-selector) to integrate a `CountrySelector` component into your Hydrogen storefront. This feature allows users to switch between markets and languages seamlessly.
-
-### Step 2: Configure Localization in the Weaverse Theme Schema
-
-Update your theme schema to include localization settings. Modify the `schema.server.ts` file to define `i18n` configurations:
+Start with a small canonical table. The unprefixed entry is the default market; every other prefix is an exact, lowercase `/{language}-{country}` route.
 
 ```typescript
-import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
-import { COUNTRIES } from "~/utils/const";
-
-export let themeSchema: HydrogenThemeSchema = {
-  // ... other schema properties
-  i18n: {
-    urlStructure: "url-path", // "url-path", "subdomain", or "top-level-domain"
-    shopLocales: Object.entries(COUNTRIES).map(
-      ([pathPrefix, { label, language, country }]) => {
-        return {
-          language, // Required
-          country, // Required
-          pathPrefix: pathPrefix === "default" ? "" : pathPrefix, // Optional, but recommended for better navigation inside Weaverse Studio
-          label, // Optional
-        };
-      },
-    ),
+// app/utils/locale.ts
+export const SUPPORTED_LOCALES = [
+  {
+    pathPrefix: "",
+    label: "United States (USD $)",
+    language: "EN",
+    country: "US",
+    currency: "USD",
+    hreflang: "en-US",
+    direction: "ltr",
   },
-};
+  {
+    pathPrefix: "/fr-ca",
+    label: "Canada — Français (CAD $)",
+    language: "FR",
+    country: "CA",
+    currency: "CAD",
+    hreflang: "fr-CA",
+    direction: "ltr",
+  },
+  {
+    pathPrefix: "/ar-ae",
+    label: "الإمارات العربية المتحدة (AED)",
+    language: "AR",
+    country: "AE",
+    currency: "AED",
+    hreflang: "ar-AE",
+    direction: "rtl",
+  },
+] as const;
+
+export const DEFAULT_LOCALE = SUPPORTED_LOCALES[0];
 ```
 
-The `i18n` object contains the following properties:
-- `urlStructure`: Defines the URL structure for localized content. Options include:
-  - `url-path`: Uses path prefixes (e.g., `/en-us`, `/fr-ca`) for different locales.
-  - `subdomain`: Uses subdomains (e.g., `en.example.com`, `fr.example.com`).
-  - `top-level-domain`: Uses top-level domains (e.g., `example.fr`, `example.de`).
+Do not copy Pilot's full reference market list. Add only combinations that the merchant has enabled in Shopify Markets and that the storefront has verified by read-back.
 
-  Weaverse currently supports `url-path` structure. The other two options are under construction and will be available in future releases soon.
-- `shopLocales`: An array of locale objects, each containing:
-  - `language` (Required): The language code (e.g., `en`, `fr`).
-  - `country` (Required): The country code (e.g., `US`, `CA`).
-  - `pathPrefix` (Optional, Recommended): An optional path prefix for the locale. It helps in better navigation inside Weaverse Studio. If not provided, it will be computed based on the `language` and `country` codes.
-  - `label` (Optional): An optional label for the locale, which can be used for display purposes.
+### Derive the Weaverse Theme Schema
 
-### Step 3: Manage Localized Content in Weaverse Studio
-
-After integrating the `CountrySelector` component and configuring the theme schema, use Weaverse Studio to manage localized content effectively:
-
-#### a. Switch Between Markets/Locales
-- Open your site in Weaverse Studio.
-- Use the Country Selector to switch to the desired market or locale.
-  ![Switch Markets inside Weaverse Studio](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/studio_countries_selector.png?v=1747887045)
-- You will be prompted to create a localized version of the selected page.
-
-***Note**: if you don't see the dropdown, but only see a popup like the one below, it means that you have not set up the `i18n` object in your theme schema. Please refer to the previous step to set it up.*
-![Read market setup guide](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/market_setup_guide.png?v=1747901370)
-
-#### b. Create Localized Pages
-- When switching to a new market, a modal will appear prompting you to create a localized version of the current page.
-- Click on **"Create localized page"** to generate a specific version for the chosen market.
-- Localized pages are independent of the default version, ensuring changes apply only to the selected locale and you can revert to the default version at any time.
-  ![Create Localized Page modal](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/create_localized_page_modal.png?v=1747887649)
-
-- If the modal does not appear, you can manually click on the **"Create localized page"** button next to the Country Selector in the top bar of Weaverse Studio.
-  ![Create Localized Page button](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/create_localized_page_button.png?v=1747887648)
-
-#### c. Revert to Default Content
-- If you want to revert a localized page to the default version, you can do so easily.
-- Open the localized page in Weaverse Studio.
-- Click on the **"Reset to default"** button next to the Country Selector.
-  ![Reset to Default button](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/reset_localized_page_button.png?v=1747887647)
-- A confirmation modal will appear. Click **"Reset"** to confirm the action.
-  ![Reset to Default](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/reset_localized_page_modal.png?v=1747887648)
-
-  *Please note that this action cannot be undone.*
-
-
-### Benefits of Markets/Localization
-
-Using Weaverse's localization capabilities, you can:
-- Deliver market-specific content while maintaining a global default version.
-- Easily manage and update localized content for specific markets.
-- Preview localized storefronts to ensure alignment with audience preferences.
-- Revert localized pages to default content when necessary.
-
-## Technical Implementation
-
-While the Studio workflow above covers the visual management of localized content, understanding the technical implementation helps developers customize and extend localization functionality.
-
-### How Locale Detection Works
-
-Weaverse automatically determines the current locale through your theme's i18n configuration and Hydrogen's storefront context. The `loadPage()` function uses this information to fetch the appropriate localized content.
-
-**Connection between theme schema and loadPage():**
+Use the same table in the theme schema instead of maintaining another locale list.
 
 ```typescript
-// Your theme schema i18n config
-export let themeSchema: HydrogenThemeSchema = {
+// app/weaverse/schema.server.ts
+import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+import staticContent from "~/i18n/en.json" with { type: "json" };
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/locale";
+
+export const themeSchema: HydrogenThemeSchema = {
+  // ...components and settings
   i18n: {
     urlStructure: "url-path",
-    shopLocales: [
-      {
-        language: "en",
-        country: "US",
-        pathPrefix: "",
-        label: "English (US)",
-      },
-      {
-        language: "sv",
-        country: "SE",
-        pathPrefix: "sv-se",
-        label: "Svenska",
-      },
-    ],
+    defaultLocale: DEFAULT_LOCALE,
+    shopLocales: SUPPORTED_LOCALES,
+    translation: true,
+    staticContent,
   },
 };
-
-// In your route loader
-export async function loader({ context }: LoaderFunctionArgs) {
-  let { weaverse } = context;
-
-  // Weaverse automatically detects locale from context.storefront.i18n
-  let weaverseData = await weaverse.loadPage({
-    type: "PRODUCT",
-    handle: productHandle,
-    // locale auto-detected from pathPrefix (e.g., "sv-se")
-  });
-
-  return { weaverseData };
-}
 ```
 
-### Explicit Locale Control
+Weaverse currently supports path-based localization. Keep subdomain or top-level-domain routing out of this configuration unless your application implements and verifies that architecture separately.
 
-For advanced use cases, you can explicitly specify the locale in `loadPage()`:
+### Reuse the Table at Runtime
 
-```typescript
-// Explicitly load Swedish content
-let weaverseData = await weaverse.loadPage({
-  type: "PRODUCT",
-  handle: productHandle,
-  locale: "sv-se", // Override auto-detection
-});
-```
+Resolve the active market at the request boundary from this same exact allowlist. The selected entry drives every surface listed in the overview, including the public locale Weaverse uses for localized content and Translation Manager keys.
 
-**When to use explicit locale:**
-- Custom routing logic determines locale
-- Loading content for a different locale than the current page
-- Background jobs or admin tools
-- Cross-locale content comparison
+Some providers use a language enum that differs from the public BCP-47 identity. Keep provider-specific fields on the market entry; never derive a public URL or Weaverse locale from a provider enum.
 
-<Tip>
-See the [Advanced Localization Guide](/guides/localization-advanced) for complete technical details on locale detection methods and the `locale` parameter.
-</Tip>
+See [Advanced Localization](/guides/localization-advanced) for the routing, continuity, and SEO contract.
 
-### Locale Format Standards
+## Manage Localized Content in Studio
 
-Weaverse uses the standard `language-country` format (lowercase, hyphen-separated):
+After the theme schema exposes the configured markets:
 
-- **Format:** `language-country` (e.g., `sv-se`, `fr-ca`, `de-de`)
-- **Language:** ISO 639-1 code (2 letters)
-- **Country:** ISO 3166-1 alpha-2 code (2 letters)
+1. Open the page in Weaverse Studio.
+2. Choose a configured market from the market selector.
+3. Create the localized page when prompted.
+4. Edit and publish that market's content.
+5. Use **Reset to default** only when you intend to discard the localized page and return to default content.
 
-**Examples:**
-- `sv-se` - Swedish (`sv`) in Sweden (`se`)
-- `fr-ca` - French (`fr`) in Canada (`ca`)
-- `en-gb` - English (`en`) in United Kingdom (`gb`)
+If the selector is unavailable, verify `themeSchema.i18n` and confirm the selected market exists in the canonical table.
 
-### Limitations of Single-Project Approach
+## Understand Translation Sources
 
-While the single-project approach works well for most use cases, it has some limitations:
+Four sources can own a translated key. Highest precedence first:
 
-- **No per-locale theme settings:** Global theme settings (colors, fonts, layouts) apply to all locales
-- **URL structure constraints:** Best with `url-path` structure (`/sv-se/...`); limited support for subdomains or top-level domains
-- **Shared page routing:** All locales share the same page structure and navigation
+1. **Live Studio design override** — the current preview edit.
+2. **Persisted Translation Manager override** — merchant-authored.
+3. **Genuine legacy merchant setting** — a value customized before migration. A stored value still equal to the theme's shipped default is not merchant intent and falls through.
+4. **Bundled/static market translation** — ships with the theme and is the final fallback.
 
-### Alternative: Multi-Project Architecture
+Presence is authoritative, including an explicit empty string. Check whether a source owns the key; do not use truthiness or `||`, which would replace an intentional empty value with fallback copy.
 
-For advanced localization requirements, Weaverse supports a multi-project approach where each market or locale has its own dedicated project.
+## AI-Agent Setup Boundary
 
-**When to use multi-project:**
-- Different branding or theme settings per market
-- Top-level domain structure (mystore.se, mystore.fr)
-- Market-specific page structures
-- A/B testing different configurations
+A shop-scoped `WEAVERSE_API_KEY` can authenticate Weaverse Content API/MCP capabilities and the Shopify Admin API Proxy when it is a `shopify` or `content_api` token. The proxy uses the connected Weaverse app installation and only its currently granted Shopify scopes; it is not unrestricted Shopify access. `agent_cli` tokens cannot authenticate the proxy.
 
-**Setup example:**
+<Steps>
+  <Step title="Protect the key">
+    Keep the key in a dedicated, untracked server environment file with owner-only `0600` permissions. Configure the agent runtime to read that file. Never print the value or paste it into a prompt, command line, documentation, diff, or log.
+  </Step>
 
-```typescript
-// server.ts or weaverse initialization
-const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  request,
-  cache,
-  themeSchema,
-  components,
-  projectId: () => {
-    // `request.url` is a string — parse it before reading `origin`.
-    let origin = new URL(request.url).origin;
+  <Step title="Verify identity and scopes">
+    Call the Weaverse MCP `whoami` tool first. For Shopify authority, make a harmless authenticated `POST https://studio.weaverse.io/api/admin-graphql` read for `shop {name primaryDomain {url}}` and `currentAppInstallation {accessScopes {handle}}`. Confirm the expected shop and minimum required scopes before continuing; a successful token lookup alone proves neither.
+  </Step>
 
-    if (origin === "https://mystore.se") {
-      return "project-sweden-123"; // Swedish market project
-    } else if (origin === "https://mystore.fr") {
-      return "project-france-456"; // French market project
-    } else {
-      return "project-default-789"; // Default market
-    }
-  },
-});
-```
+  <Step title="Inventory before changing">
+    Use `list_projects`, `list_languages`, `list_pages`, `get_page`, and `get_theme_settings` for Weaverse state. Use reviewed Admin GraphQL reads for current Shopify state. Compare the results with the canonical market table before proposing any mutation.
+  </Step>
 
-**Multi-project workflow:**
-1. Create your original project and develop your storefront
-2. Duplicate the project in Weaverse Studio for each market/locale
-3. Customize each project independently (content, theme settings, pages)
-4. Use `projectId` logic to route to the appropriate project based on domain or custom criteria
-5. Import/export content between projects as needed for coordination
+  <Step title="Review and apply exact mutations">
+    Produce a resource-by-resource plan. Use only a current, schema-verified operation covered by the installed scopes; prefer repeatable writes that are no-ops when the desired state already exists. Obtain explicit approval immediately before destructive, permission, publication, or other high-impact changes. Treat every HTTP/proxy failure—including the sanitized `500` used for top-level GraphQL errors—as a failed operation. For HTTP 200 mutations, inspect operation-specific `userErrors`, then read back the exact resource.
+  </Step>
 
-**Benefits of multi-project:**
-- Independent global theme settings per market
-- Different page structures and navigation per locale
-- Support for any URL structure (top-level domains, subdomains, custom routing)
-- Complete Studio isolation per market
-- A/B testing and staged rollouts
+  <Step title="Handoff and verify">
+    Do not claim that Shopify Markets combinations or Customer Account logout URIs are API-mutable unless the exact current Admin GraphQL operation is verified. Hand unproved steps to an authorized Shopify Admin operator. Translation Manager sync and publish remain a Studio step and require explicit approval. Once both systems are configured, work through the Production Checklist below.
+  </Step>
+</Steps>
 
-<Note>
-See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)** for comprehensive documentation on multi-project setup, including A/B testing, multi-brand storefronts, advanced routing patterns, and step-by-step migration guides.
-</Note>
+The Admin API Proxy is limited to 1,000 requests per hour per token and a 15-second query timeout. See [Shopify Admin API Proxy](/features/admin-api-proxy), [Weaverse MCP](/developer-tools/weaverse-mcp), and [Content API](/content-api/overview) for the verified authentication, scope, route, and write contracts.
 
-## Conclusion
+## Production Checklist
 
-Weaverse simplifies the localization process, enabling you to efficiently manage multilingual content and provide tailored shopping experiences. By following this guide, you can ensure your storefront meets the needs of diverse markets and audiences.
+Before launch:
+
+- Enable every configured country, language, and currency in Shopify Admin.
+- Read back each combination from the Storefront API; remove any market that resolves to the default instead of the requested context.
+- Confirm unsupported exact locale-shaped prefixes return 404 while ordinary slugs such as `/about-us` or `/collections/hi-in-picks` remain valid.
+- Confirm market switches preserve the intended path and query and perform a document navigation so stale Weaverse data is not reused.
+- Confirm links, redirects, and React Router `.data` requests retain the active market.
+- Confirm cart buyer identity and checkout remain in the selected country and currency.
+- Render the selected market's `hreflang` as `<html lang>` and set `dir="rtl"` for RTL markets.
+- Emit a self-canonical URL and only the `hreflang` alternates whose equivalent routes are known to exist. Omit uncertain alternates.
+- Register the storefront origin and every served market home URI as allowed Customer Account post-logout URIs. Keep the authentication callback unlocalized.
+- After deploying the corrected theme, sync and publish the intended keys and overrides in Translation Manager.
