@@ -28,10 +28,14 @@ Get Weaverse installed and running in your Shopify Hydrogen project quickly and 
 
 Example command:
 ```bash
-npx @weaverse/cli@latest create --template=pilot --project-id=abc123 --project-name=my-store --dev
+npx @weaverse/cli@latest create --template=pilot --project-id=abc123 --project-name=my-store
 ```
 
-The `--dev` flag starts the development server after the theme is downloaded, dependencies are installed, and the environment is configured.
+An interactive terminal asks whether to start the development server. A non-interactive run starts it only with `--dev`. For a deterministic next step, run:
+
+```bash
+cd my-store && npm run dev
+```
 
 ---
 

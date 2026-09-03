@@ -1,0 +1,71 @@
+---
+title: "Update Project"
+description: "Update a Weaverse project's display name through the Content API"
+published: true
+---
+
+# Update Project
+
+```
+PATCH /api/v1/content/projects/:projectId
+```
+
+Updates the display name of an existing project. This endpoint does not create, delete, or reconfigure projects.
+
+<Note>
+  Requires a Content API key for the shop that owns the project. See [Authentication](/content-api/overview#authentication).
+</Note>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `projectId` | string | Yes | Project to update |
+
+## Request body
+
+```json
+{
+  "name": "Holiday Storefront"
+}
+```
+
+Only `name` is writable. It must be a non-empty string with at most 191 characters. Unknown fields are rejected rather than silently ignored.
+
+Clients that cannot send `PATCH` may send `POST` to the same URL with the same body.
+
+## Example
+
+```bash
+curl -X PATCH \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  "https://studio.weaverse.io/api/v1/content/projects/PROJECT_ID" \
+  -d '{"name":"Holiday Storefront"}'
+```
+
+## Response
+
+```json
+{
+  "object": "project",
+  "id": "PROJECT_ID",
+  "name": "Holiday Storefront",
+  "parentProjectId": null,
+  "createdAt": "2026-08-24T10:30:00.000Z"
+}
+```
+
+## Errors
+
+| Code | Status | When |
+|---|---:|---|
+| `INVALID_PARAMS` | 400 | `name` is missing, empty, too long, or the body contains unsupported fields |
+| `UNAUTHORIZED` | 401 | API key is missing or invalid |
+| `FORBIDDEN` | 403 | The key cannot access this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `INTERNAL_ERROR` | 500 | The project update fails |
+
+<Card title="Content API overview" icon="arrow-left" href="/content-api/overview">
+  Review authentication, write behavior, errors, and usage tracking.
+</Card>

@@ -1,0 +1,87 @@
+---
+title: "List Public Custom Pages"
+description: "Retrieve custom-page route metadata for sitemap and crawler integrations without authentication"
+published: true
+---
+
+# List Public Custom Pages
+
+```
+GET /api/public/v1/projects/:projectId/custom-pages
+```
+
+Returns route metadata for non-deleted `CUSTOM` page assignments. Unlike the authenticated Content API, this endpoint does not return component content or theme settings.
+
+<Note>
+  No API key is required. Responses are CDN-cacheable. A process-local rate limit allows 60 requests per 60 seconds for each IP address and project pair.
+</Note>
+
+<Warning>
+  The endpoint does not filter assignments by publication state. Do not treat an entry as proof that a page is published; apply your storefront's publication policy before adding a route to a public sitemap.
+</Warning>
+
+## Path parameters
+
+| Parameter | Type | Required | Description |
+|---|---|---|---|
+| `projectId` | string | Yes | Project whose custom-page assignments should be listed |
+
+## Query parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `locale` | string | — | Limit results to a locale. Use `default` to match assignments whose locale is empty or `null`. |
+| `limit` | integer | `100` | Page size. Values above `1000` are capped at `1000`. |
+| `cursor` | string | — | Cursor from the previous response's `nextCursor` field. |
+
+## Example
+
+```bash
+# First page
+curl "https://studio.weaverse.io/api/public/v1/projects/PROJECT_ID/custom-pages?locale=en-us&limit=100"
+
+# Next page
+curl "https://studio.weaverse.io/api/public/v1/projects/PROJECT_ID/custom-pages?locale=en-us&limit=100&cursor=NEXT_CURSOR"
+```
+
+## Response
+
+```json
+{
+  "data": [
+    {
+      "handle": "pages/gift-shop",
+      "locale": "en-us",
+      "path": "/en-us/pages/gift-shop",
+      "lastModified": "2026-08-24T10:30:00.000Z",
+      "priority": 0.7,
+      "changeFrequency": "weekly"
+    }
+  ],
+  "nextCursor": null
+}
+```
+
+`nextCursor` is `null` when there are no more results. Otherwise, pass it unchanged as the next request's `cursor` value.
+
+Use each returned `handle` and `path` exactly as returned. A handle may contain `/`, for example `pages/gift-shop`.
+
+## Errors
+
+This public endpoint returns a compact `{ "error": "code" }` body rather than the authenticated Content API error envelope.
+
+| Error | Status | When |
+|---|---:|---|
+| `invalid_limit` | 400 | `limit` cannot be parsed as a value of at least 1 |
+| `invalid_cursor` | 400 | `cursor` cannot be decoded |
+| `too_many_requests` | 429 | The IP/project rate limit is exceeded |
+| `internal` | 500 | The query fails |
+
+<CardGroup cols={2}>
+  <Card title="Custom Pages" icon="file" href="/features/custom-pages">
+    Learn how custom routes are created and rendered.
+  </Card>
+  <Card title="List Pages" icon="lock" href="/content-api/list-pages">
+    Use the authenticated assignment endpoint when you need page IDs, types, or project content.
+  </Card>
+</CardGroup>
