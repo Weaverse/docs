@@ -70,10 +70,10 @@ Weaverse provides the `createSchema()` function as the modern, recommended way t
 
 ### Why Use createSchema()?
 
-1. **Runtime Validation**: Validates your schema configuration at build time using Zod, catching errors before they reach production
-2. **Type Safety**: Provides excellent TypeScript inference and autocompletion
-3. **Consistent Standards**: Ensures all schemas follow the same validation rules
-4. **Future-Proof**: Ready for new schema features and validation rules
+1. **Development Diagnostics**: Schedules asynchronous Zod validation outside production and logs issues as warnings
+2. **Type Checking**: Accepts the public `SchemaType`, providing TypeScript checks and autocompletion while authoring
+3. **Non-Blocking Runtime**: Returns the original schema immediately and does not throw validation or import failures through the call
+4. **Production Footprint**: Skips the validation import in production builds
 
 ### Basic Usage
 
@@ -89,7 +89,7 @@ export let schema = createSchema({
 });
 ```
 
-The `createSchema()` function takes a schema object and returns a validated schema that Weaverse can use. If your schema has any validation errors, you'll get clear error messages at build time.
+The `createSchema()` function returns the supplied schema immediately. In development, it starts asynchronous validation and logs any issues as warnings; those warnings do not stop a build or replace the schema.
 
 ### Import Options
 
@@ -109,7 +109,7 @@ The `HydrogenComponentSchema` acts as a comprehensive definition for your compon
 
 ### Core Schema Structure
 
-The modern way to define component schemas is using the `createSchema()` function, which provides runtime validation and type safety:
+The recommended way to define component schemas is using the `createSchema()` function, which provides `SchemaType` checking and non-blocking development diagnostics:
 
 ```tsx
 import { createSchema } from '@weaverse/hydrogen';
@@ -117,7 +117,7 @@ import { createSchema } from '@weaverse/hydrogen';
 export let schema = createSchema({
   title: string
   type: string
-  settings: InspectorGroup[]
+  settings?: InspectorGroup[]
   inspector?: InspectorGroup[] // Deprecated: use 'settings' instead
   childTypes?: string[]
   presets?: Omit<HydrogenComponentPresets, 'type'>
@@ -132,10 +132,10 @@ export let schema = createSchema({
 ```
 
 The `createSchema()` function:
-- **Validates your schema at build time** using Zod validation
-- **Provides better TypeScript inference** and error messages
-- **Catches configuration errors early** before they reach the editor
-- **Ensures consistency** across all component schemas
+- **Returns the schema immediately** without waiting for validation
+- **Schedules asynchronous Zod validation in development** and logs issues as warnings
+- **Does not throw validation or import failures** through `createSchema()`
+- **Skips the validation path in production**
 
 > **⚠️ Migration Notice**: The `inspector` property has been deprecated in favor of `settings`. While `inspector` is still supported for backward compatibility, new components should use `settings`. The Weaverse system automatically handles both properties during the transition period.
 
@@ -187,7 +187,7 @@ export let schema = createSchema({
 ### `settings`
 
 ```tsx
-settings: InspectorGroup[]
+settings?: InspectorGroup[]
 ```
 
 The `settings` property defines what customization options are available to users in the Weaverse Studio. It's organized into groups that appear as collapsible sections in the editor interface.
@@ -837,31 +837,31 @@ export let schema = createSchema({
 });
 ```
 
-### Migration to createSchema()
+### Defining Schemas with createSchema()
 
-The modern approach uses the `createSchema()` function instead of manual type definitions:
+`HydrogenComponentSchema` remains a current public alias of `SchemaType`. Direct type annotation is supported; `createSchema()` is a convenient helper that adds non-blocking development diagnostics.
 
-#### 1. Update Imports
+#### 1. Choose an authoring form
 
 ```tsx
-// Before (old approach)
+// Direct annotation (supported)
 import type { HydrogenComponentSchema } from '@weaverse/hydrogen';
 
-// After (new approach)
+// Helper with development diagnostics
 import { createSchema } from '@weaverse/hydrogen';
 ```
 
-#### 2. Wrap Schema with createSchema()
+#### 2. Use the helper when you want diagnostics
 
 ```tsx
-// Before (old approach)
+// Direct annotation
 export const schema: HydrogenComponentSchema = {
   type: 'my-component',
   title: 'My Component',
   // ... rest of schema
 };
 
-// After (new approach)
+// Helper
 export let schema = createSchema({
   type: 'my-component',
   title: 'My Component',
@@ -869,13 +869,9 @@ export let schema = createSchema({
 });
 ```
 
-**Benefits of the new approach:**
-- ✅ **Runtime validation** catches errors early
-- ✅ **Better TypeScript inference** and autocomplete
-- ✅ **Consistent validation** across all schemas
-- ✅ **Future-proof** for new schema features
+The helper keeps the same `SchemaType` contract. It returns immediately, schedules asynchronous warning-based validation only in development, and adds no validation path in production.
 
-#### 3. Gradual Migration
+### Gradual Inspector Migration
 
 During the transition period you can keep both properties. When only one is present, that one is used — `inspector` alone additionally logs a deprecation warning. When **both** are present, Weaverse concatenates them, with the `settings` groups rendered first and the `inspector` groups appended after:
 
@@ -907,16 +903,13 @@ export let schema = createSchema({
 
 ### Common Schema Issues
 
-1. **Schema Validation Errors**: When using `createSchema()`, you may encounter validation errors at build time. These errors provide clear messages about what's wrong with your schema configuration. Common validation issues include:
-   - Missing required fields (`title`, `type`)
-   - Invalid input types
-   - Malformed configuration objects
+1. **Schema Validation Warnings**: In development, `createSchema()` may log asynchronous warnings for missing required fields, invalid input types, or malformed configuration. It still returns the original schema and does not fail the build.
 
 2. **Duplicate Type Error**: Each component must have a unique `type`. Check for duplicates across your entire theme.
 
-3. **Missing Required Properties**: Ensure all required properties (`title`, `type`) are defined. The `createSchema()` function will catch these at build time.
+3. **Missing Required Properties**: Ensure `title` and `type` are defined. TypeScript checks these for typed schemas; the development validator can also report them as warnings.
 
-4. **Invalid Input Types**: Verify that all input `type` values match those supported by Weaverse. The validation will show allowed types if you use an invalid one.
+4. **Invalid Input Types**: Verify that input `type` values match those supported by Weaverse. Development validation reports unsupported values as warnings.
 
 5. **Child Component Not Available**: If a child component doesn't appear in the editor, check that its type is included in the parent's `childTypes` array.
 

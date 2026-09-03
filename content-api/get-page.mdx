@@ -37,8 +37,13 @@ Returns the full page content including all component items. This is the primary
 | `locale` | string | `""` | Locale code for localized content (e.g., `en-us`, `fr-fr`) |
 | `format` | `weaverse` \| `portable-text` | `weaverse` | Output format. See [Portable Text format](#portable-text-format) below. |
 | `meta` | boolean | `false` | When `true` *and* `format=portable-text`, each block carries a `_weaverse: { id, schemaVersion }` field for round-tripping back to the original Weaverse item. |
+| `includeDefaults` | boolean | `false` | When `true`, fills absent component setting keys with `defaultValue`s from the registered schemas. Stored values always win. |
 
 The format can also be requested via the `Accept` header (`application/portable-text+json`). The query parameter takes precedence when both are present.
+
+<Tip>
+  Use `includeDefaults=true` when an external renderer needs a complete component configuration. Leave it off when you need to distinguish explicitly stored values from schema defaults.
+</Tip>
 
 <Warning>
   **Always pass `locale` for localized projects.** Page content is stored per
@@ -47,10 +52,11 @@ The format can also be requested via the `Accept` header (`application/portable-
   `en-us` assignment — **not** on the base locale (`""`).
 
   Because `locale` defaults to `""`, calling
-  `…/pages/PRODUCT/default` *without* `?locale` returns the **base-locale**
-  page, which on a localized project is often a different — and possibly
-  empty or un-edited — assignment. This is the most common reason a published
-  change appears in the storefront/editor but seems "missing" from the API.
+  `…/pages/PRODUCT/default` *without* `?locale` requests the **base locale**
+  first. On a localized project, that may resolve to a different assignment
+  through the fallback sequence below — and can be empty or unedited. This is
+  the most common reason a published change appears in the storefront/editor
+  but seems "missing" from the API.
 
   Fix: include the market locale, e.g.
   `…/pages/PRODUCT/default?locale=en-us`.
@@ -64,15 +70,17 @@ The format can also be requested via the `Accept` header (`application/portable-
   assignment.
 </Warning>
 
-### Locale fallback
+### Locale and template fallback
 
-When a page is not found for the requested locale, the API falls back in order:
+The API evaluates this sequence at each project level:
 
-1. Requested locale (e.g., `fr-fr`)
-2. Project's default locale
-3. English default
+1. The requested handle's market match, when the project uses market-first resolution
+2. The requested handle with the exact locale
+3. The requested handle with the empty locale (`""`)
+4. The requested handle with the legacy `en-us` locale
+5. For a non-`CUSTOM` request with a non-empty handle, the empty-handle template in the same market, exact-locale, empty-locale, then legacy `en-us` order
 
-If no assignment is found after all fallbacks, a `404` is returned.
+If the current project has no match, the same sequence runs for its parent and then grandparent project. The resolver does not consult a configured project default locale. If no assignment is found after the parent cascade, the API returns `404`.
 
 ## Response
 

@@ -180,12 +180,16 @@
             "pages": [
               "content-api/overview",
               "content-api/list-projects",
+              "content-api/update-project",
               "content-api/list-pages",
+              "content-api/public-custom-pages",
               "content-api/create-page",
               "content-api/assign-template-resources",
               "content-api/get-page",
               "content-api/update-page",
+              "content-api/delete-pages",
               "content-api/get-theme-settings",
+              "content-api/update-theme-settings",
               "content-api/list-languages"
             ]
           }

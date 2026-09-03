@@ -108,23 +108,16 @@ npx @weaverse/cli@latest create --template=pilot --project-id=YOUR_PROJECT_ID --
   Use the Project ID shown in your Weaverse onboarding modal or in **Project Settings** inside Weaverse Studio.
 </Tip>
 
-The command is unique to your project and includes your Project ID. It will automatically:
-- Download the selected theme to your local machine
-- Install all dependencies (React, Hydrogen, etc.)
-- Update environment variables with your Project ID and a generated `SESSION_SECRET`
-- Start the development server
+The command is unique to your project and includes your Project ID. It downloads the selected theme, creates the local environment file, and installs dependencies.
 
-**Example Terminal Output:**
+In an interactive terminal, the CLI asks whether to start the development server. In a non-interactive run, it starts the server only when the command includes `--dev`. Use an explicit next step for deterministic setup:
+
 ```bash
-Downloading Pilot theme...
-Installing dependencies...
-Configuring environment...
-Starting development server...
-
-Your Weaverse storefront is ready!
-Local:  http://localhost:3456
-Studio: https://studio.weaverse.io/projects/YOUR_PROJECT_ID
+cd my-hydrogen-storefront
+npm run dev
 ```
+
+When the server is ready, open `http://localhost:3456`. Connect Studio at `https://studio.weaverse.io/projects/YOUR_PROJECT_ID`.
 
 </Accordion>
 

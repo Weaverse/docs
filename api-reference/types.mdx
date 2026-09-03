@@ -62,7 +62,7 @@ interface SchemaType {
 }
 ```
 
-Use `createSchema()` to preserve type inference and development-time validation:
+Use `createSchema()` to type-check an object against `SchemaType` and enable development-time diagnostics:
 
 ```tsx
 import { createSchema } from '@weaverse/hydrogen'
@@ -74,7 +74,7 @@ export const schema = createSchema({
 })
 ```
 
-`createSchema()` lazy-loads Zod validation in development. Production builds return the schema without loading Zod; use the explicit validation APIs when production-time validation is required.
+`createSchema()` returns the original schema immediately. Outside production it asynchronously lazy-loads Zod and logs validation issues as warnings; validation and import failures do not throw through the call. Production builds skip this validation path.
 
 ### `HydrogenComponentData`
 
@@ -272,7 +272,6 @@ import type { Ref } from 'react'
 import {
   createSchema,
   type ComponentLoaderArgs,
-  type HydrogenComponent,
   type HydrogenComponentProps,
 } from '@weaverse/hydrogen'
 
@@ -339,13 +338,8 @@ async function loader({
   }
 }
 
-const component: HydrogenComponent<HeroBannerProps> = {
-  default: HeroBanner,
-  schema,
-  loader,
-}
-
-export default component
+export default HeroBanner
+export { loader, schema }
 ```
 
 ## Type Extensions

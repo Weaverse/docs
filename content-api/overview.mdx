@@ -10,8 +10,8 @@ The Weaverse Content API is a REST API that lets you read **and update** your pa
 
 <Note>
   Write endpoints cover page content (update + delete), theme settings, and the
-  project name. Changes go live immediately through the same cache-invalidation
-  path as a Studio save. Project create/delete and store-level settings remain
+  project name. Content changes use the same cache-invalidation path as a
+  Studio save. Project create/delete and store-level settings remain
   Studio-only.
 </Note>
 
@@ -27,17 +27,19 @@ https://studio.weaverse.io/api/v1/content
 |--------|------|-------------|
 | `GET` | [`/projects`](/content-api/list-projects) | List all projects |
 | `GET` | `/projects/:projectId` | Get a single project's metadata |
-| `PATCH` | `/projects/:projectId` | Update the project name |
+| `PATCH` | [`/projects/:projectId`](/content-api/update-project) | Update the project name |
 | `GET` | [`/projects/:projectId/pages`](/content-api/list-pages) | List page assignments |
 | `POST` | [`/projects/:projectId/pages`](/content-api/create-page) | Create a page (`CUSTOM` or a resource-backed template override) |
 | `POST` | [`/projects/:projectId/template-assignments/:pageId`](/content-api/assign-template-resources) | Assign many resources to one shared template page |
-| `DELETE` | `/projects/:projectId/pages` | Bulk-delete pages (by ids or handles) |
+| `DELETE` | [`/projects/:projectId/pages`](/content-api/delete-pages) | Bulk-delete pages (by ids or handles) |
 | `GET` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/get-page) | Get page content |
 | `PATCH` | [`/projects/:projectId/pages/:type/:handle...`](/content-api/update-page) | Update page content (merge item data, create items, relink children) |
 | `GET` | [`/projects/:projectId/theme-settings`](/content-api/get-theme-settings) | Get theme settings |
-| `PATCH` | `/projects/:projectId/theme-settings` | Merge top-level theme settings keys |
+| `PATCH` | [`/projects/:projectId/theme-settings`](/content-api/update-theme-settings) | Merge top-level theme settings keys |
 | `GET` | [`/projects/:projectId/languages`](/content-api/list-languages) | List configured locales |
 | `GET` | `/openapi.json` | OpenAPI 3.1 specification |
+
+The separate public discovery API exposes [`GET /api/public/v1/projects/:projectId/custom-pages`](/content-api/public-custom-pages) for custom-page route metadata. It does not require a Content API key and does not filter assignments by publication state.
 
 All write endpoints also accept `POST` with the same body, for clients and
 proxies that strip `PATCH`/`DELETE` bodies. Full request/response schemas live
@@ -66,10 +68,12 @@ in [`/openapi.json`](https://studio.weaverse.io/api/v1/content/openapi.json).
   any handle belongs to a different live page the whole request returns `409`
   and writes nothing (never repointed).
 - **Page delete** — `DELETE .../pages` with `{ "pageIds": [...] }` or
-  `{ "handles": [...], "type", "locale?" }`. Soft-deletes up to 500 pages.
+  `{ "handles": [...], "type", "locale?" }`. Accepts up to 500 target values.
+  When both selector arrays are present, `pageIds` takes precedence.
 - **Theme settings** — `PATCH .../theme-settings` with `{ "theme": { ... } }`.
-  Top-level keys are shallow-merged over the project's own theme; a restorable
-  theme version is snapshotted before each change.
+  Top-level keys are shallow-merged over the project's own theme. For a real
+  change, Weaverse attempts a deduplicated snapshot of the merged result, but
+  snapshot failure is non-fatal and does not stop the settings write.
 - **Project** — `PATCH /projects/:projectId` with `{ "name": "..." }`.
   Only `name` is writable; unknown fields are rejected.
 

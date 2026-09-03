@@ -1,0 +1,90 @@
+---
+title: "Delete Pages"
+description: "Delete multiple Weaverse page assignments by ID or by handle through the Content API"
+published: true
+---
+
+# Delete Pages
+
+```
+DELETE /api/v1/content/projects/:projectId/pages
+```
+
+Accepts up to 500 page IDs or handles in one request and deletes the matching page assignments. Identify targets either by page ID or by handle, type, and locale.
+
+<Warning>
+  Deleting content is a consequential write. Resolve the intended targets with [List Pages](/content-api/list-pages), show them to the user when operating through an agent, and require confirmation before sending the request.
+</Warning>
+
+## Delete by page IDs
+
+```json
+{
+  "pageIds": ["PAGE_ID_1", "PAGE_ID_2"]
+}
+```
+
+Page ID matching is scoped to the project in the request URL.
+
+## Delete by handles
+
+```json
+{
+  "type": "CUSTOM",
+  "handles": ["pages/old-campaign", "pages/expired-offer"],
+  "locale": "en-us"
+}
+```
+
+For custom pages, use the exact handle returned by [List Pages](/content-api/list-pages), including any `/` characters. When `locale` is omitted, the endpoint uses the legacy `en-us` locale.
+
+<Note>
+  Send one selector form per request. If both `pageIds` and `handles` are present and `pageIds` is an array, the endpoint processes `pageIds` and ignores `handles`.
+</Note>
+
+## Behavior
+
+The endpoint removes only matching assignments from the requested project. It soft-deletes the underlying page after the page has no remaining live assignments; assignments for other locales or resources keep a shared page live.
+
+Clients or proxies that strip `DELETE` request bodies may send `POST` to the same URL with the same delete body.
+
+## Example
+
+```bash
+curl -X DELETE \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  "https://studio.weaverse.io/api/v1/content/projects/PROJECT_ID/pages" \
+  -d '{"type":"CUSTOM","handles":["pages/old-campaign"],"locale":"en-us"}'
+```
+
+## Response
+
+```json
+{
+  "object": "page_delete",
+  "requested": 1,
+  "deleted": 1,
+  "notFound": 0,
+  "failed": 0,
+  "deletedHandles": ["pages/old-campaign"],
+  "notFoundHandles": [],
+  "failedHandles": []
+}
+```
+
+Keep batches small enough to review, even though the endpoint accepts up to 500 target values. Use the response counts and handle lists to identify misses or per-page failures.
+
+## Errors
+
+| Code | Status | When |
+|---|---:|---|
+| `INVALID_PARAMS` | 400 | Targets are missing, malformed, empty, or exceed the batch limit |
+| `UNAUTHORIZED` | 401 | API key is missing or invalid |
+| `FORBIDDEN` | 403 | The key cannot access this project |
+| `PROJECT_NOT_FOUND` | 404 | Project does not exist or was deleted |
+| `INTERNAL_ERROR` | 500 | Deletion or post-delete cache invalidation fails |
+
+<Card title="List Pages" icon="list" href="/content-api/list-pages">
+  Resolve page IDs, handles, types, and locales before deleting.
+</Card>
