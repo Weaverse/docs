@@ -377,6 +377,42 @@ Here's how it works:
 
 - **Enhancing SEO**: merchants can edit the alt text of the images they've uploaded.
 
+#### Filtering the Media Manager gallery
+
+A theme can hide files from the gallery so a picker only offers what belongs in it. Declare the store-wide
+default on [`HydrogenThemeSchema.media`](/api-reference/types#hydrogenthemeschema), and override it for a
+single input through `configs`:
+
+```tsx
+{
+  type: "image",
+  name: "heroImage",
+  label: "Hero image",
+  configs: {
+    excludeFilenamePrefixes: ["thumb_v"],
+    excludeProductFiles: true,
+  },
+}
+```
+
+| Field                      | Effect                                                                                                                                              |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `excludeFilenamePrefixes`  | Hides files whose name starts with any of the listed prefixes. The wildcard is added for you, so pass `"thumb_v"` rather than `"thumb_v*"`.            |
+| `excludeProductFiles`      | Hides files used in products. This matches usage, not origin: a file uploaded to the Files page and later attached to a product is hidden as well.     |
+
+An input's `configs` overrides the theme value **field by field**:
+
+- the key is absent — the input inherits the theme's value
+- an array or boolean is present — it replaces the theme's value for this picker
+- `excludeFilenamePrefixes: []` — this picker shows every file, ignoring the theme's list
+
+Declaring one field never resets the other, and there is no flag to enable overriding: the presence of the
+key is the signal.
+
+Pickers opened outside an input schema — the SEO image field, the rich text editor and the Translation
+Manager — apply the theme's rules alone. A theme that declares no `media` key filters nothing, which is not
+an error.
+
 **Return**: `object` - A **`WeaverseImage`** object with the following structure:
 
 ```tsx
@@ -473,6 +509,9 @@ Here's how it works:
 - **Uploading Videos**: any video a merchant uploads through this input is saved to the Files page as well.
 
 - **Enhancing SEO**: merchants can edit the alt text of the videos they've uploaded.
+
+- **Filtering the gallery**: `video` inputs accept the same `configs` as `image` — see
+  [Filtering the Media Manager gallery](#filtering-the-media-manager-gallery).
 
 **Return**: `object` - A **`WeaverseVideo`** object with the following structure:
 
