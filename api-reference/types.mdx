@@ -193,6 +193,11 @@ type HydrogenThemeSchema = {
   }
   /** @deprecated Use settings. */
   inspector?: InspectorGroup[]
+  /** Store-wide Media Manager filtering. Not merchant-editable. */
+  media?: {
+    excludeFilenamePrefixes?: string[]
+    excludeProductFiles?: boolean
+  }
   settings?: InspectorGroup[]
   i18n?: {
     urlStructure: 'url-path' | 'subdomain' | 'top-level-domain'
@@ -203,6 +208,11 @@ type HydrogenThemeSchema = {
   }
 }
 ```
+
+`media` sets what the Media Manager gallery hides for every picker in the theme. It is a sibling of
+`settings` rather than an entry inside it, because `settings` renders as merchant-editable controls and
+these rules are meant to be fixed by the theme author. An `image` or `video` input can override them for
+its own picker — see [Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
 
 ## Page Types
 
