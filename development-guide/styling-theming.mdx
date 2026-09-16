@@ -62,6 +62,12 @@ export const themeSchema: HydrogenThemeSchema = {
     documentationUrl: "https://your-docs.com",
     supportUrl: "https://your-support.com",
   },
+  media: {
+    // Hides generated assets and product media from every Media Manager
+    // picker in the theme. Merchants cannot change this.
+    excludeFilenamePrefixes: ["thumb_v"],
+    excludeProductFiles: true,
+  },
   settings: [
     {
       group: "Layout",
@@ -147,6 +153,10 @@ export const themeSchema: HydrogenThemeSchema = {
   ],
 };
 ```
+
+`media` is optional and, unlike `settings`, never reaches the merchant: it filters what the Media Manager
+gallery offers in this theme. An `image` or `video` input can override it for its own picker — see
+[Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
 
 ### 3. Global Style Component
 
