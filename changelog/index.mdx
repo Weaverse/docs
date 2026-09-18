@@ -8,6 +8,85 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.10.6" description="September 18, 2026" tags={["Studio", "SDK", "Theme"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Agent Skills for your coding assistant**: The Deployment Guide is now an Agent Skills catalog. Install the skill pack once, pick the task you want — project setup, theme updates, Figma to Weaverse, analytics, markets and localization — and copy a ready-made prompt into Claude Code, Codex, Cursor or another assistant.
+  - **See and control the hostnames using your project**: Manage previews now lists every hostname observed requesting your project's content, when it was first and last seen, and whether it is a saved preview. Add one as a preview, or block it, in a click.
+
+  #### Improvements
+
+  - **Usage read straight from Shopify**: If your usage is billed through Shopify, the figure in your dashboard is now read directly from Shopify, so it matches the usage Shopify has recorded against your current cap cycle.
+  - **Translation progress you can trust**: Translation jobs now report when they fail instead of finishing quietly, and an accepted translation refreshes right away instead of showing the previous version.
+
+  #### Bug Fixes
+
+  - **Saved translations no longer go missing on your storefront**: Translations for fields you left empty in your default language are now served on the live storefront instead of being filtered out.
+  - **Previews stay on the page you are editing**: The editor keeps the preview pointed at the right page and the right preview address through page switches, reloads and slow connections.
+  - **Page history survives a repair**: Restoring an earlier version still works on pages that have been repaired.
+
+  ---
+
+  ### Weaverse Pilot Theme
+
+  #### New Features
+
+  - **Eight more languages**: Pilot now manages every storefront string through the Weaverse Translation Manager and ships with eight additional languages. Switching language loads the matching content instead of leaving text from the previous one behind.
+  - **Deploy to Cloudflare Workers**: Pilot includes the configuration and environment setup for running your storefront on Cloudflare Workers.
+
+  #### Bug Fixes
+
+  - **Shoppers stay in the market they chose**: Adding to cart, signing in, signing out and following a redirect all keep the shopper on the market they were browsing, so prices and currency stay consistent.
+  - **A cleaner media picker**: Generated thumbnails and product media are hidden from the Media Manager by default, so you see the files you actually uploaded. The hotspots picker still shows everything.
+
+  ---
+
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Choose what the media picker hides**: Themes can declare which generated or imported media to exclude from image and video pickers, in the theme schema. Released in `@weaverse/hydrogen` v5.21.0.
+
+  #### Improvements
+
+  - **Storefronts identify themselves**: A storefront now sends its own origin with theme-settings requests, which is what the new hostname list in Manage previews reads. Released in `@weaverse/hydrogen` v5.21.2.
+</Update>
+
+<Update label="2026.9.25" description="September 7, 2026" tags={["Studio", "API"]}>
+  ### New Features
+
+  - **Page translations over the Content API**: Read and write a page's translations programmatically, so your own tools and AI assistants can localize content without opening Studio. See the [Content API overview](/content-api/overview).
+
+  ### Improvements
+
+  - **A way forward from an empty Scheduled publishing list**: The Scheduled publishing manager now explains how to schedule a page instead of showing an empty screen.
+  - **Media Manager search and sort refresh properly**: Changing a search term or sort order reloads the gallery instead of leaving the previous results on screen.
+  - **Safer resets and version history**: Resetting a localized page is recoverable, and version history no longer breaks on an incomplete saved version.
+
+  ### Bug Fixes
+
+  - **Create pages in a market that has none yet**: Adding a page to a secondary market with no existing pages now works.
+  - **Edits stay with the page you selected**: Renaming or editing a custom page applies to the page in view, and a pending rename survives switching away and back.
+  - **Imports keep their language and market**: Imported pages keep the locale and market they were exported from.
+</Update>
+
+<Update label="2026.9.1" description="September 1, 2026" tags={["Studio"]}>
+  ### New Features
+
+  - **Save a draft of a page that is already published**: Choose **Save draft** from the Publish button to store your work on a live page. The published page stays exactly as it is until you press Publish.
+  - **Pick up a teammate's draft**: Opening a page that has a saved draft resumes it automatically, so two people can work on the same live page without one overwriting the other. Your unsaved edits are never replaced by an incoming draft.
+
+  ### Improvements
+
+  - **Project and page changes save together**: A save now applies to the project and the page as one operation, so a partial save can no longer leave the two out of step.
+
+  ### Bug Fixes
+
+  - **Page selection recovers after a reload**: The editor returns to the page you were on instead of losing your selection.
+</Update>
+
 <Update label="2026.8.11" description="August 11, 2026" tags={["Studio"]}>
   ### Improvements
 
