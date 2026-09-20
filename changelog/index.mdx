@@ -8,6 +8,26 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.10.8" description="September 20, 2026" tags={["Studio", "API"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Publishing no longer gets stuck on "Not found"**: If you published a page and then hit Publish again, Studio could keep rejecting it until you reloaded. It now recovers on its own and tells you what happened.
+  - **Hidden elements no longer open another element's settings**: Selecting a hidden row in the Page Outline used to leave the settings panel showing whatever you had selected before, so edits could land on the wrong element. The panel now says the element is hidden, and elements inside a hidden parent explain which parent is hiding them.
+  - **The outline tells you when the preview drops**: When the preview connection fails for good, the Sections list no longer sits on placeholder rows forever. You get a clear message and a retry button.
+  - **Clearer message when the preview is blocked**: Running Studio against a local theme over an insecure address now says your browser blocked the preview and how to fix it, instead of claiming your dev server is not running.
+  - **Product and collection pickers work in the demo**: Browsing resources in the demo project returned an error. It works again.
+
+  #### Improvements
+
+  - **Media Manager exclusions now live in theme code**: File exclusions move from a project setting to your theme, set store-wide or per image and video input, so every project on the theme behaves the same and merchants no longer need to configure it. Requires `@weaverse/hydrogen` 5.21.2 or newer.
+
+  ### Content API
+
+  - **Internal template pages are labelled**: The page list marks internal template markers so you can filter them out, and they can no longer be deleted by handle.
+</Update>
+
 <Update label="2026.10.6" description="September 18, 2026" tags={["Studio", "SDK", "Theme"]}>
   ### Weaverse Studio
 
