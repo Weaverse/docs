@@ -1,49 +1,40 @@
 ---
 title: Global Sections
-description: Learn how to define and manage global sections across your Weaverse Hydrogen storefront, enabling reusable content blocks and simplified updates.
+description: Learn how to create, reuse, publish, and manage global sections across your Weaverse Hydrogen storefront.
 published: true
 ---
 
 # Global Sections
 
-Global Sections in Weaverse empower you to create reusable content blocks that can be inserted across multiple pages and components, ensuring consistency and simplifying theme maintenance.
+A global section is a reusable section you can add to any page in your project. You edit it once, and after you publish it, every page that uses it updates.
 
-In this guide, we’ll explore how to create, use, and customize global sections in your Weaverse theme.
+## Create a global section
 
-## Creating a Global Section
-
-Creating a global section in Weaverse is straightforward. Follow these steps:
-
-1. Create a new section.
-2. Select the section.
-3. In the toolbar, click the "Save as Global Section" button.
-4. Name your section and save it.
+1. Add the section to a page and click **Publish** in the topbar. A section must be published before it can be saved as a global section.
+2. In the left outline, open the section's action menu and click **Save as global section**.
+3. Enter a name.
+4. Click **Save global section**.
 
 ![Save as global section option in the section menu](/images/global-sections/save-as-global-section-menu.png)
-![Name Global Section](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/name_global_section.png?v=1717750427)
 
-## Using a Global Section
+## Use a global section
 
-After creating a global section, you can easily incorporate it into your theme:
+1. In the left outline, click **Add section**.
+2. Under **Global sections**, click the section you want. It is added to the page immediately.
 
-1. Open the Global Sections Modal in the top left corner of the page editor.
-2. Select the desired global section.
-3. Click "Add to Page."
+Each global section can be added only once per page. A section that is already on the current page is disabled, with the tooltip "This global section is already used in the current page."
 
-![Open Global Section Modal](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/open_global_section.png?v=1717750442)
-![Global Section Modal](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/global_section_list.png?v=1717750452)
+## Edit and publish a global section
 
-_Note: You can add multiple different global sections to the same page. Each specific global section can be added only once per page._
+1. Open any page that uses the global section and edit it like a regular section. The right settings panel shows the section name and how many pages use it.
+2. Optional: click **Save section draft** to keep your changes without making them live. You can come back to the draft later from any page that uses the section.
+3. Click **Publish section** to update the section on every page that uses it.
 
-## Customizing a Global Section
+The topbar **Publish** button does not publish global section edits. Use **Publish section** in the right settings panel. To throw away saved changes, click **Discard section draft**.
 
-Customizing a global section is similar to editing a regular section. You can:
+## Manage global sections
 
-- Add, edit, and delete fields.
-- Add and remove components.
+Open **Advanced features** in the topbar and select **Global sections** to see every global section in your project, how many pages use each one, and when it was created. From this list you can:
 
-Changes will sync across all pages and components that use the global section.
-
-## Conclusion
-
-Global sections are a robust feature of Weaverse, allowing you to efficiently manage and update your theme's content by reusing sections across multiple pages. Follow these steps to leverage global sections in your Weaverse theme and enhance your workflow.
+- **Rename** a global section.
+- **Delete** a global section. Pages that use it keep the content as a regular section, which no longer syncs across pages.
