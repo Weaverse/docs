@@ -38,21 +38,19 @@ Many third-party applications provide React components that you can incorporate 
    import { forwardRef } from 'react'
    
    export type ThirdPartyWidgetProps = {
-     apiKey: string
+     // Public, non-secret identifier only. Never put private API keys or tokens
+     // in section props or Studio settings: they are saved with page data and
+     // rendered into public markup.
      widgetId: string
-     // Other configuration options
    }
    
    const ThirdPartyWidget = forwardRef<HTMLElement, SectionProps & ThirdPartyWidgetProps>(
      (props, ref) => {
-       const { apiKey, widgetId, ...rest } = props
+       const { widgetId, ...rest } = props
        
        return (
          <Section ref={ref} {...rest}>
-           <ThirdPartyComponent 
-             apiKey={apiKey} 
-             widgetId={widgetId}
-           />
+           <ThirdPartyComponent widgetId={widgetId} />
          </Section>
        )
      }
@@ -60,6 +58,10 @@ Many third-party applications provide React components that you can incorporate 
    
    export default ThirdPartyWidget
    ```
+
+   <Warning>
+     If the app requires a private API key or token, keep it in a server environment variable and call the app's API from a loader, as shown in the Querying App Data from App's API section below and the [Judge.me reviews guide](/hydrogen-integrations/judgeme-reviews). Only publishable, browser-safe identifiers belong in Studio settings.
+   </Warning>
 
 3. **Define the Schema**
 
@@ -76,16 +78,10 @@ Many third-party applications provide React components that you can incorporate 
          inputs: [
            {
              type: 'text',
-             name: 'apiKey',
-             label: 'API Key',
-             defaultValue: '',
-             helpText: 'Enter your API key from the third-party dashboard',
-           },
-           {
-             type: 'text',
              name: 'widgetId',
              label: 'Widget ID',
              defaultValue: '',
+             helpText: 'Public widget ID from the third-party dashboard. Do not enter secret keys here.',
            },
            // Additional configuration inputs
          ]
@@ -352,107 +348,6 @@ For a complete, theme-independent Judge.me walkthrough, see the dedicated guide:
 <Card title="Integrate Judge.me Reviews with Shopify Hydrogen" icon="star" href="/hydrogen-integrations/judgeme-reviews">
   Keep the private API key on the server, proxy review data through Hydrogen, and expose the UI as an editable Weaverse section.
 </Card>
-
-The Ali Reviews example below demonstrates the same general component-loader pattern.
-
-### Ali Reviews Integration
-
-Ali Reviews is a popular Shopify app for collecting and displaying product reviews. Here's how to integrate it with Weaverse:
-
-```tsx
-// app/sections/ali-reviews/index.tsx
-  import type {
-    ComponentLoaderArgs,
-  } from "@weaverse/hydrogen";
-  import { createSchema } from "@weaverse/hydrogen";
-  import { forwardRef } from "react";
-import { Section, type SectionProps } from "~/components/section";
-import type { AliReview } from "./review-item";
-
-type AliReviewsData = {
-  aliReviewsApiKey: string;
-};
-
-type AliReviewsProps = SectionProps<Awaited<ReturnType<typeof loader>>> &
-  AliReviewsData;
-
-let AliReviewSection = forwardRef<HTMLElement, AliReviewsProps>(
-  (props, ref) => {
-    let { children, loaderData, aliReviewsApiKey, ...rest } = props;
-    return (
-      <Section ref={ref} {...rest} overflow="unset">
-        {children}
-      </Section>
-    );
-  },
-);
-
-export type AliReviewsLoaderData = Awaited<ReturnType<typeof loader>>;
-type AliReviewsAPIPayload = {
-  data: { reviews: AliReview[]; cursor: string };
-  message: string;
-  status: number;
-};
-
-export let loader = async ({
-  data: { aliReviewsApiKey = "" },
-  weaverse,
-}: ComponentLoaderArgs<AliReviewsData>) => {
-  let res = await weaverse
-    .fetchWithCache<AliReviewsAPIPayload>(
-      "https://widget-hub-api.alireviews.io/api/public/reviews",
-      {
-        method: "GET",
-        headers: {
-          Authorization: ["Bearer", aliReviewsApiKey].join(" "),
-          "Content-Type": "application/json",
-        },
-      },
-    )
-    .catch((err) => {
-      console.log(err);
-      return { data: { reviews: [], cursor: "" }, message: "", status: 0 };
-    });
-  return res?.data?.reviews;
-};
-
-export let schema = createSchema({
-  type: "ali-reviews",
-  title: "Ali Reviews box",
-  settings: [
-    {
-      group: "Integration",
-      inputs: [
-        {
-          type: "text",
-          name: "aliReviewsApiKey",
-          label: "Ali Reviews API key",
-          defaultValue: "",
-          placeholder: "Your Ali Reviews API key",
-          helpText: `Learn how to get your API key from <a href="https://support.fireapps.io/en/article/ali-reviews-learn-more-about-integration-using-api-key-hklfr0/" target="_blank">Ali Reviews app</a>.`,
-          shouldRevalidate: true,
-        },
-      ],
-    },
-    // Other settings groups...
-  ],
-  childTypes: [
-    "ali-reviews--list",
-    "heading",
-    "subheading",
-    "paragraph",
-    "button",
-  ],
-  // Preset configuration...
-});
-```
-
-The implementation:
-
-1. Defines a schema with an API key input that triggers revalidation when changed
-2. Uses a loader to securely fetch reviews from the Ali Reviews API
-3. Structures the component to render Ali Review data
-4. Supports child components for customizable review display
 
 ## Common Integration Challenges
 
