@@ -1,0 +1,84 @@
+---
+title: Scheduled Publishing
+description: Schedule page or theme settings changes in Weaverse Studio to publish automatically at a chosen date and time.
+published: true
+---
+
+# Scheduled Publishing
+
+Scheduled Publishing lets you prepare content now and publish it automatically later. Weaverse Studio saves a snapshot of the page or theme settings at the moment you schedule it, then publishes that exact snapshot when the scheduled time arrives.
+
+There are two ways to create a schedule and one place to manage all of them.
+
+## Schedule the Current Page or Theme Settings
+
+<Steps>
+  <Step title="Finish your edits">
+    Make your changes in Studio as usual. The schedule captures the content as it is when you confirm, so unsaved work in the editor at that moment is included in the snapshot.
+  </Step>
+  <Step title="Open the Publish dropdown">
+    Click the arrow next to the **Publish** button in the top bar and choose **Schedule publish**.
+  </Step>
+  <Step title="Pick a date and time">
+    Studio prepares a snapshot, then asks for a publish date and time. Times use your browser's local time zone.
+  </Step>
+  <Step title="Confirm">
+    Click **Schedule for later**. If the page already has a pending schedule, the button reads **Override schedule** and the new snapshot replaces the previous one.
+  </Step>
+</Steps>
+
+<Note>
+Each page holds at most one pending schedule, and theme settings hold at most one pending schedule per project. Scheduling again overrides the existing one.
+</Note>
+
+## Schedule a Previous Version
+
+You can also publish an earlier saved version at a future time.
+
+1. Open **Version history** in the left sidebar.
+2. Choose the **Page** or **Theme settings** tab and open the version you want.
+3. In the version preview, click **Schedule publish** and pick a date and time.
+
+Theme versions restore theme settings only; they do not change page content.
+
+## Manage Scheduled Content
+
+Open **Advanced features → Scheduled publishing** in the top bar to see every schedule for the project, including past ones.
+
+From the list you can:
+
+- **Edit** the publish date and time of a pending schedule.
+- **Publish now** to publish a pending snapshot immediately instead of waiting.
+- **Cancel** a pending schedule. Cancelling cannot be undone, but the underlying version remains in Version history.
+
+The list is empty until you create a schedule from the Publish dropdown or Version history; the manager itself does not create schedules.
+
+## How It Works
+
+- The scheduled snapshot is a normal saved version. Continuing to edit the page after scheduling does not change what will be published.
+- Publishing at the scheduled time replaces the current live version of that page or theme settings and refreshes the storefront cache.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The Scheduled publishing manager shows no content">
+    No schedule exists yet. Create one from the **Publish** dropdown (**Schedule publish**) or from **Version history**.
+  </Accordion>
+  <Accordion title="Studio says a schedule already exists">
+    Only one pending schedule is kept per page. Either **Override schedule** with the new snapshot, or cancel the existing one first from **Advanced features → Scheduled publishing**.
+  </Accordion>
+  <Accordion title="My later edits were not published">
+    The schedule publishes the snapshot captured when it was created. Reschedule (override) after making further changes, or use **Publish now** from the manager if the pending snapshot is what you want live.
+  </Accordion>
+</AccordionGroup>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Custom Pages" icon="file" href="/features/custom-pages">
+    Build campaign and landing pages that you can schedule ahead of time.
+  </Card>
+  <Card title="Studio Interface Tour" icon="paintbrush" href="/studio-guide/interface-tour">
+    Find the Publish button, Version history, and Advanced features in Studio.
+  </Card>
+</CardGroup>
