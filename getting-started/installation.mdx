@@ -61,11 +61,16 @@ For developers who want git history:
 
 ```bash
 git clone https://github.com/Weaverse/pilot.git my-store
-cd my-store && npm install
+cd my-store && rm -rf .github   # remove Pilot's internal workflows
+npm install
 cp .env.example .env
 # Edit .env with your configuration
 npm run dev
 ```
+
+<Warning>
+Remove the `.github` folder after cloning. Its workflows (Pilot's own Oxygen deployment, CI, and code review) need Weaverse's secrets and fail on your first push. When you [deploy to Oxygen](/guides/deployment/oxygen), Shopify adds a fresh `oxygen-deployment-*.yml` workflow for your storefront. Methods A and B remove the folder for you.
+</Warning>
 
 ## Configuration
 
