@@ -25,6 +25,10 @@ Visit the [Shopify Hydrogen App](https://apps.shopify.com/hydrogen) and install 
 - **Existing Project**: Commit and push your code to a new GitHub repository.
 - **New Project**: Use the [Weaverse Hydrogen template](https://github.com/Weaverse/pilot) to create a new repo.
 
+<Warning>
+If your code came from the Pilot repo (template or `git clone`), delete its `.github` folder before connecting. Those workflows deploy Pilot's own demo and run Weaverse's CI and code review, so they fail without Weaverse's secrets. The Hydrogen app adds the `oxygen-deployment-*.yml` workflow your storefront needs in step 6. Projects created with `npx @weaverse/cli create` don't include the folder.
+</Warning>
+
 ### 3. Set Up Your Storefront
 In your Shopify admin, open the Hydrogen app and click "Create storefront" to begin setup.
 
