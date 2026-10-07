@@ -44,6 +44,7 @@ type HydrogenComponentSchema = SchemaType
 interface SchemaType {
   title: string
   type: string
+  label?(data: Record<string, any>): string | null | undefined
   childTypes?: string[]
   settings?: InspectorGroup[]
   /** @deprecated Use settings. */
@@ -61,6 +62,8 @@ interface SchemaType {
   }
 }
 ```
+
+`label` is optional and available in `@weaverse/schema` 0.17.0+ / `@weaverse/hydrogen` 5.22.0+. The method signature accepts callbacks explicitly annotated with the component's props type, such as `label: (data: HeadingProps) => data.content`; without an annotation, `data` is `Record<string, any>`. It returns synchronous plain text for the Studio outline, not a replacement for the static `title`. See [Dynamic Element Labels](/development-guide/component-schema#dynamic-element-labels) for the example, preview-language behavior and fallback rules.
 
 Use `createSchema()` to type-check an object against `SchemaType` and enable development-time diagnostics:
 
