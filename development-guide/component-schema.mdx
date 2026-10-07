@@ -117,6 +117,7 @@ import { createSchema } from '@weaverse/hydrogen';
 export let schema = createSchema({
   title: string
   type: string
+  label?(data: Record<string, any>): string | null | undefined
   settings?: InspectorGroup[]
   inspector?: InspectorGroup[] // Deprecated: use 'settings' instead
   childTypes?: string[]
@@ -183,6 +184,48 @@ export let schema = createSchema({
   // other properties...
 });
 ```
+
+### Dynamic Element Labels
+
+The optional `label` callback makes repeated elements easier to identify in the Page Outline. Studio keeps the component's `title` and appends the returned text as a muted, italic suffix: **Heading – Summer sale**. The Add menu still uses `title` alone.
+
+<Note>
+  Available with `@weaverse/hydrogen` 5.22.0 or later (`@weaverse/schema` 0.17.0 or later).
+</Note>
+
+Add `label` to each component schema you want to opt in. Annotate `data` with your component's props type, as in [Pilot's Heading component](https://github.com/Weaverse/pilot/blob/main/app/components/heading.tsx):
+
+```tsx
+import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen';
+
+interface HeadingProps extends HydrogenComponentProps {
+  content: string;
+}
+
+export const schema = createSchema({
+  type: 'heading',
+  title: 'Heading',
+  label: (data: HeadingProps) => data.content,
+  settings: [
+    {
+      group: 'Content',
+      inputs: [
+        {
+          type: 'text',
+          name: 'content',
+          label: 'Text',
+          defaultValue: 'Summer sale',
+        },
+      ],
+    },
+  ],
+});
+```
+
+- **Per-instance content:** One callback on the component schema applies to all its instances, each with its own current data. There is no global switch or automatic detection of fields such as `title` or `name`.
+- **Preview language:** Data includes current edits and available translations for the preview's selected content language. Missing translations follow the preview's normal fallback, not the Studio interface language. Labels update as content or the preview language changes.
+- **Synchronous plain text:** Keep the callback side-effect-free and return a string, `null`, or `undefined`. Do not return JSX, HTML markup, or a Promise. Studio trims surrounding whitespace; missing callbacks, blank/non-string results, thrown errors and async results show only the component title.
+- **Display only:** The preview bridge evaluates the callback and sends only the resulting text to Studio. The derived label is not saved to your content, and `createSchema()` validation does not execute the callback. Global-section rows keep their saved global-section name.
 
 ### `settings`
 
