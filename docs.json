@@ -88,6 +88,7 @@
             "group": "Content Management",
             "pages": [
               "features/global-sections",
+              "features/schedule-publish",
               "features/navigation-menus",
               "features/third-party-integrations",
               "features/mobile-app-pwa"
