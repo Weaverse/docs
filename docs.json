@@ -73,6 +73,18 @@
             ]
           },
           {
+            "group": "Next.js",
+            "pages": [
+              "nextjs/overview",
+              "nextjs/quickstart",
+              "nextjs/rendering-pages",
+              "nextjs/data-fetching",
+              "nextjs/studio",
+              "nextjs/markets-translations",
+              "nextjs/api-reference"
+            ]
+          },
+          {
             "group": "Building Components",
             "pages": [
               "development-guide/creating-components",
@@ -135,7 +147,8 @@
               "guides/deployment/oxygen",
               "guides/deployment/custom-domain-and-dns",
               "guides/deployment/docker",
-              "guides/deployment/workers"
+              "guides/deployment/workers",
+              "guides/deployment/vercel"
             ]
           }
         ]
@@ -221,12 +234,13 @@
             ]
           },
 					{
-						"group": "Hydrogen Themes",
+						"group": "Themes",
 						"pages": [
 							"hydrogen-themes/index",
 							"hydrogen-themes/pilot-theme-overview",
 							"hydrogen-themes/pilot-theme-customization",
-							"hydrogen-themes/pilot-theme-sections"
+							"hydrogen-themes/pilot-theme-sections",
+							"hydrogen-themes/forward"
             ]
           },
           {
