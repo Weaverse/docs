@@ -1,0 +1,130 @@
+---
+title: "Forward - Next.js Starter Theme"
+description: "Forward is the Weaverse starter theme for Next.js: an App Router storefront on @weaverse/next with Shopify data, Studio editing, markets and translations."
+published: true
+---
+
+Meet [Forward](https://forward-sandy.vercel.app/), the Weaverse starter theme for **Next.js**. Forward plays the same role for Next.js storefronts that [Pilot](/hydrogen-themes/pilot-theme-overview) plays for Hydrogen: a complete, open-source storefront you can run, edit in Weaverse Studio, and make your own.
+
+Forward is built on the Next.js App Router and [`@weaverse/next`](/nextjs/overview) 1.0. It reads products, collections, pages and articles from the Shopify Storefront API through Shopify's Hydrogen preview package, and it is styled with Tailwind CSS v4.
+
+## Key Features
+
+---
+
+*   **Composed pages:** The home page, product, collection, all products, article, page and custom pages are Weaverse pages that merchants build and rearrange in Studio.
+*   **Live Studio editing:** Edits appear instantly in the preview. Changing a product or collection picker re-runs only that section's loader, with no full-page reload ([per-item revalidation](/nextjs/studio)).
+*   **Theme settings:** Header, footer, layout (such as page width) and editorial imagery are configured through Weaverse theme settings, not as page sections.
+*   **Markets and translations:** Each market gets its own URL prefix, the theme's own copy can be translated in Studio's Translation Manager, and prices and dates format per market. See [Markets & Translations](/nextjs/markets-translations).
+*   **Declared theme routes:** Forward serves collections at `/shop/:handle` and articles at `/journal/:handle`. It declares these routes in its theme schema, so Studio's page selector and URL picker open the right paths.
+*   **Store-driven catalog:** Categories, filters and sort options come from your store's data and the Storefront API's own filters, so Forward runs on any Shopify store without theme-side product lists.
+*   **Shopify Cart and Customer Account:** The cart is the server-owned Shopify Cart API with Shopify checkout, and account pages use the Shopify Customer Account API.
+
+## Getting Started
+
+---
+
+Forward is open source on [GitHub](https://github.com/Weaverse/forward). It needs [Bun](https://bun.sh) and Node.js 22.18 or later.
+
+```bash
+git clone https://github.com/Weaverse/forward.git
+cd forward
+bun install
+cp .env.example .env
+```
+
+Fill in `.env` with your Shopify store and your Weaverse project ID (`WEAVERSE_PROJECT_ID`), then start the dev server:
+
+```bash
+bun run dev
+```
+
+Open [http://localhost:3333](http://localhost:3333). Forward always runs against a real Shopify store, so it refuses to start until the Shopify variables are set.
+
+For a step-by-step setup, including connecting Weaverse Studio, see the **[Next.js Quickstart](/nextjs/quickstart)**. When you're ready to go live, see **[Deploy to Vercel](/guides/deployment/vercel)**.
+
+## Available Sections
+
+---
+
+Forward's sections are grouped by the page they are built for, but any section can be added to any page in Studio.
+
+**Shared elements**
+
+*   Heading, Subheading, Paragraph, Button and Buttons
+*   Section content (a container for grouping elements inside a section)
+
+**Home**
+
+*   Home hero
+*   Hero slideshow (with slides)
+*   Featured products
+*   Collection index
+*   Product spotlight
+*   Material standard
+*   Kit callout
+*   Repair and journal
+
+**Product**
+
+*   Main product, split into composable parts: product media, product info, breadcrumb, meta row, title, prices, summary, variant selector, buy buttons and collapsible details
+*   Related products
+
+**Collection**
+
+*   Collection hero
+*   Main collection, with toolbar, filters and product grid
+*   System manifest
+*   Field practice
+
+**All products**
+
+*   All products, with toolbar and product grid
+
+**Article**
+
+*   Article header
+*   Article body
+
+**Pages and editorial**
+
+*   Page hero, page premise, page values and page origin
+*   Editorial hero, editorial overlay hero and editorial callout
+*   Standard statement, stat band and principle grid
+*   Product strip, product tiles and product case study
+*   Numbered sequence
+
+Browse the full, up-to-date list in [`src/sections`](https://github.com/Weaverse/forward/tree/main/src/sections) on GitHub.
+
+## Project Structure
+
+---
+
+| Path | What lives there |
+| --- | --- |
+| `src/app/[locale]/` | App Router routes, one segment per market. The default market has no URL prefix. |
+| `src/app/api/weaverse/revalidate/` | The route Studio calls to re-run a section's loader after an edit. |
+| `src/sections/` | Weaverse sections. Each one exports its component and its `schema`, and some have a server `loader`. |
+| `src/lib/weaverse/` | The Weaverse wiring: server client, component registries, root provider, Studio connector and theme schema. |
+| `src/lib/weaverse/settings/` | Theme settings, one group per file (layout, header, footer, editorial imagery). |
+
+The Weaverse integration in `src/lib/weaverse/` is a good reference when you add `@weaverse/next` to your own app. See [Rendering Pages](/nextjs/rendering-pages) and [Studio Integration](/nextjs/studio) for how each piece fits.
+
+## Learn More
+
+---
+
+<CardGroup cols={2}>
+  <Card title="@weaverse/next Overview" icon="book-open" href="/nextjs/overview">
+    How Weaverse works in a Next.js App Router storefront.
+  </Card>
+  <Card title="Next.js Quickstart" icon="rocket" href="/nextjs/quickstart">
+    Run Forward locally and connect it to Weaverse Studio.
+  </Card>
+  <Card title="Studio Integration" icon="pen-to-square" href="/nextjs/studio">
+    Studio connector, live revalidation and theme routes.
+  </Card>
+  <Card title="Deploy to Vercel" icon="cloud-arrow-up" href="/guides/deployment/vercel">
+    Take your Forward storefront live.
+  </Card>
+</CardGroup>
