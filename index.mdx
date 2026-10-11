@@ -1,13 +1,13 @@
 ---
 title: "Welcome to Weaverse"
-description: "Universal visual page builder with AI integration for headless Shopify storefronts using React Router and Hydrogen"
+description: "Universal visual page builder with AI integration for headless Shopify storefronts built with Hydrogen or Next.js"
 mode: "wide"
 hideFooterPagination: true
 ---
 
-# Build Shopify Hydrogen Storefronts Visually
+# Build Headless Shopify Storefronts Visually
 
-Weaverse brings a visual editing layer to Shopify Hydrogen, so teams can launch headless storefronts with React Router, reusable components, live previews, and merchant-friendly content editing.
+Weaverse brings a visual editing layer to Shopify Hydrogen and Next.js, so teams can launch headless storefronts with reusable components, live previews, and merchant-friendly content editing.
 
 <Frame>
   ![Weaverse Studio showing a Hydrogen storefront preview with the visual editor open](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/weaverse_studio_loaded_2.webp?v=1755078650)
@@ -19,6 +19,19 @@ Weaverse brings a visual editing layer to Shopify Hydrogen, so teams can launch 
   </Card>
   <Card title="Open Studio" icon="paintbrush" href="https://studio.weaverse.io/dashboard">
     Launch the visual editor and start building
+  </Card>
+</CardGroup>
+
+---
+
+## Choose Your Framework
+
+<CardGroup cols={2}>
+  <Card title="Shopify Hydrogen" icon="shopify" href="/intro/quickstart">
+    React Router storefronts with `@weaverse/hydrogen`, the Pilot theme, and Oxygen hosting.
+  </Card>
+  <Card title="Next.js" icon="react" href="/nextjs/overview">
+    App Router storefronts with `@weaverse/next` and the Forward starter theme.
   </Card>
 </CardGroup>
 
@@ -42,11 +55,11 @@ Weaverse brings a visual editing layer to Shopify Hydrogen, so teams can launch 
 
 ## Ecosystem at a Glance
 
-Everything you need to build, customize, and deploy Hydrogen storefronts.
+Everything you need to build, customize, and deploy Hydrogen and Next.js storefronts.
 
 <CardGroup cols={3}>
-  <Card title="Hydrogen SDKs" icon="cube" href="/developer-tools/weaverse-sdks">
-    Core, React, and Hydrogen packages for building custom components.
+  <Card title="SDKs" icon="cube" href="/developer-tools/weaverse-sdks">
+    Core, React, Hydrogen, and Next.js packages for building custom components.
   </Card>
   <Card title="CLI Tools" icon="terminal" href="/developer-tools/weaverse-cli">
     Scaffold projects, run dev servers, and manage deployments.
@@ -92,6 +105,10 @@ flowchart LR
 ---
 
 ## Quick Start
+
+<Note>
+  The steps below set up a Hydrogen storefront. For Next.js, follow the [Next.js quickstart](/nextjs/quickstart).
+</Note>
 
 <Steps>
   <Step title="Install">
