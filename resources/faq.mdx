@@ -12,7 +12,7 @@ Find comprehensive answers to the most common questions about Weaverse developme
 
 ### What is Weaverse and how is it different from Shopify Liquid themes?
 
-Weaverse is a visual page builder and CMS designed specifically for Shopify Hydrogen storefronts. Unlike traditional Liquid themes:
+Weaverse is a visual page builder and CMS for headless Shopify storefronts built with Hydrogen or Next.js. Unlike traditional Liquid themes:
 
 - **Modern Architecture**: Built with React Router v7, TypeScript, and modern React patterns
 - **Visual Editing**: Drag-and-drop interface for merchants, with Studio-only editing code kept out of the storefront runtime
@@ -33,7 +33,7 @@ Weaverse is a visual page builder and CMS designed specifically for Shopify Hydr
 ### What's the difference between Weaverse Studio and the SDK?
 
 - **Weaverse Studio**: Shopify app (installed from App Store) that provides a visual page builder interface for merchants to create and edit content
-- **Weaverse SDK**: Development packages (@weaverse/core, @weaverse/react, @weaverse/hydrogen) that developers use to create custom components and themes
+- **Weaverse SDK**: Development packages (@weaverse/core, @weaverse/react, @weaverse/hydrogen, @weaverse/next) that developers use to create custom components and themes
 - **Integration**: Developers build components with the SDK, then merchants use Studio to visually arrange and configure these components
 
 ### Can I use Weaverse without the visual editor?
@@ -119,6 +119,24 @@ Yes! Several ways to evaluate Weaverse:
 - **Community Support**: Get help in our [Slack community](https://wvse.cc/weaverse-slack)
 
 ---
+
+## Next.js
+
+### Can I use Weaverse with Next.js?
+
+Yes. `@weaverse/next` is the Weaverse integration for Next.js App Router storefronts. It renders Weaverse pages, runs section loaders on the server, connects to Weaverse Studio, and supports markets, translations, and theme routes. Start with the [Next.js overview](/nextjs/overview).
+
+### Which Next.js versions are supported?
+
+`@weaverse/next` supports the App Router (not the Pages Router) and declares `next >=14`, `react >=19`, and `react-dom >=19` as peer dependencies, with Node.js 20 or newer. The [Forward](/hydrogen-themes/forward) starter runs on Next.js 16.
+
+### Is there a Next.js starter theme?
+
+Yes. [Forward](/hydrogen-themes/forward) is a production Next.js storefront built on `@weaverse/next`. The [Next.js quickstart](/nextjs/quickstart) covers starting from Forward or adding Weaverse to an existing Next.js app.
+
+### Should I choose Hydrogen or Next.js?
+
+Both are first-class. Choose **Hydrogen** if you want Shopify's own framework, Oxygen hosting, and the most ready-made themes and integration guides (Pilot and others). Choose **Next.js** if your team already builds on Next.js or deploys to Vercel. Components, schemas, input settings, and theme settings work the same way in both; the difference is how routes load data and how Studio is wired.
 
 ## Technical Architecture
 
