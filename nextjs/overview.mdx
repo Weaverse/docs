@@ -1,0 +1,71 @@
+---
+title: "Weaverse for Next.js"
+description: "Build a Weaverse storefront on the Next.js App Router with @weaverse/next."
+published: true
+---
+
+# Weaverse for Next.js
+
+`@weaverse/next` is the Weaverse adapter for the Next.js App Router. It renders Weaverse pages in a Next storefront, connects them to Weaverse Studio for visual editing, and runs your section loaders on the server. Version `1.0.0` is the first stable release.
+
+It is the Next.js counterpart of `@weaverse/hydrogen`. Your component schemas, input settings, and theme settings work the same way; what changes is how the framework hands Weaverse a request and renders the page.
+
+## Hydrogen or Next.js?
+
+Pick `@weaverse/hydrogen` when your storefront runs on Shopify Hydrogen (React Router). Pick `@weaverse/next` when it runs on the Next.js App Router, for example on Vercel, or when your team already builds with Next.js.
+
+| | `@weaverse/hydrogen` | `@weaverse/next` |
+| --- | --- | --- |
+| Server client | `context.weaverse`, injected into every route loader | Created by your app per request with `createWeaverseNextServerClient()` |
+| Component registry | One registry | A client registry (rendering) and a server registry (schemas and loaders), split by React Server Components |
+| Root theme store | `withWeaverse()` around the root | `WeaverseNextRootProvider` in `app/layout.tsx` |
+| Page rendering | `WeaverseHydrogenRoot` in a route | `WeaverseNextRenderer` inside a client boundary |
+| Loader revalidation | React Router `shouldRevalidate` | A route handler created with `createWeaverseNextRevalidateHandler()` |
+| Routes | Shopify URL convention | Any routes your app serves; declare the ones that differ in the theme schema's `routes` |
+
+## Requirements
+
+- Next.js App Router. Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
+- A Weaverse project and a Shopify store.
+
+<Note>
+  [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/next@1.0.0` with Next.js 16 and React 19.
+</Note>
+
+## What 1.0 supports
+
+- **Page rendering**: home, product, collection, all products, page, article and custom pages, with section loaders on the server.
+- **Studio editing**: connect, select, edit and reorder sections in Weaverse Studio, with live theme settings.
+- **Per-item revalidation**: a resource picker edit re-runs only that section's loader. See [Studio integration](/nextjs/studio).
+- **Theme settings**: one root store shared by global components (header, footer) and every page.
+- **Markets and translations**: localized pages per market and the Translation Manager. See [Markets & translations](/nextjs/markets-translations).
+- **Custom pages and SEO**: custom pages, sitemap data, and page SEO mapped to Next `Metadata`. See [Rendering pages](/nextjs/rendering-pages).
+- **Theme routes**: tell Studio which paths your storefront uses when they differ from Shopify's.
+
+## Known limitations
+
+- **`publicEnv` in the root layout.** The SDK attaches `publicEnv` to the theme settings response only in design mode, which it reads from `?isDesignMode=true`. A Next layout receives no search params, so pass `publicEnv` to `WeaverseNextRootProvider` yourself. Studio needs `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN` from it to open your store's default product, collection and page.
+- **Shopify redirects and request handling** are part of your app, not the SDK. Add the redirects your storefront needs in `next.config` or your proxy.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/nextjs/quickstart">
+    Start from Forward or add Weaverse to an existing Next app.
+  </Card>
+  <Card title="Rendering pages" icon="file" href="/nextjs/rendering-pages">
+    Load and render Weaverse pages in App Router routes.
+  </Card>
+  <Card title="Data fetching" icon="database" href="/nextjs/data-fetching">
+    Section loaders, caching and design mode.
+  </Card>
+  <Card title="Studio integration" icon="wand-magic-sparkles" href="/nextjs/studio">
+    Connect Studio, revalidate items and declare routes.
+  </Card>
+  <Card title="Markets & translations" icon="globe" href="/nextjs/markets-translations">
+    Localized pages and theme copy.
+  </Card>
+  <Card title="API reference" icon="code" href="/nextjs/api-reference">
+    Everything `@weaverse/next` exports.
+  </Card>
+</CardGroup>
