@@ -1,0 +1,405 @@
+---
+title: "Next.js Quickstart"
+description: "Start a Weaverse storefront on Next.js from the Forward theme, or add @weaverse/next to an existing App Router app."
+published: true
+---
+
+# Next.js Quickstart
+
+There are two ways to start:
+
+- **Start from Forward**, the Weaverse Next.js starter theme. Everything below is already wired.
+- **Add Weaverse to an existing Next.js app**, step by step.
+
+Both need a Weaverse project. Create one from the Weaverse app in your Shopify admin (see the [Hydrogen quickstart](/intro/quickstart) for the first two steps) and copy its **Project ID**.
+
+## Option A: Start from Forward
+
+[Forward](/hydrogen-themes/forward) is an open-source Next.js storefront on `@weaverse/next`. It uses [Bun](https://bun.sh) as package manager and Node.js 22.18 or later.
+
+<Steps>
+  <Step title="Clone the theme">
+    ```bash
+    git clone https://github.com/Weaverse/forward my-storefront
+    cd my-storefront
+    bun install
+    ```
+  </Step>
+  <Step title="Configure the environment">
+    Copy `.env.example` to `.env` and fill in your store and project:
+
+    ```bash
+    PUBLIC_STORE_DOMAIN=your-shop.myshopify.com
+    PRIVATE_STOREFRONT_API_TOKEN=your-private-token
+    PUBLIC_STOREFRONT_API_TOKEN=your-public-token
+    WEAVERSE_PROJECT_ID=your-project-id
+    ```
+
+    Forward always runs against a real Shopify store, and refuses to start without a complete Shopify environment. `.env.example` documents every key, including the optional Customer Account ones.
+  </Step>
+  <Step title="Run it">
+    ```bash
+    bun run dev
+    ```
+
+    Open `http://localhost:3333`.
+  </Step>
+  <Step title="Open it in Studio">
+    Open `https://studio.weaverse.io/projects/YOUR_PROJECT_ID` and set the preview URL to `http://localhost:3333`.
+  </Step>
+</Steps>
+
+<Note>
+  Scaffolding Forward with `npx @weaverse/cli create` is coming. Until then, clone the repository.
+</Note>
+
+## Option B: Add Weaverse to an existing Next.js app
+
+This path assumes an App Router app that already reads from your Shopify store.
+
+### 1. Install
+
+```bash
+npm install @weaverse/next
+```
+
+### 2. Environment variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `WEAVERSE_PROJECT_ID` | Yes | Your Weaverse project. |
+| `WEAVERSE_HOST` | No | Staging or self-hosted Studio. Leave empty in production; the SDK defaults to `https://studio.weaverse.io`. |
+| `PUBLIC_STORE_DOMAIN` | For Studio | Your `.myshopify.com` domain, passed to Studio in `publicEnv`. |
+| `PUBLIC_STOREFRONT_API_TOKEN` | For Studio | Shopify's public Storefront token, passed to Studio in `publicEnv`. Studio uses it to open your store's default product, collection and page. |
+
+<Warning>
+  Only public values belong in `publicEnv`; it reaches the browser. Keep a private Storefront token on the server.
+</Warning>
+
+### 3. Register components
+
+A component is a schema plus a React component. Schemas are written exactly as for Hydrogen; see [Component schema](/development-guide/component-schema) and [Input settings](/development-guide/input-settings).
+
+```ts
+// sections/hero/schema.ts
+import { createSchema } from '@weaverse/next'
+
+export let schema = createSchema({
+  type: 'hero',
+  title: 'Hero',
+  settings: [
+    {
+      group: 'Content',
+      inputs: [{ type: 'text', name: 'heading', label: 'Heading' }],
+    },
+  ],
+})
+```
+
+```tsx
+// sections/hero/index.tsx
+'use client'
+
+export { schema } from './schema'
+
+export default function Hero({ heading, ...rest }: { heading?: string }) {
+  // Spread the runtime props (`data-wv-id`, `data-wv-type`, ...) onto the
+  // root element, or Studio cannot select the section.
+  return (
+    <section {...rest}>
+      <h1>{heading}</h1>
+    </section>
+  )
+}
+```
+
+<Warning>
+  Every registered component must spread the props the runtime passes (`data-wv-id`, `data-wv-type`, `id`, `className`) onto its outermost DOM element. A component that does not still renders, but Studio cannot outline, select or reorder it.
+</Warning>
+
+Next splits the registry in two. The renderer is a Client Component, so the components it renders live in a `'use client'` module. Section loaders run on the server, so they live in a server-only registry that carries the same schemas:
+
+```ts
+// weaverse/components.ts — what the renderer renders
+'use client'
+
+import type { WeaverseNextComponent } from '@weaverse/next'
+import * as Hero from '../sections/hero'
+
+export let components: WeaverseNextComponent[] = [Hero]
+```
+
+```ts
+// weaverse/server-components.ts — schemas and loaders, never rendered
+import 'server-only'
+
+import type { WeaverseNextComponent } from '@weaverse/next'
+import { schema as heroSchema } from '../sections/hero/schema'
+
+let NO_RENDER = (() => null) as WeaverseNextComponent['default']
+
+export let serverComponents: WeaverseNextComponent[] = [
+  { default: NO_RENDER, schema: heroSchema },
+]
+```
+
+The server registry imports the schema file, never the component, so the server graph never pulls in a Client Component. Add a `loader` to a server entry to fetch data; see [Data fetching](/nextjs/data-fetching).
+
+Declare the theme schema once. It holds your [theme settings](/api-reference/use-theme-settings), and later your markets and routes:
+
+```ts
+// weaverse/theme-schema.ts
+import type { WeaverseNextThemeSchema } from '@weaverse/next'
+
+export let themeSchema: WeaverseNextThemeSchema = {
+  info: { name: 'My Storefront', version: '1.0.0' },
+  settings: [
+    {
+      group: 'Layout',
+      inputs: [
+        {
+          type: 'range',
+          name: 'pageWidth',
+          label: 'Page width',
+          configs: { min: 1000, max: 1800, step: 20, unit: 'px' },
+        },
+      ],
+    },
+  ],
+}
+```
+
+### 4. Create the server client helper
+
+Hydrogen injects `context.weaverse` into every loader. In Next, your app creates the server client per request. A small helper plays that role:
+
+```ts
+// weaverse/server.ts
+import 'server-only'
+
+import type { PageType, WeaverseNextRequestContext } from '@weaverse/next'
+import { createWeaverseNextServerClient } from '@weaverse/next/server'
+import { headers } from 'next/headers'
+import { serverComponents } from './server-components'
+import { themeSchema } from './theme-schema'
+
+type SearchParams = Record<string, string | string[] | undefined>
+
+export async function getWeaverseServerClient(
+  pathname: string,
+  rawSearchParams: SearchParams = {},
+  identity: {
+    pageType?: PageType
+    handle?: string
+    i18n?: WeaverseNextRequestContext['i18n']
+  } = {}
+) {
+  let requestHeaders = new Headers(Object.fromEntries((await headers()).entries()))
+  let searchParams = new URLSearchParams()
+  for (let [key, value] of Object.entries(rawSearchParams)) {
+    if (Array.isArray(value)) {
+      for (let item of value) searchParams.append(key, item)
+    } else if (value !== undefined) {
+      searchParams.set(key, value)
+    }
+  }
+  let host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host')
+  let proto = requestHeaders.get('x-forwarded-proto') ?? 'https'
+  let search = searchParams.size > 0 ? `?${searchParams}` : ''
+
+  let requestContext: WeaverseNextRequestContext = {
+    url: `${proto}://${host}${pathname}${search}`,
+    headers: requestHeaders,
+    searchParams,
+    pathname,
+    pageType: identity.pageType,
+    handle: identity.handle,
+    // A multi-market store passes the request's market; see Markets & Translations.
+    i18n: identity.i18n ?? { country: 'US', language: 'EN', locale: 'en-US' },
+  }
+
+  return createWeaverseServerClientFromContext(requestContext)
+}
+
+export function createWeaverseServerClientFromContext(
+  requestContext: WeaverseNextRequestContext
+) {
+  return createWeaverseNextServerClient({
+    components: serverComponents,
+    projectId: process.env.WEAVERSE_PROJECT_ID,
+    weaverseHost: process.env.WEAVERSE_HOST || undefined,
+    env: process.env,
+    themeSchema,
+    requestContext,
+  })
+}
+```
+
+<Tip>
+  Every field of `requestContext` matters to Studio. `pageType` and `handle` tell Studio which page it is editing, `i18n` is read when Studio binds its runtime, and `url` must be the real origin, not `localhost`.
+</Tip>
+
+### 5. Mount the root providers
+
+Mount the Studio script connector and the root theme provider once, in the root layout:
+
+```tsx
+// weaverse/root.tsx
+'use client'
+
+import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/next'
+import type { ReactNode } from 'react'
+import { themeSchema } from './theme-schema'
+
+export function WeaverseRoot(props: {
+  children: ReactNode
+  theme?: Record<string, unknown>
+  publicEnv?: Record<string, string | undefined>
+}) {
+  return (
+    <WeaverseNextRootProvider
+      initialThemeSettings={props.theme}
+      publicEnv={props.publicEnv}
+      themeSchema={themeSchema}
+    >
+      <WeaverseNextStudioConnect />
+      {props.children}
+    </WeaverseNextRootProvider>
+  )
+}
+```
+
+```tsx
+// app/layout.tsx
+import { WeaverseRoot } from '../weaverse/root'
+import { getWeaverseServerClient } from '../weaverse/server'
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  let weaverse = await getWeaverseServerClient('/')
+  let theme = await weaverse.loadThemeSettings()
+
+  return (
+    <html lang="en">
+      <body>
+        <WeaverseRoot
+          theme={theme.theme}
+          publicEnv={{
+            PUBLIC_STORE_DOMAIN: process.env.PUBLIC_STORE_DOMAIN,
+            PUBLIC_STOREFRONT_API_TOKEN: process.env.PUBLIC_STOREFRONT_API_TOKEN,
+          }}
+        >
+          {children}
+        </WeaverseRoot>
+      </body>
+    </html>
+  )
+}
+```
+
+<Warning>
+  Import `@weaverse/next` components (`WeaverseNextRootProvider`, `WeaverseNextStudioConnect`, `WeaverseNextProvider`, `WeaverseNextRenderer`) only from your own `'use client'` modules. The published bundle carries no `'use client'` directive, so rendering them directly in a Server Component such as `app/layout.tsx` fails.
+</Warning>
+
+The theme schema is imported in the client module rather than passed from the layout, because a schema can hold functions that cannot cross from server to client. `publicEnv` is passed explicitly because a layout receives no search params; see [Known limitations](/nextjs/overview#known-limitations).
+
+### 6. Render a page
+
+`WeaverseNextRenderer` is a Client Component. Wrap it in one client boundary that rebuilds the request context from the payload, so Studio knows which route it is looking at:
+
+```tsx
+// weaverse/page.tsx
+'use client'
+
+import {
+  createWeaverseNextClient,
+  WeaverseNextProvider,
+  WeaverseNextRenderer,
+} from '@weaverse/next'
+import type { WeaverseNextLoaderData, WeaverseNextRequestInfo } from '@weaverse/next'
+import { components } from './components'
+
+export function WeaversePage({ data }: { data: WeaverseNextLoaderData }) {
+  let requestInfo = data.configs?.requestInfo as WeaverseNextRequestInfo | undefined
+  let client = createWeaverseNextClient({
+    components,
+    projectId: (data.configs?.projectId as string | undefined) ?? data.project?.id,
+    requestContext: {
+      pathname: requestInfo?.pathname ?? '/',
+      searchParams: new URLSearchParams(requestInfo?.search ?? ''),
+      isDesignMode: Boolean(data.configs?.isDesignMode),
+      isPreviewMode: Boolean(data.configs?.isPreviewMode),
+      isRevisionPreview: Boolean(data.configs?.isRevisionPreview),
+      i18n: requestInfo?.i18n,
+      pageType: requestInfo?.pageType,
+      handle: requestInfo?.handle,
+    },
+  })
+
+  return (
+    <WeaverseNextProvider client={client}>
+      <WeaverseNextRenderer data={data} />
+    </WeaverseNextProvider>
+  )
+}
+```
+
+Then load and render the page in a route:
+
+```tsx
+// app/page.tsx
+import { notFound } from 'next/navigation'
+import { WeaversePage } from '../weaverse/page'
+import { getWeaverseServerClient } from '../weaverse/server'
+
+export default async function Home(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  let weaverse = await getWeaverseServerClient('/', await props.searchParams, {
+    pageType: 'INDEX',
+  })
+  let data = await weaverse.loadPage({ type: 'INDEX' })
+  if (!data) notFound()
+
+  return <WeaversePage data={data} />
+}
+```
+
+### 7. Add the revalidation route
+
+Studio posts here when a merchant changes a resource picker, to re-run only that section's loader:
+
+```ts
+// app/api/weaverse/revalidate/route.ts
+import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import { createWeaverseServerClientFromContext } from '../../../../weaverse/server'
+
+export const dynamic = 'force-dynamic'
+
+export const { POST } = createWeaverseNextRevalidateHandler({
+  getClient: (_request, requestContext) => {
+    if (!requestContext) throw new Error('Missing route context')
+    return createWeaverseServerClientFromContext(requestContext)
+  },
+})
+```
+
+### 8. Open it in Studio
+
+Run your app, open `https://studio.weaverse.io/projects/YOUR_PROJECT_ID`, and set the preview URL to your dev server.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Rendering pages" icon="file" href="/nextjs/rendering-pages">
+    Product, collection, custom pages, metadata and sitemap.
+  </Card>
+  <Card title="Data fetching" icon="database" href="/nextjs/data-fetching">
+    Section loaders and caching.
+  </Card>
+  <Card title="Studio integration" icon="wand-magic-sparkles" href="/nextjs/studio">
+    How Studio connects and what it needs.
+  </Card>
+  <Card title="Deploy to Vercel" icon="cloud-arrow-up" href="/guides/deployment/vercel">
+    Ship your storefront.
+  </Card>
+</CardGroup>
