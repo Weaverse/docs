@@ -1,0 +1,152 @@
+---
+title: "@weaverse/next API Reference"
+description: "Every export of @weaverse/next and @weaverse/next/server."
+published: true
+---
+
+# @weaverse/next API Reference
+
+`@weaverse/next` has two entry points:
+
+| Import | Use in | Purpose |
+| --- | --- | --- |
+| `@weaverse/next` | Client and shared code | Registry types, providers, renderer, hooks, Studio runtime, translation, schema re-exports |
+| `@weaverse/next/server` | Server only | The Weaverse API client, config resolution, page URL helpers, the revalidation route handler |
+
+Server code lives under `@weaverse/next/server` so a Client Component can import the root entry without pulling server-only fetch code into the browser bundle.
+
+## `@weaverse/next`
+
+### Components and providers
+
+| Export | Description |
+| --- | --- |
+| `createWeaverseNextClient(config)` | Client-side runtime state: registers render components and carries the request, page and theme context. |
+| `WeaverseNextProvider` | Provides a client created with `createWeaverseNextClient` to the renderer. Adopts the root theme store when one is mounted above it. |
+| `WeaverseNextRenderer` | Renders a Weaverse page tree and binds the Studio runtime. |
+| `WeaverseNextRootProvider` | Mount once in `app/layout.tsx`. Owns the theme settings store and translation store for the whole app. Props: `initialThemeSettings`, `themeSchema`, `publicEnv`, `staticContent`, `merchantOverrides`, `t`. |
+
+### Hooks
+
+| Export | Description |
+| --- | --- |
+| `useThemeSettings()` | Live theme settings; re-renders on Studio edits. Same name as in Hydrogen, see [useThemeSettings](/api-reference/use-theme-settings). |
+| `useWeaverse()` | The Weaverse instance. See [useWeaverse](/api-reference/use-weaverse). |
+| `useItemInstance()` | The current item instance. See [useItemInstance](/api-reference/use-item-instance). |
+| `useParentInstance()` | The parent item instance. See [useParentInstance](/api-reference/use-parent-instance). |
+| `useChildInstances()` | The child item instances. See [useChildInstances](/api-reference/use-child-instances). |
+| `useWeaversePageData()` | Page data passed to the provider. Replaces a section's `useLoaderData()`. |
+| `useWeaverseRootData()` | Root data passed to the provider. Replaces `useRouteLoaderData('root')`. |
+| `useWeaverseCommerce()` | The commerce context your app provided (storefront, cart, customer). |
+| `isBrowser`, `isIframe` | Environment checks re-exported from `@weaverse/react`. |
+
+### Studio and runtime
+
+| Export | Description |
+| --- | --- |
+| `WeaverseNextStudioConnect` | Loads the Studio bridge script in design and preview contexts; does nothing in published mode. Mount once in the root layout. |
+| `loadWeaverseNextStudioScript()` | The script loader behind `WeaverseNextStudioConnect`. |
+| `resolveWeaverseNextStudioScriptSrc()` | Resolves the Studio bridge script URL. |
+| `WeaverseNextStudio`, `WeaverseNextStudioBridge` | Page-level Studio binding, wired by `WeaverseNextRenderer`. |
+| `useWeaverseNextStudioInternals()`, `createWeaverseNextStudioInternals()` | Map Studio's `navigate`, `revalidate` and `revalidateItem` to the Next router. |
+| `createWeaverseNextRuntime()`, `bindWeaverseNextStudioRuntime()`, `WeaverseNextRuntime` | Lower-level runtime helpers. |
+| `createWeaverseNextThemeSettingsStore()` | The theme settings store used by the root provider. |
+| `buildWeaverseNextRequestInfo()` | Builds the request info Studio reads. |
+
+### Loaders and revalidation
+
+| Export | Description |
+| --- | --- |
+| `runWeaverseComponentLoaders(args)` | Walks a page tree and runs each component's `loader` on the server. |
+| `revalidateWeaverseNextItem()` | Client side of per-item revalidation; posts to the revalidation route. |
+| `buildWeaverseNextRevalidateRouteContext()` | Builds the sanitized route context sent with a revalidation request. |
+| `DEFAULT_REVALIDATE_ENDPOINT` | The default revalidation route path. |
+
+### SEO
+
+| Export | Description |
+| --- | --- |
+| `getWeaverseNextSeoMetadata(data)` | Maps a page's Weaverse SEO to a Next `Metadata` object. |
+| `formatWeaverseNextSeoMetadata(seo)` | Formats a raw SEO object into Next `Metadata`. |
+
+Both are also exported from `@weaverse/next/server`. See [Rendering pages](/nextjs/rendering-pages#seo-metadata).
+
+### Translation
+
+| Export | Description |
+| --- | --- |
+| `useTranslation()` | Returns `t(key, variables?)` for theme copy, resolving external `t`, then Studio's live edits, then the market's overrides, then `staticContent`, then the key. |
+| `TranslationProvider` | Provides translation sources below the root. |
+| `createTranslate()`, `getNestedKey()`, `interpolate()` | The translation helpers behind `t`. |
+| `TranslationStore` | The live design-mode translation store. |
+| `useThemeText`, `ThemeTextProvider`, `ThemeTextStore` | Older names for `useTranslation`, `TranslationProvider` and `TranslationStore`. |
+
+See [Markets & translations](/nextjs/markets-translations).
+
+### Schema
+
+The root entry re-exports all of `@weaverse/schema`, including `createSchema`, the input and schema types, `IMAGES_PLACEHOLDERS` and the validators. `generateDataFromSchema(schema)` extracts the default settings of a component or theme schema.
+
+### Types
+
+| Type | Description |
+| --- | --- |
+| `WeaverseNextComponent` | A registry entry: `default` (component), `schema`, optional `loader`. |
+| `WeaverseNextComponentProps`, `WeaverseNextComponentData`, `WeaverseNextComponentLoaderArgs` | Component props, item data and loader arguments. |
+| `WeaverseNextLoaderData` | What `loadPage()` returns and `WeaverseNextRenderer` renders. |
+| `WeaverseNextRequestContext`, `WeaverseNextRequestInfo` | Route identity: URL, pathname, search params, page type, handle, i18n, design flags. |
+| `WeaverseNextThemeSchema`, `WeaverseNextThemeSchemaGroup`, `WeaverseNextI18n` | Theme schema, a settings group, and a market. |
+| `WeaverseNextCommerceContext`, `WeaverseNextStorefront` | The commerce context passed to the server client. |
+| `WeaverseNextCacheConfig` | `revalidate` and `tags` for published reads. |
+| `WeaverseNextClient`, `WeaverseNextClientConfig` | The client returned by `createWeaverseNextClient` and its config. |
+| `WeaverseNextLoadPageInput`, `WeaverseNextPageData`, `WeaverseNextPageAssignment` | Page loading input and page data. |
+| `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions` | Custom page listing. |
+| `WeaverseProduct`, `WeaverseCollection`, `WeaverseBlog`, `WeaverseArticle`, `WeaverseMetaObject` | Resource picker values. |
+| `WeaverseNextTranslationMap` and related `WeaverseNextTranslation*` types | Translation data. |
+
+## `@weaverse/next/server`
+
+| Export | Description |
+| --- | --- |
+| `createWeaverseNextServerClient(config)` | The request-scoped Weaverse API client. Create it per request; see below. |
+| `createWeaverseNextRevalidateHandler({ getClient })` | Creates the `POST` handler for per-item revalidation. `getClient(request, requestContext)` receives the validated route context. See [Studio integration](/nextjs/studio#per-item-revalidation). |
+| `getWeaverseNextConfigs()` | Resolves project id, Studio host, API base and design mode from the request and env. |
+| `normalizeNextPageUrl()`, `resolveRequestUrl()` | Stable page URL helpers. |
+| `getWeaverseNextSeoMetadata()`, `formatWeaverseNextSeoMetadata()` | SEO helpers, as above. |
+
+Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextFetchOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseNextRevalidateRequestBody`, `WeaverseNextRevalidateRouteContext`, plus the shared types above.
+
+### Server client config
+
+| Option | Description |
+| --- | --- |
+| `components` | Required. The server registry: schemas and loaders. |
+| `projectId` | Project id, or a function returning it. Falls back to `WEAVERSE_PROJECT_ID`. |
+| `weaverseHost` | Studio host. Falls back to `WEAVERSE_HOST`, then `https://studio.weaverse.io`. |
+| `env` | Environment object the SDK reads its keys from. |
+| `requestContext` | The route identity of this request. |
+| `themeSchema` | Your theme schema, for theme settings defaults and Studio. |
+| `commerce` | Commerce context passed to loaders (for example a Storefront client). |
+| `cache` | `{ revalidate, tags }` for published reads. |
+| `fetch`, `fetchTimeoutMs` | Custom fetch and timeout. |
+
+### Server client members
+
+| Member | Description |
+| --- | --- |
+| `loadPage({ type, handle? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. |
+| `loadThemeSettings()` | Fetches theme settings merged over schema defaults. Returns `theme`, `schema`, `staticContent`, `publicEnv` in design mode, and `merchantOverrides` when the theme declares `i18n` and the request carries a language and country. |
+| `fetchCustomPages(options?)` | Lists published custom pages for a sitemap, paginating automatically. |
+| `fetchWithCache(url, options?)` | Next-aware fetch: `no-store` in design and revision preview, `next: { revalidate, tags }` in published mode. |
+| `projectId`, `resolveProjectId()` | The project id; `resolveProjectId()` resolves it asynchronously (query, function, string, env). |
+| `components` | The server registry. |
+| `commerce`, `storefront` | The commerce context; `storefront` is an alias for Pilot-style loaders. |
+| `requestContext` | URL, headers, search params, i18n and design/preview flags. |
+| `configs` | The resolved configuration. |
+
+### Config resolution
+
+- **Project id**: `?weaverseProjectId=` → `projectId` function → `projectId` string → `WEAVERSE_PROJECT_ID`.
+- **Studio host**: trusted `?weaverseHost=` (`https://*.weaverse.io`, `https://*.weaverse.dev`) → `WEAVERSE_HOST` → `https://studio.weaverse.io`.
+- **API base**: trusted request host → `WEAVERSE_PUBLIC_API_BASE` → non-production `WEAVERSE_HOST` → `https://api.weaverse.io`.
+- **Public env**: `PUBLIC_STORE_DOMAIN`, `PUBLIC_STOREFRONT_API_TOKEN`.
