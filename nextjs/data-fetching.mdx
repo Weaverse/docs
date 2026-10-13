@@ -6,7 +6,7 @@ published: true
 
 # Data Fetching in Next.js
 
-A section can resolve its own data on the server with a `loader`, exactly as in Hydrogen: the loader runs during the page load, and its result reaches the component as `loaderData`. What changes in Next.js is where loaders live, what they receive, and how caching works.
+A section can resolve its own data on the server with a `loader`, exactly as with `@weaverse/hydrogen` on React Router: the loader runs during the page load, and its result reaches the component as `loaderData`. What changes in Next.js is where loaders live, what they receive, and how caching works.
 
 This is the Next.js counterpart of [Section Data Fetching](/development-guide/data-fetching). Schemas and inputs are shared; see [Component Schema](/development-guide/component-schema) and [Input Settings](/development-guide/input-settings).
 
@@ -197,13 +197,13 @@ export const revalidate = 3600
 
 Use `tags` with Next's `revalidateTag` to purge Weaverse data on demand.
 
-## Differences from Hydrogen loaders
+## Differences from React Router loaders
 
-| | Hydrogen | Next.js |
+| | React Router (`@weaverse/hydrogen`) | Next.js (`@weaverse/next`) |
 | --- | --- | --- |
 | Where the loader is declared | Exported next to the component | On the server registry entry, in a `server-only` module |
 | Weaverse client | Injected as `context.weaverse` | Created per request by your app helper |
-| Shopify client | `weaverse.storefront` from the Hydrogen context | `commerce.storefront` you pass in (`weaverse.storefront` aliases it) |
+| Shopify client | `weaverse.storefront` from the React Router load context | `commerce.storefront` you pass in (`weaverse.storefront` aliases it) |
 | Re-running on edits | React Router revalidation and `shouldRevalidate` rules | `shouldRevalidate: true` inputs and the per-item revalidation route |
 | Caching | Hydrogen cache strategies | Next `fetch` cache: `revalidate`, `tags`, segment `revalidate` |
 
