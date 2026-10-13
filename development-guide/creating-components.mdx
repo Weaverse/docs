@@ -217,6 +217,10 @@ export const components: HydrogenComponent[] = [
 ];
 ```
 
+**Problem**: A registered component works as a nested child but is missing from the root **Add Section** picker
+
+**Solution**: One possible cause: its type is listed in another component's `childTypes`, so Studio treats it as child-only. If so, keep the existing `type` and add `enabledOn: { groups: ['*'] }` (or `['body']`). Other availability rules, such as `enabled`, `enabledOn.pages`, and `limit`, can also hide a component, so check them too. See [Standalone and Nested Components](/development-guide/component-schema#standalone-and-nested-components).
+
 **Problem**: Import path errors
 ```bash
 # ❌ Wrong: Using default imports  

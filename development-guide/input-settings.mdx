@@ -377,6 +377,9 @@ Here's how it works:
 
 - **Enhancing SEO**: merchants can edit the alt text of the images they've uploaded.
 
+- **Focal point**: merchants can pick the part of the image to keep in view when a section crops it. See
+  [Focal point](#focal-point).
+
 #### Filtering the Media Manager gallery
 
 A theme can hide files from the gallery so a picker only offers what belongs in it. Declare the store-wide
@@ -413,6 +416,29 @@ Pickers opened outside an input schema — the SEO image field, the rich text ed
 Manager — apply the theme's rules alone. A theme that declares no `media` key filters nothing, which is not
 an error.
 
+#### Focal point
+
+From `@weaverse/hydrogen` 5.23.0, merchants can click **Change → Set focal point** on an image input and pick
+the part of the image to keep in view when a section crops it. The point is saved on this input's value as
+`focalPoint: { x, y }`, with both coordinates from `0` to `1` measured from the image's top-left corner. It is
+absent when no point is set.
+
+The SDK only stores the point. To use it, set it as the CSS `object-position` of images rendered with
+`object-fit: cover`:
+
+```tsx
+let { focalPoint } = image
+let objectPosition = focalPoint
+  ? `${focalPoint.x * 100}% ${focalPoint.y * 100}%`
+  : undefined
+
+<Image data={image} className="object-cover" style={{ objectPosition }} />
+```
+
+Skip it for images that aren't cropped (for example `object-fit: contain`), since it would shift them off
+center. See Pilot's [`Image` component](https://github.com/Weaverse/pilot/blob/main/app/components/image.tsx)
+for a complete example.
+
 **Return**: `object` - A **`WeaverseImage`** object with the following structure:
 
 ```tsx
@@ -423,6 +449,7 @@ type WeaverseImage = {
   width: number
   height: number
   previewSrc: string
+  focalPoint?: { x: number; y: number } // 0 to 1, from the top-left corner
 }
 ```
 

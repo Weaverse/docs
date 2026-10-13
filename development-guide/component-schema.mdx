@@ -185,7 +185,10 @@ export let schema = createSchema({
 });
 ```
 
-### Dynamic Element Labels
+{/* Preserve links to this section's former heading. */}
+<a id="dynamic-element-labels" />
+
+### `label`
 
 The optional `label` callback makes repeated elements easier to identify in the Page Outline. Studio keeps the component's `title` and appends the returned text as a muted, italic suffix: **Heading – Summer sale**. The Add menu still uses `title` alone.
 
@@ -338,6 +341,44 @@ export let schema = createSchema({
 });
 ```
 
+### Standalone and Nested Components
+
+Listing a type in any registered component's `childTypes` also changes how Studio classifies that type: it is treated as a child-only component and is hidden from the root **Add Section** picker, even when `enabled` evaluates to `true`. `enabled` controls insertion availability; it is not an opt-in to root-section classification.
+
+To use one component both as a top-level section and nested inside a parent, keep the parent's `childTypes` and the child's stable `type`, and add `enabledOn.groups` with `'body'` or `'*'` to the child:
+
+```tsx sections/feature-list.tsx
+import { createSchema } from '@weaverse/hydrogen';
+
+// Parent: unchanged, still allows the child in its nested picker
+export let schema = createSchema({
+  type: 'feature-list',
+  title: 'Feature list',
+  childTypes: ['feature-card'],
+  settings: [],
+});
+```
+
+```tsx sections/feature-card.tsx
+import { createSchema } from '@weaverse/hydrogen';
+
+// Child: also available as a root section
+export let schema = createSchema({
+  type: 'feature-card', // keep the existing type so saved instances still match
+  title: 'Feature card',
+  enabledOn: { groups: ['*'] }, // explicit root-section opt-in
+  enabled: ({ page }) => page.type !== 'PRODUCT', // existing availability rules still apply
+  settings: [],
+});
+```
+
+- `groups: ['body']` restricts the component to the body group; `groups: ['*']` leaves the group unrestricted. Studio currently evaluates body placement only, so either value makes the component eligible for the root **Add Section** picker.
+- Use `['*']` for a component that previously omitted `groups` (or had an empty list), so the opt-in adds no new group restriction.
+- Every other rule must still pass, including `enabled` (a `false` result still hides it) and `enabledOn.pages`.
+- Nested insertion is unaffected: the parent's `childTypes` and the child's `enabled` rule still govern the nested picker.
+
+Keep this `enabledOn` field on dual-use components while migrating other availability logic to `enabled`.
+
 ### `presets`
 
 ```tsx
@@ -429,13 +470,17 @@ enabledOn?: {
 
 The `enabledOn` property controls where components can be used within a theme, but it is deprecated. Use `enabled` for both static and context-aware availability rules. Existing schemas remain supported, and when both properties are present both rules must pass.
 
+<Warning>
+  Keep `enabledOn.groups` (with `'body'` or `'*'`) on any component that is also listed in another component's `childTypes` and must still appear as a root section. `enabled` does not replace that classification opt-in. See [Standalone and Nested Components](#standalone-and-nested-components).
+</Warning>
+
 > **Current placement support:** Studio currently evaluates insertion for the `body` group. Header and footer placement surfaces are not available yet.
 
 #### Page Types
 
 The `pages` array specifies which page types can include this component. Use `'*'` to allow the component on all page types.
 
-Migrate page and group checks directly into `enabled`:
+For components that are not listed in any `childTypes`, migrate page and group checks directly into `enabled`:
 
 ```tsx
 // Before
@@ -958,13 +1003,15 @@ export let schema = createSchema({
 
 6. **Component Not Appearing on Specific Pages**: Verify that the `enabled` callback returns `true` for the active page type, handle, locale, and group.
 
-7. **Data Not Refreshing**: For components with loaders, check if relevant inputs have `shouldRevalidate: true` set to trigger data refetching.
+7. **Registered Component Missing from Add Section**: If the type appears in any component's `childTypes`, Studio treats it as child-only. Add `enabledOn: { groups: ['*'] }` (or `['body']`) to the component. See [Standalone and Nested Components](#standalone-and-nested-components).
 
-8. **Schema Changes Not Reflecting**: Remember that schema changes require a server restart to take effect in development mode.
+8. **Data Not Refreshing**: For components with loaders, check if relevant inputs have `shouldRevalidate: true` set to trigger data refetching.
 
-9. **Deprecation Warnings**: If you see warnings about the `inspector` property, update your schema to use `settings` instead.
+9. **Schema Changes Not Reflecting**: Remember that schema changes require a server restart to take effect in development mode.
 
-10. **Type Errors with createSchema()**: If you're getting TypeScript errors, ensure you're importing `createSchema` correctly and that your schema object matches the expected structure.
+10. **Deprecation Warnings**: If you see warnings about the `inspector` property, update your schema to use `settings` instead.
+
+11. **Type Errors with createSchema()**: If you're getting TypeScript errors, ensure you're importing `createSchema` correctly and that your schema object matches the expected structure.
 
 ## Related Resources
 

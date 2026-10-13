@@ -63,7 +63,7 @@ interface SchemaType {
 }
 ```
 
-`label` is optional and available in `@weaverse/schema` 0.17.0+ / `@weaverse/hydrogen` 5.22.0+. The method signature accepts callbacks explicitly annotated with the component's props type, such as `label: (data: HeadingProps) => data.content`; without an annotation, `data` is `Record<string, any>`. It returns synchronous plain text for the Studio outline, not a replacement for the static `title`. See [Dynamic Element Labels](/development-guide/component-schema#dynamic-element-labels) for the example, preview-language behavior and fallback rules.
+`label` is optional and available in `@weaverse/schema` 0.17.0+ / `@weaverse/hydrogen` 5.22.0+. The method signature accepts callbacks explicitly annotated with the component's props type, such as `label: (data: HeadingProps) => data.content`; without an annotation, `data` is `Record<string, any>`. It returns synchronous plain text for the Studio outline, not a replacement for the static `title`. See [`label`](/development-guide/component-schema#label) for the example, preview-language behavior and fallback rules.
 
 Use `createSchema()` to type-check an object against `SchemaType` and enable development-time diagnostics:
 
@@ -267,6 +267,8 @@ const schema = createSchema({
 ```
 
 `enabledOn` remains supported for backward compatibility but is deprecated. Avoid relying on undocumented behavior for thrown errors, promises, RPC serialization, or existing instances; these semantics are not part of the public SDK contract.
+
+`enabled` controls insertion availability only. A type listed in any component's `childTypes` appears in the root **Add Section** picker only when its `enabledOn.groups` contains `'body'` or `'*'`, even if `enabled` returns `true`. Keep that field on dual-use components during migration; see [Standalone and Nested Components](/development-guide/component-schema#standalone-and-nested-components).
 
 ## Internationalization
 
