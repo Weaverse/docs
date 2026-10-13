@@ -344,7 +344,9 @@ Listing a type in any registered component's `childTypes` also changes how Studi
 
 To use one component both as a top-level section and nested inside a parent, keep the parent's `childTypes` and the child's stable `type`, and add `enabledOn.groups` with `'body'` or `'*'` to the child:
 
-```tsx
+```tsx sections/feature-list.tsx
+import { createSchema } from '@weaverse/hydrogen';
+
 // Parent: unchanged, still allows the child in its nested picker
 export let schema = createSchema({
   type: 'feature-list',
@@ -352,6 +354,10 @@ export let schema = createSchema({
   childTypes: ['feature-card'],
   settings: [],
 });
+```
+
+```tsx sections/feature-card.tsx
+import { createSchema } from '@weaverse/hydrogen';
 
 // Child: also available as a root section
 export let schema = createSchema({
