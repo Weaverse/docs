@@ -1,6 +1,6 @@
 ---
 title: "Weaverse for Next.js"
-description: "Build a Weaverse storefront on the Next.js App Router with @weaverse/next."
+description: "Build a Shopify Hydrogen storefront on the Next.js App Router with @weaverse/next."
 published: true
 ---
 
@@ -8,13 +8,22 @@ published: true
 
 `@weaverse/next` is the Weaverse adapter for the Next.js App Router. It renders Weaverse pages in a Next storefront, connects them to Weaverse Studio for visual editing, and runs your section loaders on the server. Version `1.0.0` is the first stable release.
 
-It is the Next.js counterpart of `@weaverse/hydrogen`. Your component schemas, input settings, and theme settings work the same way; what changes is how the framework hands Weaverse a request and renders the page.
+A Next.js storefront is still a Shopify Hydrogen storefront. [Hydrogen](https://github.com/Shopify/hydrogen) is Shopify's framework-agnostic toolkit for headless commerce, and the React Router template is only one way to use it: the Hydrogen README lists [Vercel Shop](https://github.com/vercel/shop), a Next.js storefront built on Hydrogen and maintained by Vercel, alongside it. Each layer owns one job:
 
-## Hydrogen or Next.js?
+- **Shopify owns commerce.** Products, collections, cart, checkout, customer accounts and markets come from your store through the Hydrogen SDK (`@shopify/hydrogen`) and the Storefront API.
+- **Next.js owns the app.** Routing, Server Components, caching and metadata.
+- **Weaverse owns the pages.** Sections, theme settings, translations and visual editing in Studio.
 
-Pick `@weaverse/hydrogen` when your storefront runs on Shopify Hydrogen (React Router). Pick `@weaverse/next` when it runs on the Next.js App Router, for example on Vercel, or when your team already builds with Next.js.
+## React Router or Next.js?
 
-| | `@weaverse/hydrogen` | `@weaverse/next` |
+Both are Hydrogen storefronts on Shopify, so your component schemas, input settings and theme settings work the same way. Weaverse ships one adapter per framework; pick the one your storefront runs on:
+
+- **`@weaverse/hydrogen`** for the Hydrogen React Router framework, for example a storefront deployed to Oxygen. The name predates Hydrogen becoming framework-agnostic.
+- **`@weaverse/next`** for the Next.js App Router, for example a storefront deployed to Vercel.
+
+What changes is how the framework hands Weaverse a request and renders the page:
+
+| | `@weaverse/hydrogen` (React Router) | `@weaverse/next` (Next.js) |
 | --- | --- | --- |
 | Server client | `context.weaverse`, injected into every route loader | Created by your app per request with `createWeaverseNextServerClient()` |
 | Component registry | One registry | A client registry (rendering) and a server registry (schemas and loaders), split by React Server Components |
@@ -25,11 +34,12 @@ Pick `@weaverse/hydrogen` when your storefront runs on Shopify Hydrogen (React R
 
 ## Requirements
 
-- Next.js App Router. Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
-- A Weaverse project and a Shopify store.
+- A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels): a private token for server reads, and the public token Studio uses to open default templates (see [Studio integration](/nextjs/studio)).
+- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
+- A Weaverse project.
 
 <Note>
-  [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/next@1.0.0` with Next.js 16 and React 19.
+  [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/next@1.0.0` with Next.js 16, React 19 and the Hydrogen SDK (preview).
 </Note>
 
 ## What 1.0 supports
