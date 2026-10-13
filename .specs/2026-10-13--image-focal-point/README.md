@@ -14,10 +14,8 @@ Studio's focal point dialog needs a docs link. Write the docs for the image foca
 
 ## Scope
 
-- `features/image-focal-point.mdx` (new): setting a point in Studio, cover-only behavior, the `WeaverseImage.focalPoint` contract, applying it with `object-position`, caveats and validated `defaultValue`.
-- `development-guide/input-settings.mdx`: a short pointer in the `image` section and the `focalPoint` field on `WeaverseImage`.
-- `docs.json`: page added to the Features → Content Management group.
-- The URL `https://docs.weaverse.io/features/image-focal-point` is linked from Studio and must not change.
+- `development-guide/input-settings.mdx` only: a `#### Focal point` subsection in the `image` input section, the `focalPoint` field on `WeaverseImage`, and a link to Pilot's `Image` component as the reference implementation. No standalone feature page.
+- The anchor `https://docs.weaverse.io/development-guide/input-settings#focal-point` is linked from Studio and must not change.
 
 ## Contract Sources
 
