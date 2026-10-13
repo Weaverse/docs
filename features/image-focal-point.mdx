@@ -1,0 +1,153 @@
+---
+title: Image Focal Point
+description: Choose which part of an image stays in view when a section crops it, and apply the focal point in your Hydrogen theme.
+published: true
+---
+
+# Image Focal Point
+
+Sections often crop images to fill their frame, for example a full-width hero on desktop that becomes a tall banner on mobile. A **focal point** tells the theme which part of the image to keep in view when that happens.
+
+The focal point is saved on the **image input**, not on the Shopify file. The same file can use a different focal point in each section that shows it.
+
+<Note>
+  Requires `@weaverse/hydrogen` **5.23.0** or later, and a theme that applies the point. [Pilot](https://github.com/Weaverse/pilot) supports it out of the box.
+</Note>
+
+---
+
+## Setting a focal point in Studio
+
+<Steps>
+  <Step title="Open the image input">
+    Select a section with an image and find its image input in the settings panel.
+  </Step>
+  <Step title="Open the focal point dialog">
+    Click **Change** under the image thumbnail, then choose **Set focal point**.
+  </Step>
+  <Step title="Pick the point">
+    Click or drag on the image to move the marker. Use the arrow keys to nudge it by 1%, or hold **Shift** to move by 10%.
+  </Step>
+  <Step title="Apply">
+    Click **Apply**. The preview updates right away, and the saved point is shown under the input's thumbnail, for example `X: 30% · Y: 25%`.
+  </Step>
+</Steps>
+
+**Reset** removes the focal point, so the section goes back to its default positioning. Replacing the image also clears it, since the point belongs to the previous image.
+
+<Warning>
+  The focal point only applies when the image is **cropped to fill its frame** (`object-fit: cover`). Images shown in full, such as a `contain` fit, logos, or icons, stay centered and ignore it.
+</Warning>
+
+### How the point is positioned
+
+The theme turns the point into a CSS `object-position`. A point at `30% 25%` aligns the spot 30% across and 25% down the image with the spot 30% across and 25% down the frame.
+
+This keeps the chosen area visible as the frame changes shape, but it does not always place the point in the exact center. For very different aspect ratios, keep the subject reasonably close to the middle of the image.
+
+---
+
+## Supporting focal points in your theme
+
+The SDK only stores the point. Your components decide whether and how to apply it.
+
+### Data contract
+
+`WeaverseImage` has an optional `focalPoint` field:
+
+```ts
+type WeaverseImage = {
+  id: string
+  url: string
+  altText: string
+  width: number
+  height: number
+  previewSrc: string
+  focalPoint?: {
+    x: number // 0 (left edge) to 1 (right edge)
+    y: number // 0 (top edge) to 1 (bottom edge)
+  }
+}
+```
+
+- `focalPoint` is absent when the merchant hasn't set one, or has reset it. Keep your existing positioning in that case.
+- String image values (plain URLs) never carry a focal point.
+- Studio saves coordinates in whole-percent steps (for example `0.3`), but treat any number from `0` to `1` as valid.
+
+### Applying it
+
+Convert the point to `object-position` on the cropped `<img>`, and only when the image uses `object-fit: cover`:
+
+```tsx
+import { Image } from '@shopify/hydrogen'
+import type { HydrogenComponentProps, WeaverseImage } from '@weaverse/hydrogen'
+
+function getFocalPointPosition(image?: WeaverseImage | string) {
+  let point = typeof image === 'object' ? image.focalPoint : undefined
+  if (!point) {
+    return undefined
+  }
+  // Round to avoid float noise such as 28.999999999999996%
+  let toPercent = (n: number) => Math.round(n * 10_000) / 100
+  return `${toPercent(point.x)}% ${toPercent(point.y)}%`
+}
+
+interface BannerProps extends HydrogenComponentProps {
+  image: WeaverseImage
+}
+
+function Banner({ image, ...rest }: BannerProps) {
+  return (
+    <div {...rest} className="aspect-[16/9] md:aspect-[21/9]">
+      <Image
+        data={image}
+        sizes="100vw"
+        className="h-full w-full object-cover"
+        style={{ objectPosition: getFocalPointPosition(image) }}
+      />
+    </div>
+  )
+}
+```
+
+When `getFocalPointPosition` returns `undefined`, React omits the style and your `object-center` (or other default) class applies as before.
+
+<Tip>
+  Put this logic in your shared image components rather than in each section. Pilot applies it once in its `Image` and `BackgroundImage` components, so every section that crops an image supports focal points with no extra code. See [`app/utils/image.ts`](https://github.com/Weaverse/pilot/blob/main/app/utils/image.ts) in Pilot.
+</Tip>
+
+### Things to watch
+
+- **Skip non-cropped fits.** If a section lets merchants switch between `cover` and `contain`, only apply the point for `cover`. With `contain`, `object-position` would shift the letterboxed image off center.
+- **Let explicit positions win where it makes sense.** If a section already has its own position setting, decide which one takes precedence. Pilot lets a saved focal point override the section's background position setting.
+- **Overlays positioned on the image.** Elements placed by percentage over a cropped image, such as hotspot pins, can drift away from their target when the focal point changes what's visible. Use the image's natural aspect ratio for those sections.
+
+### Default values
+
+You can ship a focal point in an image input's `defaultValue`. Both coordinates must be numbers from `0` to `1`; `@weaverse/schema` 0.19.0+ reports anything else as a schema error.
+
+```tsx
+{
+  type: 'image',
+  name: 'image',
+  label: 'Image',
+  defaultValue: {
+    url: 'https://cdn.shopify.com/s/files/1/0669/0262/2504/files/linkedin-sales-solutions-pAtA8xe_iVM-unsplash.jpg?v=1697429747',
+    altText: 'Man standing beside wall',
+    focalPoint: { x: 0.5, y: 0.3 },
+  },
+}
+```
+
+---
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Input settings: image" icon="image" href="/development-guide/input-settings#image">
+    How the image input works and what it returns.
+  </Card>
+  <Card title="Pilot theme" icon="github" href="https://github.com/Weaverse/pilot">
+    Reference implementation with focal point support.
+  </Card>
+</CardGroup>
