@@ -268,6 +268,8 @@ const schema = createSchema({
 
 `enabledOn` remains supported for backward compatibility but is deprecated. Avoid relying on undocumented behavior for thrown errors, promises, RPC serialization, or existing instances; these semantics are not part of the public SDK contract.
 
+`enabled` controls insertion availability only. A type listed in any component's `childTypes` appears in the root **Add Section** picker only when its `enabledOn.groups` contains `'body'` or `'*'`, even if `enabled` returns `true`. Keep that field on dual-use components during migration; see [Standalone and Nested Components](/development-guide/component-schema#standalone-and-nested-components).
+
 ## Internationalization
 
 ```typescript
