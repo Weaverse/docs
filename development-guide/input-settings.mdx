@@ -377,6 +377,9 @@ Here's how it works:
 
 - **Enhancing SEO**: merchants can edit the alt text of the images they've uploaded.
 
+- **Focal point**: merchants can pick the part of the image to keep in view when a section crops it. The
+  point is returned as `focalPoint` and your component applies it. See [Image Focal Point](/features/image-focal-point).
+
 #### Filtering the Media Manager gallery
 
 A theme can hide files from the gallery so a picker only offers what belongs in it. Declare the store-wide
@@ -423,6 +426,7 @@ type WeaverseImage = {
   width: number
   height: number
   previewSrc: string
+  focalPoint?: { x: number; y: number } // 0 to 1, from the top-left corner
 }
 ```
 
