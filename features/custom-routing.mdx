@@ -48,12 +48,12 @@ Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs`, 
 
 When your storefront uses different paths from Shopify's defaults, add `routes` to the theme schema you pass to Weaverse. Studio uses this map to build paths for its page selector and URL pickers. Declare only the page types whose paths differ; omitted types keep the Shopify convention.
 
-`routes` is a sibling of `settings`, not a merchant-editable input. For the `/item/:productHandle` route in the [implementation below](#implementation-steps), add this declaration to your existing theme schema:
+`routes` is a sibling of `settings`, not a merchant-editable input. For the `/shop/:productHandle` route in the [implementation below](#implementation-steps), add this declaration to your existing theme schema:
 
 ```typescript
 // Inside your existing themeSchema object:
 routes: {
-  PRODUCT: '/item/:handle',
+  PRODUCT: '/shop/:handle',
 },
 ```
 
@@ -90,7 +90,7 @@ Use paths beginning with `/`, containing static segments and these whole-segment
 | `:handle` | The page's own product, collection, Shopify page, blog, or article handle | `/shop/:handle` → `/shop/summer` |
 | `:blog` | The parent blog's handle, for `ARTICLE` only | `/blogs/:blog/:handle` → `/blogs/news/hello` |
 
-Static paths such as `ALL_PRODUCTS: '/shop'` need no parameters. Optional segments, wildcards, and embedded parameters such as `/item-:handle` are unsupported. Use the fixed names above, not `:productHandle` or `:article`.
+Static paths such as `ALL_PRODUCTS: '/shop'` need no parameters. Optional segments, wildcards, and embedded parameters such as `/shop-:handle` are unsupported. Use the fixed names above, not `:productHandle` or `:article`.
 
 Keep patterns relative to the locale root: declare `/shop/:handle`, not `/fr/shop/:handle` or `/:locale/shop/:handle`. The Studio page selector adds the selected locale's configured path prefix separately.
 
@@ -105,7 +105,7 @@ Keep patterns relative to the locale root: declare `/shop/:handle`, not `/fr/sho
 
 ## Implementation Steps
 
-Let's walk through creating a custom route to display a product page at `/item/:productHandle` instead of the standard `/products/:productHandle`.
+Let's walk through creating a custom route to display a product page at `/shop/:productHandle` instead of the standard `/products/:productHandle`.
 
 ### Step 1: Create the Route Module
 
@@ -132,7 +132,7 @@ export default hydrogenRoutes([
     // Custom URL → your own module. `:productHandle` is the dynamic segment
     // (e.g. `classic-varsity-jacket`), exposed to the loader as
     // `params.productHandle`.
-    route("item/:productHandle", "routes/items/item.tsx"),
+    route("shop/:productHandle", "routes/items/item.tsx"),
     // …existing routes…
     route("*", "routes/catch-all.tsx"),
   ]),
@@ -140,11 +140,11 @@ export default hydrogenRoutes([
 ```
 
 -   `:locale?` — the optional locale prefix Pilot already applies to storefront routes.
--   `item/:productHandle` — your custom URL pattern, replacing `products/:productHandle`.
+-   `shop/:productHandle` — your custom URL pattern, replacing `products/:productHandle`.
 -   The second argument is the module path **relative to `app/`**.
 
 <Tip>
-React Router ranks a concrete pattern like `item/:productHandle` above the `*` catch-all, so placement inside the block does not matter — but keep it inside the `:locale?` prefix, otherwise `/fr/item/...` will fall through to the catch-all.
+React Router ranks a concrete pattern like `shop/:productHandle` above the `*` catch-all, so placement inside the block does not matter — but keep it inside the `:locale?` prefix, otherwise `/fr/shop/...` will fall through to the catch-all.
 </Tip>
 
 ### Step 3: Implement the Loader Function
@@ -224,7 +224,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 ```
 
 **Key Points in the Loader:**
--   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/item/...`.
+-   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/shop/...`.
 -   **Extract `productHandle`:** Get the handle from `params`.
 -   **Fetch Shopify Data:** You still need to fetch the corresponding Shopify product data for SEO, potentially for component data binding (though Weaverse handles much of this), and analytics. Use `Promise.all` for efficiency.
 -   **Nullable Weaverse data:** `loadPage()` never rejects on a load failure — it logs and resolves to `null`. A `try/catch` around it catches nothing, so branch on the result (or hand it to `validateWeaverseData`). Keep `try/catch` for the operations that really do throw, such as `storefront.query`.
@@ -275,7 +275,7 @@ export default function CustomProductRoute() {
 }
 ```
 
-Now, visiting `/item/your-product-handle` will render the Weaverse product page associated with `your-product-handle`.
+Now, visiting `/shop/your-product-handle` will render the Weaverse product page associated with `your-product-handle`.
 
 ---
 
@@ -313,7 +313,7 @@ When implementing custom routes, you can explicitly pass the `locale` parameter 
 
 ```typescript
 // app/routes/items/item.tsx
-// Registered as: route("item/:productHandle", "routes/items/item.tsx")
+// Registered as: route("shop/:productHandle", "routes/items/item.tsx")
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
   let { weaverse } = context;
   let { productHandle } = params;
@@ -477,7 +477,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 ```
 
 **Benefits:**
-- Completely different URL structures per market (e.g., `/vara/` for Swedish, `/item/` for English)
+- Completely different URL structures per market (e.g., `/vara/` for Swedish, `/shop/` for English)
 - Independent theme settings and page structures per project
 - Support for top-level domains (mystore.se, mystore.fr) without complex routing
 
@@ -492,7 +492,7 @@ See the **[Multi-Project Architecture Guide](/guides/multi-project-architecture)
 -   **Register Every Route:** A module under `app/routes/` is unreachable until it appears in `app/routes.ts`. If a custom URL 404s or renders your catch-all page, check the registry first.
 -   **Choose the Correct `type`:** Always ensure the `type` parameter in `loadPage` matches the *kind* of content you intend to display (PRODUCT, COLLECTION, PAGE, BLOG, ARTICLE, CUSTOM, etc.). Use `CUSTOM` for Weaverse custom pages and `PAGE` + `handle` for Shopify Pages. Refer to the [Supported Page Types](/guides/rendering-page#supported-page-types).
 -   **Fetch Necessary Shopify Data:** If your custom route replaces a standard route (like product or collection), remember to fetch the corresponding Shopify data in your loader for SEO, analytics, or any components that might need it directly.
--   **Generating Links:** Linking to these custom routes from within your application (e.g., in navigation or product grids) will require using the correct path (`/item/...`, `/fr/collections-en-vedette/...`) instead of the default Shopify paths. You might need custom link-building logic or helper functions.
+-   **Generating Links:** Linking to these custom routes from within your application (e.g., in navigation or product grids) will require using the correct path (`/shop/...`, `/fr/collections-en-vedette/...`) instead of the default Shopify paths. You might need custom link-building logic or helper functions.
 -   **SEO & Sitemaps:** Standard sitemap generation might not automatically include these custom routes. You may need to manually add them to your `sitemap.xml` logic. Ensure canonical URLs are correctly set (perhaps pointing to the standard Shopify URL if preferred, or self-referencing the custom URL if it's the primary one). Consult SEO best practices.
 
 ---

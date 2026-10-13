@@ -29,7 +29,7 @@ Source snapshots inspected:
 
 1. Commit this spec and plan separately, as requested.
 2. Verify published SDK types before documenting compatibility. Distinguish typed SDK support from Studio behavior rather than claiming every older SDK lacks runtime support.
-3. Add a section to Custom Routing explaining `routes` as a sibling of `settings`, show a small Hydrogen example matching the existing `/item/:productHandle` tutorial, and include Forward's actual route map with a source link. Explain the fixed `:handle` name despite the router's `:productHandle` name.
+3. Add a section to Custom Routing explaining `routes` as a sibling of `settings`, show a small Hydrogen example matching the `/shop/:productHandle` tutorial, and include Forward's actual route map with a source link. Explain the fixed `:handle` name despite the router's `:productHandle` name.
 4. Document the eight supported keys, two parameters, static paths, omitted-key fallback, missing-value fallback, locale prefix handling, and limits. Avoid suggesting that all malformed patterns are rejected or that the dashboard uses the map.
 5. Add the optional schema field and shared types to API Types, linking to the guide rather than repeating it.
 6. Validate, record results here, mark the spec completed, and commit the documentation plus completion record. Push the branch and open a regular PR to `main` closing #73.
@@ -55,3 +55,4 @@ The route map must agree with actual storefront routes or Studio can navigate to
 - `git diff --check`: passed. Changes are limited to the two existing documentation pages and this spec; no new public page or navigation entry is needed.
 - The original issue body remains verbatim in README, including its initial unchecked checklist; completion is recorded here rather than rewriting the original requirement.
 - No interactive Studio session or production deployment was tested. Existing unrelated changes in the original docs worktree remain untouched.
+- Follow-up: use `/shop/:handle` for the product example as requested, and align the tutorial's registered URL and prose with `/shop/:productHandle`.
