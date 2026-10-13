@@ -8,6 +8,21 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.10.27" description="October 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Discarding a section draft recovers after a dropped connection**: If a discard went through but its response never arrived, the next Discard now reloads the section's current state instead of failing again.
+  - **Hidden elements open in the settings panel**: With the settings panel on the left, choosing Edit on a hidden outline row now shows that element's hidden state instead of an empty panel.
+  - **Clearer help when a local-network preview times out**: When an `http://` preview on a local network address (such as `192.168.x.x`) times out, Studio now explains that it can be blocked inside Studio and suggests switching to `http://localhost` or an `https://` preview URL.
+
+  #### Improvements
+
+  - **More of the dashboard in your language**: The account-type prompt and the Instagram and third-party integration settings are now translated into all supported languages.
+  - **Simplified Chinese terminology**: Sections are now called 分区 throughout the Simplified Chinese interface.
+</Update>
+
 <Update label="2026.10.26" description="October 13, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
