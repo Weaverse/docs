@@ -8,6 +8,28 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.10.25" description="October 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Article pages open even when your first blog is empty**: The page selector now finds a default article from any blog. Before, it showed "Not found" when the store's first blog had no articles, which is common because Shopify creates an empty "News" blog on every store.
+</Update>
+
+<Update label="SDK v5.23.0" description="October 12, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Image focal points**: Image inputs can carry an optional focal point (`focalPoint: { x, y }`, normalized coordinates), so the same image can be framed differently in different sections. Focal points in an image input's `defaultValue` are validated. Themes apply the focal point themselves to reposition images. Released with `@weaverse/schema` 0.19.0.
+
+  #### Improvements
+
+  - **Typed theme routes**: `HydrogenThemeSchema` now accepts a typed `routes` map, so unknown page types are rejected at type-check time. Types only, no runtime change.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.23.0)
+</Update>
+
 <Update label="2026.10.23" description="October 11, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
@@ -33,6 +55,16 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Permissions tailored to each task:** new API keys can grant publishing, deletion, and project management separately from ordinary content edits.
 </Update>
 
+<Update label="@weaverse/schema 0.18.0" description="October 7, 2026" tags={["SDK"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Theme route patterns**: New `ThemeRoutes` and `ThemeRoutePageType` types let a theme map page types to its own URL patterns (for example `COLLECTION: '/shop/:handle'`) where they differ from the Shopify convention, so Studio can navigate to its pages. Patterns use static segments and whole `:param` segments: `:handle` is the page's own handle, `:blog` an article's blog.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/schema%400.18.0)
+</Update>
+
 <Update label="2026.10.20" description="October 6, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
@@ -41,6 +73,64 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Clearer Studio outlines:** supported storefront integrations can show custom labels for individual elements.
   - **More reliable restores:** restored pages and theme settings no longer appear to fail after they have been saved.
   - **Smoother preview startup:** improved handling while the preview connection initializes.
+</Update>
+
+<Update label="SDK v5.22.1" description="October 6, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **Theme settings no longer wait on stalled translations**: Merchant translation overrides now wait at most the client fetch timeout (`fetchTimeoutMs`, default 10 s). If the request stalls, theme settings load with the theme's default translations. A timed-out response is never cached, so the next request tries again.
+
+  #### Upgrade
+
+  Existing storefronts get this fix only after they upgrade `@weaverse/hydrogen` to 5.22.1.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.22.1)
+</Update>
+
+<Update label="CLI v5.6.5" description="October 4, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### Fixes
+
+  - **Cleaner new projects**: `weaverse create` now removes the template's `.github` folder along with `.weaverse`, so new projects no longer inherit workflows that fail without Weaverse's own secrets.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.6.5)
+</Update>
+
+<Update label="Pilot v2026.10.4" description="October 4, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### New Features
+
+  - **Element labels in the Studio outline**: Heading, Subheading, Column, Testimonial item, and Product highlight item show their content in the outline as `Title – content`.
+
+  #### Improvements
+
+  - **Latest Weaverse SDK**: Upgraded `@weaverse/hydrogen` to 5.22.0.
+  - **Hydrogen 2026.4.7**: Consent and analytics now use the Customer Privacy API; no code changes needed. Also upgrades Shopify CLI to 4.8.4 and mini-oxygen to 4.2.3.
+  - **Dependency updates**: Vite 8.3.2, Biome 2.5.15, Swiper 14.3, graphql-codegen 7.4.3, and schema-dts 2.1, keeping React Router 7, TypeScript 6, and GraphQL 16.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.10.4)
+</Update>
+
+<Update label="SDK v5.22.0" description="September 30, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Element label callbacks**: Component schemas can define an optional `label` callback that names each element from its own data, available through `createSchema`. Schemas without a label are unchanged. Released with `@weaverse/schema` 0.17.0.
+
+  ```ts
+  createSchema({
+    type: 'heading',
+    title: 'Heading',
+    label: (data: HeadingProps) => data.content,
+  })
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.22.0)
 </Update>
 
 <Update label="2026.10.16" description="September 30, 2026" tags={["Studio"]}>
@@ -300,6 +390,45 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 </Update>
 
 
+<Update label="Maison v2026.6.12" description="June 12, 2026" tags={["Theme", "Maison"]}>
+  ### Maison Theme
+
+  #### Improvements
+
+  - **2026 Hydrogen foundation**: Upgraded Hydrogen, React Router, and Shopify runtime packages, plus the Weaverse SDKs and supporting tooling.
+  - **Customer accounts and B2B**: Improved Customer Account API and B2B location handling.
+  - **Page SEO**: Custom pages use Weaverse SDK page SEO.
+  - **Product and cart**: Manual quantity input, quantity controls in the variant list, "From" prices, more product media previews, and cart badge and bundle badge refinements.
+  - **Search and collections**: Mobile sort label, smoother filter drawer, predictive search tabs, and cleaner sale labels.
+  - **UI polish**: Refinements across the footer, buttons, accordions, testimonials, filters, 404 page, quick view, and account and B2B flows.
+
+  #### Fixes
+
+  - **Pilot fixes**: Bug fixes from Pilot v2026.5.18 are ported to Maison.
+
+  [GitHub release](https://github.com/Weaverse/maison/releases/tag/v2026.6.12)
+</Update>
+
+<Update label="Aspen v2026.6.12" description="June 12, 2026" tags={["Theme", "Aspen"]}>
+  ### Aspen Theme
+
+  #### New Features
+
+  - **Combined listings**: Support across product queries, product cards, redirects, featured products, and product pages.
+  - **Bundled products**: Bundle badges, cart line updates, and theme settings for bundles.
+  - **Subscriptions**: Subscription support with updated mobile and tablet layouts.
+  - **Newsletter popup**: Configurable newsletter popup.
+
+  #### Improvements
+
+  - **Shopping experience**: Quick shop, product media zoom, product badges, updated variant selectors, and better product card interactions.
+  - **Cart**: Notes, discount codes, gift cards, and an animated cart drawer.
+  - **Navigation and search**: Smoother mobile menu, predictive search, and filters drawer.
+  - **Section settings**: More options for video, countdown, promotion, map, testimonials, product media, and collection and product items.
+
+  [GitHub release](https://github.com/Weaverse/aspen/releases/tag/v2026.6.12)
+</Update>
+
 <Update label="2026.6.11" description="June 11, 2026" tags={["API"]}>
   ### Bug Fixes
 
@@ -491,6 +620,24 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   See the [Content API documentation](/content-api/overview) for full details and code examples.
 </Update>
 
+<Update label="Maison v1.0.0" description="February 7, 2026" tags={["Theme", "Maison"]}>
+  ### Maison Theme
+
+  #### New Features
+
+  - **Independent release**: Maison is now a standalone Hydrogen theme with full Weaverse visual building, built on React Router 7, Tailwind CSS v4, and TypeScript.
+  - **Shopify features**: Customer Account API, optimized Storefront API queries, and combined listings.
+  - **Performance**: Parallel data loading in route loaders and native view transitions.
+
+  #### Improvements
+
+  - **Better search**: Faceted filtering and sorting.
+  - **Lighter carousels**: Native CSS scrolling replaces third-party carousel libraries where possible.
+  - **Simpler components**: Components take `ref` as a prop instead of using `forwardRef`.
+
+  [GitHub release](https://github.com/Weaverse/maison/releases/tag/v1.0.0)
+</Update>
+
 <Update label="2026.2.5" description="February 5, 2026" tags={["Studio", "SDK", "Theme"]}>
   ### Weaverse Studio
 
@@ -550,6 +697,26 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Account Dashboard**: Enhanced styling
     - Improved account page layout
     - Better responsive design
+</Update>
+
+<Update label="Naturelle v3.0.0" description="January 17, 2026" tags={["Theme", "Naturelle"]}>
+  ### Naturelle Theme
+
+  #### New Features
+
+  - **Modern Hydrogen stack**: Upgraded to the latest Hydrogen, migrated from Remix to React Router 7, and moved to React 19 and Tailwind CSS v4, aligned with the Pilot architecture.
+  - **Single product section**: A new single product section, plus an updated product page and product media.
+
+  #### Improvements
+
+  - **Variant swatches**: Updated variant swatches.
+  - **Store UI**: Updated cart, menu, footer, buttons, and product cards.
+
+  #### Fixes
+
+  - **Layout and minor fixes**: Fixed an overlapping HTML class and other minor bugs.
+
+  [GitHub release](https://github.com/Weaverse/naturelle/releases/tag/v3.0.0)
 </Update>
 
 <Update label="2026.1.10" description="January 10, 2026" tags={["Studio", "Theme"]}>
@@ -1074,6 +1241,16 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
 
   #### Version Updates
   - **Pilot Theme**: Updated to v5.5.0
+</Update>
+
+<Update label="Aspen v1.0.0" description="August 15, 2025" tags={["Theme", "Aspen"]}>
+  ### Aspen Theme
+
+  #### New Features
+
+  - **First release**: Aspen is a Shopify Hydrogen theme for home furniture and interior design stores, built with React Router and Weaverse.
+
+  [GitHub release](https://github.com/Weaverse/aspen/releases/tag/v1.0.0)
 </Update>
 
 <Update label="2025.08.12" description="August 12, 2025" tags={["Studio"]}>
