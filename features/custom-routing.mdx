@@ -31,6 +31,7 @@ Custom routing, therefore, involves:
 2.  **Registering that module in `app/routes.ts`** — Pilot uses React Router 7's manual route registry, so creating a file under `app/routes/` does not register a route by itself.
 3.  Implementing a `loader` in that module and extracting the identifier (like a handle) from the URL parameters.
 4.  Calling `context.weaverse.loadPage()` with the **explicit `type`** corresponding to the content you want to display, plus the extracted `handle` when the type needs one.
+5.  [Declaring the matching theme routes](#declare-theme-routes-for-studio) so Studio can navigate to those URLs from its page selector and URL pickers.
 
 Weaverse then fetches the appropriate page data based on these parameters, regardless of the actual URL structure.
 
@@ -42,6 +43,63 @@ Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs`, 
 
 -   **Custom Pages:** Custom Routing is often used to provide user-friendly URLs for [Custom Pages](/features/custom-pages) built in Weaverse. Load those with `loadPage({ type: 'CUSTOM' })` — Weaverse resolves the page from the request URL. Reserve `type: 'PAGE'` **with a `handle`** for Shopify Page resources, the way Pilot's `app/routes/pages/regular-page.tsx` serves `/pages/:pageHandle`.
 -   **Custom Templates:** Custom Routing works seamlessly with [Custom Templates](/features/custom-templates). If a resource (like a product) fetched via a custom route has a custom template assigned, `loadPage` automatically uses it. You don't need extra logic in your custom route's loader for this.
+
+## Declare Theme Routes for Studio
+
+When your storefront uses different paths from Shopify's defaults, add `routes` to the theme schema you pass to Weaverse. Studio uses this map to build paths for its page selector and URL pickers. Declare only the page types whose paths differ; omitted types keep the Shopify convention.
+
+`routes` is a sibling of `settings`, not a merchant-editable input. For the `/item/:productHandle` route in the [implementation below](#implementation-steps), add this declaration to your existing theme schema:
+
+```typescript
+// Inside your existing themeSchema object:
+routes: {
+  PRODUCT: '/item/:handle',
+},
+```
+
+Use `:handle` in the schema even when your router calls the parameter `:productHandle`. Studio fills its own named parameters; it does not read your router's parameter names. Keep the rest of your existing theme schema, including any localization configuration.
+
+<Note>
+  The shared `ThemeRoutes` type is available in `@weaverse/schema` 0.18.0+. For typed `routes` declarations on the theme schema, use `@weaverse/hydrogen` 5.23.0+ or the stable `@weaverse/next` 1.0.0+. These versions describe SDK type support; Studio resolves the paths from the schema it receives in design mode.
+</Note>
+
+### Example: Forward
+
+[Forward's theme schema](https://github.com/Weaverse/forward/blob/main/src/lib/weaverse/theme-schema.ts) uses the same map on `WeaverseNextThemeSchema`. Its `routes` field contains:
+
+```typescript
+routes: {
+  ALL_PRODUCTS: '/shop',
+  COLLECTION: '/shop/:handle',
+  COLLECTION_LIST: '/categories',
+  BLOG: '/archive/:handle',
+  ARTICLE: '/journal/:handle',
+},
+```
+
+For example, Studio opens collection `summer` at `/shop/summer` and article `hello` from blog `news` at `/journal/hello`. Forward's article route does not include the blog segment. A theme that needs both segments can instead declare `ARTICLE: '/blogs/:blog/:handle'`.
+
+### Supported Keys and Patterns
+
+The supported keys are `INDEX`, `PRODUCT`, `ALL_PRODUCTS`, `COLLECTION`, `COLLECTION_LIST`, `PAGE`, `BLOG`, and `ARTICLE`. `CUSTOM` pages already carry their own path, and `*` is not a route key. See the [shared route types](/api-reference/types#themeroutes-and-themeroutepagetype).
+
+Use paths beginning with `/`, containing static segments and these whole-segment parameters:
+
+| Parameter | Value | Example |
+| --- | --- | --- |
+| `:handle` | The page's own product, collection, Shopify page, blog, or article handle | `/shop/:handle` → `/shop/summer` |
+| `:blog` | The parent blog's handle, for `ARTICLE` only | `/blogs/:blog/:handle` → `/blogs/news/hello` |
+
+Static paths such as `ALL_PRODUCTS: '/shop'` need no parameters. Optional segments, wildcards, and embedded parameters such as `/item-:handle` are unsupported. Use the fixed names above, not `:productHandle` or `:article`.
+
+Keep patterns relative to the locale root: declare `/shop/:handle`, not `/fr/shop/:handle` or `/:locale/shop/:handle`. The Studio page selector adds the selected locale's configured path prefix separately.
+
+### Fallback and Scope
+
+- **No map or missing key:** Studio uses the Shopify path for that page type. For example, declaring only `COLLECTION` leaves products at `/products/:handle` and articles at `/blogs/:blog/:handle`.
+- **Cannot fill the pattern:** A path without a leading `/`, or a whole-segment parameter with no available value, falls back to the Shopify convention. Unsupported syntax is not comprehensively validated; keep to the grammar above.
+- **The storefront must serve the URL:** Declaring `routes` does not register routes, create redirects, or rewrite links in your theme. A filled pattern can still lead to a 404 if your storefront does not serve it. Keep your route modules, navigation links, and sitemaps aligned with the map.
+- **Studio scope:** The map applies where Studio has loaded the theme schema. Links that open Studio from the dashboard still use the Shopify convention; this field does not change that entry URL.
 
 ---
 

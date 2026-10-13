@@ -202,6 +202,7 @@ type HydrogenThemeSchema = {
     excludeProductFiles?: boolean
   }
   settings?: InspectorGroup[]
+  routes?: ThemeRoutes
   i18n?: {
     urlStructure: 'url-path' | 'subdomain' | 'top-level-domain'
     defaultLocale: WeaverseI18n
@@ -216,6 +217,19 @@ type HydrogenThemeSchema = {
 `settings` rather than an entry inside it, because `settings` renders as merchant-editable controls and
 these rules are meant to be fixed by the theme author. An `image` or `video` input can override them for
 its own picker — see [Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
+
+`routes` declares URL patterns that Studio uses for page navigation and URL picking. It is available as a typed field in `@weaverse/hydrogen` 5.23.0+ and on `WeaverseNextThemeSchema` in stable `@weaverse/next` 1.0.0+. See [Declare Theme Routes for Studio](/features/custom-routing#declare-theme-routes-for-studio) for configuration, the Forward example, and fallback behavior.
+
+### `ThemeRoutes` and `ThemeRoutePageType`
+
+Exported by `@weaverse/schema` 0.18.0+ and re-exported by `@weaverse/hydrogen` and `@weaverse/next`:
+
+```typescript
+type ThemeRoutePageType = Exclude<PageType, '*' | 'CUSTOM'>
+type ThemeRoutes = Partial<Record<ThemeRoutePageType, string>>
+```
+
+Each optional entry maps a supported [page type](#page-types) to an absolute path with static segments and whole `:handle` or `:blog` segments. `CUSTOM` pages carry their own path; `*` is not a route key. TypeScript checks the keys, while pattern values remain strings. See the guide's [supported keys and patterns](/features/custom-routing#supported-keys-and-patterns) for the grammar and parameter meanings.
 
 ## Page Types
 

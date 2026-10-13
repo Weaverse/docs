@@ -47,4 +47,11 @@ The route map must agree with actual storefront routes or Studio can navigate to
 
 ## Verification Results
 
-Pending implementation.
+- `mint validate`: passed.
+- `mint dev --no-open`: preview started successfully; both changed pages rendered, including the five linked heading anchors and Forward source link.
+- Published tarballs verified: `@weaverse/schema@0.18.0` exports both shared types, while `@weaverse/hydrogen@5.23.0` and `@weaverse/next@1.0.0` expose the optional field and re-export schema types.
+- Both guide snippets passed TypeScript checks against the published schema declarations. The Forward map matches `src/lib/weaverse/theme-schema.ts` at the source snapshot above.
+- A temporary harness executed the actual Builder `getPagePath` function with controlled schema data: all 11 checks passed (the Hydrogen example, five Forward routes, omitted-key fallback, missing-handle fallback, nested article route, non-absolute-path fallback, and absent-map fallback).
+- `git diff --check`: passed. Changes are limited to the two existing documentation pages and this spec; no new public page or navigation entry is needed.
+- The original issue body remains verbatim in README, including its initial unchecked checklist; completion is recorded here rather than rewriting the original requirement.
+- No interactive Studio session or production deployment was tested. Existing unrelated changes in the original docs worktree remain untouched.

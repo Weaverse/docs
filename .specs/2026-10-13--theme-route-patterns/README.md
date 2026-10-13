@@ -1,6 +1,6 @@
 # Document Theme Route Patterns for Studio Navigation
 
-- Status: in-progress
+- Status: completed
 - Owner: @hta218
 - Issue: https://github.com/Weaverse/docs/issues/73
 - Branch: `docs/theme-route-patterns`
