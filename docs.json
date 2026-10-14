@@ -73,6 +73,7 @@
                     "group": "Content Management",
                     "pages": [
                       "features/global-sections",
+                      "features/schedule-publish",
                       "features/navigation-menus",
                       "features/third-party-integrations",
                       "features/mobile-app-pwa"
@@ -91,7 +92,8 @@
                     "pages": [
                       "features/content-security",
                       "features/cookie-consent-banner",
-                      "features/analytics-tracking"
+                      "features/analytics-tracking",
+                      "features/security-deployment-practices"
                     ]
                   },
                   {

@@ -1,0 +1,31 @@
+---
+title: Security & Deployment Practices
+description: Where Weaverse stores your project data, how storefront code and content reach production, and where to find the full Trust & Security overview.
+published: true
+---
+
+# Security & Deployment Practices
+
+This page explains the security and deployment boundaries that matter when you build a Hydrogen storefront with Weaverse. For the company-level overview (data handling, hosting, access and service providers), see [Trust & Security](https://weaverse.io/trust).
+
+## What Weaverse Stores and What Stays Elsewhere
+
+- **Weaverse** stores the pages, sections, settings, translations and project data you create in Studio.
+- **Shopify** keeps your products, orders and customers. Weaverse reads store data through Shopify APIs within the permissions you approve when you install the app.
+- **Your storefront host** (for example [Oxygen](/guides/deployment/oxygen) or a [Docker](/guides/deployment/docker) or [Workers](/guides/deployment/workers) deployment) runs your production Hydrogen storefront on the hosting arrangement you choose, separately from the Weaverse visual editor. Where available, Weaverse-managed sandboxes provide development and preview environments.
+
+## How Changes Reach Production
+
+- **Code**: your Hydrogen storefront lives in your own repository. Code changes ship through your normal Git and deployment workflow. See [Deployment](/guides/deployment/index).
+- **Content**: content edited in Studio is published from Studio. Published content is delivered to your storefront through the Weaverse SDK; previews and page version history let you review and restore earlier versions.
+- **Studio preview**: Studio loads your storefront in a preview frame. Allow it through your [Content Security Policy](/features/content-security) configuration.
+
+## Storefront Integrations
+
+Review, search, email and form apps are implemented in your Hydrogen storefront. They send data according to that implementation and the provider's configuration, so review each integration's permissions, data flow and privacy controls. Connections you authorize in your Weaverse account, such as GitHub for theme and repository sync, are handled by Weaverse. An Instagram feed built with the [Instagram Feed](/hydrogen-integrations/instagram-feed) guide uses your own Meta app and a server-side token in your storefront's environment. See [Third-party Integrations](/features/third-party-integrations).
+
+The Shopify cookie banner's text, regions and appearance are configured in Shopify Admin; your Hydrogen storefront supplies the credentials it needs. See [Cookie Consent Banner](/features/cookie-consent-banner) and [Analytics Tracking](/features/analytics-tracking).
+
+## Reporting a Security Issue
+
+Email [support@weaverse.io](mailto:support@weaverse.io) with “Security” in the subject, the affected store, and what you observed. Do not include passwords, access tokens or customer records in your first message.
