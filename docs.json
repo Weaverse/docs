@@ -15,45 +15,21 @@
     }
   },
   "navigation": {
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Home",
-          "href": "https://weaverse.io",
-          "icon": "house"
-        },
-        {
-          "anchor": "Studio",
-          "href": "https://studio.weaverse.io/dashboard",
-          "icon": "paintbrush"
-        },
-        {
-          "anchor": "GitHub",
-          "href": "https://github.com/weaverse",
-          "icon": "github"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://wvse.cc/weaverse-slack",
-          "icon": "slack"
-        }
-      ]
-    },
     "tabs": [
       {
         "tab": "Get Started",
         "pages": [
           {
-						"group": "Introduction",
-						"pages": [
-							"index",
-							"intro/quickstart",
-							"getting-started/installation",
-							"intro/why-weaverse-for-hydrogen",
-							"intro/how-it-works",
-							"intro/project-structure"
-						]
-					},
+            "group": "Introduction",
+            "pages": [
+              "index",
+              "intro/quickstart",
+              "getting-started/installation",
+              "intro/why-weaverse-for-hydrogen",
+              "intro/how-it-works",
+              "intro/project-structure"
+            ]
+          },
           {
             "group": "Studio Guide",
             "pages": [
@@ -64,145 +40,223 @@
       },
       {
         "tab": "Guides",
-        "pages": [
+        "dropdowns": [
           {
-            "group": "Environment",
-            "pages": [
-              "development-guide/environment-setup",
-              "development-guide/design-mode"
+            "dropdown": "React Router",
+            "icon": "/images/icons/react-router.svg",
+            "groups": [
+              {
+                "group": "Environment",
+                "pages": [
+                  "development-guide/environment-setup",
+                  "development-guide/design-mode"
+                ]
+              },
+              {
+                "group": "Building Components",
+                "pages": [
+                  "development-guide/creating-components",
+                  "development-guide/component-schema",
+                  "development-guide/input-settings",
+                  "development-guide/weaverse-component",
+                  "development-guide/styling-theming",
+                  "development-guide/data-fetching",
+                  "development-guide/data-connectors"
+                ]
+              },
+              {
+                "group": "Content Management",
+                "pages": [
+                  "features/global-sections",
+                  "features/navigation-menus",
+                  "features/third-party-integrations",
+                  "features/mobile-app-pwa"
+                ]
+              },
+              {
+                "group": "Internationalization",
+                "pages": [
+                  "features/markets-localization",
+                  "features/translation-feature-guide",
+                  "features/i18next-integration"
+                ]
+              },
+              {
+                "group": "Security & Privacy",
+                "pages": [
+                  "features/content-security",
+                  "features/cookie-consent-banner",
+                  "features/analytics-tracking"
+                ]
+              },
+              {
+                "group": "Pages & Routing",
+                "pages": [
+                  "features/custom-pages",
+                  "features/page-seo",
+                  "features/custom-templates",
+                  "features/custom-routing"
+                ]
+              },
+              {
+                "group": "Advanced",
+                "pages": [
+                  "guides/rendering-page",
+                  "guides/localization-advanced",
+                  "guides/multi-project-architecture",
+                  "development-guide/customer-account-local-dev",
+                  "development-guide/multipass-in-hydrogen"
+                ]
+              },
+              {
+                "group": "Deployment",
+                "pages": [
+                  "guides/deployment/index",
+                  "guides/deployment/oxygen",
+                  "guides/deployment/custom-domain-and-dns",
+                  "guides/deployment/docker",
+                  "guides/deployment/workers"
+                ]
+              }
             ]
           },
           {
-            "group": "Next.js",
-            "pages": [
-              "nextjs/overview",
-              "nextjs/quickstart",
-              "nextjs/rendering-pages",
-              "nextjs/data-fetching",
-              "nextjs/studio",
-              "nextjs/markets-translations",
-              "nextjs/api-reference"
-            ]
-          },
-          {
-            "group": "Building Components",
-            "pages": [
-              "development-guide/creating-components",
-              "development-guide/component-schema",
-              "development-guide/input-settings",
-              "development-guide/weaverse-component",
-              "development-guide/styling-theming",
-              "development-guide/data-fetching",
-              "development-guide/data-connectors"
-            ]
-          },
-          {
-            "group": "Content Management",
-            "pages": [
-              "features/global-sections",
-              "features/navigation-menus",
-              "features/third-party-integrations",
-              "features/mobile-app-pwa"
-            ]
-          },
-          {
-            "group": "Internationalization",
-            "pages": [
-              "features/markets-localization",
-              "features/translation-feature-guide",
-              "features/i18next-integration"
-            ]
-          },
-          {
-            "group": "Security & Privacy",
-            "pages": [
-              "features/content-security",
-              "features/cookie-consent-banner",
-              "features/analytics-tracking"
-            ]
-          },
-          {
-            "group": "Pages & Routing",
-            "pages": [
-              "features/custom-pages",
-              "features/page-seo",
-              "features/custom-templates",
-              "features/custom-routing"
-            ]
-          },
-          {
-            "group": "Advanced",
-            "pages": [
-              "guides/rendering-page",
-              "guides/localization-advanced",
-              "guides/multi-project-architecture",
-              "development-guide/customer-account-local-dev",
-              "development-guide/multipass-in-hydrogen"
-            ]
-          },
-          {
-            "group": "Deployment",
-            "pages": [
-              "guides/deployment/index",
-              "guides/deployment/oxygen",
-              "guides/deployment/custom-domain-and-dns",
-              "guides/deployment/docker",
-              "guides/deployment/workers",
-              "guides/deployment/vercel"
+            "dropdown": "Next.js",
+            "icon": "/images/icons/nextjs.svg",
+            "groups": [
+              {
+                "group": "Getting started",
+                "pages": [
+                  "nextjs/overview",
+                  "nextjs/quickstart"
+                ]
+              },
+              {
+                "group": "Next.js",
+                "pages": [
+                  "nextjs/rendering-pages",
+                  "nextjs/data-fetching",
+                  "nextjs/studio",
+                  "nextjs/markets-translations"
+                ]
+              },
+              {
+                "group": "Content Management",
+                "pages": [
+                  "features/global-sections",
+                  "features/navigation-menus",
+                  "features/third-party-integrations",
+                  "features/mobile-app-pwa"
+                ]
+              },
+              {
+                "group": "Deployment",
+                "pages": [
+                  "guides/deployment/vercel"
+                ]
+              }
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "SDKs",
+        "dropdowns": [
+          {
+            "dropdown": "React Router",
+            "icon": "/images/icons/react-router.svg",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "api-reference/introduction"
+                ]
+              },
+              {
+                "group": "Hooks",
+                "pages": [
+                  "api-reference/use-weaverse",
+                  "api-reference/use-item-instance",
+                  "api-reference/use-parent-instance",
+                  "api-reference/use-child-instances",
+                  "api-reference/use-theme-settings"
+                ]
+              },
+              {
+                "group": "Components",
+                "pages": [
+                  "api-reference/weaverse-root",
+                  "api-reference/weaverse-client",
+                  "api-reference/with-weaverse"
+                ]
+              },
+              {
+                "group": "Utilities & Types",
+                "pages": [
+                  "api-reference/get-selected-product-options",
+                  "api-reference/images-placeholders",
+                  "api-reference/types"
+                ]
+              }
+            ]
+          },
+          {
+            "dropdown": "Next.js",
+            "icon": "/images/icons/nextjs.svg",
+            "groups": [
+              {
+                "group": "Overview",
+                "pages": [
+                  "nextjs/api-reference"
+                ]
+              },
+              {
+                "group": "Hooks",
+                "pages": [
+                  "nextjs/api/use-weaverse",
+                  "nextjs/api/use-item-instance",
+                  "nextjs/api/use-parent-instance",
+                  "nextjs/api/use-child-instances",
+                  "nextjs/api/use-theme-settings"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Content API",
         "pages": [
+          "content-api/overview",
           {
-            "group": "Overview",
+            "group": "Projects",
             "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Hooks",
-            "pages": [
-              "api-reference/use-weaverse",
-              "api-reference/use-item-instance",
-              "api-reference/use-parent-instance",
-              "api-reference/use-child-instances",
-              "api-reference/use-theme-settings"
-            ]
-          },
-          {
-            "group": "Components",
-            "pages": [
-              "api-reference/weaverse-root",
-              "api-reference/weaverse-client",
-              "api-reference/with-weaverse"
-            ]
-          },
-          {
-            "group": "Utilities & Types",
-            "pages": [
-              "api-reference/get-selected-product-options",
-              "api-reference/images-placeholders",
-              "api-reference/types"
-            ]
-          },
-          {
-            "group": "Content API",
-            "pages": [
-              "content-api/overview",
               "content-api/list-projects",
-              "content-api/update-project",
+              "content-api/update-project"
+            ]
+          },
+          {
+            "group": "Pages",
+            "pages": [
               "content-api/list-pages",
               "content-api/public-custom-pages",
               "content-api/create-page",
-              "content-api/assign-template-resources",
               "content-api/get-page",
               "content-api/update-page",
               "content-api/delete-pages",
+              "content-api/assign-template-resources"
+            ]
+          },
+          {
+            "group": "Theme settings",
+            "pages": [
               "content-api/get-theme-settings",
-              "content-api/update-theme-settings",
+              "content-api/update-theme-settings"
+            ]
+          },
+          {
+            "group": "Languages",
+            "pages": [
               "content-api/list-languages"
             ]
           }
@@ -233,14 +287,14 @@
               "features/admin-api-proxy"
             ]
           },
-					{
-						"group": "Themes",
-						"pages": [
-							"hydrogen-themes/index",
-							"hydrogen-themes/pilot-theme-overview",
-							"hydrogen-themes/pilot-theme-customization",
-							"hydrogen-themes/pilot-theme-sections",
-							"hydrogen-themes/forward"
+          {
+            "group": "Themes",
+            "pages": [
+              "hydrogen-themes/index",
+              "hydrogen-themes/pilot-theme-overview",
+              "hydrogen-themes/pilot-theme-customization",
+              "hydrogen-themes/pilot-theme-sections",
+              "hydrogen-themes/forward"
             ]
           },
           {
@@ -268,13 +322,13 @@
       {
         "tab": "Help & Community",
         "pages": [
-					{
-						"group": "Help",
-						"pages": [
-							"resources/index",
-							"resources/faq",
-							"resources/tutorial",
-							"resources/example-components",
+          {
+            "group": "Help",
+            "pages": [
+              "resources/index",
+              "resources/faq",
+              "resources/tutorial",
+              "resources/example-components",
               "resources/glossary"
             ]
           },
@@ -303,7 +357,20 @@
     "href": "https://weaverse.io"
   },
   "navbar": {
-    "links": [],
+    "links": [
+      {
+        "label": "Weaverse.io",
+        "href": "https://weaverse.io"
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/weaverse"
+      },
+      {
+        "label": "Community",
+        "href": "https://wvse.cc/weaverse-slack"
+      }
+    ],
     "primary": {
       "type": "button",
       "label": "Studio",
