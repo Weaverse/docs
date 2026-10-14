@@ -13,28 +13,17 @@ On top of those, a few app-owned pieces make editing complete: the route identit
 
 ## Mount the Studio connector once
 
-Mount `WeaverseNextStudioConnect` in the root layout. It loads the bridge script in design, preview and revision contexts and does nothing in published mode.
-
-```tsx
-// app/weaverse/studio-connect.tsx
-'use client'
-
-import { WeaverseNextStudioConnect } from '@weaverse/next'
-
-export function StudioConnect() {
-  return <WeaverseNextStudioConnect />
-}
-```
+Mount `WeaverseNextStudioConnect` in the root layout. It loads the bridge script in design, preview and revision contexts and does nothing in published mode. It is a Client Component that you can render straight from the layout, a Server Component:
 
 ```tsx
 // app/layout.tsx
-import { StudioConnect } from './weaverse/studio-connect'
+import { WeaverseNextStudioConnect } from '@weaverse/next'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <StudioConnect />
+        <WeaverseNextStudioConnect />
         {children}
       </body>
     </html>
