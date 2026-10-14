@@ -36,10 +36,11 @@ What changes is how the framework hands Weaverse a request and renders the page:
 
 - A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels): a private token for server reads, and the public token Studio uses to open default templates (see [Studio integration](/nextjs/studio)).
 - A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
+- `@weaverse/next` 1.0.1 or later. In 1.0.0, importing the package from a Server Component fails the build (`createContext is not a function`).
 - A Weaverse project.
 
 <Note>
-  [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/next@1.0.0` with Next.js 16, React 19 and the Hydrogen SDK (preview).
+  [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/next` with Next.js 16, React 19 and the Hydrogen SDK (preview).
 </Note>
 
 ## What 1.0 supports
