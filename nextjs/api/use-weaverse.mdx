@@ -1,0 +1,120 @@
+---
+title: useWeaverse
+description: Hook for accessing the active Weaverse runtime in Next.js theme components.
+published: true
+---
+
+# useWeaverse
+
+The `useWeaverse` hook returns the active Weaverse runtime. Use the `WeaverseNextRuntime` generic when you need the Next.js page data and runtime properties. A component that calls it is a Client Component.
+
+## Import
+
+```tsx
+import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+```
+
+## Type
+
+```typescript
+function useWeaverse<T = Weaverse>(): T
+```
+
+## Returns
+
+- `T` — The active Weaverse runtime. It defaults to the core `Weaverse` type.
+
+## Common Use Patterns
+
+### Accessing Component Instances
+
+The `itemInstances` registry maps component instance IDs to their item stores:
+
+```tsx
+'use client'
+
+import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+
+export function NavigationControls() {
+  const { itemInstances } = useWeaverse<WeaverseNextRuntime>()
+
+  const header = itemInstances.get('site-header')
+  const announcementBar = itemInstances.get('announcement-bar')
+
+  const toggleAnnouncementBar = () => {
+    if (announcementBar) {
+      announcementBar.setData({
+        isVisible: !announcementBar.data.isVisible,
+      })
+    }
+  }
+
+  const toggleStickyHeader = () => {
+    if (header) {
+      header.setData({
+        isSticky: !header.data.isSticky,
+      })
+    }
+  }
+
+  return (
+    <div className="nav-controls">
+      <button onClick={toggleAnnouncementBar}>
+        {announcementBar?.data.isVisible ? 'Hide' : 'Show'} Announcement
+      </button>
+      <button onClick={toggleStickyHeader}>
+        {header?.data.isSticky ? 'Disable' : 'Enable'} Sticky Header
+      </button>
+    </div>
+  )
+}
+```
+
+### Accessing Page Data
+
+Specify `WeaverseNextRuntime` to get the Next.js page data type:
+
+```tsx
+'use client'
+
+import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+
+export function PageInfo() {
+  const { data } = useWeaverse<WeaverseNextRuntime>()
+  const { id, name, items } = data
+
+  return (
+    <div className="page-info">
+      <h1>Current Page: {name}</h1>
+      <div>Page ID: {id}</div>
+      <div>Total Items: {items.length}</div>
+    </div>
+  )
+}
+```
+
+## Core Properties
+
+### `itemInstances`
+
+Registry mapping component instance IDs to their item stores.
+
+### `data`
+
+The current page data, `WeaverseNextPageData`: the page ID, name, root ID, SEO and component items.
+
+### `elementRegistry`
+
+Registry mapping component **types** to their registered component definitions. It is not a registry of DOM elements or component instance IDs.
+
+## When To Use
+
+- When you need to find and interact with components outside the current component tree
+- When you need access to page-level runtime data
+
+## Related
+
+- [useItemInstance](/nextjs/api/use-item-instance) - Access a specific component instance
+- [useParentInstance](/nextjs/api/use-parent-instance) - Access the parent component instance
+- [useChildInstances](/nextjs/api/use-child-instances) - Access child component instances
+- [useThemeSettings](/nextjs/api/use-theme-settings) - Access theme settings
