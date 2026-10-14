@@ -106,7 +106,8 @@
             "pages": [
               "features/content-security",
               "features/cookie-consent-banner",
-              "features/analytics-tracking"
+              "features/analytics-tracking",
+              "features/security-deployment-practices"
             ]
           },
           {
