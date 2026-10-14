@@ -10,10 +10,12 @@ published: true
 
 | Import | Use in | Purpose |
 | --- | --- | --- |
-| `@weaverse/next` | Client and shared code | Registry types, providers, renderer, hooks, Studio runtime, translation, schema re-exports |
+| `@weaverse/next` | Server and Client Components | Registry types, providers, renderer, hooks, Studio runtime, translation, schema re-exports |
 | `@weaverse/next/server` | Server only | The Weaverse API client, config resolution, page URL helpers, the revalidation route handler |
 
 Server code lives under `@weaverse/next/server` so a Client Component can import the root entry without pulling server-only fetch code into the browser bundle.
+
+Since 1.0.1, the root entry is safe in Server Components: its components, hooks and runtime are Client Components (render them, don't call them on the server), and its schema, loader and SEO helpers run as ordinary server functions.
 
 ## `@weaverse/next`
 
