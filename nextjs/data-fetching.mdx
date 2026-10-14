@@ -1,0 +1,225 @@
+---
+title: "Data Fetching in Next.js"
+description: "Fetch section data on the server with @weaverse/next component loaders: loader arguments, the commerce context, market-scoped reads, caching and per-item revalidation."
+published: true
+---
+
+# Data Fetching in Next.js
+
+A section can resolve its own data on the server with a `loader`, exactly as with `@weaverse/hydrogen` on React Router: the loader runs during the page load, and its result reaches the component as `loaderData`. What changes in Next.js is where loaders live, what they receive, and how caching works.
+
+This is the Next.js counterpart of [Section Data Fetching](/development-guide/data-fetching). Schemas and inputs are shared; see [Component Schema](/development-guide/component-schema) and [Input Settings](/development-guide/input-settings).
+
+## Where loaders live
+
+Next.js splits code into Server and Client Components. `WeaverseNextRenderer` is a Client Component, so every composable section is too, and a Client Component module cannot import server-only code. Keep two registries with the same schemas:
+
+| Registry | Module | Holds |
+| --- | --- | --- |
+| Client | `weaverse/components.ts` (`'use client'`) | `default` (the component) + `schema` |
+| Server | `weaverse/server-components.ts` (`import 'server-only'`) | `schema` + `loader` |
+
+The client registry goes to `createWeaverseNextClient`; the server registry goes to `createWeaverseNextServerClient`. The server registry never renders, so its `default` is a stub. This is Forward's, trimmed:
+
+```ts
+// weaverse/server-components.ts
+import 'server-only'
+
+import type { WeaverseNextComponent } from '@weaverse/next'
+import { loader as featuredProductsLoader } from '@/sections/featured-products/loader'
+import { SECTION_SCHEMAS } from './section-schemas'
+
+let LOADERS: Record<string, WeaverseNextComponent['loader']> = {
+  'featured-products': featuredProductsLoader,
+}
+
+// The server registry never renders; only the schema and loader are read.
+let NO_RENDER = (() => null) as WeaverseNextComponent['default']
+
+export let serverComponents: WeaverseNextComponent[] = SECTION_SCHEMAS.map(
+  (schema) => {
+    let loader = LOADERS[schema.type]
+    return { default: NO_RENDER, schema, ...(loader && { loader }) }
+  }
+)
+```
+
+<Warning>
+  Do not import the client registry from the server one, or the reverse. The first drags every section into the server graph; the second ships your loaders, queries and credentials to the browser.
+</Warning>
+
+## Writing a loader
+
+A loader receives one argument, `WeaverseNextComponentLoaderArgs`:
+
+| Arg | What it is |
+| --- | --- |
+| `data` | The item's settings merged over the schema defaults |
+| `commerce` | The commerce context you passed to the server client (`storefront`, plus anything else you add) |
+| `weaverse` | The request-scoped Weaverse client. `weaverse.storefront` is a compatibility alias for Pilot-style loaders |
+| `context` | The request context: `pathname`, `pageType`, `handle`, `searchParams`, `i18n`, design/preview flags |
+
+It returns any serializable value, which the component receives as the `loaderData` prop.
+
+This is Forward's `featured-products` loader. The merchant picks products in Studio; the loader resolves them in the request's market:
+
+```ts
+// sections/featured-products/loader.ts
+import type { WeaverseNextComponent } from '@weaverse/next'
+import type { Product } from '@/storefront/types'
+import { loaderLocale } from '@/weaverse/request-info'
+import { resolveProducts } from '@/weaverse/resource'
+
+type LoaderArgs = Parameters<NonNullable<WeaverseNextComponent['loader']>>[0]
+
+export interface FeaturedProductsLoaderData {
+  products: readonly Product[]
+}
+
+export async function loader({
+  data,
+  context,
+}: LoaderArgs): Promise<FeaturedProductsLoaderData> {
+  let locale = loaderLocale(context)
+  let selection = (data as { products?: unknown } | undefined)?.products
+  return { products: await resolveProducts(selection, locale) }
+}
+```
+
+The component reads `loaderData` and renders a placeholder while nothing is picked:
+
+```tsx
+// sections/featured-products/index.tsx
+'use client'
+
+import type { FeaturedProductsLoaderData } from './loader'
+
+export default function FeaturedProducts({
+  loaderData,
+  ...rest
+}: {
+  loaderData?: FeaturedProductsLoaderData
+}) {
+  let products = loaderData?.products ?? []
+  return <section {...rest}>{/* product cards or placeholders */}</section>
+}
+
+export { schema } from './schema'
+```
+
+<Note>
+  Spread the remaining props onto the section's root element. They carry the `data-wv-*` attributes Studio uses to outline and select the item; without them the section renders but cannot be edited.
+</Note>
+
+## The commerce context
+
+Weaverse never owns your Shopify client. Pass one to the server client as `commerce`, and loaders receive it:
+
+```ts
+// weaverse/server.ts
+import type { WeaverseNextRequestContext } from '@weaverse/next'
+import { createWeaverseNextServerClient } from '@weaverse/next/server'
+
+export function createWeaverseServerClientFromContext(
+  requestContext: WeaverseNextRequestContext
+) {
+  let storefront = getStorefrontClient()
+
+  return createWeaverseNextServerClient({
+    components: serverComponents,
+    projectId: process.env.WEAVERSE_PROJECT_ID,
+    env: process.env,
+    requestContext,
+    commerce: {
+      storefront: {
+        i18n: requestContext.i18n,
+        query: async (query, options) => {
+          let response = await storefront.graphql(query, options as never)
+          return response.data
+        },
+      },
+    },
+    cache: { revalidate: 60, tags: ['weaverse'] },
+  })
+}
+```
+
+A loader then queries through it:
+
+```ts
+export let loader = async ({ data, commerce }: LoaderArgs) => {
+  let handle = data.product?.handle
+  if (!handle) return null
+
+  return commerce?.storefront?.query(PRODUCT_QUERY, {
+    variables: { handle },
+  })
+}
+```
+
+`storefront` is the only member the SDK reads. Cart, customer account and other services can ride along on `commerce`; the SDK passes them through untouched.
+
+Forward skips `commerce` and calls its own server-only data layer from loaders, which is equally valid: a loader is ordinary server code.
+
+### Scope reads to the market
+
+A loader runs for one market. Read it from `context.i18n` (the Storefront `language` and `country`), not from a global default, so a localized page shows localized products and prices. Per-item revalidation passes the same `i18n`, so the loader resolves the same market when a merchant edits the section. See [Markets & Translations](/nextjs/markets-translations).
+
+## Revalidating when settings change
+
+A resource input with `shouldRevalidate: true` re-runs the item's loader when the merchant changes it in Studio:
+
+```ts
+{
+  type: 'product-list',
+  name: 'products',
+  label: 'Products',
+  shouldRevalidate: true,
+}
+```
+
+In Next.js this goes through your revalidation route handler: Studio posts the draft item, the handler re-runs that one loader with the live page's route identity, and the SDK applies the new `loaderData` in place, without refreshing the whole page. Set up the route in [Studio Integration](/nextjs/studio#per-item-revalidation).
+
+## Caching
+
+The server client fetches from Weaverse with Next's `fetch` cache.
+
+- **Default cache for the client:** `cache: { revalidate, tags }` on `createWeaverseNextServerClient` maps to `fetch(..., { next: { revalidate, tags } })`. `revalidate: false` caches indefinitely.
+- **Per request:** `weaverse.fetchWithCache(url, { revalidate, tags, ...init })` is the same helper for your own Weaverse API calls, and overrides the client defaults.
+- **Studio is never stale:** in design mode and revision preview, every Weaverse read is forced to `cache: 'no-store'`, whatever you configured.
+
+Your own Shopify reads are cached by whatever client you use. Route freshness is ordinary Next config:
+
+```ts
+// app/products/[handle]/page.tsx
+export const revalidate = 3600
+```
+
+Use `tags` with Next's `revalidateTag` to purge Weaverse data on demand.
+
+## Differences from React Router loaders
+
+| | React Router (`@weaverse/hydrogen`) | Next.js (`@weaverse/next`) |
+| --- | --- | --- |
+| Where the loader is declared | Exported next to the component | On the server registry entry, in a `server-only` module |
+| Weaverse client | Injected as `context.weaverse` | Created per request by your app helper |
+| Shopify client | `weaverse.storefront` from the React Router load context | `commerce.storefront` you pass in (`weaverse.storefront` aliases it) |
+| Re-running on edits | React Router revalidation and `shouldRevalidate` rules | `shouldRevalidate: true` inputs and the per-item revalidation route |
+| Caching | Hydrogen cache strategies | Next `fetch` cache: `revalidate`, `tags`, segment `revalidate` |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Rendering Pages" icon="file" href="/nextjs/rendering-pages">
+    Route identity, page types and route-owned data
+  </Card>
+  <Card title="Studio Integration" icon="pen-ruler" href="/nextjs/studio">
+    Set up per-item revalidation
+  </Card>
+  <Card title="Markets & Translations" icon="globe" href="/nextjs/markets-translations">
+    Locale-aware loaders and routes
+  </Card>
+  <Card title="API Reference" icon="code" href="/nextjs/api-reference">
+    `WeaverseNextComponentLoaderArgs` and friends
+  </Card>
+</CardGroup>

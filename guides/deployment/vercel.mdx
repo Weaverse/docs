@@ -1,0 +1,143 @@
+---
+title: "Deploy to Vercel"
+description: "Deploy a Next.js storefront built with @weaverse/next to Vercel and connect it to Weaverse Studio."
+published: true
+---
+
+# Deploying a Weaverse Next.js Storefront to Vercel
+
+Vercel builds and hosts Next.js apps with no extra configuration, which makes it the natural home for a storefront built with [`@weaverse/next`](/nextjs/overview). [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs on Vercel in production.
+
+<Note>
+</Note>
+
+## Prerequisites
+
+- **Vercel account** connected to your Git provider (GitHub, GitLab or Bitbucket)
+- **Next.js storefront** using `@weaverse/next`, pushed to a Git repository
+- **Weaverse Project ID** (from Weaverse Studio's Project Settings or the project URL)
+- **Shopify Storefront API credentials** for your store
+- A local production build that succeeds (`next build`) with the same environment variables you plan to use on Vercel
+
+## Quick Flow
+
+<Steps>
+  <Step title="Import the repository">
+    Create a new Vercel project from your Git repository.
+  </Step>
+  <Step title="Add environment variables">
+    Weaverse and Shopify variables, for Production and Preview.
+  </Step>
+  <Step title="Deploy">
+    Vercel builds the app and gives you a deployment URL.
+  </Step>
+  <Step title="Point Weaverse Studio at the deployment">
+    Set the project's preview URL so Studio loads your live storefront.
+  </Step>
+</Steps>
+
+## 1. Import the Repository
+
+1. In the Vercel dashboard, click **Add New… → Project**.
+2. Select your storefront's repository and click **Import**.
+3. Vercel detects **Next.js** as the framework preset. Keep the default build and output settings unless your app needs something else.
+4. If the storefront lives in a subfolder of a monorepo, set **Root Directory** to that folder.
+
+Vercel installs dependencies with the package manager matching your lockfile (`bun.lock`, `pnpm-lock.yaml`, `yarn.lock` or `package-lock.json`).
+
+## 2. Add Environment Variables
+
+Open **Settings → Environment Variables** and add the variables your storefront reads. A typical `@weaverse/next` storefront needs:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `WEAVERSE_PROJECT_ID` | Yes | Your Weaverse project. Pages and theme settings are loaded for this project. |
+| `WEAVERSE_HOST` | No | Weaverse Studio host. Leave it unset in production; the SDK defaults to `https://studio.weaverse.io`. |
+| `PUBLIC_STORE_DOMAIN` | Yes | Your store domain, for example `your-shop.myshopify.com`. |
+| `PUBLIC_STOREFRONT_API_TOKEN` | Recommended | Shopify's **public** Storefront API token. The SDK passes it to Studio, which uses it to find your store's default product, collection and page for the page selector. |
+| Private Storefront API token | If your app uses one | Server-only token for catalog reads (Forward reads `PRIVATE_STOREFRONT_API_TOKEN`). Never expose it to the browser. |
+
+Add any other variables your app reads, such as Customer Account settings.
+
+<Warning>
+Only `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN` are meant for the browser. Keep the private Storefront token and every other secret on the server, and never prefix them with `NEXT_PUBLIC_`, which inlines a value into the client bundle.
+</Warning>
+
+### Production and Preview values
+
+Each variable can be scoped to **Production**, **Preview** and **Development**:
+
+- **Production** serves your live domain.
+- **Preview** applies to every branch and pull request deployment. Use it to test a change in Studio before it reaches production, with the same `WEAVERSE_PROJECT_ID` or a separate staging project.
+- **Development** is what `vercel env pull` writes to a local `.env` file.
+
+Environment variable changes apply to new deployments only. Redeploy after you change one.
+
+## 3. Deploy
+
+Click **Deploy**. Vercel builds the app and assigns a URL such as `your-project.vercel.app`. After the first deployment, every push to the production branch deploys to production, and every other branch gets its own preview deployment.
+
+## 4. Connect Weaverse Studio
+
+Studio loads your storefront in an iframe, so it needs a URL it can reach.
+
+1. Open your project in [Weaverse Studio](https://studio.weaverse.io).
+2. In **Project Settings**, set the preview URL to your deployment, for example `https://your-project.vercel.app`.
+3. Reload Studio and check that your pages render and that editing a section updates the preview.
+
+<Warning>
+**Vercel Deployment Protection blocks Studio.** Preview deployments are protected by Vercel Authentication by default, so Studio's iframe gets a Vercel login page instead of your storefront. Point Studio at the production URL, or turn off protection for preview deployments under **Settings → Deployment Protection** (or use a protection bypass) before you use a preview URL in Studio.
+</Warning>
+
+For Studio wiring inside the app itself (the Studio connector, the revalidation route and declared theme routes), see [Studio Integration](/nextjs/studio).
+
+## Caching
+
+The SDK and Next.js handle most caching for you. Keep these rules in mind on Vercel:
+
+- **Published pages** can use Next's `revalidate` (ISR) and the server client's `cache` option (`revalidate` and `tags`), so storefront pages are served from cache and refreshed in the background.
+- **Studio requests are never cached.** In design, preview and revision-preview mode the SDK fetches with `no-store`, so merchants always see their latest edits, even on a route that is otherwise static.
+- **The per-item revalidation route must stay dynamic.** Studio posts to it (by default `/api/weaverse/revalidate`) to re-run a section's loader after an edit. Mark it `dynamic = 'force-dynamic'` so Vercel never caches its responses.
+
+```ts app/api/weaverse/revalidate/route.ts
+import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import { createWeaverseServerClientFromContext } from '@/weaverse/server'
+
+export const dynamic = 'force-dynamic'
+
+export const { POST } = createWeaverseNextRevalidateHandler({
+  getClient: (_request, requestContext) => {
+    if (!requestContext) throw new Error('Missing route context')
+    return createWeaverseServerClientFromContext(requestContext)
+  },
+})
+```
+
+See [Data Fetching](/nextjs/data-fetching) for the server client's cache options.
+
+## Custom Domain
+
+Add your domain under **Settings → Domains** in the Vercel project, then update the DNS records Vercel shows you. For DNS background and Shopify-specific notes, see **[Custom Domain & DNS Setup](/guides/deployment/custom-domain-and-dns)**. After the domain is live, update the preview URL in Weaverse Studio if you want Studio to load the custom domain.
+
+## Troubleshooting
+
+- **Build fails on missing variables**: Check that every required variable is set for the environment being built (Production or Preview), then redeploy.
+- **Studio shows a Vercel login page**: Deployment Protection is on for that deployment. Use the production URL or disable protection for previews.
+- **Studio preview is blank or stuck connecting**: Make sure the preview URL matches the deployment exactly and that the Studio connector is mounted in your root layout. See [Studio Integration](/nextjs/studio).
+- **Page selector cannot open the default product, collection or page**: Set `PUBLIC_STOREFRONT_API_TOKEN` and pass the SDK's `publicEnv` to Studio. See [Studio Integration](/nextjs/studio).
+- **Edits to a product picker show stale data**: The revalidation route is missing, or it is being cached. Confirm it exists and is `force-dynamic`.
+
+## Best Practices
+
+- **Keep secrets out of Git**: Set them in Vercel, not in committed `.env` files.
+- **Test with Preview deployments**: Open a pull request, check the preview deployment, then merge.
+- **Match local and Vercel settings**: Use `vercel env pull` to run locally with the same variables.
+- **Pin exact package versions**: Install an exact `@weaverse/next` version so every deployment builds the same code.
+
+## Additional Resources
+
+- [Vercel documentation for Next.js](https://vercel.com/docs/frameworks/nextjs)
+- [Vercel environment variables](https://vercel.com/docs/projects/environment-variables)
+- [Vercel Deployment Protection](https://vercel.com/docs/deployment-protection)
+- [`@weaverse/next` overview](/nextjs/overview)
+- [Next.js Quickstart](/nextjs/quickstart)

@@ -1,11 +1,11 @@
 ---
 title: "Weaverse SDKs"
-description: "Weaverse SDKs bundle essential packages, streamlining the development and management of Weaverse Hydrogen themes."
+description: "Weaverse SDKs bundle essential packages, streamlining the development and management of Weaverse themes for Shopify Hydrogen storefronts on React Router and Next.js."
 published: true
 ---
 
 The Weaverse SDK is organized into multiple packages, each serving a specific role in the development of Weaverse
-Hydrogen themes. These packages provide the necessary tools and functionalities for an efficient and streamlined
+themes for Shopify Hydrogen storefronts on React Router and the Next.js App Router. These packages provide the necessary tools and functionalities for an efficient and streamlined
 development process.
 
 ## Package Overview
@@ -138,6 +138,24 @@ for the current React Router route. Its props are:
 | `data` | `WeaverseLoaderData \| Promise<WeaverseLoaderData \| null> \| null` | No | Explicit `weaverseData` payload that bypasses automatic route-scoped resolution. Pass `null` to suppress rendering |
 | `errorComponent` | `React.FC<{ error: Error \| unknown }>` | No | Component rendered when page data cannot be resolved |
 
+### `@weaverse/next`
+
+The integration for Next.js App Router storefronts. It renders Weaverse pages, runs section loaders on the server, connects to Weaverse Studio, and refreshes loader-backed edits without React Router.
+
+**Key Features:**
+- Request-scoped server client (`createWeaverseNextServerClient` from `@weaverse/next/server`) for pages, theme settings, and custom pages
+- `WeaverseNextRenderer`, `WeaverseNextProvider`, and a root `WeaverseNextRootProvider` for layout-level theme settings
+- Studio bridge, per-item loader revalidation route handler, and Next `Metadata` helpers
+- Markets, Translation Manager, and theme route support
+- Re-exports `@weaverse/react` hooks and `@weaverse/schema`
+
+**Installation:**
+```bash
+npm install @weaverse/next
+```
+
+**Usage:** Start from the [Next.js quickstart](/nextjs/quickstart), or the [Forward starter theme](/hydrogen-themes/forward).
+
 ### `@weaverse/cli`
 
 The command-line scaffolding tool for creating a Weaverse Hydrogen project from a supported template.
@@ -203,6 +221,7 @@ The Weaverse SDK packages are designed to work together seamlessly, but each can
 | `@weaverse/core` | Any JavaScript project | `>=18` | None |
 | `@weaverse/react` | React applications | `>=18` | `@weaverse/core`, `react` `>=19`, `react-dom` `>=19`, `clsx` |
 | `@weaverse/hydrogen` | Shopify Hydrogen storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `@shopify/hydrogen` `>=2025.5`, `@shopify/remix-oxygen` `3`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` |
+| `@weaverse/next` | Next.js App Router storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `next` `>=14`, `react`/`react-dom` `>=19` |
 | `@weaverse/schema` | Any JavaScript/TypeScript project | - | `zod` `^4` |
 | `@weaverse/cli` | Node.js environment | `>=18` | None (run via `npx`) |
 | `@weaverse/biome` | Any JavaScript/TypeScript project | - | None (peer: `@biomejs/biome`) |
@@ -224,6 +243,10 @@ install. For the `@weaverse/hydrogen` package:
 </Note>
 
 ## Getting Started
+
+<Note>
+  Building on Next.js? Follow the [Next.js quickstart](/nextjs/quickstart) instead.
+</Note>
 
 For new Weaverse Hydrogen projects, the easiest way to get started is using the CLI:
 

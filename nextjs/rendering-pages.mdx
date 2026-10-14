@@ -1,0 +1,334 @@
+---
+title: "Rendering Pages in Next.js"
+description: "Load and render Weaverse pages in Next.js App Router routes with @weaverse/next: route identity, page types, custom pages, 404s, SEO metadata and sitemaps."
+published: true
+---
+
+# Rendering Pages in Next.js
+
+With `@weaverse/hydrogen`, React Router injects `context.weaverse` into every loader. The App Router has no loader context, so a Next.js route tells Weaverse which page it is rendering, loads that page on the server, and hands the result to a small client component that renders it.
+
+This page assumes you have the app-owned server helper and the root provider from the [Quickstart](/nextjs/quickstart).
+
+## Route identity
+
+Every page load starts from the route's identity:
+
+| Field | Example | Why it matters |
+| --- | --- | --- |
+| `pageType` | `PRODUCT` | Which Weaverse page template to load |
+| `handle` | `summer-tee` | Which resource the template is assigned to |
+| `pathname` | `/products/summer-tee` | Resolves `CUSTOM` pages, and tells Studio which URL it is editing |
+| `i18n` | `{ language: 'EN', country: 'US', ... }` | Which market's page and translations to load |
+
+The route segment owns these values, so pass them to your server helper rather than deriving them later. The same identity reaches the page load, the section loaders and [per-item revalidation](/nextjs/studio#per-item-revalidation), so a section resolves the same data in every path.
+
+```ts
+// app/products/[handle]/page.tsx
+let { handle } = await props.params
+let weaverse = await getWeaverseServerClient(
+  `/products/${handle}`,
+  await props.searchParams,
+  { pageType: 'PRODUCT', handle }
+)
+let data = await weaverse.loadPage({ type: 'PRODUCT', handle })
+```
+
+<Note>
+  Studio's runtime reads `i18n.language` when it binds to the page. Always set `i18n` on the request context, even for a single-market store. See [Markets & Translations](/nextjs/markets-translations).
+</Note>
+
+## Page types
+
+Each Weaverse page type maps to a route your app owns. The paths are yours; Weaverse only needs the type and handle.
+
+| Page type | `loadPage` input | Example route |
+| --- | --- | --- |
+| `INDEX` | `{ type: 'INDEX' }` | `app/page.tsx` |
+| `PRODUCT` | `{ type: 'PRODUCT', handle }` | `app/products/[handle]/page.tsx` |
+| `COLLECTION` | `{ type: 'COLLECTION', handle }` | `app/collections/[handle]/page.tsx` |
+| `ALL_PRODUCTS` | `{ type: 'ALL_PRODUCTS' }` | `app/products/page.tsx` |
+| `ARTICLE` | `{ type: 'ARTICLE', handle }` | `app/blogs/[blog]/[handle]/page.tsx` |
+| `PAGE` | `{ type: 'PAGE', handle }` | `app/pages/[handle]/page.tsx` |
+| `CUSTOM` | `{ type: 'CUSTOM' }`, resolved by `pathname` | `app/[...slug]/page.tsx` |
+
+If your routes differ from the Shopify convention (Forward serves collections at `/shop/:handle`), declare them in the theme schema's `routes` so Studio can navigate to them. See [Studio integration](/nextjs/studio#theme-routes).
+
+## A complete route
+
+A page route loads its Shopify data and its Weaverse page in parallel, answers `notFound()` when either is missing, and renders the page through the client boundary. This is Forward's product route, trimmed:
+
+```tsx
+// app/products/[handle]/page.tsx
+import { notFound } from 'next/navigation'
+import { WeaversePage } from '@/weaverse/page'
+import { loadWeaversePage } from '@/weaverse/server'
+import { getProduct } from '@/storefront'
+
+export default async function ProductPage(props: {
+  params: Promise<{ handle: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  let { handle } = await props.params
+  let [product, page] = await Promise.all([
+    getProduct(handle),
+    loadWeaversePage({
+      type: 'PRODUCT',
+      handle,
+      pathname: `/products/${handle}`,
+      searchParams: await props.searchParams,
+    }),
+  ])
+  if (!product || !page) notFound()
+
+  return <WeaversePage data={page} dataContext={{ product }} />
+}
+```
+
+`loadWeaversePage` is an app helper that builds the server client and calls `loadPage`, returning `null` when the project is not configured, the request fails, or no page exists.
+
+It wraps the `getWeaverseServerClient` helper from the [Quickstart](/nextjs/quickstart#4-create-the-server-client-helper):
+
+```ts
+// weaverse/server.ts
+export async function loadWeaversePage(options: {
+  type: PageType
+  handle?: string
+  pathname: string
+  searchParams?: Record<string, string | string[] | undefined>
+}) {
+  try {
+    let weaverse = await getWeaverseServerClient(
+      options.pathname,
+      options.searchParams,
+      { pageType: options.type, handle: options.handle }
+    )
+    return (await weaverse.loadPage({ type: options.type, handle: options.handle })) ?? null
+  } catch {
+    return null
+  }
+}
+```
+
+### No page means 404
+
+`loadPage` resolves to `null` when Weaverse holds no page for the route. Answer that with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+
+<Warning>
+  `notFound()` returns a real 404 only while no `loading.tsx` wraps the route. A `loading.tsx` adds a Suspense boundary, and once the streamed shell is sent the response is committed to `200` before your check runs.
+</Warning>
+
+## Custom pages
+
+Merchants create custom pages at paths your code cannot know ahead of time, so one catch-all route serves all of them. Weaverse resolves a `CUSTOM` page by its pathname:
+
+```tsx
+// app/[...slug]/page.tsx
+import { notFound } from 'next/navigation'
+import { WeaversePage } from '@/weaverse/page'
+import { loadWeaversePage } from '@/weaverse/server'
+
+export default async function CustomPage(props: {
+  params: Promise<{ slug: string[] }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  let { slug } = await props.params
+  let page = await loadWeaversePage({
+    type: 'CUSTOM',
+    pathname: `/${slug.join('/')}`,
+    searchParams: await props.searchParams,
+  })
+  if (!page) notFound()
+
+  return <WeaversePage data={page} />
+}
+```
+
+<Warning>
+  Always pass the real `pathname` (or `url`) for custom pages. When the request context has neither, the SDK falls back to `/`, and every custom route silently resolves to the home page.
+</Warning>
+
+Because the catch-all sits at the app root, it also receives paths other routes decline (for example an unknown handle on a route with `dynamicParams = false`). `notFound()` answers both cases. See [Custom Pages](/features/custom-pages) for how merchants create them.
+
+## The client boundary
+
+`WeaverseNextRenderer` holds React context and subscribes to a store, so it runs in a Client Component. Keep that boundary in one file: it is the one place that ships the component registry to the browser.
+
+The server payload carries the route identity in `data.configs.requestInfo`. Restore it into the client's request context; without it Studio has no page to outline and no item to revalidate.
+
+```tsx
+// weaverse/page.tsx
+'use client'
+
+import type {
+  WeaverseNextLoaderData,
+  WeaverseNextRequestInfo,
+} from '@weaverse/next'
+import {
+  createWeaverseNextClient,
+  WeaverseNextProvider,
+  WeaverseNextRenderer,
+} from '@weaverse/next'
+import { components } from './components'
+import { StorefrontDataProvider, type StorefrontData } from './data-context'
+
+export function WeaversePage({
+  data,
+  dataContext,
+}: {
+  data: WeaverseNextLoaderData
+  dataContext?: StorefrontData
+}) {
+  let requestInfo = data.configs?.requestInfo as
+    | WeaverseNextRequestInfo
+    | undefined
+  let projectId =
+    (data.configs?.projectId as string | undefined) ?? data.project?.id
+  if (!projectId) throw new Error('Missing Weaverse project id')
+
+  let client = createWeaverseNextClient({
+    projectId,
+    components,
+    requestContext: {
+      pathname: requestInfo?.pathname ?? '/',
+      searchParams: new URLSearchParams(requestInfo?.search ?? ''),
+      isDesignMode: Boolean(data.configs?.isDesignMode),
+      isPreviewMode: Boolean(data.configs?.isPreviewMode),
+      isRevisionPreview: Boolean(data.configs?.isRevisionPreview),
+      i18n: requestInfo?.i18n,
+      pageType: requestInfo?.pageType,
+      handle: requestInfo?.handle,
+    },
+  })
+
+  return (
+    <WeaverseNextProvider client={client}>
+      <StorefrontDataProvider value={dataContext ?? {}}>
+        <WeaverseNextRenderer data={data} />
+      </StorefrontDataProvider>
+    </WeaverseNextProvider>
+  )
+}
+```
+
+Prefer the project id from the payload over your environment: Studio targets the project the page was loaded with.
+
+## Route data or section loaders
+
+Sections get Shopify data in one of two ways. Pick by who decides which resource is shown.
+
+<CardGroup cols={2}>
+  <Card title="Route data (context)" icon="route">
+    A template is shared by every resource of its kind, so the product on `/products/summer-tee` is decided by the URL, not by a merchant's picker. The route already loads it; pass it down through a React context (`dataContext` above) and let sections read it.
+  </Card>
+  <Card title="Section loaders" icon="database" href="/nextjs/data-fetching">
+    When the merchant picks the data in Studio (a product list, a collection), the section resolves it itself with a server-side `loader`, which re-runs when the merchant changes the selection.
+  </Card>
+</CardGroup>
+
+A minimal context for route data:
+
+```tsx
+// weaverse/data-context.tsx
+'use client'
+
+import { createContext, useContext, type ReactNode } from 'react'
+import type { Product } from '@/storefront/types'
+
+export type StorefrontData = { product?: Product; products?: Product[] }
+
+let StorefrontDataContext = createContext<StorefrontData>({})
+
+export function StorefrontDataProvider({
+  value,
+  children,
+}: {
+  value: StorefrontData
+  children: ReactNode
+}) {
+  return (
+    <StorefrontDataContext.Provider value={value}>
+      {children}
+    </StorefrontDataContext.Provider>
+  )
+}
+
+export function useStorefrontData() {
+  return useContext(StorefrontDataContext)
+}
+```
+
+## SEO metadata
+
+Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/next/server`:
+
+```ts
+// app/pages/[handle]/page.tsx
+import type { Metadata } from 'next'
+import { getWeaverseNextSeoMetadata } from '@weaverse/next/server'
+
+export async function generateMetadata(props: {
+  params: Promise<{ handle: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}): Promise<Metadata> {
+  let { handle } = await props.params
+  let weaverse = await getWeaverseServerClient(
+    `/pages/${handle}`,
+    await props.searchParams,
+    { pageType: 'PAGE', handle }
+  )
+  let data = await weaverse.loadPage({ type: 'PAGE', handle })
+  return getWeaverseNextSeoMetadata(data)
+}
+```
+
+The helper accepts the loader data, a page, or `null` (which returns indexable defaults), and its result is assignable to `Metadata`. Two Studio values are normalized so Next can always render them:
+
+- Open Graph type `product` becomes `website`, because Next throws on `product`.
+- Twitter card types `app` and `player` become `summary`, because Studio does not collect the extra fields those cards need.
+
+`formatWeaverseNextSeoMetadata` is the lower-level formatter if you already hold the SEO object. Merchants edit these fields as described in [Page SEO](/features/page-seo).
+
+## Custom pages in the sitemap
+
+`fetchCustomPages` returns every published custom page, paginating for you. It accepts Next cache options:
+
+```ts
+// app/sitemap.ts
+import type { MetadataRoute } from 'next'
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  let weaverse = await getWeaverseServerClient('/')
+  let pages = await weaverse.fetchCustomPages({
+    locale: 'en-us',
+    limit: 100,
+    revalidate: 3600,
+    tags: ['weaverse:custom-pages'],
+  })
+
+  return pages.map((page) => ({
+    url: `https://example.com${page.path}`,
+    lastModified: page.lastModified,
+    changeFrequency: page.changeFrequency,
+  }))
+}
+```
+
+If a later page of results fails, it returns the pages already fetched instead of throwing, so one API error does not break the sitemap.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Data Fetching" icon="database" href="/nextjs/data-fetching">
+    Section loaders, caching and revalidation
+  </Card>
+  <Card title="Studio Integration" icon="pen-ruler" href="/nextjs/studio">
+    Connect Studio, revalidate items, declare theme routes
+  </Card>
+  <Card title="Markets & Translations" icon="globe" href="/nextjs/markets-translations">
+    Localized routes and Translation Manager
+  </Card>
+  <Card title="API Reference" icon="code" href="/nextjs/api-reference">
+    Every export of `@weaverse/next`
+  </Card>
+</CardGroup>

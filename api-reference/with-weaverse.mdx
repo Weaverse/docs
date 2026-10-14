@@ -6,6 +6,10 @@ published: true
 
 # withWeaverse
 
+<Note>
+  **Hydrogen only.** In a Next.js App Router storefront, mount `WeaverseNextRootProvider` and `WeaverseNextStudioConnect` in the root layout instead. See [Studio setup](/nextjs/studio).
+</Note>
+
 `withWeaverse` wraps the root route `Layout` with the theme settings store, translation provider, and Studio connection bridge.
 
 Use it on `Layout`, not only on the default route component. React Router keeps `Layout` mounted around both the matched route and `ErrorBoundary`, so the Studio connection remains available during loader, render, and 404 errors.

@@ -1,0 +1,329 @@
+---
+title: "Markets & Translations"
+description: "Serve localized Weaverse pages in a Next.js storefront: market routing, the theme schema's i18n, per-request market context and translated theme copy."
+published: true
+---
+
+A localized Next.js storefront declares its markets once and derives everything else from that list: the URL prefixes, the market each request reads in, what Studio's market selector shows, and which theme copy Studio's Translation Manager translates.
+
+For how Weaverse and Shopify Markets fit together in general, see [Markets and Localization](/features/markets-localization). This page covers the Next.js wiring.
+
+## One locale list
+
+Keep a single table of the markets you sell in. Every other piece reads from it.
+
+```ts
+// app/i18n/locales.ts
+export let LOCALES = {
+  'en-us': { label: 'United States (USD $)', language: 'EN', country: 'US', currency: 'USD', direction: 'ltr' },
+  'de-de': { label: 'Germany (EUR €)', language: 'DE', country: 'DE', currency: 'EUR', direction: 'ltr' },
+  'fr-fr': { label: 'France (EUR €)', language: 'FR', country: 'FR', currency: 'EUR', direction: 'ltr' },
+} as const
+
+export type LocaleId = keyof typeof LOCALES
+
+export let DEFAULT_LOCALE: LocaleId = 'en-us'
+export let LOCALE_IDS = Object.keys(LOCALES) as LocaleId[]
+
+/** BCP-47 tag, e.g. `de-DE`. */
+export function localeTag(locale: LocaleId) {
+  let { language, country } = LOCALES[locale]
+  return `${language.toLowerCase()}-${country}`
+}
+
+/** The default market never appears in a URL. */
+export function localePathPrefix(locale: LocaleId) {
+  return locale === DEFAULT_LOCALE ? '' : `/${locale}`
+}
+```
+
+### Three identities, never interchanged
+
+A market has three identities. Mixing them up is the most common localization bug.
+
+| Identity | Example | Used for |
+| --- | --- | --- |
+| URL id | `de-de` | Route segments and links |
+| BCP-47 tag | `de-DE` | `<html lang>`, `hreflang`, Weaverse's `i18n.locale` |
+| Shopify enums | `{ language: 'DE', country: 'DE' }` | Storefront API `@inContext`, Weaverse's `i18n.language` / `i18n.country` |
+
+Map Weaverse's `language` + `country` back to your URL id when you need it. Don't parse `i18n.locale` for routing.
+
+## Declare markets in the theme schema
+
+The theme schema's `i18n` is what Studio's market selector and Translation Manager read. Derive it from the locale list:
+
+```ts
+// app/weaverse/schema.ts
+import type { WeaverseNextI18n, WeaverseNextThemeSchema } from '@weaverse/next'
+import { DEFAULT_LOCALE, LOCALE_IDS, LOCALES, type LocaleId, localePathPrefix, localeTag } from '@/i18n/locales'
+import { STATIC_CONTENT } from '@/i18n/static-content'
+
+function shopLocale(locale: LocaleId): WeaverseNextI18n {
+  let { country, currency, direction, label, language } = LOCALES[locale]
+  return {
+    pathPrefix: localePathPrefix(locale),
+    label,
+    language,
+    country,
+    currency,
+    hreflang: localeTag(locale),
+    direction,
+  }
+}
+
+export let themeSchema: WeaverseNextThemeSchema = {
+  info: { name: 'My Theme', version: '1.0.0' },
+  settings: [],
+  i18n: {
+    urlStructure: 'url-path',
+    defaultLocale: shopLocale(DEFAULT_LOCALE),
+    shopLocales: LOCALE_IDS.map(shopLocale),
+    translation: true,
+    staticContent: STATIC_CONTENT,
+  },
+}
+```
+
+- `urlStructure: 'url-path'` tells Studio markets are distinguished by a path prefix.
+- `translation: true` turns on the Translation Manager for this theme.
+- `staticContent` is the theme's own copy in the default language (see [Theme copy](#translate-theme-copy)).
+
+## Route every market
+
+Put rendered routes under a `[locale]` segment, and keep the default market unprefixed with a proxy (`middleware.ts` before Next.js 16):
+
+```text
+app/
+  [locale]/
+    layout.tsx
+    page.tsx
+    products/[handle]/page.tsx
+```
+
+```ts
+// proxy.ts
+import { type NextRequest, NextResponse } from 'next/server'
+import { DEFAULT_LOCALE, LOCALES } from '@/i18n/locales'
+
+export function proxy(request: NextRequest) {
+  let { pathname } = request.nextUrl
+  let [, first = ''] = pathname.split('/')
+
+  // `/en-us/shop` -> 308 to `/shop`: each page has one URL.
+  if (first === DEFAULT_LOCALE) {
+    let url = request.nextUrl.clone()
+    url.pathname = pathname.slice(first.length + 1) || '/'
+    return NextResponse.redirect(url, 308)
+  }
+
+  // `/de-de/shop` is served as it is.
+  if (Object.hasOwn(LOCALES, first)) {
+    return NextResponse.next()
+  }
+
+  // Anything else is the default market: rewrite under `/en-us`.
+  let url = request.nextUrl.clone()
+  url.pathname = `/${DEFAULT_LOCALE}${pathname === '/' ? '' : pathname}`
+  return NextResponse.rewrite(url)
+}
+
+export let config = {
+  matcher: ['/((?!api|_next|.*\\..*).*)'],
+}
+```
+
+Route handlers, `robots` and `sitemap` stay outside the `[locale]` segment.
+
+<Warning>
+During server rendering, Next.js reports the rewrite target (`/en-us/...`) as the path. Build links and Weaverse pathnames from the locale-free path plus the market's prefix, not from the rewritten path.
+</Warning>
+
+## Read each request in its market
+
+Give the server client the request's market in `requestContext.i18n`:
+
+```ts
+// app/weaverse/request-context.ts
+import { LOCALES, type LocaleId, localePathPrefix, localeTag } from '@/i18n/locales'
+
+export function weaverseI18n(locale: LocaleId) {
+  let { country, label, language } = LOCALES[locale]
+  return {
+    country,
+    label,
+    language,
+    locale: localeTag(locale),
+    pathPrefix: localePathPrefix(locale),
+  }
+}
+```
+
+```ts
+// app/[locale]/products/[handle]/page.tsx
+// `getWeaverseServerClient` is your app's helper; see the Quickstart.
+let weaverse = await getWeaverseServerClient(
+  `/products/${handle}`, // locale-free path
+  await props.searchParams,
+  { pageType: 'PRODUCT', handle, i18n: weaverseI18n(locale) }
+)
+let data = await weaverse.loadPage({ type: 'PRODUCT', handle })
+```
+
+- Pass the **locale-free** pathname. The SDK prepends `i18n.pathPrefix`, so Studio sees the same URL as the browser (`/de-de/products/...`).
+- `language` and `country` select the page Weaverse returns for that market, and they are what component loaders read to query Shopify in the same market. See [Data Fetching](/nextjs/data-fetching).
+- The bridge reads `i18n.language`; always set `i18n`, even for a single-market store.
+
+Format prices with the currency the Storefront API returns, never one derived from the locale.
+
+## Translate theme copy
+
+Theme copy is the text your theme renders that merchants don't author: button labels, empty states, cart messages. Keep it in one object in the default language and register it as `staticContent`:
+
+```ts
+// app/i18n/static-content.ts
+export let STATIC_CONTENT = {
+  cart: {
+    title: 'Your cart',
+    empty: 'Your cart is empty.',
+  },
+  product: {
+    sale: '-{{percentage}}% Off',
+  },
+}
+```
+
+Merchants translate it per market in Studio's Translation Manager. Section settings and Shopify content are not theme copy; Weaverse and Shopify localize those themselves.
+
+### Load the market's overrides
+
+`loadThemeSettings()` fetches the active market's translated copy as `merchantOverrides` when the theme schema declares `i18n` and the request context has both `language` and `country`. A failed overrides fetch never fails theme settings.
+
+Load it once in the `[locale]` layout and pass it to the root provider. Extend the client `WeaverseRoot` wrapper from the [Quickstart](/nextjs/quickstart#5-mount-the-root-providers) with the translation props:
+
+```tsx
+// weaverse/root.tsx
+'use client'
+
+import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/next'
+import type { ReactNode } from 'react'
+import { STATIC_CONTENT } from '@/i18n/static-content'
+import { themeSchema } from './theme-schema'
+
+export function WeaverseRoot(props: {
+  children: ReactNode
+  theme?: Record<string, unknown>
+  merchantOverrides?: Record<string, unknown>
+  publicEnv?: Record<string, string | undefined>
+}) {
+  return (
+    <WeaverseNextRootProvider
+      initialThemeSettings={props.theme}
+      merchantOverrides={props.merchantOverrides}
+      publicEnv={props.publicEnv}
+      staticContent={STATIC_CONTENT}
+      themeSchema={themeSchema}
+    >
+      <WeaverseNextStudioConnect />
+      {props.children}
+    </WeaverseNextRootProvider>
+  )
+}
+```
+
+```tsx
+// app/[locale]/layout.tsx
+import { LOCALES, localeTag } from '@/i18n/locales'
+import { WeaverseRoot } from '@/weaverse/root'
+
+export default async function LocaleLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  let locale = parseLocale((await params).locale) // your app's helper
+  let theme = await loadThemeSettings(locale) // your app's helper
+
+  return (
+    <html lang={localeTag(locale)} dir={LOCALES[locale].direction}>
+      <body>
+        <WeaverseRoot
+          theme={theme?.theme}
+          merchantOverrides={theme?.merchantOverrides}
+        >
+          {children}
+        </WeaverseRoot>
+      </body>
+    </html>
+  )
+}
+```
+
+`staticContent` falls back to `themeSchema.i18n.staticContent` when omitted.
+
+### Use `t()` in components
+
+`useTranslation()` returns a `t()` that resolves a key through every source, highest priority first:
+
+1. An external `t` passed to `WeaverseNextRootProvider` (your own i18n library), unless it returns the key unchanged
+2. Live edits from Studio's Translation Manager (design mode)
+3. `merchantOverrides` for the active market
+4. `staticContent`
+5. The key itself
+
+```tsx
+'use client'
+
+import { useTranslation } from '@weaverse/next'
+
+export function CartTitle() {
+  let { t } = useTranslation()
+  return <h2>{t('cart.title')}</h2>
+}
+
+// Interpolation: t('product.sale', { percentage: 15 }) // => '-15% Off'
+```
+
+`useTranslation()` must run under `WeaverseNextRootProvider` (or a `TranslationProvider`). It also exposes `merchantOverrides` and `translationStore` if you build your own translator.
+
+Outside React, for example in `generateMetadata`, build the same function with `createTranslate`:
+
+```ts
+import { createTranslate } from '@weaverse/next'
+
+let t = createTranslate({
+  staticContent: STATIC_CONTENT,
+  merchantOverrides: theme?.merchantOverrides,
+})
+let title = t('cart.title')
+```
+
+<Tip>
+Server Components can't call hooks. Render theme copy from a small client leaf that calls `useTranslation()`, so Studio's live translation edits still reach text a Server Component owns.
+</Tip>
+
+## In Studio
+
+- The **market selector** lists every entry of `i18n.shopLocales`. Picking a market loads the preview under its `pathPrefix`, and merchants can author a localized page per market.
+- The **Translation Manager** lists your `staticContent` keys. Edits show live in the preview and are saved as that market's `merchantOverrides`.
+
+See the [Translation Feature Guide](/features/translation-feature-guide) for the merchant workflow.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Rendering Pages" icon="file" href="/nextjs/rendering-pages">
+    Load and render Weaverse pages in App Router routes.
+  </Card>
+  <Card title="Connect Weaverse Studio" icon="plug" href="/nextjs/studio">
+    The bridge, route identity and revalidation.
+  </Card>
+  <Card title="Data Fetching" icon="database" href="/nextjs/data-fetching">
+    Read Shopify in the request's market from component loaders.
+  </Card>
+  <Card title="API Reference" icon="code" href="/nextjs/api-reference">
+    Translation exports and types.
+  </Card>
+</CardGroup>

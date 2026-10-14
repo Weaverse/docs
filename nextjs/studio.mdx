@@ -1,0 +1,290 @@
+---
+title: "Connect Weaverse Studio"
+description: "Connect a Next.js storefront to Weaverse Studio: the bridge script, page binding, route identity, per-item revalidation, theme routes and troubleshooting."
+published: true
+---
+
+Studio edits a Next.js storefront through two pieces that work together:
+
+1. **A root-level script connector** that loads the Next Studio bridge when the storefront runs inside Studio.
+2. **A page-level runtime binding** that connects the rendered page to Studio's editor.
+
+On top of those, a few app-owned pieces make editing complete: the route identity each page reports, a revalidation route for resource pickers, and the theme's own `routes` so Studio opens the right URLs.
+
+## Mount the Studio connector once
+
+Mount `WeaverseNextStudioConnect` in the root layout. It loads the bridge script in design, preview and revision contexts and does nothing in published mode.
+
+```tsx
+// app/weaverse/studio-connect.tsx
+'use client'
+
+import { WeaverseNextStudioConnect } from '@weaverse/next'
+
+export function StudioConnect() {
+  return <WeaverseNextStudioConnect />
+}
+```
+
+```tsx
+// app/layout.tsx
+import { StudioConnect } from './weaverse/studio-connect'
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <StudioConnect />
+        {children}
+      </body>
+    </html>
+  )
+}
+```
+
+Mount it in the root layout, not per page. The layout also renders around routes that never render a Weaverse page, such as `not-found.tsx` and `error.tsx`, and Studio needs the bridge before a page tree exists. It is SSR-safe: the component only touches `document` inside an effect.
+
+## Page binding comes with the renderer
+
+`WeaverseNextRenderer` creates and binds the page runtime; you don't wire it yourself. It maps Studio's internals onto the App Router:
+
+| Studio action | Next.js behavior |
+| --- | --- |
+| Navigate | `router.push()` / `router.replace()` |
+| Revalidate the page | `router.refresh()` (fallback) |
+| Revalidate one item | A request to your [revalidation route](#per-item-revalidation) |
+
+Both the connector and the renderer are required for full editing. See [Rendering Pages](/nextjs/rendering-pages) for the client boundary that renders `WeaverseNextRenderer`.
+
+## Report the route identity
+
+Studio attaches to the route the page says it is. The server client's request context carries that identity, and it travels to the browser in `configs.requestInfo`:
+
+| Field | Why Studio needs it |
+| --- | --- |
+| `pathname` | The page's path. `CUSTOM` pages are resolved by pathname, and without one the SDK falls back to `/`. |
+| `pageType`, `handle` | Which page Studio is editing, and which item to revalidate. |
+| `i18n` | The bridge reads `i18n.language`; a missing `i18n` breaks the bridge instead of degrading it. |
+| `url` | The full request URL. Build it from the forwarded host and protocol; a bare pathname resolves against `http://localhost`, which never matches a deployed preview. |
+
+```ts
+// app/weaverse/request-context.ts
+import type { PageType, WeaverseNextRequestContext } from '@weaverse/next'
+
+export function buildRequestContext({
+  headers,
+  pathname,
+  searchParams,
+  page,
+}: {
+  headers: Headers
+  pathname: string
+  searchParams: URLSearchParams
+  page?: { type: PageType; handle?: string }
+}): WeaverseNextRequestContext {
+  let host = headers.get('x-forwarded-host') ?? headers.get('host')
+  let proto = headers.get('x-forwarded-proto') ?? 'https'
+  let search = searchParams.size > 0 ? `?${searchParams}` : ''
+
+  return {
+    headers,
+    pathname,
+    searchParams,
+    url: `${proto}://${host}${pathname}${search}`,
+    i18n: { country: 'US', language: 'EN', locale: 'en-US', pathPrefix: '' },
+    pageType: page?.type,
+    handle: page?.handle,
+  }
+}
+```
+
+On the client, restore the same identity from the payload when you create the client. If the client's request context is empty, the page renders but Studio has nothing to outline. [Rendering Pages](/nextjs/rendering-pages) shows the full client boundary.
+
+For localized storefronts, set `i18n` from the request's market. See [Markets & Translations](/nextjs/markets-translations).
+
+## Design mode
+
+When Studio loads the storefront, it adds `isDesignMode=true` to the URL. The server client reads it from the request context (or the search params) and:
+
+- reads page and theme data with `cache: 'no-store'` in design and revision preview, so edits are never served from cache;
+- returns `isDesignMode`, `isPreviewMode` and `isRevisionPreview` in the page payload's `configs`.
+
+To branch on it in a route, read the search param:
+
+```tsx
+// app/page.tsx
+export default async function Home(props: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+  let isDesignMode = (await props.searchParams).isDesignMode === 'true'
+  // ...
+}
+```
+
+On the client, read it from the request context restored from `configs`. For shared patterns, see [Studio vs. Live Environment](/development-guide/design-mode).
+
+## Per-item revalidation
+
+When a merchant changes a resource picker (a product, a collection), Studio asks the storefront to re-run that one component's `loader` with the draft settings. Without this route, the edit shows stale data until a full reload.
+
+Mount the handler at `app/api/weaverse/revalidate/route.ts`:
+
+```ts
+// app/api/weaverse/revalidate/route.ts
+import type { WeaverseNextRequestContext } from '@weaverse/next'
+import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import { createWeaverseServerClientFromContext } from '@/weaverse/server'
+
+export const dynamic = 'force-dynamic'
+
+export const { POST } = createWeaverseNextRevalidateHandler({
+  getClient: async (
+    _request: Request,
+    requestContext?: WeaverseNextRequestContext
+  ) => {
+    if (!requestContext) {
+      throw new Error('Studio sent no route context to revalidate.')
+    }
+    return createWeaverseServerClientFromContext(requestContext)
+  },
+})
+```
+
+`getClient` receives the validated route context reconstructed from the request body, so the loader re-runs with the live page's pathname, locale, page type and handle rather than the endpoint's own path. `createWeaverseServerClientFromContext` is your app's helper that builds the server client from a context; see [Data Fetching](/nextjs/data-fetching).
+
+The flow:
+
+```text
+Merchant edits a resource picker in Studio
+  -> SDK POSTs { draftItem, routeContext } to /api/weaverse/revalidate
+  -> handler validates routeContext and rebuilds a same-origin request context
+  -> getClient(request, requestContext) builds the server client
+  -> handler runs the component's loader with the draft data
+  -> response returns { loaderData } with Cache-Control: no-store
+  -> SDK applies loaderData to the live item in place
+```
+
+If the route is missing or fails, Studio falls back to refreshing the whole route.
+
+### Trust boundary
+
+The endpoint is public, and every field in the body is attacker-controlled. The handler re-validates it independently:
+
+- Only `pathname`, a sanitized `search`, a narrow `i18n` subset, a valid `pageType` and a bounded `handle` cross the boundary. Headers, cookies, env, project ID and Studio host are never read from the body.
+- Server configuration (`weaverseProjectId`, `weaverseHost`, API base and similar) is stripped from the body. Project ID, host and env always come from your server config.
+- The origin is fixed from the endpoint request, so the body cannot change protocol, host or port.
+- A malformed `routeContext` returns `400 { error: 'invalid-route-context' }` before `getClient` runs.
+
+<Warning>
+The route context is routing input, never an authorization decision. A loader must not treat a pathname, handle, page type or locale as proof of access. Customer or private data still needs its own server-side session and authorization checks.
+</Warning>
+
+## Theme routes
+
+Studio's page selector and URL picker build Shopify-style paths by default: `/collections/:handle`, `/blogs/:blog/:handle`. If your storefront routes differently, declare `routes` in the theme schema so Studio opens your own paths:
+
+```ts
+// app/weaverse/schema.ts
+import type { WeaverseNextThemeSchema } from '@weaverse/next'
+
+export let themeSchema: WeaverseNextThemeSchema = {
+  info: { name: 'My Theme', version: '1.0.0' },
+  settings: [],
+  routes: {
+    ALL_PRODUCTS: '/shop',
+    COLLECTION: '/shop/:handle',
+    ARTICLE: '/journal/:handle', // Shopify convention: '/blogs/:blog/:handle'
+  },
+}
+```
+
+- A pattern is an absolute path of static segments and whole `:param` segments.
+- `:handle` is the page's own handle (product, collection, page, blog or article). `:blog` is an article's blog handle.
+- Declare only the routes that differ from the Shopify convention. Studio uses the convention for every key you leave out, and for a pattern it cannot fill.
+- `CUSTOM` pages carry their own path and cannot take a pattern.
+
+The schema's `routes` key is typed as `ThemeRoutes`. Studio reads routes from the theme schema the preview sends in design mode, starting with release [2026.10.22](/changelog).
+
+<Tip>
+Keep each declared route on a route your app actually serves. A test that checks every `routes` value against your route files catches a renamed route before Studio does.
+</Tip>
+
+## Default resources
+
+To open the default product, collection or page template, Studio looks up a store resource with your **public** Storefront API credentials, `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`, from the theme's `publicEnv`. Without them, the page selector cannot open those templates.
+
+Pass `publicEnv` from the layout to the client `WeaverseRoot` wrapper from the [Quickstart](/nextjs/quickstart#5-mount-the-root-providers), which hands it to `WeaverseNextRootProvider`:
+
+```tsx
+// app/layout.tsx
+import { WeaverseRoot } from '@/weaverse/root'
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  let theme = await loadThemeSettings() // your app's helper
+  return (
+    <html lang="en">
+      <body>
+        <WeaverseRoot
+          theme={theme?.theme}
+          publicEnv={{
+            PUBLIC_STORE_DOMAIN: process.env.PUBLIC_STORE_DOMAIN,
+            PUBLIC_STOREFRONT_API_TOKEN: process.env.PUBLIC_STOREFRONT_API_TOKEN,
+          }}
+        >
+          {children}
+        </WeaverseRoot>
+      </body>
+    </html>
+  )
+}
+```
+
+<Note>
+`loadThemeSettings()` returns `publicEnv` only in design mode, which it detects from `?isDesignMode=true`. A Next.js layout receives no search params, so the root layout's response never carries it; pass `publicEnv` explicitly as above. Only pass the public token: the private Storefront token must never reach the browser.
+</Note>
+
+## Usage tracking
+
+There is nothing to wire. `@weaverse/next` sends no browser pixel; Weaverse counts published (non-design) page responses on the server.
+
+## Troubleshooting
+
+For connection errors shared with React Router storefronts, see [Preview Connection Errors](/troubleshooting/preview-errors).
+
+<AccordionGroup>
+  <Accordion title="A component renders but Studio can't select it">
+    The runtime passes `data-wv-id`, `data-wv-type` and related props to every component. Spread them onto the component's outermost DOM element; otherwise the component renders but has no outline entry or click target.
+  </Accordion>
+  <Accordion title="The page renders but the outline is empty">
+    The client was created without the route identity. Restore `pathname`, `pageType`, `handle`, `i18n` and the design flags from `data.configs.requestInfo` when you call `createWeaverseNextClient`. See [Rendering Pages](/nextjs/rendering-pages).
+  </Accordion>
+  <Accordion title="Opening a default product or collection shows &quot;Not found&quot;">
+    Studio could not resolve a default resource. Pass `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN` in `publicEnv` to `WeaverseNextRootProvider` ([Default resources](#default-resources)).
+  </Accordion>
+  <Accordion title="Changing a product or collection picker shows stale data">
+    The revalidation route is missing or failing. Add `app/api/weaverse/revalidate/route.ts` ([Per-item revalidation](#per-item-revalidation)) and check that the component is registered with its `loader` on the server.
+  </Accordion>
+  <Accordion title="Every custom page opens the home page">
+    The request context has no `pathname`. Weaverse resolves `CUSTOM` pages by pathname and falls back to `/` without one. Pass the route's own path when you build the server client.
+  </Accordion>
+  <Accordion title="Studio opens /collections/... instead of my route">
+    Declare the theme's [`routes`](#theme-routes) in the theme schema.
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Rendering Pages" icon="file" href="/nextjs/rendering-pages">
+    Load and render Weaverse pages in App Router routes.
+  </Card>
+  <Card title="Data Fetching" icon="database" href="/nextjs/data-fetching">
+    Component loaders, caching and the server client.
+  </Card>
+  <Card title="Markets & Translations" icon="globe" href="/nextjs/markets-translations">
+    Localized routes, market context and theme copy.
+  </Card>
+  <Card title="API Reference" icon="code" href="/nextjs/api-reference">
+    Every export of `@weaverse/next` and `@weaverse/next/server`.
+  </Card>
+</CardGroup>

@@ -2,23 +2,34 @@
 title: Introduction
 sidebarTitle: Overview
 published: true
-description: Learn about the Weaverse SDK API reference for building Shopify Hydrogen storefronts.
+description: Learn about the Weaverse SDK API reference for building Shopify Hydrogen and Next.js storefronts.
 ---
 
 # API Reference
 
-The Weaverse SDK provides the runtime, React bindings, Hydrogen integration, and schema utilities used to build Weaverse-powered storefronts.
+The Weaverse SDK provides the runtime, React bindings, framework integrations, and schema utilities used to build Weaverse-powered storefronts.
 
 ## SDK Packages
 
 ### `@weaverse/hydrogen`
 
-The primary package for Shopify Hydrogen applications. It includes:
+The adapter for Hydrogen storefronts on React Router. It includes:
 
 - `WeaverseClient` for server-side page and theme loading
 - `WeaverseHydrogenRoot` for page rendering
 - Hydrogen hooks, component types, and utilities
 - Re-exports from `@weaverse/react` and `@weaverse/schema`
+
+### `@weaverse/next`
+
+The package for Next.js App Router storefronts. It includes:
+
+- `createWeaverseNextServerClient` (from `@weaverse/next/server`) for request-scoped page and theme loading
+- `WeaverseNextRenderer`, `WeaverseNextProvider`, and `WeaverseNextRootProvider` for rendering
+- Studio connection, per-item revalidation, and translation utilities
+- Re-exports from `@weaverse/react` and `@weaverse/schema`
+
+See the [Next.js API reference](/nextjs/api-reference).
 
 ### `@weaverse/react`
 

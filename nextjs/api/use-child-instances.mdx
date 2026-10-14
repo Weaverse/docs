@@ -1,0 +1,167 @@
+---
+title: useChildInstances
+description: Hook for accessing child component instances in Weaverse Next.js components.
+published: true
+---
+
+# useChildInstances
+
+The `useChildInstances` hook returns the direct child item stores of a Weaverse component.
+
+## Import
+
+```tsx
+import { useChildInstances } from '@weaverse/next'
+```
+
+## Type
+
+```typescript
+function useChildInstances(id?: string): WeaverseItemStore[]
+```
+
+## Parameters
+
+- `id?: string` — The parent component ID. When omitted, the hook uses the current component ID.
+
+## Returns
+
+- `WeaverseItemStore[]` — Child item stores that are present in the runtime registry. It returns an empty array when the parent instance cannot be found.
+
+<Warning>
+  The current SDK expects a found parent instance to contain a `children` array. If custom data omits that field, the hook can throw instead of returning an empty array.
+</Warning>
+
+## Common Use Patterns
+
+### Coordinating Child Layout
+
+```tsx
+'use client'
+
+import {
+  useChildInstances,
+  useThemeSettings,
+} from '@weaverse/next'
+import { useEffect } from 'react'
+
+export function ProductGrid() {
+  const { gridColumns, gapSize } = useThemeSettings()
+  const childInstances = useChildInstances()
+
+  useEffect(() => {
+    for (const child of childInstances) {
+      child.setData({
+        width: `calc(100% / ${gridColumns})`,
+        margin: `${gapSize}px`,
+      })
+    }
+  }, [childInstances, gridColumns, gapSize])
+
+  return (
+    <div className={`grid grid-cols-${gridColumns} gap-${gapSize}`}>
+      {/* Child components rendered here by Weaverse */}
+    </div>
+  )
+}
+```
+
+### Managing Interactive Children
+
+```tsx
+'use client'
+
+import { useChildInstances } from '@weaverse/next'
+import { useEffect, useState } from 'react'
+
+export function Carousel() {
+  const [activeIndex, setActiveIndex] = useState(0)
+  const slides = useChildInstances()
+
+  useEffect(() => {
+    slides.forEach((slide, index) => {
+      slide.setData({
+        isVisible: index === activeIndex,
+        zIndex: index === activeIndex ? 10 : 1,
+      })
+    })
+  }, [slides, activeIndex])
+
+  return (
+    <div className="carousel">
+      <div className="carousel-container">
+        {/* Slides rendered here by Weaverse */}
+      </div>
+      <div className="carousel-controls">
+        {slides.map((slide, index) => (
+          <button
+            key={slide._id}
+            onClick={() => setActiveIndex(index)}
+            className={index === activeIndex ? 'active' : ''}
+          >
+            {index + 1}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+```
+
+### Summarizing Child Data
+
+```tsx
+'use client'
+
+import { useChildInstances } from '@weaverse/next'
+import { useMemo } from 'react'
+
+export function ReviewsSection() {
+  const reviewItems = useChildInstances()
+
+  const averageRating = useMemo(() => {
+    if (reviewItems.length === 0) return 0
+
+    const total = reviewItems.reduce((sum, item) => {
+      const { rating } = item.getSnapShot()
+      return sum + (rating || 0)
+    }, 0)
+
+    return total / reviewItems.length
+  }, [reviewItems])
+
+  return (
+    <div className="reviews-summary">
+      <h2>Customer Reviews</h2>
+      <div>{averageRating.toFixed(1)} / 5</div>
+    </div>
+  )
+}
+```
+
+## Implementation Details
+
+The hook resolves the parent with `useItemInstance()`, maps its child IDs to `Weaverse.itemInstances`, and filters out IDs that do not have a registered item store:
+
+```tsx
+export let useChildInstances = (id?: string) => {
+  let currentInstance = useItemInstance(id)
+  if (!currentInstance) {
+    return []
+  }
+  let { itemInstances } = Weaverse
+  let {
+    data: { children },
+  } = currentInstance
+
+  return children
+    .map(({ id }: { id: string }) => itemInstances.get(id))
+    .filter(Boolean) as WeaverseItemStore[]
+}
+```
+
+## Related
+
+- [useItemInstance](/nextjs/api/use-item-instance) - Access a specific component instance
+- [useParentInstance](/nextjs/api/use-parent-instance) - Access the parent component instance
+- [useWeaverse](/nextjs/api/use-weaverse) - Access the Weaverse runtime
