@@ -18,27 +18,27 @@ Both need a Weaverse project. Create one from the Weaverse app in your Shopify a
 [Forward](/hydrogen-themes/forward) is an open-source Next.js storefront on `@weaverse/next`. It uses [Bun](https://bun.sh) as package manager and Node.js 22.18 or later.
 
 <Steps>
-  <Step title="Clone the theme">
+  <Step title="Create the project">
     ```bash
-    git clone https://github.com/Weaverse/forward my-storefront
-    cd my-storefront
-    bun install
+    npx @weaverse/cli@latest create --template forward --project-id YOUR_PROJECT_ID --project-name my-storefront
     ```
+
+    The CLI downloads Forward, writes `.env` with your project ID, and installs dependencies with Bun. If Bun is missing, it offers to install it (`npm install -g bun`); in a non-interactive run it stops with install instructions instead. Pass `--no-install` to skip installing.
   </Step>
-  <Step title="Configure the environment">
-    Copy `.env.example` to `.env` and fill in your store and project:
+  <Step title="Add your Shopify keys">
+    In `my-storefront/.env`, set your store and its Storefront API keys from the [Headless channel](https://apps.shopify.com/headless):
 
     ```bash
     PUBLIC_STORE_DOMAIN=your-shop.myshopify.com
     PRIVATE_STOREFRONT_API_TOKEN=your-private-token
     PUBLIC_STOREFRONT_API_TOKEN=your-public-token
-    WEAVERSE_PROJECT_ID=your-project-id
     ```
 
     Forward always runs against a real Shopify store, and refuses to start without a complete Shopify environment. `.env.example` documents every key, including the optional Customer Account ones.
   </Step>
   <Step title="Run it">
     ```bash
+    cd my-storefront
     bun run dev
     ```
 
@@ -49,9 +49,9 @@ Both need a Weaverse project. Create one from the Weaverse app in your Shopify a
   </Step>
 </Steps>
 
-<Note>
-  Scaffolding Forward with `npx @weaverse/cli create` is coming. Until then, clone the repository.
-</Note>
+<Tip>
+  Prefer Git? Clone the repository instead: `git clone https://github.com/Weaverse/forward my-storefront`, then `bun install` and copy `.env.example` to `.env`.
+</Tip>
 
 ## Option B: Add Weaverse to an existing Next.js app
 

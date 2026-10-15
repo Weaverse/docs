@@ -27,15 +27,13 @@ Forward is built on the Next.js App Router and [`@weaverse/next`](/nextjs/overvi
 Forward is open source on [GitHub](https://github.com/Weaverse/forward). It needs [Bun](https://bun.sh) and Node.js 22.18 or later.
 
 ```bash
-git clone https://github.com/Weaverse/forward.git
-cd forward
-bun install
-cp .env.example .env
+npx @weaverse/cli@latest create --template forward --project-id YOUR_PROJECT_ID --project-name my-storefront
 ```
 
-Fill in `.env` with your Shopify store and your Weaverse project ID (`WEAVERSE_PROJECT_ID`), then start the dev server:
+The CLI downloads Forward, writes `.env` with your Weaverse project ID, and installs dependencies with Bun (offering to install Bun if it is missing). Add your Shopify store and Storefront API keys to `.env`, then start the dev server:
 
 ```bash
+cd my-storefront
 bun run dev
 ```
 
@@ -105,7 +103,7 @@ Browse the full, up-to-date list in [`src/sections`](https://github.com/Weaverse
 | `src/app/[locale]/` | App Router routes, one segment per market. The default market has no URL prefix. |
 | `src/app/api/weaverse/revalidate/` | The route Studio calls to re-run a section's loader after an edit. |
 | `src/sections/` | Weaverse sections. Each one exports its component and its `schema`, and some have a server `loader`. |
-| `src/lib/weaverse/` | The Weaverse wiring: server client, component registries, root provider, Studio connector and theme schema. |
+| `src/lib/weaverse/` | The Weaverse wiring: server client, component registries, root provider and theme schema. |
 | `src/lib/weaverse/settings/` | Theme settings, one group per file (layout, header, footer, editorial imagery). |
 
 The Weaverse integration in `src/lib/weaverse/` is a good reference when you add `@weaverse/next` to your own app. See [Rendering Pages](/nextjs/rendering-pages) and [Studio Integration](/nextjs/studio) for how each piece fits.
