@@ -10,7 +10,7 @@
 
 ## Initiating Requirement
 
-> vậy thì cần thêm 2 child issue cho issue này để sửa forward và docs nhé, sau đó /goal là chú làm cả 3 luôn cho a, xong thì /commit in multi commits + open PR nhé. A sẽ review mà merge lần lượt
+> Then this issue needs two child issues, to fix Forward and the docs. After that, the goal is for you to do all three for me, then /commit in multiple commits and open the PRs. I will review and merge them one by one.
 
 ## Summary
 
