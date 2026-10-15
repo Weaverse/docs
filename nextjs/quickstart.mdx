@@ -296,11 +296,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 }
 ```
 
-<Warning>
-  Import `@weaverse/next` components (`WeaverseNextRootProvider`, `WeaverseNextStudioConnect`, `WeaverseNextProvider`, `WeaverseNextRenderer`) only from your own `'use client'` modules. The published bundle carries no `'use client'` directive, so rendering them directly in a Server Component such as `app/layout.tsx` fails.
-</Warning>
-
-The theme schema is imported in the client module rather than passed from the layout, because a schema can hold functions that cannot cross from server to client. `publicEnv` is passed explicitly because a layout receives no search params; see [Known limitations](/nextjs/overview#known-limitations).
+`@weaverse/next` components are Client Components that Server Components can render directly, and its server-safe exports (`createSchema`, `generateDataFromSchema`, the SEO helpers) work in server code. `WeaverseRoot` is a client module for a different reason: it imports the theme schema on the client, because a schema can hold functions that cannot cross from server to client. `publicEnv` is passed explicitly because a layout receives no search params; see [Known limitations](/nextjs/overview#known-limitations).
 
 ### 6. Render a page
 
