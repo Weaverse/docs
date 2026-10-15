@@ -17,6 +17,23 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Styled authorization screens**: The AI assistant approval and agent sign-in confirmation screens now load Studio's normal styling.
 </Update>
 
+<Update label="@weaverse/next 1.0.1" description="October 15, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Fixes
+
+  - **Import `@weaverse/next` from Server Components**: Rendering `WeaverseNextRootProvider` or `WeaverseNextStudioConnect` in a Server Component such as `app/layout.tsx`, or calling `createSchema` and other helpers in server code, no longer fails the build with `createContext is not a function`. Components, hooks and providers now ship as Client Components, so you no longer need your own `'use client'` wrapper around them.
+  - **Server-safe helpers**: `createTranslate`, `getNestedKey` and `interpolate` work in server code, and `isBrowser` and `isIframe` are `false` on the server.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.0.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.0.1)
+</Update>
+
 <Update label="2026.10.27" description="October 13, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
