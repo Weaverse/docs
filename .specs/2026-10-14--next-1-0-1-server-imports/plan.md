@@ -8,11 +8,11 @@ The SDK contract is in `weaverse/.specs/2026-10-14-next-client-boundary.md`.
 - `nextjs/quickstart.mdx`: the "import components only from your own `'use client'` modules" warning becomes a note that SDK components can be rendered from Server Components; `WeaverseRoot` stays a client module because it imports the theme schema. The schema sample keeps `createSchema` from `@weaverse/next`, which works on 1.0.1.
 - `nextjs/studio.mdx`: the layout renders `WeaverseNextStudioConnect` directly; the wrapper module is gone.
 - `nextjs/api-reference.mdx`: the root entry is for Server and Client Components, with a note on what each side gets.
-- The changelog entry comes from the SDK release flow.
+- The changelog entry comes from the SDK release flow, in a separate PR.
 
 ## Ordering
 
-Merge after `@weaverse/next` 1.0.1 is published; until then the docs would describe a release that does not exist.
+`@weaverse/next` 1.0.1 was published on 2026-10-15, so this can merge. The changelog entry is in its own PR (the SDK release flow's changelog step).
 
 ## Verification
 
