@@ -1,12 +1,12 @@
 # Framework Docs Structure
 
-- Status: implemented; awaiting PR review
+- Status: completed
 - Owner: @hta218
 - Issue: https://github.com/Weaverse/docs/issues/81
 - Branch: `docs/weaverse-next` (PR https://github.com/Weaverse/docs/pull/64)
 - Base: `main`
 - Created: 2026-10-14
-- Last updated: 2026-10-14
+- Last updated: 2026-10-16
 
 ## Initiating Requirement
 
