@@ -1,12 +1,12 @@
 # Next.js docs for @weaverse/next 1.0.1 server imports
 
-- Status: implemented; awaiting PR review (`@weaverse/next` 1.0.1 published 2026-10-15)
+- Status: completed
 - Owner: @hta218
 - Issue: https://github.com/Weaverse/docs/issues/82 (sub-issue of https://github.com/Weaverse/weaverse/issues/542)
 - Branch: `docs/weaverse-next-1-0-1`
 - Base: `main`
 - Created: 2026-10-14
-- Last updated: 2026-10-15
+- Last updated: 2026-10-16
 
 ## Initiating Requirement
 
