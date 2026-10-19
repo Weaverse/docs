@@ -141,8 +141,9 @@
                   },
                   {
                     "group": "Deployment",
+                    "root": "guides/deployment/index",
+                    "directory": "card",
                     "pages": [
-                      "guides/deployment/index",
                       "guides/deployment/oxygen",
                       "guides/deployment/custom-domain-and-dns",
                       "guides/deployment/docker",
@@ -320,8 +321,9 @@
               },
               {
                 "group": "Themes",
+                "root": "hydrogen-themes/index",
+                "directory": "card",
                 "pages": [
-                  "hydrogen-themes/index",
                   "hydrogen-themes/pilot-theme-overview",
                   "hydrogen-themes/pilot-theme-customization",
                   "hydrogen-themes/pilot-theme-sections",
@@ -355,8 +357,9 @@
             "pages": [
               {
                 "group": "Help",
+                "root": "resources/index",
+                "directory": "card",
                 "pages": [
-                  "resources/index",
                   "resources/faq",
                   "resources/tutorial",
                   "resources/example-components",
