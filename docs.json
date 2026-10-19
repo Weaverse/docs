@@ -8,6 +8,30 @@
     "dark": "#1e40af"
   },
   "favicon": "/favicon.ico",
+  "metadata": {
+    "timestamp": true
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Weaverse Docs",
+      "twitter:site": "@WeaverseIO",
+      "keywords": "Weaverse, Shopify Hydrogen, headless commerce, visual page builder, React Router, Next.js"
+    },
+    "organization": {
+      "name": "Weaverse",
+      "url": "https://weaverse.io",
+      "logo": "https://docs.weaverse.io/logo/light.svg",
+      "sameAs": [
+        "https://github.com/weaverse",
+        "https://x.com/WeaverseIO",
+        "https://wvse.cc/weaverse-slack"
+      ]
+    }
+  },
+  "thumbnails": {
+    "preset": "headline",
+    "appearance": "dark"
+  },
   "integrations": {
     "posthog": {
       "apiKey": "phc_BnZAhY8ELZCZukEErb6ab9T7txSsMolcgGIIhMj5oSP",
@@ -394,6 +418,7 @@
       "claude",
       "perplexity",
       "mcp",
+      "add-mcp",
       "cursor",
       "vscode"
     ]
