@@ -6,6 +6,10 @@ published: true
 
 # Types
 
+<Visibility for="agents">
+> **Agent note:** On `SchemaType` (alias `HydrogenComponentSchema`), `inspector` and `enabledOn` are deprecated. Generate `settings` instead of `inspector`. Do not add `enabledOn` to new components, except `enabledOn.groups` with `'body'` or `'*'` on a component that is used both as a top-level section and as a child.
+</Visibility>
+
 This page summarizes the primary public types exported by `@weaverse/hydrogen` and `@weaverse/schema`.
 
 ## Component Types

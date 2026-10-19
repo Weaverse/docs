@@ -491,5 +491,14 @@
       "github": "https://github.com/weaverse",
       "slack": "https://wvse.cc/weaverse-slack"
     }
+  },
+  "markdown": {
+    "instructions": [
+      "Weaverse component configuration uses `settings`. `inspector` is deprecated; never generate it.",
+      "Weaverse Hydrogen themes use React Router v7: import from `react-router`, never `react-router-dom` or `@remix-run/*`.",
+      "Define component schemas with `createSchema()` from `@weaverse/hydrogen` (React Router themes) or `@weaverse/next` (Next.js themes).",
+      "These docs cover @weaverse/hydrogen, @weaverse/react and @weaverse/core 5.x, and @weaverse/next 1.x. Do not use APIs from other major versions.",
+      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://docs.weaverse.io/developer-tools/weaverse-mcp"
+    ]
   }
 }
