@@ -556,18 +556,21 @@ test('renders component correctly', () => {
 ### How do I organize components in large projects?
 
 **Recommended Structure**:
-```
-app/
-├── components/           # Reusable UI components
-│   ├── ui/              # Basic UI elements
-│   └── forms/           # Form components
-├── sections/            # Page sections
-│   ├── header/          # Header variants
-│   ├── hero/            # Hero sections
-│   └── product/         # Product sections
-├── layouts/             # Layout components
-└── utils/               # Shared utilities
-```
+
+<FileTree>
+
+- app/
+  - components/
+    - ui/
+    - forms/
+  - sections/
+    - header/
+    - hero/
+    - product/
+  - layouts/
+  - utils/
+
+</FileTree>
 
 **Component Organization**:
 - Group related components in folders
