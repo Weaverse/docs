@@ -8,6 +8,20 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.10.36" description="October 20, 2026" tags={["Studio", "API"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Complete Content API reference**: The Content API's OpenAPI description now documents every endpoint, with descriptions, request and response examples, and the error codes each one returns. It is valid OpenAPI 3.1, so you can load it into API clients and code generators from `https://studio.weaverse.io/api/v1/content/openapi.json`.
+
+  #### Fixes
+
+  - **Clearer Content API refusals**: Requests the API refuses now return `404` or `409` with an error code instead of a generic `500`. This covers cancelling or publishing a version that is not scheduled, scheduling a draft that is out of date, assignment handles already in use, invalid project hierarchy changes and duplicate preview URLs.
+  - **Publish now reports what happened**: `POST /versions/{versionId}/publish-now` returns `409` when nothing was published, instead of `200`.
+  - **Retired page versions honor `limit`**: `GET /projects/{projectId}/versions?kind=retired-pages` now returns at most `limit` rows, like the other version lists.
+</Update>
+
 <Update label="2026.10.33" description="October 19, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
