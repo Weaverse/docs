@@ -7,7 +7,7 @@
 | **Issue**        | [#80](https://github.com/Weaverse/docs/issues/80)       |
 | **Branch**       | `docs/adopt-mintlify-features`                          |
 | **Created**      | 2026-10-19                                              |
-| **Last Updated** | 2026-10-19                                              |
+| **Last Updated** | 2026-10-20                                              |
 
 ## Original Prompt
 
@@ -54,4 +54,4 @@
 
 ## Summary
 
-Adopt free-plan Mintlify features the docs don't use yet: an OpenAPI-driven Content API reference, generated SDK reference, newer content components (`<View>`, `<Prompt>`, `<GitHub.Repo>`, `<Tree>`), agent-only guidance, and `docs.json` site settings (timestamps, SEO, banner, directory listings). The goal is less hand-maintained content and better output for readers and AI agents.
+Adopt free-plan Mintlify features the docs don't use yet: an OpenAPI-driven Content API reference, generated SDK reference, newer content components (`<Prompt>`, `<GitHub.Repo>`, `<Tree>`; per-framework pages instead of `<View>`), agent-only guidance, and `docs.json` site settings (timestamps, SEO, banner, directory listings). The goal is less hand-maintained content and better output for readers and AI agents.

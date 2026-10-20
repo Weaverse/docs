@@ -63,13 +63,9 @@ It replaces plain "available on GitHub" links where it duplicates them.
 - `developer-tools/weaverse-mcp.mdx`: example prompts, if the page has any as plain code blocks.
 - If a page has no prompt-shaped content, skip it.
 
-**`<View>`**:
+**`<View>`**: not used. The sidebar framework dropdowns already switch frameworks, and an in-page View would be a second selector out of sync with them. Next.js content gets its own page instead: `nextjs/third-party-integrations` replaces `features/third-party-integrations` in the Next.js dropdown, and the `features/` page stays React Router only.
 
-- The pages in both framework dropdowns are `features/global-sections`, `navigation-menus`, `third-party-integrations` and `mobile-app-pwa`.
-- Only `features/third-party-integrations.mdx` has framework-specific code (`@weaverse/hydrogen` imports).
-- Wrap its framework-specific steps in `<View title="React Router" icon="/images/icons/react-router.svg">` and `<View title="Next.js" icon="/images/icons/nextjs.svg">`.
-- Before writing the Next.js view, check its imports and loader shape against `../weaverse/packages/next`.
-- The other three shared pages need no View today.
+**`<Prompt>`**: the card only renders `description`, so each prompt repeats its full text in `description` to keep it readable.
 
 ### 1.4 Agent-only guidance
 
@@ -183,7 +179,7 @@ Builder already maintains an OpenAPI 3.1 spec:
 | `hydrogen-themes/pilot-theme-overview.mdx`, `hydrogen-themes/forward.mdx` | `<GitHub.Repo>` |
 | `developer-tools/shopify-hydrogen-skills.mdx` | `<FileTree>`, `<Prompt>` |
 | `developer-tools/weaverse-mcp.mdx` | `<Prompt>` (read-only "Try it" prompt) |
-| `features/third-party-integrations.mdx` | `<View>` React Router / Next.js |
+| `nextjs/third-party-integrations.mdx` (new) | Next.js version of the third-party integration guide; replaces the shared page in the Next.js dropdown |
 | `resources/index.mdx` | delete the "Learning Resources" links that the directory listing duplicates (`guides/deployment/index` keeps its content) |
 | `development-guide/component-schema.mdx`, `api-reference/types.mdx`, `migration-advanced/v5-migration.mdx` | `<Visibility for="agents">` notes |
 | `AGENTS.md` | refresh Package Versions; note the new components and settings |
