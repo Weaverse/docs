@@ -17,7 +17,7 @@ https://studio.weaverse.io/api/v1/content
 
 ## Endpoints
 
-The endpoint reference in the sidebar is generated from the API's [OpenAPI 3.1 specification](https://studio.weaverse.io/api/v1/content/openapi.json), so it always matches what production serves. Endpoints are grouped by area:
+The endpoint reference in the sidebar is generated from the API's [OpenAPI 3.1 specification](https://studio.weaverse.io/api/v1/content/openapi.json), and is refreshed each time the docs are deployed. Endpoints are grouped by area:
 
 | Area | What it covers |
 |---|---|
@@ -78,7 +78,7 @@ curl -H "Authorization: Bearer YOUR_API_KEY" \
 
 Content API keys are provisioned per shop. Generate one from the **Weaverse Dashboard → Settings**.
 
-### Scoping
+### Shop isolation
 
 Each API key is scoped to a single Weaverse shop. Requests can only access projects that belong to that shop. Attempting to access another shop's project returns a `403 Forbidden` error.
 
