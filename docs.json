@@ -177,7 +177,7 @@
                     "pages": [
                       "features/global-sections",
                       "features/navigation-menus",
-                      "features/third-party-integrations",
+                      "nextjs/third-party-integrations",
                       "features/mobile-app-pwa"
                     ]
                   },

@@ -1,0 +1,284 @@
+---
+title: "Third-party Integrations in Next.js"
+description: "Add third-party apps to a Weaverse Next.js theme: wrap an app's React components in sections, or fetch its API from a server loader that keeps credentials off the client."
+published: true
+---
+
+# Third-party Integrations in Next.js
+
+Third-party apps add product reviews, marketing tools, forms and other services to your storefront. In a `@weaverse/next` theme you integrate them as Weaverse sections, so merchants can place and configure them in Studio.
+
+There are two approaches: render the app's React components in a section, or call the app's API from a section loader on the server.
+
+This is the Next.js counterpart of [Third-party Integration](/features/third-party-integrations). It assumes the client and server registries from the [Quickstart](/nextjs/quickstart).
+
+## Using the App's Component Library
+
+Many third-party applications provide React components that you can incorporate directly into your Weaverse sections:
+
+1. **Install the Library**
+
+   ```bash
+   npm install @third-party-app/react
+   ```
+
+2. **Create the Schema**
+
+   ```ts
+   // sections/third-party-widget/schema.ts
+   import { createSchema } from '@weaverse/next'
+
+   export let schema = createSchema({
+     type: 'third-party-widget',
+     title: 'Third Party Widget',
+     settings: [
+       {
+         group: 'Widget Settings',
+         inputs: [
+           {
+             type: 'text',
+             name: 'widgetId',
+             label: 'Widget ID',
+             defaultValue: '',
+             helpText: 'Public widget ID from the third-party dashboard. Do not enter secret keys here.',
+           },
+         ],
+       },
+     ],
+   })
+   ```
+
+3. **Create the Section Component**
+
+   Sections render inside `WeaverseNextRenderer`, a Client Component, so the section module is `'use client'`:
+
+   ```tsx
+   // sections/third-party-widget/index.tsx
+   'use client'
+
+   import { ThirdPartyComponent } from '@third-party-app/react'
+
+   export { schema } from './schema'
+
+   export default function ThirdPartyWidget({
+     widgetId,
+     ...rest
+   }: {
+     // Public, non-secret identifier only: section settings are saved with
+     // page data and rendered into public markup.
+     widgetId?: string
+   }) {
+     // Spread the runtime props (`data-wv-id`, `data-wv-type`, ...) so Studio
+     // can select the section.
+     return (
+       <section {...rest}>
+         {widgetId ? <ThirdPartyComponent widgetId={widgetId} /> : null}
+       </section>
+     )
+   }
+   ```
+
+   <Warning>
+     If the app requires a private API key or token, keep it in a server environment variable and call the app's API from a server loader, as shown below. Only publishable, browser-safe identifiers belong in Studio settings.
+   </Warning>
+
+4. **Register the Section**
+
+   Add the section to the client registry, and its schema to the server registry:
+
+   ```ts
+   // weaverse/components.ts
+   'use client'
+
+   import type { WeaverseNextComponent } from '@weaverse/next'
+   import * as ThirdPartyWidget from '../sections/third-party-widget'
+
+   export let components: WeaverseNextComponent[] = [
+     // Other sections
+     ThirdPartyWidget,
+   ]
+   ```
+
+   ```ts
+   // weaverse/server-components.ts
+   import 'server-only'
+
+   import type { WeaverseNextComponent } from '@weaverse/next'
+   import { schema as thirdPartyWidgetSchema } from '../sections/third-party-widget/schema'
+
+   let NO_RENDER = (() => null) as WeaverseNextComponent['default']
+
+   export let serverComponents: WeaverseNextComponent[] = [
+     // Other sections
+     { default: NO_RENDER, schema: thirdPartyWidgetSchema },
+   ]
+   ```
+
+## Querying App Data from App's API
+
+For third-party services that offer a REST or GraphQL API, fetch the data in a section loader. Loaders run on the server, so the API key never reaches the browser:
+
+1. **Store API Credentials Securely**
+
+   ```env
+   # .env.local
+   THIRD_PARTY_API_KEY=your_secret_key_here
+   ```
+
+2. **Write the Loader**
+
+   Keep the loader in its own file so only the server registry imports it:
+
+   ```ts
+   // sections/api-widget/loader.ts
+   import 'server-only'
+
+   import type { WeaverseNextComponent } from '@weaverse/next'
+
+   type LoaderArgs = Parameters<NonNullable<WeaverseNextComponent['loader']>>[0]
+
+   export type ApiWidgetLoaderData = {
+     items: { id: string; title: string; description: string }[]
+     error?: boolean
+   }
+
+   export async function loader({ data }: LoaderArgs): Promise<ApiWidgetLoaderData> {
+     let { resourceId, itemsToShow = 5 } = data as { resourceId?: string; itemsToShow?: number }
+     if (!resourceId) return { items: [] }
+
+     try {
+       let response = await fetch(
+         `https://api.third-party.com/resources/${resourceId}?limit=${itemsToShow}`,
+         {
+           headers: { Authorization: `Bearer ${process.env.THIRD_PARTY_API_KEY}` },
+           // Next.js data cache: reuse the response for 60 seconds
+           next: { revalidate: 60, tags: ['third-party'] },
+         }
+       )
+       if (!response.ok) return { items: [], error: true }
+       return { items: (await response.json()).items }
+     } catch (error) {
+       console.error('Error fetching data:', error)
+       return { items: [], error: true }
+     }
+   }
+   ```
+
+3. **Create the Schema**
+
+   ```ts
+   // sections/api-widget/schema.ts
+   import { createSchema } from '@weaverse/next'
+
+   export let schema = createSchema({
+     type: 'api-widget',
+     title: 'API Widget',
+     settings: [
+       {
+         group: 'API Settings',
+         inputs: [
+           {
+             type: 'text',
+             name: 'resourceId',
+             label: 'Resource ID',
+             defaultValue: '',
+             shouldRevalidate: true, // Re-runs the loader when changed
+           },
+           {
+             type: 'range',
+             name: 'itemsToShow',
+             label: 'Items to Show',
+             defaultValue: 5,
+             shouldRevalidate: true,
+             configs: { min: 1, max: 20, step: 1 },
+           },
+         ],
+       },
+     ],
+   })
+   ```
+
+4. **Render the Loader Data**
+
+   ```tsx
+   // sections/api-widget/index.tsx
+   'use client'
+
+   import type { ApiWidgetLoaderData } from './loader'
+
+   export { schema } from './schema'
+
+   export default function ApiWidget({
+     loaderData,
+     resourceId,
+     itemsToShow,
+     ...rest
+   }: {
+     loaderData?: ApiWidgetLoaderData
+     resourceId?: string
+     itemsToShow?: number
+   }) {
+     if (loaderData?.error) {
+       return (
+         <section {...rest}>
+           <div className="p-4 text-center text-red-500">
+             Unable to load content from external API
+           </div>
+         </section>
+       )
+     }
+
+     return (
+       <section {...rest}>
+         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+           {loaderData?.items.map((item) => (
+             <div key={item.id} className="rounded border p-4">
+               <h3>{item.title}</h3>
+               <p>{item.description}</p>
+             </div>
+           ))}
+         </div>
+       </section>
+     )
+   }
+   ```
+
+5. **Register the Section and Its Loader**
+
+   Add the component to the client registry, and the schema with its loader to the server registry:
+
+   ```ts
+   // weaverse/components.ts
+   'use client'
+
+   import type { WeaverseNextComponent } from '@weaverse/next'
+   import * as ApiWidget from '../sections/api-widget'
+
+   export let components: WeaverseNextComponent[] = [
+     // Other sections
+     ApiWidget,
+   ]
+   ```
+
+   ```ts
+   // weaverse/server-components.ts
+   import 'server-only'
+
+   import type { WeaverseNextComponent } from '@weaverse/next'
+   import { loader as apiWidgetLoader } from '../sections/api-widget/loader'
+   import { schema as apiWidgetSchema } from '../sections/api-widget/schema'
+
+   let NO_RENDER = (() => null) as WeaverseNextComponent['default']
+
+   export let serverComponents: WeaverseNextComponent[] = [
+     // Other sections
+     { default: NO_RENDER, schema: apiWidgetSchema, loader: apiWidgetLoader },
+   ]
+   ```
+
+   Per-item revalidation (`shouldRevalidate`) needs the route handler from [Studio Integration](/nextjs/studio#per-item-revalidation).
+
+## Further Reading
+
+- [Data Fetching in Next.js](/nextjs/data-fetching): loader arguments, the commerce context, market-scoped reads and caching.
+- [Studio Integration](/nextjs/studio#per-item-revalidation): the route handler that re-runs a loader when a merchant changes a setting.
