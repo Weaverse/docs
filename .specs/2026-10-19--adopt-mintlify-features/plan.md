@@ -118,27 +118,19 @@ Builder already maintains an OpenAPI 3.1 spec:
 - Scope: 30 paths with a `bearerAuth` scheme that documents the scopes.
 - Coverage: the docs cover 11 endpoints by hand. The spec also has versions, drafts, global sections, translations, backups, export/import, previews and hostnames.
 
-### Approach
+### Approach (shipped)
 
-1. **Spec source**: point Mintlify at the builder spec. Do not hand-write a copy.
-   - Preferred: the remote URL in `docs.json` (`"openapi": "https://studio.weaverse.io/api/v1/content/openapi.json"`), if Mintlify accepts a URL there. Check in Phase 2.
-   - Fallback: copy it to `api/content-api.openapi.json` with a sync script or a builder CI step that opens a PR on `Weaverse/docs`.
-2. **Navigation**: the Content API tab keeps `content-api/overview` (prose: auth, keys, scopes, rate limits, errors). The endpoint groups become MDX pages with `openapi: "<spec> GET /projects/{projectId}/pages"` frontmatter. These keep the current URLs and let us add prose such as handle rules and page-type lists. Use auto-generated pages only for endpoints we never document by hand.
-3. **`docs.json`**:
-   - `api.openapi`.
-   - `api.examples.languages: ["curl", "javascript", "python"]`.
-   - `api.playground.display: "interactive"`.
-   - Append `"download-spec"` to `contextual.options`. It only shows on API reference pages.
-4. **Content diff**:
-   - Move any prose from the current MDX that the spec lacks (handle rules, page-type lists) into spec `description`s upstream in builder. Otherwise keep it as MDX body under the generated reference.
-   - Report spec gaps, such as missing examples, as builder issues. Don't patch them in docs.
-5. **Exposure**: decide with the owner which of the 19 undocumented endpoints are public. Hide internal ones in the spec with `x-hidden` or `x-excluded`.
-6. **Redirects**: none if the MDX filenames stay. Otherwise add entries under `redirects`.
+1. **Spec source**: the Content API tab's `openapi` points at the remote builder spec (`https://studio.weaverse.io/api/v1/content/openapi.json`). The docs keep no copy; endpoint details, examples and notes live in the builder spec (Weaverse/builder#3239, released in 2026.10.36).
+2. **Navigation**: a "Get started" group keeps the prose pages (`content-api/overview`, `content-api/portable-text`, `content-api/public-custom-pages`). Every operation gets an auto-generated page, grouped by spec tag, under `directory: "content-api"`, so URLs are `/content-api/<tag>/<summary>`.
+3. **Exposure**: all 51 operations are public.
+4. **Playground**: `api.playground.display: "interactive"`, but the overlay `api/content-api-overlay.yaml` sets `x-mint.metadata.playground: simple` on every `post`, `put`, `patch` and `delete` operation. Only `GET` pages have **Try it**, because playground requests hit production with the reader's real key. The overview has a `Warning` about it.
+5. **`docs.json`**: `api.examples` (`curl`, `javascript`, `python`; required parameters only) and `download-spec` in `contextual.options`.
+6. **Removed pages**: the 11 hand-written endpoint pages. Their Portable Text section moved to `content-api/portable-text`; everything else is in the spec. Each old URL redirects to its generated page.
 
-### Open questions
+### Risks
 
-- Is the playground safe to expose, given that readers paste a real API key and the requests hit production? Add a `Warning` callout to the overview.
-- Should the builder spec be the single source of truth, so that docs never edit endpoint details?
+- Generated URLs follow the spec's tag and `summary`. Renaming a summary or tag in builder changes the URL; add a redirect in the same release.
+- The reference reflects production as soon as Mintlify rebuilds, so spec changes ship to docs with the builder release.
 
 ## Phase 3: SDK Reference From TypeDoc
 
@@ -188,10 +180,14 @@ Builder already maintains an OpenAPI 3.1 spec:
 
 | Path | Change |
 |---|---|
-| `docs.json` | `api` block, `download-spec`, Content API navigation |
-| `content-api/*.mdx` | tables → `openapi` frontmatter, keep the prose |
-| `api/content-api.openapi.json` | only if the remote URL is unsupported (synced copy) |
-| `builder/app/routes/api/v1/content/openapi.json` (other repo) | upstream description and example fixes |
+| `docs.json` | `api` block, `download-spec`, Content API tab `openapi` (remote spec + overlay), redirects |
+| `api/content-api-overlay.yaml` | new: write endpoints get `playground: simple` |
+| `content-api/overview.mdx` | endpoint areas, playground warning, scopes, full error codes |
+| `content-api/portable-text.mdx` | new: moved from the old Get Page page |
+| `content-api/*.mdx` (11 endpoint pages) | deleted, replaced by generated pages |
+| `content-api/public-custom-pages.mdx`, `developer-tools/weaverse-mcp.mdx`, `changelog/index.mdx` | links to the new URLs |
+| `AGENTS.md` | Content API section under Mintlify Features in Use |
+| `builder/app/routes/api/v1/content/openapi.json` (other repo) | descriptions, examples and fixes (builder#3239, #3242) |
 
 ### Phase 3
 
