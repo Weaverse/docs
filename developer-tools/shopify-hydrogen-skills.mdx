@@ -19,6 +19,12 @@ npx skills add Weaverse/shopify-hydrogen-skills
 
 Auto-detects your coding agents and installs to all of them. Powered by [skills.sh](https://skills.sh).
 
+Or ask your coding agent to start a project with the skills:
+
+<Prompt description="Install the Weaverse Shopify Hydrogen agent skills with `npx skills add Weaverse/shopify-hydrogen-skills`. Then load the `setup-weaverse-project` skill and use it to create a new Weaverse Hydrogen storefront from the Pilot theme, run it locally, and connect it to Weaverse Studio. Ask me for my Weaverse project ID and Shopify store credentials when you need them." actions={["copy", "cursor"]}>
+Install the Weaverse Shopify Hydrogen agent skills with `npx skills add Weaverse/shopify-hydrogen-skills`. Then load the `setup-weaverse-project` skill and use it to create a new Weaverse Hydrogen storefront from the Pilot theme, run it locally, and connect it to Weaverse Studio. Ask me for my Weaverse project ID and Shopify store credentials when you need them.
+</Prompt>
+
 For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/shopify-hydrogen-skills/blob/main/INSTALL.md).
 
 ## Available Skills
@@ -79,28 +85,32 @@ The `references/` folders in each skill serve as **offline fallback** — cached
 
 ## Repo Structure
 
-```
-├── skills/
-│   ├── shopify-hydrogen/          # Core Hydrogen APIs
-│   │   ├── SKILL.md
-│   │   └── references/            # Setup, caching, cart patterns
-│   ├── weaverse-hydrogen/         # Weaverse CMS integration
-│   │   ├── references/            # 13 deep-dive guides
-│   │   └── examples/              # Production-ready component code
-│   ├── hydrogen-cookbooks/        # Feature recipes
-│   │   └── references/            # Bundles, combined listings, 3D, etc.
-│   ├── hydrogen-upgrades/         # Framework version migrations
-│   │   └── references/            # Version-specific migration guides
-│   ├── theme-update/              # Pilot theme updater
-│   │   ├── SKILL.md
-│   │   └── scripts/
-│   └── weaverse-integration/      # Integrate into existing Hydrogen
-│       └── SKILL.md
-├── scripts/                       # Live doc fetching (shared)
-├── .cursorrules                   # Cursor agent rules
-├── AGENTS.md                      # Repo guidance for AI agents
-└── INSTALL.md                     # Manual per-agent install guide
-```
+<FileTree>
+
+- skills/
+  - shopify-hydrogen/
+    - SKILL.md
+    - references/
+  - weaverse-hydrogen/
+    - references/
+    - examples/
+  - hydrogen-cookbooks/
+    - references/
+  - hydrogen-upgrades/
+    - references/
+  - theme-update/
+    - SKILL.md
+    - scripts/
+  - weaverse-integration/
+    - SKILL.md
+- scripts/
+- .cursorrules
+- AGENTS.md
+- INSTALL.md
+
+</FileTree>
+
+Each skill keeps its deep-dive guides in `references/`. `scripts/` holds the shared live doc fetching scripts, and `INSTALL.md` covers manual per-agent setup.
 
 ## Using with Weaverse MCP
 
@@ -120,6 +130,4 @@ PRs welcome — especially for:
 - Improved offline references
 - New live doc scripts for other sources
 
-<Card title="GitHub Repository" icon="github" href="https://github.com/Weaverse/shopify-hydrogen-skills">
-  View source, report issues, and contribute on GitHub
-</Card>
+<GitHub.Repo repo="Weaverse/shopify-hydrogen-skills" />

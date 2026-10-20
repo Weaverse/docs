@@ -425,12 +425,21 @@ Changes deploy automatically:
 ## Package Versions
 
 Documentation covers:
-- **@weaverse/hydrogen**: v5.4.2
-- **@weaverse/react**: v5.4.2
-- **@weaverse/core**: v5.4.2
-- **@weaverse/shopify**: v5.4.2
-- **@weaverse/schema**: v0.7.3
+- **@weaverse/hydrogen**: v5.23.0
+- **@weaverse/react**: v5.23.0
+- **@weaverse/core**: v5.23.0
+- **@weaverse/next**: v1.0.1
+- **@weaverse/shopify**: v5.8.4
+- **@weaverse/schema**: v0.19.0
 - **@weaverse/cli**: Latest
 - **@weaverse/mcp**: Latest
 
 When documenting features, verify they match current SDK capabilities.
+
+## Mintlify Features in Use
+
+- **Agent instructions**: `docs.json` → `markdown.instructions` is prepended to `llms.txt`, `llms-full.txt` and every page's `.md`. Keep it in sync with the Package Versions above.
+- **Agent-only notes**: `<Visibility for="agents">` content is hidden on the site and shown only in Markdown output. `for` must be a static string.
+- **Directory listings**: groups with a `root` page and `"directory": "card"` list their child pages automatically. Don't hand-maintain `CardGroup`s that repeat them, and don't list the root page again in `pages`.
+- **Components**: `<FileTree>` for folder layouts (blank line after the opening tag and before the closing tag), `<GitHub.Repo repo="Weaverse/<repo>" />` for repo cards, `<Prompt>` for copyable AI prompts. Don't use `<View>` to switch frameworks: give each framework its own page in its sidebar dropdown (for example `features/third-party-integrations` and `nextjs/third-party-integrations`).
+- **Prompts**: `<Prompt>` only shows its `description`, so put the full prompt text in `description` as well as in the body, so readers can see what they copy.

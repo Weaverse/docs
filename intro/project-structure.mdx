@@ -10,29 +10,50 @@ The Weaverse Hydrogen theme follows a modern Shopify Hydrogen structure, optimiz
 
 ## Core Structure
 
-```text
-🌳 my-theme
-├── 📁 app/
-│   ├── 📁 .server/            # Server-only modules (load context, root loaders)
-│   ├── 📁 components/         # Reusable UI components
-│   ├── 📁 graphql/            # GraphQL queries and fragments
-│   ├── 📁 hooks/              # Custom React hooks
-│   ├── 📁 routes/             # Application routes
-│   ├── 📁 sections/           # Theme sections
-│   ├── 📁 styles/             # Global styles and Tailwind CSS entry
-│   ├── 📁 types/              # TypeScript definitions
-│   ├── 📁 utils/              # Helper functions
-│   ├── 📁 weaverse/           # Weaverse configuration
-│   ├── 📄 entry.client.tsx
-│   ├── 📄 entry.server.tsx
-│   ├── 📄 routes.ts           # Route configuration
-│   └── 📄 root.tsx
-├── 📁 public/                 # Static assets
-├── 📄 server.ts               # Oxygen request handler
-├── 📄 vite.config.ts          # Build configuration (includes the Tailwind v4 plugin)
-├── 📄 react-router.config.ts  # React Router configuration
-└── 📄 .env                    # Environment variables
-```
+<FileTree>
+
+- my-theme/
+  - app/
+    - .server/
+    - components/
+    - graphql/
+    - hooks/
+    - routes/
+    - sections/
+    - styles/
+    - types/
+    - utils/
+    - weaverse/
+    - entry.client.tsx
+    - entry.server.tsx
+    - routes.ts
+    - root.tsx
+  - public/
+  - server.ts
+  - vite.config.ts
+  - react-router.config.ts
+  - .env
+
+</FileTree>
+
+| Path | Purpose |
+| --- | --- |
+| `app/.server/` | Server-only modules (load context, root loaders) |
+| `app/components/` | Reusable UI components |
+| `app/graphql/` | GraphQL queries and fragments |
+| `app/hooks/` | Custom React hooks |
+| `app/routes/` | Application routes |
+| `app/sections/` | Theme sections |
+| `app/styles/` | Global styles and Tailwind CSS entry |
+| `app/types/` | TypeScript definitions |
+| `app/utils/` | Helper functions |
+| `app/weaverse/` | Weaverse configuration |
+| `app/routes.ts` | Route configuration |
+| `public/` | Static assets |
+| `server.ts` | Oxygen request handler |
+| `vite.config.ts` | Build configuration (includes the Tailwind v4 plugin) |
+| `react-router.config.ts` | React Router configuration |
+| `.env` | Environment variables |
 
 ## Key Directories
 

@@ -19,17 +19,29 @@ Weaverse themes consist of:
 
 ## Available Themes
 
-### Pilot Theme
-Our flagship starter theme showcasing Weaverse's capabilities:
+All Weaverse themes are open source.
 
-- **[Overview](/hydrogen-themes/pilot-theme-overview)** - Theme features and structure
-- **[Sections](/hydrogen-themes/pilot-theme-sections)** - Available page sections  
-- **[Customization](/hydrogen-themes/pilot-theme-customization)** - Fonts, colors, and styling
+### Pilot
 
-### Forward Theme
-The Next.js App Router starter theme, built on `@weaverse/next`:
+Our flagship React Router starter theme. See its [overview](/hydrogen-themes/pilot-theme-overview), [sections](/hydrogen-themes/pilot-theme-sections) and [customization](/hydrogen-themes/pilot-theme-customization) guides.
 
-- **[Overview](/hydrogen-themes/forward)** - Features, structure, and setup
+<GitHub.Repo repo="Weaverse/pilot" />
+
+### Forward
+
+The Next.js App Router starter theme, built on `@weaverse/next`. See its [overview](/hydrogen-themes/forward).
+
+<GitHub.Repo repo="Weaverse/forward" />
+
+### Aspen, Maison and Naturelle
+
+React Router themes for specific store types, also listed in the [theme gallery](https://weaverse.io/themes).
+
+<GitHub.Repo repo="Weaverse/aspen" />
+
+<GitHub.Repo repo="Weaverse/maison" />
+
+<GitHub.Repo repo="Weaverse/naturelle" />
 
 ## Creating Themes
 
@@ -41,15 +53,19 @@ Browse the official gallery of ready-to-use Weaverse Hydrogen themes.
 
 ## Theme Architecture
 
-```
-my-weaverse-theme/
-├── app/
-│   ├── components/          # Reusable UI components
-│   ├── sections/            # Weaverse page sections
-│   ├── routes/              # React Router pages
-│   └── weaverse/            # Weaverse configuration
-└── public/                  # Static assets
-```
+<FileTree>
+
+- my-weaverse-theme/
+  - app/
+    - components/
+    - sections/
+    - routes/
+    - weaverse/
+  - public/
+
+</FileTree>
+
+`components/` holds reusable UI, `sections/` the Weaverse page sections, `routes/` the React Router pages, `weaverse/` the Weaverse configuration, and `public/` static assets.
 
 ## Key Features
 

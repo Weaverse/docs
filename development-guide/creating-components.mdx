@@ -12,12 +12,20 @@ This guide walks you through creating Weaverse components from scratch, covering
 
 Every Weaverse component follows this structure:
 
-```
-app/sections/my-component/
-├── index.tsx           # Main component file
-├── schema.ts          # Schema definition (optional separate file)
-└── loader.ts          # Data loader (optional separate file)
-```
+<FileTree>
+
+- app/
+  - sections/
+    - my-component/
+      - index.tsx
+      - schema.ts
+      - loader.ts
+
+</FileTree>
+
+- `index.tsx`: main component file
+- `schema.ts`: schema definition (optional separate file)
+- `loader.ts`: data loader (optional separate file)
 
 Or as a single file:
 

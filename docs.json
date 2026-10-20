@@ -8,6 +8,30 @@
     "dark": "#1e40af"
   },
   "favicon": "/favicon.ico",
+  "metadata": {
+    "timestamp": true
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Weaverse Docs",
+      "twitter:site": "@WeaverseIO",
+      "keywords": "Weaverse, Shopify Hydrogen, headless commerce, visual page builder, React Router, Next.js"
+    },
+    "organization": {
+      "name": "Weaverse",
+      "url": "https://weaverse.io",
+      "logo": "https://docs.weaverse.io/logo/light.svg",
+      "sameAs": [
+        "https://github.com/weaverse",
+        "https://x.com/WeaverseIO",
+        "https://wvse.cc/weaverse-slack"
+      ]
+    }
+  },
+  "thumbnails": {
+    "preset": "headline",
+    "appearance": "dark"
+  },
   "integrations": {
     "posthog": {
       "apiKey": "phc_BnZAhY8ELZCZukEErb6ab9T7txSsMolcgGIIhMj5oSP",
@@ -117,8 +141,9 @@
                   },
                   {
                     "group": "Deployment",
+                    "root": "guides/deployment/index",
+                    "directory": "card",
                     "pages": [
-                      "guides/deployment/index",
                       "guides/deployment/oxygen",
                       "guides/deployment/custom-domain-and-dns",
                       "guides/deployment/docker",
@@ -152,7 +177,7 @@
                     "pages": [
                       "features/global-sections",
                       "features/navigation-menus",
-                      "features/third-party-integrations",
+                      "nextjs/third-party-integrations",
                       "features/mobile-app-pwa"
                     ]
                   },
@@ -296,8 +321,9 @@
               },
               {
                 "group": "Themes",
+                "root": "hydrogen-themes/index",
+                "directory": "card",
                 "pages": [
-                  "hydrogen-themes/index",
                   "hydrogen-themes/pilot-theme-overview",
                   "hydrogen-themes/pilot-theme-customization",
                   "hydrogen-themes/pilot-theme-sections",
@@ -331,8 +357,9 @@
             "pages": [
               {
                 "group": "Help",
+                "root": "resources/index",
+                "directory": "card",
                 "pages": [
-                  "resources/index",
                   "resources/faq",
                   "resources/tutorial",
                   "resources/example-components",
@@ -394,6 +421,7 @@
       "claude",
       "perplexity",
       "mcp",
+      "add-mcp",
       "cursor",
       "vscode"
     ]
@@ -466,5 +494,14 @@
       "github": "https://github.com/weaverse",
       "slack": "https://wvse.cc/weaverse-slack"
     }
+  },
+  "markdown": {
+    "instructions": [
+      "Weaverse component configuration uses `settings`. `inspector` is deprecated; never generate it.",
+      "Weaverse Hydrogen themes use React Router v7: import from `react-router`, never `react-router-dom` or `@remix-run/*`.",
+      "Define component schemas with `createSchema()` from `@weaverse/hydrogen` (React Router themes) or `@weaverse/next` (Next.js themes).",
+      "These docs cover @weaverse/hydrogen, @weaverse/react and @weaverse/core 5.x, and @weaverse/next 1.x. Do not use APIs from other major versions.",
+      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://docs.weaverse.io/developer-tools/weaverse-mcp"
+    ]
   }
 }

@@ -28,19 +28,32 @@ Weaverse bridges the gap between developer flexibility and merchant usability by
 
 Weaverse projects follow a modern Hydrogen structure optimized for visual editing:
 
-```
-my-hydrogen-store/
-├── app/
-│   ├── .server/             # Server-only modules (load context, root loaders)
-│   ├── components/          # Reusable UI components
-│   ├── sections/            # Weaverse page sections
-│   ├── routes/              # React Router v7 route modules
-│   ├── utils/               # Utilities and helpers
-│   └── weaverse/            # Weaverse configuration (component registry, theme schema)
-├── public/                  # Static assets
-├── server.ts                # Oxygen request handler
-└── package.json
-```
+<FileTree>
+
+- my-hydrogen-store/
+  - app/
+    - .server/
+    - components/
+    - sections/
+    - routes/
+    - utils/
+    - weaverse/
+  - public/
+  - server.ts
+  - package.json
+
+</FileTree>
+
+| Path | Purpose |
+| --- | --- |
+| `app/.server/` | Server-only modules (load context, root loaders) |
+| `app/components/` | Reusable UI components |
+| `app/sections/` | Weaverse page sections |
+| `app/routes/` | React Router v7 route modules |
+| `app/utils/` | Utilities and helpers |
+| `app/weaverse/` | Weaverse configuration (component registry, theme schema) |
+| `public/` | Static assets |
+| `server.ts` | Oxygen request handler |
 
 **Key Concepts:**
 - **Components**: Reusable UI elements with configurable properties
