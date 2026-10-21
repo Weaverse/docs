@@ -205,30 +205,12 @@
                     ]
                   },
                   {
-                    "group": "Hooks",
-                    "pages": [
-                      "api-reference/use-weaverse",
-                      "api-reference/use-item-instance",
-                      "api-reference/use-parent-instance",
-                      "api-reference/use-child-instances",
-                      "api-reference/use-theme-settings"
-                    ]
-                  },
-                  {
-                    "group": "Components",
-                    "pages": [
-                      "api-reference/weaverse-root",
-                      "api-reference/weaverse-client",
-                      "api-reference/with-weaverse"
-                    ]
-                  },
-                  {
-                    "group": "Utilities & Types",
-                    "pages": [
-                      "api-reference/get-selected-product-options",
-                      "api-reference/images-placeholders",
-                      "api-reference/types"
-                    ]
+                    "group": "Reference",
+                    "sdk": {
+                      "format": "typedoc",
+                      "source": "sdk-artifacts/hydrogen.json",
+                      "directory": "api-reference"
+                    }
                   }
                 ]
               },
@@ -243,14 +225,12 @@
                     ]
                   },
                   {
-                    "group": "Hooks",
-                    "pages": [
-                      "nextjs/api/use-weaverse",
-                      "nextjs/api/use-item-instance",
-                      "nextjs/api/use-parent-instance",
-                      "nextjs/api/use-child-instances",
-                      "nextjs/api/use-theme-settings"
-                    ]
+                    "group": "Reference",
+                    "sdk": {
+                      "format": "typedoc",
+                      "source": "sdk-artifacts/next.json",
+                      "directory": "nextjs/api"
+                    }
                   }
                 ]
               }
@@ -513,6 +493,70 @@
     {
       "source": "/content-api/list-languages",
       "destination": "/content-api/languages-and-localization/list-project-languages"
+    },
+    {
+      "source": "/api-reference/use-weaverse",
+      "destination": "/api-reference/functions/useWeaverse"
+    },
+    {
+      "source": "/api-reference/use-item-instance",
+      "destination": "/api-reference/functions/useItemInstance"
+    },
+    {
+      "source": "/api-reference/use-parent-instance",
+      "destination": "/api-reference/functions/useParentInstance"
+    },
+    {
+      "source": "/api-reference/use-child-instances",
+      "destination": "/api-reference/functions/useChildInstances"
+    },
+    {
+      "source": "/api-reference/use-theme-settings",
+      "destination": "/api-reference/functions/useThemeSettings"
+    },
+    {
+      "source": "/api-reference/weaverse-root",
+      "destination": "/api-reference/variables/WeaverseHydrogenRoot"
+    },
+    {
+      "source": "/api-reference/weaverse-client",
+      "destination": "/api-reference/classes/WeaverseClient"
+    },
+    {
+      "source": "/api-reference/with-weaverse",
+      "destination": "/api-reference/functions/withWeaverse"
+    },
+    {
+      "source": "/api-reference/get-selected-product-options",
+      "destination": "/api-reference/functions/getSelectedProductOptions"
+    },
+    {
+      "source": "/api-reference/images-placeholders",
+      "destination": "/api-reference/variables/IMAGES_PLACEHOLDERS"
+    },
+    {
+      "source": "/api-reference/types",
+      "destination": "/api-reference/types/HydrogenComponentSchema"
+    },
+    {
+      "source": "/nextjs/api/use-weaverse",
+      "destination": "/nextjs/api/main/functions/useWeaverse"
+    },
+    {
+      "source": "/nextjs/api/use-item-instance",
+      "destination": "/nextjs/api/main/functions/useItemInstance"
+    },
+    {
+      "source": "/nextjs/api/use-parent-instance",
+      "destination": "/nextjs/api/main/functions/useParentInstance"
+    },
+    {
+      "source": "/nextjs/api/use-child-instances",
+      "destination": "/nextjs/api/main/functions/useChildInstances"
+    },
+    {
+      "source": "/nextjs/api/use-theme-settings",
+      "destination": "/nextjs/api/main/functions/useThemeSettings"
     }
   ],
   "footer": {
