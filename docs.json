@@ -258,41 +258,23 @@
           },
           {
             "tab": "Content API",
-            "pages": [
-              "content-api/overview",
+            "groups": [
               {
-                "group": "Projects",
+                "group": "Get started",
                 "pages": [
-                  "content-api/list-projects",
-                  "content-api/update-project"
-                ]
-              },
-              {
-                "group": "Pages",
-                "pages": [
-                  "content-api/list-pages",
-                  "content-api/public-custom-pages",
-                  "content-api/create-page",
-                  "content-api/get-page",
-                  "content-api/update-page",
-                  "content-api/delete-pages",
-                  "content-api/assign-template-resources"
-                ]
-              },
-              {
-                "group": "Theme settings",
-                "pages": [
-                  "content-api/get-theme-settings",
-                  "content-api/update-theme-settings"
-                ]
-              },
-              {
-                "group": "Languages",
-                "pages": [
-                  "content-api/list-languages"
+                  "content-api/overview",
+                  "content-api/portable-text",
+                  "content-api/public-custom-pages"
                 ]
               }
-            ]
+            ],
+            "openapi": {
+              "source": "https://studio.weaverse.io/api/v1/content/openapi.json",
+              "overlays": [
+                "api/content-api-overlay.yaml"
+              ],
+              "directory": "content-api"
+            }
           },
           {
             "tab": "Ecosystem",
@@ -422,6 +404,7 @@
       "perplexity",
       "mcp",
       "add-mcp",
+      "download-spec",
       "cursor",
       "vscode"
     ]
@@ -486,6 +469,50 @@
     {
       "source": "/features/contact-form-klaviyo",
       "destination": "/hydrogen-integrations/contact-form-klaviyo"
+    },
+    {
+      "source": "/content-api/list-projects",
+      "destination": "/content-api/projects/list-projects"
+    },
+    {
+      "source": "/content-api/update-project",
+      "destination": "/content-api/projects/update-project"
+    },
+    {
+      "source": "/content-api/list-pages",
+      "destination": "/content-api/pages/list-page-assignments"
+    },
+    {
+      "source": "/content-api/create-page",
+      "destination": "/content-api/pages/create-a-page"
+    },
+    {
+      "source": "/content-api/get-page",
+      "destination": "/content-api/pages/get-page-content"
+    },
+    {
+      "source": "/content-api/update-page",
+      "destination": "/content-api/pages/update-page-content"
+    },
+    {
+      "source": "/content-api/delete-pages",
+      "destination": "/content-api/pages/bulk-delete-pages"
+    },
+    {
+      "source": "/content-api/assign-template-resources",
+      "destination": "/content-api/assignments/assign-resources-to-a-shared-template-page"
+    },
+    {
+      "source": "/content-api/get-theme-settings",
+      "destination": "/content-api/theme-settings/get-theme-settings"
+    },
+    {
+      "source": "/content-api/update-theme-settings",
+      "destination": "/content-api/theme-settings/update-theme-settings"
+    },
+    {
+      "source": "/content-api/list-languages",
+      "destination": "/content-api/languages-and-localization/list-project-languages"
     }
   ],
   "footer": {
@@ -503,5 +530,18 @@
       "These docs cover @weaverse/hydrogen, @weaverse/react and @weaverse/core 5.x, and @weaverse/next 1.x. Do not use APIs from other major versions.",
       "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://docs.weaverse.io/developer-tools/weaverse-mcp"
     ]
+  },
+  "api": {
+    "playground": {
+      "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "javascript",
+        "python"
+      ],
+      "defaults": "required"
+    }
   }
 }

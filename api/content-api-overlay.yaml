@@ -1,0 +1,28 @@
+overlay: 1.1.0
+info:
+  title: Weaverse docs adjustments to the Content API spec
+  version: 1.0.0
+actions:
+  # Playground requests hit production with the reader's real API key, so only
+  # read-only GET endpoints get the interactive playground. Writes show a
+  # copyable endpoint instead.
+  - target: $.paths.*.post
+    update:
+      x-mint:
+        metadata:
+          playground: simple
+  - target: $.paths.*.put
+    update:
+      x-mint:
+        metadata:
+          playground: simple
+  - target: $.paths.*.patch
+    update:
+      x-mint:
+        metadata:
+          playground: simple
+  - target: $.paths.*.delete
+    update:
+      x-mint:
+        metadata:
+          playground: simple
