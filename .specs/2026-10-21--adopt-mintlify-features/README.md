@@ -2,12 +2,12 @@
 
 | Field            | Value                                                   |
 | ---------------- | ------------------------------------------------------- |
-| **Status**       | in-progress                                             |
+| **Status**       | completed                                               |
 | **Owner**        | @hta218                                                 |
 | **Issue**        | [#80](https://github.com/Weaverse/docs/issues/80)       |
 | **Branch**       | `docs/adopt-mintlify-features`                          |
 | **Created**      | 2026-10-19                                              |
-| **Last Updated** | 2026-10-20                                              |
+| **Last Updated** | 2026-10-21                                              |
 
 ## Original Prompt
 
