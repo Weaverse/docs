@@ -9,7 +9,7 @@ Issue: [Weaverse/docs#80](https://github.com/Weaverse/docs/issues/80). Free (Sta
   2. An OpenAPI-driven Content API reference.
   3. A TypeDoc-generated SDK reference.
 - Phase 1 ships on `docs/adopt-mintlify-features`. Phases 2 and 3 get their own branches off `main` and update this spec.
-- Phase 3 depends on work in `Weaverse/weaverse`, so it may move to its own issue.
+- Phase 3 moved to Weaverse/weaverse#555 and is deferred until the SDK 6.0 exports are settled (Weaverse/weaverse#547). #80 closes with Phases 1 and 2.
 - The Mintlify feature check was done 2026-10-19 against the Mintlify docs, changelog and pricing. Every item in the issue exists, and every item in scope is available on Starter. The paid-only list in the issue is confirmed and stays out of scope.
 - All theme repos are public: `Weaverse/pilot`, `forward`, `aspen`, `maison` and `naturelle`.
 
@@ -132,23 +132,25 @@ Builder already maintains an OpenAPI 3.1 spec:
 - Generated URLs follow the spec's tag and `summary`. Renaming a summary or tag in builder changes the URL; add a redirect in the same release.
 - The reference reflects production as soon as Mintlify rebuilds, so spec changes ship to docs with the builder release.
 
-## Phase 3: SDK Reference From TypeDoc
+## Phase 3: SDK Reference From TypeDoc (deferred)
 
-### Approach
+Tracked in Weaverse/weaverse#555, blocked by Weaverse/weaverse#547.
 
-1. **In `Weaverse/weaverse`**: run `typedoc --json` on release for the public entry points of `@weaverse/hydrogen`, `@weaverse/next` and `@weaverse/schema`. Tag exports with `@category` (Hooks / Components / Utilities / Types) so Mintlify's navigation follows the current groups.
-2. **Delivery**: a release workflow commits the artifacts to `docs/sdk-artifacts/<package>.json` with a PR on `Weaverse/docs`. List `sdk-artifacts/` in `.mintignore`.
-3. **`docs.json`**: an `sdk: { format: "typedoc", source: "sdk-artifacts/hydrogen.json", directory: "api-reference/generated" }` group under SDKs → React Router, plus the equivalent for Next.js.
-   - A tab or group with `sdk` cannot also have `pages`.
-   - Auto-generation stops if any page in that tab or group has `sdk` frontmatter.
-   - So the hand-written guides (`introduction`, usage-heavy hook pages) move to a sibling group.
-4. **Migration**: compare each hand-written `api-reference/*.mdx` page with its generated page. Move usage examples into TSDoc `@example` blocks upstream, then delete the duplicates and add redirects.
-5. **Version selector**: generated pages live under `v5.x`. Add `v6.x` artifacts when the 6.0 SDK ships (Weaverse/weaverse#547).
+### Why deferred
 
-### Risks
+Today's entry points export about 180 (`@weaverse/hydrogen`) and 220 (`@weaverse/next`) symbols, most of them internal. The generated reference would mostly list symbols themes never use, and its pages and redirects would change again when 6.0 trims the exports and splits them by entry point.
 
-- TSDoc coverage in the SDK is thin today, so the generated pages are only as good as the comments. Budget time to write comments upstream.
-- This needs CI in another repo. If that is blocked, split it into a new issue and close #80 with Phases 1 and 2.
+### Prepared work (draft PRs)
+
+- Weaverse/weaverse#556: TypeDoc tooling (`pnpm sdk:reference`), `@category` and `@example` TSDoc across core, react, schema, hydrogen and next, and a release workflow that opens the artifact PR here (needs the `DOCS_REPO_TOKEN` secret).
+- Weaverse/docs#98:
+  - `sdk-artifacts/*.json` rendered through `sdk` Reference groups in the SDKs dropdowns (`/api-reference/<kind>/<Symbol>`, `/nextjs/api/<main|server>/<kind>/<Symbol>`).
+  - The 16 hand-written SDK pages are replaced by generated pages, with redirects and updated internal links.
+
+### When 6.0 lands
+
+- Regenerate one artifact per 6.0 entry point (`/react-router`, `/next`, `/next/server`), then update the `sdk` groups, redirects and links in #98.
+- `mint broken-links` reports links to generated SDK pages as broken; check them with `mint dev`.
 
 ## Out of Scope (paid plans)
 
@@ -191,13 +193,8 @@ Builder already maintains an OpenAPI 3.1 spec:
 
 ### Phase 3
 
-| Path | Change |
-|---|---|
-| `sdk-artifacts/` (new), `.mintignore` (new) | TypeDoc JSON artifacts |
-| `docs.json` | `sdk` groups under SDKs |
-| `api-reference/*.mdx`, `nextjs/api/*.mdx` | slim down or redirect to the generated pages |
-| `Weaverse/weaverse` CI and TSDoc comments (other repo) | artifact generation |
+Deferred; see Weaverse/docs#98 and Weaverse/weaverse#556 for the files they touch.
 
 ### Spec
 
-- `.specs/2026-10-19--adopt-mintlify-features/` (`README.md`, `plan.md`, `work-logs.md` when work spans sessions)
+- `.specs/2026-10-21--adopt-mintlify-features/` (`README.md`, `plan.md`, `work-logs.md` when work spans sessions)
