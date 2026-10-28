@@ -16,6 +16,23 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Custom pages from theme starters**: A new project created from a theme now includes the starter's custom pages, alongside its default page templates.
 </Update>
 
+<Update label="SDK v5.24.0" description="October 28, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Clearer loading errors:** Storefront developers can opt in to distinguish Weaverse loading failures from missing pages and offer shoppers a reload action.
+  - **Invalid responses are identified:** Page and theme loading now detects invalid responses so storefronts can avoid treating them as saved content.
+
+  #### Upgrade
+
+  Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.24.0. Enable `throwPageLoadFailures` to use the new `WeaverseLoadError` handling.
+
+  This release requires `@shopify/hydrogen >=2025.5 <2026.10.0`. Shopify Hydrogen 2026.10 is not yet supported.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.24.0)
+</Update>
+
 <Update label="2026.10.44" description="October 26, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
