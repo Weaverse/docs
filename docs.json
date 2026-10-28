@@ -321,7 +321,8 @@
                   "hydrogen-integrations/hubspot-forms",
                   "hydrogen-integrations/yotpo-reviews",
                   "hydrogen-integrations/trustpilot-reviews",
-                  "hydrogen-integrations/instagram-feed"
+                  "hydrogen-integrations/instagram-feed",
+                  "hydrogen-integrations/privatus-analytics"
                 ]
               },
               {

@@ -1,0 +1,261 @@
+---
+title: Add Privatus Analytics to Shopify Hydrogen
+description: Count real visitors on a Weaverse Hydrogen storefront without cookies, track Add to Cart in the browser, and record purchase revenue from Shopify checkout.
+published: true
+---
+
+# Add Privatus Analytics to Shopify Hydrogen
+
+<Note>
+  This guide is for Shopify Hydrogen storefronts. Building on Next.js? See the [Next.js overview](/nextjs/overview).
+</Note>
+
+Many analytics tools set cookies. In many countries that means you must ask shoppers for permission first, and many say no. Those shoppers never show up in your numbers. Bots add fake visits on top.
+
+[Privatus Analytics](https://privatusanalytics.com) counts visits without cookies and leaves bots out. This guide adds it to a Weaverse Hydrogen storefront, tracks Add to Cart, and records purchase revenue from Shopify checkout. The free plan covers 10,000 events a month on up to 3 sites, with no card.
+
+File names and route paths are examples, not required project structure.
+
+## What you will build
+
+```text
+Hydrogen storefront (browser)
+    │ <PrivatusAnalytics /> loads pa.js
+    │ page views on every route change
+    │ Add to Cart from Hydrogen analytics events
+    ▼
+privatusstats.com
+    ▲
+    │ Purchase with revenue
+Shopify checkout (custom pixel)
+```
+
+All events are sent from the shopper's browser. Nothing runs on the Hydrogen server, and no token or secret is needed.
+
+## Prerequisites
+
+- A Privatus Analytics account and a site for your storefront domain. The site ID looks like `pa_AbC123`.
+- A Weaverse Hydrogen theme, such as [Pilot](/hydrogen-themes/pilot-theme-overview).
+- Access to the Shopify admin, for the checkout pixel.
+
+Add the site ID to local and deployed environment variables:
+
+```bash
+PUBLIC_PRIVATUS_SITE_ID=pa_YOURSITEID
+```
+
+The site ID is public. It appears in your page source, so it does not need to be kept secret.
+
+## Install the package
+
+```bash
+npm install @privatus-analytics/react
+```
+
+`<PrivatusAnalytics />` adds the tracking script once, from an effect, so it only runs in the browser and is safe for server rendering. It renders nothing.
+
+## Load the script in the root layout
+
+Return the site ID from the root loader:
+
+```ts
+// app/root.tsx
+export async function loader({ context }: LoaderFunctionArgs) {
+  // ...your existing loader data
+  return {
+    // ...
+    privatusSiteId: context.env.PUBLIC_PRIVATUS_SITE_ID,
+  };
+}
+```
+
+Then render the component in the layout. Pass the Hydrogen nonce so the script passes your Content Security Policy:
+
+```tsx
+// app/root.tsx
+import { useNonce } from "@shopify/hydrogen";
+import { PrivatusAnalytics } from "@privatus-analytics/react";
+import { useRouteLoaderData } from "react-router";
+
+export function Layout({ children }: { children?: React.ReactNode }) {
+  const nonce = useNonce();
+  const data = useRouteLoaderData<typeof loader>("root");
+
+  return (
+    <html lang="en">
+      <head>{/* ...Meta, Links */}</head>
+      <body>
+        {children}
+        {data?.privatusSiteId ? (
+          <PrivatusAnalytics
+            site={data.privatusSiteId}
+            nonce={nonce}
+            modules={["engage", "auto", "vitals", "clicks", "ask"]}
+          />
+        ) : null}
+        {/* ...ScrollRestoration, Scripts */}
+      </body>
+    </html>
+  );
+}
+```
+
+Hydrogen routes change with `pushState`. The script follows those changes by itself, so every page view is counted without extra code.
+
+The `modules` list turns on extra features. `engage` measures time on page and scroll depth. `auto` tracks outbound links, file downloads and form sends. `vitals` records Core Web Vitals. `clicks` records clicks for heatmaps. `ask` shows short on-site surveys you set up in the dashboard. Leave out any you do not want.
+
+<Tip>
+  Prefer a plain script tag? Put this in `<head>` instead of the component. Add `nonce={nonce}` when your policy uses nonces.
+
+  ```html
+  <script defer src="https://privatusstats.com/js/pa.js" data-site="pa_YOURSITEID" data-modules="engage,auto,vitals,clicks,ask"></script>
+  ```
+</Tip>
+
+## Allow the script in your Content Security Policy
+
+Hydrogen builds a Content Security Policy that lists which hosts may load scripts and receive data. Add the Privatus Analytics host to both lists.
+
+In Weaverse themes such as Pilot, these lists live in `app/weaverse/csp.ts`:
+
+```ts
+// app/weaverse/csp.ts
+const updatedCsp = {
+  // ...defaultSrc, styleSrc
+  connectSrc: [
+    // ...existing hosts
+    "https://privatusstats.com",
+  ],
+  scriptSrc: ["https://cdn.shopify.com", "https://privatusstats.com"],
+};
+```
+
+In other Hydrogen projects, pass the same hosts to `createContentSecurityPolicy` in `app/entry.server.tsx`:
+
+```ts
+// app/entry.server.tsx
+const { nonce, header, NonceProvider } = createContentSecurityPolicy({
+  shop: {
+    checkoutDomain: context.env.PUBLIC_CHECKOUT_DOMAIN,
+    storeDomain: context.env.PUBLIC_STORE_DOMAIN,
+  },
+  scriptSrc: ["'self'", "https://cdn.shopify.com", "https://privatusstats.com"],
+  connectSrc: ["'self'", "https://privatusstats.com"],
+});
+```
+
+Keep any hosts your theme already lists. If the browser console shows a blocked or reported request for `privatusstats.com`, the host is missing from one of these lists.
+
+## Track Add to Cart
+
+Hydrogen publishes cart events through its analytics bus. Subscribe to `product_added_to_cart` and send a Privatus Analytics event. This follows the same pattern as the `CustomAnalytics` component in Pilot.
+
+```tsx
+// app/components/root/privatus-cart-events.tsx
+import { useEffect } from "react";
+import { AnalyticsEvent, useAnalytics } from "@shopify/hydrogen";
+import { usePrivatus } from "@privatus-analytics/react";
+
+export function PrivatusCartEvents() {
+  const { subscribe } = useAnalytics();
+  const privatus = usePrivatus();
+
+  useEffect(() => {
+    subscribe(AnalyticsEvent.PRODUCT_ADD_TO_CART, ({ currentLine, prevLine }) => {
+      const merchandise = currentLine?.merchandise;
+      if (!merchandise) return;
+
+      const added = (currentLine?.quantity ?? 0) - (prevLine?.quantity ?? 0);
+      privatus.track("Add to Cart", {
+        product: merchandise.product?.title,
+        vendor: merchandise.product?.vendor,
+        quantity: added > 0 ? added : 1,
+        price: Number(merchandise.price?.amount),
+        currency: merchandise.price?.currencyCode,
+      });
+    });
+  }, [subscribe, privatus]);
+
+  return null;
+}
+```
+
+Render `<PrivatusCartEvents />` inside your `<Analytics.Provider>`, next to `<PrivatusAnalytics />`. Calls made before the script loads are queued, so no event is lost.
+
+The fields come from your cart query, so use the ones your theme fetches. Send only product details like these. Do not add names, emails or other customer data to event properties.
+
+<Note>
+  This uses the `useAnalytics` hook from Hydrogen 2026.4 and earlier, which Weaverse themes use today. Hydrogen 2026.10 replaces it with analytics destinations. On that version, register the same mapping with `addDestination` instead.
+</Note>
+
+## Record purchase revenue
+
+Shopify checkout and the thank-you page are hosted by Shopify, not by your Hydrogen app. Your storefront code never sees the finished order. A Shopify custom pixel does, and it runs in the shopper's browser.
+
+1. In the Shopify admin, open **Settings**, then **Customer events**, then **Add custom pixel**. Name it "Privatus Analytics".
+2. Paste the code from [custom-pixel.js](https://github.com/Privatus-Analytics/shopify/blob/main/custom-pixel.js).
+3. At the top of the code, set `SITE_ID` to your `pa_...` site ID.
+4. Set `STOREFRONT_PAGEVIEWS` to `false`. Your Hydrogen storefront already counts its own page views. With `false`, the pixel counts only checkout pages, so nothing is counted twice.
+5. Click **Save**, then **Connect**.
+
+The pixel sends a `Purchase` event with the order total and currency when checkout finishes. It also counts checkout page views. It sends no customer data, and order links are cut down to fixed paths so no order IDs leave the browser.
+
+In Privatus Analytics, create a goal for the `Purchase` event to see revenue by source, page and campaign.
+
+## Track your own events
+
+Use the hook anywhere in your components:
+
+```tsx
+import { usePrivatus } from "@privatus-analytics/react";
+
+export function NewsletterButton() {
+  const privatus = usePrivatus();
+  return (
+    <button onClick={() => privatus.track("Newsletter signup")}>
+      Join the newsletter
+    </button>
+  );
+}
+```
+
+To record money for any event, add `revenue` and `currency`:
+
+```ts
+privatus.track("Gift card bought", { revenue: 25, currency: "USD" });
+```
+
+## Use it with Weaverse
+
+Load the script in the root layout, not inside a Weaverse section. Sections can be added, moved or removed in Studio, and the script must load on every page exactly once.
+
+To track a click inside a Weaverse section, call `usePrivatus()` in that section's component. Keep event names in code. Letting merchants type event names in Studio leads to many spellings of the same event.
+
+## Test the integration
+
+1. Run `npm run dev` and open the storefront.
+2. Add `data-debug` while testing, or pass `debug` to the component, to log events in the console instead of sending them.
+3. Move between pages and confirm a page view is logged for each route.
+4. Add a product to the cart and confirm one `Add to Cart` event with the right quantity.
+5. Remove `debug` and deploy. Open **Live** in the Privatus Analytics dashboard and confirm your visit appears.
+6. Place a test order and confirm a `Purchase` event with the order total.
+7. Check the browser console for Content Security Policy errors.
+
+Visits from `localhost` are not counted by default. Pass `allowLocal` to the component to test against your dashboard from your machine.
+
+## Production checklist
+
+- `PUBLIC_PRIVATUS_SITE_ID` is set in every deployed environment.
+- `https://privatusstats.com` is in both `scriptSrc` and `connectSrc`.
+- The script loads once, from the root layout.
+- Add to Cart fires once per add.
+- The custom pixel is connected and `STOREFRONT_PAGEVIEWS` is `false`.
+- Event properties hold no customer personal data.
+
+## Official resources
+
+- [Privatus Analytics docs](https://privatusanalytics.com/docs)
+- [@privatus-analytics/react on npm](https://www.npmjs.com/package/@privatus-analytics/react)
+- [Shopify custom pixel for Privatus Analytics](https://github.com/Privatus-Analytics/shopify)
+- [Hydrogen analytics](https://shopify.dev/docs/storefronts/headless/hydrogen/analytics)
+- [Hydrogen Content Security Policy](https://shopify.dev/docs/custom-storefronts/hydrogen/content-security-policy)
