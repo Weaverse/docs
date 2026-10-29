@@ -126,7 +126,7 @@ A shop-scoped `WEAVERSE_API_KEY` can authenticate Weaverse Content API/MCP capab
   </Step>
 
   <Step title="Verify identity and scopes">
-    Call the Weaverse MCP `whoami` tool first. For Shopify authority, make a harmless authenticated `POST https://studio.weaverse.io/api/admin-graphql` read for `shop {name primaryDomain {url}}` and `currentAppInstallation {accessScopes {handle}}`. Confirm the expected shop and minimum required scopes before continuing; a successful token lookup alone proves neither.
+    Call the Weaverse MCP `list_projects` tool first to confirm which projects the credential reaches. For Shopify authority, make a harmless authenticated `POST https://studio.weaverse.io/api/admin-graphql` read for `shop {name primaryDomain {url}}` and `currentAppInstallation {accessScopes {handle}}`. Confirm the expected shop and minimum required scopes before continuing; a successful token lookup alone proves neither.
   </Step>
 
   <Step title="Inventory before changing">
