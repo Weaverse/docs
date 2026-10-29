@@ -227,15 +227,18 @@ export default {
 ```
 
 ### `entry.server.tsx`
-Server-side rendering setup with React Router v7:
+Server-side rendering setup with React Router v7. The CSP header and nonce come from the theme's own `app/utils/csp.ts` (see [Content Security Policy](/features/content-security)):
 ```tsx
-import { ServerRouter, type EntryContext } from "react-router";
-import {
-  createContentSecurityPolicy,
-  type HydrogenRouterContextProvider,
-} from "@shopify/hydrogen";
+import type { HydrogenRouterContextProvider } from "@shopify/hydrogen";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
+import type { EntryContext } from "react-router";
+import { ServerRouter } from "react-router";
+import {
+  createContentSecurityPolicy,
+  generateNonce,
+  NonceProvider,
+} from "~/utils/csp";
 import { getWeaverseCsp } from "~/weaverse/csp";
 
 export default async function handleRequest(
@@ -245,17 +248,24 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: HydrogenRouterContextProvider,
 ) {
-  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-    ...getWeaverseCsp(request, context),
-    shop: {
-      checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
+  const nonce = generateNonce();
+  const header = createContentSecurityPolicy(
+    nonce,
+    getWeaverseCsp(request, context.env),
+    {
+      checkoutDomain:
+        context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
       storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
     },
-  });
+  );
 
   const body = await renderToReadableStream(
-    <NonceProvider>
-      <ServerRouter context={reactRouterContext} url={request.url} nonce={nonce} />
+    <NonceProvider value={nonce}>
+      <ServerRouter
+        context={reactRouterContext}
+        url={request.url}
+        nonce={nonce}
+      />
     </NonceProvider>,
     {
       nonce,
@@ -268,11 +278,15 @@ export default async function handleRequest(
   );
 
   if (isbot(request.headers.get("user-agent"))) {
-    await body.allReady;
+    await Promise.race([
+      body.allReady,
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
   }
 
   responseHeaders.set("Content-Type", "text/html");
   responseHeaders.set("Content-Security-Policy-Report-Only", header);
+  // ... Oxygen full-page cache headers
 
   return new Response(body, {
     headers: responseHeaders,

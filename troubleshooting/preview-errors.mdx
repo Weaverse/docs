@@ -168,47 +168,37 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 **Quick Fixes**:
 
-1. **Configure Content Security Policy (CSP)**
+1. **Check the CSP for Studio's sources**
 
-   Weaverse requires proper CSP configuration to allow iframe embedding. Update your `entry.server.tsx`:
+   Studio embeds your storefront in an iframe and injects its bridge script from the `weaverseHost` URL without a nonce. In design mode (the URL has a `weaverseHost` query parameter), your CSP must include:
+
+   - `frame-ancestors *`
+   - The Weaverse hosts (`*.weaverse.io` and the `weaverseHost` value) in `script-src`, `connect-src`, and `style-src`
+   - `'unsafe-eval'` in `script-src`, so the bridge can rebuild schema `condition` functions
+
+   Pilot's `getWeaverseCsp` (`app/weaverse/csp.ts`) sets all of these:
 
    ```typescript
-   // entry.server.tsx
-   import { createContentSecurityPolicy } from "@shopify/hydrogen";
-   import { getWeaverseCsp } from "~/weaverse/csp";
-
-   export default async function handleRequest(request, responseStatusCode, responseHeaders, remixContext, context) {
-     const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-       ...getWeaverseCsp(request, context),
-       shop: {
-         checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
-         storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
-       },
-     });
-
-     // Use Report-Only mode for development
-     responseHeaders.set("Content-Security-Policy-Report-Only", header);
-     // ...
+   // app/weaverse/csp.ts (excerpt)
+   const weaverseHost =
+     url.searchParams.get("weaverseHost") || env.WEAVERSE_HOST;
+   const isDesignMode = url.searchParams.get("weaverseHost");
+   const weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
+   if (weaverseHost) {
+     weaverseHosts.push(weaverseHost);
+   }
+   // ...connectSrc, styleSrc and scriptSrc all spread ...weaverseHosts
+   if (isDesignMode) {
+     updatedCsp.frameAncestors = ["*"];
+     (updatedCsp.scriptSrc as string[]).push("'unsafe-eval'");
    }
    ```
 
-2. **Verify Weaverse hosts are allowed**
+2. **Make sure `script-src` lists every script origin**
 
-   Check your CSP configuration includes Weaverse domains:
+   Once `script-src` is set, it replaces `default-src` for scripts. A `scriptSrc` that lists only `https://cdn.shopify.com` blocks the Studio bridge as soon as the header is enforced, even if the Weaverse hosts are in `defaultSrc`. Look for `violates the following Content Security Policy directive` in the console and add the blocked origin to the directive it names.
 
-   ```typescript
-   // ~/weaverse/csp.ts (or similar)
-   export function getWeaverseCsp(request: Request, context: AppLoadContext) {
-     let weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
-
-     return {
-       defaultSrc: [...weaverseHosts],
-       connectSrc: [...weaverseHosts],
-       styleSrc: weaverseHosts,
-       frameAncestors: ["*"], // Required for Studio embedding
-     };
-   }
-   ```
+   On Hydrogen 2026.10 the theme builds the CSP header itself, since Hydrogen no longer ships `createContentSecurityPolicy`. See the [Content Security Policy guide](/features/content-security) for the setup and a rollout checklist.
 
 3. **Enable CORS for local development**
    ```typescript
@@ -227,8 +217,6 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
    - Stop server (Ctrl+C)
    - Clear cache: `rm -rf .cache`
    - Restart: `npm run dev`
-
-<Note>See the [Content Security Policy guide](/features/content-security) for complete CSP configuration details and best practices.</Note>
 
 <Warning>**Production Note**: Never use `cors: true` in production. Configure specific origins for your Weaverse Studio domain. Use `Content-Security-Policy-Report-Only` during development to monitor violations before enforcing.</Warning>
 

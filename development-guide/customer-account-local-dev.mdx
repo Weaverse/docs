@@ -171,17 +171,17 @@ For development stores, configure this in the **Headless** sales channel app:
 
 ### Update Content Security Policy
 
-In your `app/entry.server.tsx`, add the tunnel domain to your CSP:
+In `app/weaverse/csp.ts`, add the tunnel domain to `connectSrc`:
 
-```tsx
-const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-  connectSrc: [
-    "'self'",
-    "https://your-tunnel-domain",
-    // ... other sources
-  ],
-});
+```ts
+connectSrc: [
+  "https://your-tunnel-domain",
+  "vimeo.com",
+  // ... other sources
+],
 ```
+
+See [Content Security Policy](/features/content-security) for how these directives become the header.
 
 ### Start the dev server
 
