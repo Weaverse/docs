@@ -14,9 +14,11 @@ does two things:
 2. **Your account** — read your own Weaverse projects, pages, theme settings, and
    locales over the [Content API](/content-api/overview), scoped to your shop.
 
-Docs search is public. The account tools only ever see the one store you
-connected, whether through sign-in (hosted connector) or an API key (local
-server).
+The documentation itself is public. How you reach it depends on the server:
+the local server and the docs-only MCP search it without credentials, while
+the hosted connector requires sign-in for every tool, including docs search.
+The account tools only ever see the one store you connected, whether through
+sign-in (hosted connector) or an API key (local server).
 
 ## Ways to connect
 
@@ -39,7 +41,9 @@ server).
 
 The hosted connector runs the same tools as `@weaverse/mcp` at
 `https://mcp.weaverse.io/mcp`. It never uses an API key. Each store signs in and
-approves access itself, and every request is limited to that store.
+approves access itself, and every request is limited to that store. Every
+hosted request needs that sign-in, even documentation search; use the
+docs-only MCP if you want docs without connecting a store.
 
 <Warning>
   **Currently read-only.** Today the hosted connector offers the nine read
@@ -54,7 +58,10 @@ approves access itself, and every request is limited to that store.
     - **Claude**: open **Customize → Connectors**, add a custom connector, and
       enter `https://mcp.weaverse.io/mcp`.
     - **ChatGPT**: open **Plugins**, select **+ → Add custom MCP server**, enter
-      `https://mcp.weaverse.io/mcp`, and choose OAuth authentication.
+      a name and `https://mcp.weaverse.io/mcp`, choose OAuth authentication,
+      accept the risk warning, and select **Create as a plugin** (per OpenAI's
+      [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt)
+      guide). Workspace policies may restrict custom MCP servers.
   </Step>
   <Step title="Sign in with your store">
     You are sent to Weaverse. Sign in with the Shopify account that owns the
@@ -79,7 +86,7 @@ approves access itself, and every request is limited to that store.
 | Permission | Approval screen | What the connector can do |
 | --- | --- | --- |
 | `content:read` | Always included | Every read tool and docs search. |
-| `content:write` | "Save drafts and edit content" checkbox | `update_page`, `update_theme_settings`, `update_project`, `create_page`, `assign_template_resources`. Through this connector these edits are **live immediately**: it does not use drafts. |
+| `content:write` | "Save drafts and edit content" checkbox | `update_page`, `update_theme_settings`, `update_project`, `create_page`, `assign_template_resources`. Page and theme edits go **live on the storefront immediately**: this connector does not use drafts. `update_project` only renames the project in Weaverse. |
 | `content:delete` | "Delete content" checkbox | Additionally needed for `delete_pages`. If you ask to delete without it, the assistant asks you to approve it. |
 
 The connector's tools never use publishing, project-management or translation
@@ -242,7 +249,7 @@ Account → Connected AI apps**.
 
 ## Available tools
 
-### Docs (public — no API key)
+### Docs (no API key; the hosted connector still requires sign-in)
 
 <Card title="search_weaverse_docs" icon="magnifying-glass">
   Search the Weaverse knowledge base for features, schema/input settings, SDK
@@ -275,7 +282,7 @@ editing is enabled and you granted the edit permission.
 | ---- | ----------- |
 | `update_page` | Merge item data, create typed items, relink `children`. Pass `expectedUpdatedAt` from `get_page`. Live immediately. |
 | `update_theme_settings` | Merge top-level theme keys. Pass `expectedRevision` from `get_theme_settings`. Live immediately. |
-| `update_project` | Rename a project. Pass `expectedUpdatedAt` = `get_project.revision`. |
+| `update_project` | Rename a project (Weaverse metadata only, not storefront content). Pass `expectedUpdatedAt` = `get_project.revision`. |
 | `create_page` | Create a page and its assignment. Live immediately. |
 | `assign_template_resources` | Attach products/collections to an existing shared template page. New routes go live immediately. |
 | `delete_pages` | Soft-delete pages by ids, or by handles + type + locale. Needs `content:delete`. Live immediately. |
@@ -311,11 +318,15 @@ Use the Weaverse MCP server. List my Weaverse projects. For the first project, l
   The assistant should confirm each change with you first.
 </Warning>
 
-- **Read first, then write.** `update_page`, `update_theme_settings` and
-  `update_project` take the `updatedAt` / `revision` from your last read. If
-  someone changed the content since (for example in Studio), the write is
-  rejected with `409` instead of overwriting newer work. Re-read and try again.
-  The hosted connector requires this baseline on every edit.
+- **Read first, then write.** The three update tools take a baseline from
+  your last read: `update_page` (`get_page.updatedAt`),
+  `update_theme_settings` (`get_theme_settings.revision`) and `update_project`
+  (`get_project.revision`). If someone changed the content since (for example
+  in Studio), the write is rejected with `409` instead of overwriting newer
+  work. Re-read and try again. The hosted connector requires the baseline on
+  these three tools. `create_page`, `assign_template_resources` and
+  `delete_pages` take no baseline; they have their own checks (for example, a
+  duplicate page or a missing `content:delete` permission is refused).
 - Send only the keys you mean to change; nested objects are replaced wholesale.
 - A `500` after a create, delete or assignment may come after the change was
   saved. Re-read before retrying.
@@ -327,7 +338,8 @@ Write scope is deliberately narrow:
   page (`assign_template_resources`), and soft-delete pages (`delete_pages`).
 - **Theme settings** — top-level key merges only (`update_theme_settings`).
   Weaverse attempts a theme-version snapshot, but this connector cannot restore it.
-- **Project** — `name` only (`update_project`).
+- **Project** — `name` only (`update_project`). This renames the project in
+  Weaverse (project metadata); it does not change storefront content.
 
 **Account-level operations are never exposed via MCP** — creating or deleting
 projects, billing, team/members, plan changes, and store linkage stay
@@ -371,7 +383,7 @@ lookup; pick `@weaverse/mcp` when you want your agent to work with your projects
     - Someone changed the content since your last read. Re-read with `get_page`,
       `get_theme_settings` or `get_project`, then apply the change again.
     - The hosted connector requires `expectedUpdatedAt` / `expectedRevision` from
-      that read on every edit.
+      that read for `update_page`, `update_theme_settings` and `update_project`.
   </Accordion>
   <Accordion title="“Access denied” on a project" icon="lock">
     - The key is scoped to one shop. You can only access that shop's projects.
