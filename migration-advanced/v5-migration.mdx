@@ -481,6 +481,10 @@ export default async function handleRequest(
 }
 ```
 
+<Note>
+  This step uses Hydrogen's `createContentSecurityPolicy`, `NonceProvider` and `useNonce`, which Hydrogen 2026.10 removes. Current Pilot builds the header with its own `app/utils/csp.ts` instead. See [Content Security Policy](/features/content-security).
+</Note>
+
 Update `app/weaverse/csp.ts` to match:
 
 ```typescript

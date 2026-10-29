@@ -1,43 +1,204 @@
 ---
 title: Content Security Policy
-description: How Content Security Policy is dynamically configured and enforced in Weaverse Hydrogen projects, with guidance for customization and best practices.
+description: Build the CSP header and nonce in your theme, allow the sources Weaverse Studio needs, and roll out an enforced policy safely.
 published: true
 ---
 
-# Content Security Policy (CSP)
+A Content Security Policy (CSP) tells the browser which scripts, styles, frames, and connections your storefront may load. In a Weaverse theme the policy has to allow your own code, Shopify, Weaverse Studio, and every third-party service your sections use.
 
-Content Security Policy (CSP) is a critical security feature that controls which resources (scripts, styles, frames, etc.) can be loaded by your storefront. In Weaverse Hydrogen projects, CSP is dynamically generated and integrated with Shopify's Hydrogen framework to balance security and flexibility—especially for design mode and embedded apps.
+## Who Owns the CSP
 
-## How CSP Works in Weaverse
+Hydrogen 2026.4 ships `createContentSecurityPolicy`, `NonceProvider`, and `useNonce`. **Hydrogen 2026.10 removes them**, so the theme builds the header and nonce itself.
 
-Weaverse uses a utility function, `getWeaverseCsp`, to generate a CSP object tailored to your current environment and request. This function is called in your [`entry.server.tsx`](https://github.com/Weaverse/pilot/blob/main/app/entry.server.tsx) file and merged with Shopify's `createContentSecurityPolicy`.
+Pilot already does this ([Weaverse/pilot#204](https://github.com/Weaverse/pilot/pull/204)). It works on Hydrogen 2026.4 and 2026.10, so you can adopt it before you upgrade. Two files are involved:
 
-### Dynamic CSP Logic
+| File | Purpose |
+| --- | --- |
+| [`app/utils/csp.ts`](https://github.com/Weaverse/pilot/blob/main/app/utils/csp.ts) | Generic helpers: `generateNonce`, `createContentSecurityPolicy(nonce, directives, shop)`, `NonceProvider`, `useNonce`. Copy it into your theme as is. |
+| [`app/weaverse/csp.ts`](https://github.com/Weaverse/pilot/blob/main/app/weaverse/csp.ts) | `getWeaverseCsp(request, env)`: the directives for Weaverse Studio and your third-party services. This is the file you customize. |
 
-The CSP is constructed as follows:
+`createContentSecurityPolicy` keeps the header semantics of Hydrogen 2026.4's helper:
 
-- **Trusted hosts** are always allowed: `*.weaverse.io`, `*.shopify.com`, `*.myshopify.com`.
-- If the request is in design mode (detected via the `weaverseHost` query parameter), that host is also allowed.
-- Additional sources (YouTube, Vimeo, Google Analytics, etc.) are included for compatibility with common integrations.
-- In design mode, `frame-ancestors` is set to `*` to allow embedding in the Weaverse Studio.
+- It starts from Hydrogen's defaults: `base-uri 'self'`, `default-src 'self' https://cdn.shopify.com https://shopify.com`, `frame-ancestors 'none'`, `style-src 'self' 'unsafe-inline' https://cdn.shopify.com`, and a `connect-src` with Shopify's CDN, Monorail, and your checkout and store domains.
+- Each directive you pass **extends** the matching default. A `'none'` default (such as `frame-ancestors`) is replaced instead.
+- The nonce goes on `script-src` when you set it, otherwise on `default-src`.
+- It returns the header string. You choose the header name.
 
-#### Example: getWeaverseCsp Implementation
+### Wire It Into `entry.server.tsx`
 
-```ts
+Generate one nonce per request, build the header, and pass the same nonce to React's renderer, `ServerRouter`, and `NonceProvider`:
+
+```tsx app/entry.server.tsx
 import type { HydrogenRouterContextProvider } from "@shopify/hydrogen";
+import { isbot } from "isbot";
+import { renderToReadableStream } from "react-dom/server";
+import type { EntryContext } from "react-router";
+import { ServerRouter } from "react-router";
+import {
+  createContentSecurityPolicy,
+  generateNonce,
+  NonceProvider,
+} from "~/utils/csp";
+import { getWeaverseCsp } from "~/weaverse/csp";
 
-export function getWeaverseCsp(
+export default async function handleRequest(
   request: Request,
+  responseStatusCode: number,
+  responseHeaders: Headers,
+  reactRouterContext: EntryContext,
   context: HydrogenRouterContextProvider,
 ) {
-  let url = new URL(request.url);
-  let weaverseHost = url.searchParams.get("weaverseHost") || context.env.WEAVERSE_HOST;
-  let isDesignMode = url.searchParams.get("weaverseHost");
-  let weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
+  const nonce = generateNonce();
+  const header = createContentSecurityPolicy(
+    nonce,
+    getWeaverseCsp(request, context.env),
+    {
+      checkoutDomain:
+        context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
+      storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
+    },
+  );
+
+  const body = await renderToReadableStream(
+    <NonceProvider value={nonce}>
+      <ServerRouter
+        context={reactRouterContext}
+        url={request.url}
+        nonce={nonce}
+      />
+    </NonceProvider>,
+    {
+      nonce,
+      signal: request.signal,
+      onError(error) {
+        console.error(error);
+        responseStatusCode = 500;
+      },
+    },
+  );
+
+  if (isbot(request.headers.get("user-agent"))) {
+    await Promise.race([
+      body.allReady,
+      new Promise((resolve) => setTimeout(resolve, 2000)),
+    ]);
+  }
+
+  responseHeaders.set("Content-Type", "text/html");
+  // TODO: change to Content-Security-Policy when you ready with your CSP configs.
+  responseHeaders.set("Content-Security-Policy-Report-Only", header);
+
+  return new Response(body, {
+    headers: responseHeaders,
+    status: responseStatusCode,
+  });
+}
+```
+
+<Note>
+  Unlike Hydrogen's `NonceProvider`, this one is a plain React context provider, so it needs `value={nonce}`.
+</Note>
+
+### Wire It Into `entry.client.tsx`
+
+On the client, read the nonce back from the server-rendered scripts so `useNonce()` returns the same value during hydration:
+
+```tsx app/entry.client.tsx
+import { StrictMode, startTransition } from "react";
+import { hydrateRoot } from "react-dom/client";
+import { HydratedRouter } from "react-router/dom";
+import { NonceProvider } from "~/utils/csp";
+
+if (!window.location.origin.includes("webcache.googleusercontent.com")) {
+  startTransition(() => {
+    const existingNonce =
+      document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce;
+
+    hydrateRoot(
+      document,
+      <StrictMode>
+        <NonceProvider value={existingNonce}>
+          <HydratedRouter />
+        </NonceProvider>
+      </StrictMode>,
+    );
+  });
+}
+```
+
+### Use the Nonce in Components
+
+Import `useNonce` from `~/utils/csp`, not from `@shopify/hydrogen`, and pass it to inline scripts, `<ScrollRestoration>`, and `<Scripts>`:
+
+```tsx app/root.tsx
+import { Scripts, ScrollRestoration } from "react-router";
+import { useNonce } from "~/utils/csp";
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const nonce = useNonce();
+  return (
+    <html lang="en">
+      <head>{/* ... */}</head>
+      <body>
+        {children}
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
+      </body>
+    </html>
+  );
+}
+```
+
+<Warning>
+  Hydrogen's `<Script>` component reads Hydrogen's own nonce context, not this one. Pilot doesn't use it. If your theme does, render a plain `<script nonce={nonce}>` instead.
+</Warning>
+
+## Sources Weaverse Studio Requires
+
+`getWeaverseCsp` detects design mode from the `weaverseHost` query parameter that Studio adds to the preview URL. The Weaverse hosts are `*.weaverse.io`, `*.shopify.com`, `*.myshopify.com`, plus the `weaverseHost` value (or `WEAVERSE_HOST` from your env).
+
+| Directive | Value | Why |
+| --- | --- | --- |
+| `frame-ancestors` | `*` in design mode only | Studio embeds the storefront in an iframe. The default is `'none'`. |
+| `script-src` | Weaverse hosts | Studio injects its bridge script from `weaverseHost` **without a nonce**, so its origin must be listed. |
+| `connect-src` | Weaverse hosts | The bridge talks to Weaverse APIs. |
+| `style-src` | Weaverse hosts | Stylesheets loaded from Weaverse hosts. |
+| `script-src` | `'unsafe-eval'` in design mode only | The Studio bridge rebuilds schema `condition` functions from strings. |
+
+<Warning>
+  **Once you set `script-src`, it replaces `default-src` for scripts.** Origins listed only in `default-src` no longer apply to scripts, so `script-src` must list every script origin itself, including `'self'`. A `scriptSrc` that only lists `https://cdn.shopify.com` blocks the Studio bridge, YouTube, and GTM as soon as the header is enforced ([Weaverse/pilot#170](https://github.com/Weaverse/pilot/issues/170)).
+</Warning>
+
+## Common Third-Party Sources
+
+| Service | Directive | Source |
+| --- | --- | --- |
+| Shopify CDN | `script-src` (the other directives get it from the defaults) | `https://cdn.shopify.com` |
+| YouTube iframe API | `script-src` | `https://www.youtube.com` |
+| YouTube / Vimeo embeds | `default-src` (frames) | `*.youtube.com`, `*.youtu.be`, `*.vimeo.com` |
+| Google Tag Manager / Analytics | `script-src`, `connect-src` | `*.googletagmanager.com`, `*.google-analytics.com` |
+| Google Fonts | `style-src` / `font-src` | `https://fonts.googleapis.com` / `https://fonts.gstatic.com` |
+| Hydrogen 3D model viewer | `script-src` | `https://unpkg.com` |
+
+Pilot's `getWeaverseCsp` covers all of these:
+
+```ts app/weaverse/csp.ts
+export function getWeaverseCsp(
+  request: Request,
+  env: { WEAVERSE_HOST?: string },
+) {
+  const url = new URL(request.url);
+  // Get weaverse host from query params
+  const weaverseHost =
+    url.searchParams.get("weaverseHost") || env.WEAVERSE_HOST;
+  const isDesignMode = url.searchParams.get("weaverseHost");
+  const weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
   if (weaverseHost) {
     weaverseHosts.push(weaverseHost);
   }
-  let updatedCsp = {
+  const updatedCsp: {
+    [x: string]: string[] | string | boolean;
+  } = {
     defaultSrc: [
       "data:",
       "*.youtube.com",
@@ -51,78 +212,92 @@ export function getWeaverseCsp(
       "*.alicdn.com",
       ...weaverseHosts,
     ],
-    connectSrc: ["vimeo.com", "*.google-analytics.com", ...weaverseHosts],
-    styleSrc: weaverseHosts,
+    connectSrc: [
+      "vimeo.com",
+      "*.shopifysvc.com",
+      "*.google-analytics.com",
+      ...weaverseHosts,
+    ],
+    styleSrc: ["https://fonts.googleapis.com", ...weaverseHosts],
+    // Google Fonts stylesheets (added by third-party widgets) load their
+    // font files from fonts.gstatic.com.
+    fontSrc: [
+      "'self'",
+      "data:",
+      "https://cdn.shopify.com",
+      "https://fonts.gstatic.com",
+    ],
+    // `scriptSrc` replaces `defaultSrc` for scripts, so it lists every script
+    // origin itself: the Studio bridge (loaded without a nonce), YouTube's
+    // iframe API, Hydrogen's 3D model viewer and Google Tag Manager.
+    scriptSrc: [
+      "'self'",
+      "https://cdn.shopify.com",
+      "https://www.youtube.com",
+      "https://unpkg.com",
+      "*.googletagmanager.com",
+      "*.google-analytics.com",
+      ...weaverseHosts,
+    ],
   };
   if (isDesignMode) {
     updatedCsp.frameAncestors = ["*"];
+    // The Studio bridge rebuilds schema `condition` functions from strings.
+    (updatedCsp.scriptSrc as string[]).push("'unsafe-eval'");
   }
   return updatedCsp;
 }
 ```
 
-## Integrating CSP in entry.server.tsx
+To allow a new service, add its origin to the directive the browser names in the violation (see below). Add script origins to `scriptSrc`, not `defaultSrc`.
 
-The CSP configuration is passed to Shopify's `createContentSecurityPolicy`, which generates the appropriate policy header and nonce for your React app:
+## Rolling Out Enforcement
 
-```tsx
-import {
-  createContentSecurityPolicy,
-  type HydrogenRouterContextProvider,
-} from "@shopify/hydrogen";
-import type { EntryContext } from "react-router";
-import { getWeaverseCsp } from "~/weaverse/csp";
+Pilot sends `Content-Security-Policy-Report-Only`: the browser logs violations but blocks nothing. Switch to the enforcing header only after a clean pass.
 
-export default async function handleRequest(
-  request: Request,
-  responseStatusCode: number,
-  responseHeaders: Headers,
-  reactRouterContext: EntryContext,
-  context: HydrogenRouterContextProvider,
-) {
-  const { nonce, header, NonceProvider } = createContentSecurityPolicy({
-    ...getWeaverseCsp(request, context),
-    shop: {
-      checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
-      storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
-    },
-  });
-  // ...
-  responseHeaders.set("Content-Security-Policy-Report-Only", header);
-  return new Response(body, {
-    headers: responseHeaders,
-    status: responseStatusCode,
-  });
-}
-```
+<Steps>
+  <Step title="Run report-only">
+    Keep `Content-Security-Policy-Report-Only` and deploy to a preview environment.
+  </Step>
+  <Step title="Test every surface">
+    With the browser console open, check:
 
-> **Note:** The CSP is currently set as `Content-Security-Policy-Report-Only` for development and debugging. This allows you to monitor violations without breaking the app. When you're confident your policy is correct, switch to the strict `Content-Security-Policy` header for enforcement.
+    - Home page
+    - A product page, including one with a 3D model
+    - A page with a YouTube section, and play the video
+    - Cart drawer, variant change, and the mobile menu (these confirm hydration works)
+    - GTM loads (`window.dataLayer` exists and the GTM request succeeds)
+    - Studio design mode connects, and edits update the preview
+    - Revision preview and section preview in Studio (both load `preview.js`)
+  </Step>
+  <Step title="Fix each violation">
+    Look for messages like `Refused to load the script '<url>' because it violates the following Content Security Policy directive: "script-src ..."` (prefixed with `[Report Only]` in report-only mode). Add the blocked origin to the directive the message names, in `app/weaverse/csp.ts`, and test again.
+  </Step>
+  <Step title="Enforce">
+    Change the header name in `entry.server.tsx`:
 
-## Customizing Your CSP
+    ```tsx
+    responseHeaders.set("Content-Security-Policy", header);
+    ```
 
-To allow additional domains or services, simply update the arrays in `getWeaverseCsp`. For example, to allow a new analytics provider:
+    Repeat the checklist on the enforced build.
+  </Step>
+</Steps>
 
-```ts
-defaultSrc: [
-  ...,
-  "*.my-analytics.com",
-  ...
-]
-```
+### Harmless Console Noise
 
-You can also add new logic based on environment variables, request parameters, or app features.
+Not every red line is a CSP problem in your policy:
 
-## Best Practices
-- Always test your CSP in Report-Only mode before enforcing it.
-- Only allow the minimum set of domains necessary for your storefront and integrations.
-- Regularly review CSP reports to catch unexpected resource loads.
-- Avoid using `*` except for `frame-ancestors` in design mode.
+- **CORS errors for `googleads.g.doubleclick.net`** come from inside the YouTube iframe. That frame runs under YouTube's own policy, not yours, and playback still works.
+- **Blocked source-map (`.map`) fetches** under `connect-src` only happen while DevTools is open. Shoppers never trigger them, so you don't need to allow them.
 
 ## Troubleshooting
-- If resources (scripts, styles, images) are blocked, check your browser's CSP console warnings.
-- Make sure any new integrations are reflected in the CSP arrays.
-- For issues in design mode, verify that the correct `weaverseHost` is set.
+
+- **Studio shows a blank preview or never connects**: check that `frame-ancestors *` is present in design mode and that the Weaverse hosts are in `script-src` and `connect-src`. See [Preview Errors](/troubleshooting/preview-errors).
+- **Studio connects but conditional settings misbehave**: `'unsafe-eval'` is missing from `script-src` in design mode.
+- **The page renders but nothing is interactive**: the nonce on React Router's scripts doesn't match the header. Make sure `entry.server.tsx` passes the same nonce to `createContentSecurityPolicy`, `renderToReadableStream`, `ServerRouter`, and `NonceProvider`.
 
 ## Further Reading
+
 - [MDN: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-- [Shopify Hydrogen CSP](https://shopify.dev/docs/storefronts/headless/hydrogen/content-security-policy)
+- [Weaverse/pilot#204: Own the CSP header and nonce in the app](https://github.com/Weaverse/pilot/pull/204)
