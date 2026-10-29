@@ -1,6 +1,6 @@
 ---
 title: "Weaverse MCP"
-description: "Connect AI agents to Weaverse — search the docs and work with your own projects over the Content API — using the Model Context Protocol"
+description: "Connect Claude, ChatGPT and other AI agents to Weaverse: search the docs and work with your own store over the Content API using the Model Context Protocol"
 published: true
 ---
 
@@ -14,23 +14,96 @@ does two things:
 2. **Your account** — read your own Weaverse projects, pages, theme settings, and
    locales over the [Content API](/content-api/overview), scoped to your shop.
 
-Docs search is public. The account tools require an API key and only ever see the
-shop that key belongs to.
+The documentation itself is public. How you reach it depends on the server:
+the local server and the docs-only MCP search it without credentials, while
+the hosted connector requires sign-in for every tool, including docs search.
+The account tools only ever see the one store you connected, whether through
+sign-in (hosted connector) or an API key (local server).
 
-## Two ways to connect
+## Ways to connect
 
-<CardGroup cols={2}>
-  <Card title="@weaverse/mcp (recommended)" icon="terminal">
-    The canonical server. Runs locally via `npx`, reads your API key from its
-    config, and exposes **both** the docs tools **and** the authenticated account
-    tools. Use this when you want your agent to work with your projects.
+<CardGroup cols={3}>
+  <Card title="Hosted connector (Claude, ChatGPT)" icon="plug">
+    `https://mcp.weaverse.io/mcp`. Nothing to install: add it as a connector and
+    sign in with your Shopify store. Each store approves its own access.
   </Card>
-  <Card title="Hosted docs MCP" icon="globe">
-    `https://docs.weaverse.io/mcp` — a zero-install, HTTP-only server that exposes
-    **docs search only**. Good when all you need is documentation lookup. No
-    account access.
+  <Card title="@weaverse/mcp (local)" icon="terminal">
+    Runs on your machine via `npx` with a Content API key. For Cursor, Claude
+    Code, Codex, VS Code and other local MCP clients.
+  </Card>
+  <Card title="Docs-only MCP" icon="globe">
+    `https://docs.weaverse.io/mcp`. Documentation search only, with no store
+    access.
   </Card>
 </CardGroup>
+
+## Hosted connector for Claude and ChatGPT
+
+The hosted connector runs the same tools as `@weaverse/mcp` at
+`https://mcp.weaverse.io/mcp`. It never uses an API key. Each store signs in and
+approves access itself, and every request is limited to that store. Every
+hosted request needs that sign-in, even documentation search; use the
+docs-only MCP if you want docs without connecting a store.
+
+<Warning>
+  **Edits are live.** The hosted connector offers the nine read tools to every
+  connection. The six edit tools appear only if you grant the edit permission
+  (`content:write`), and `delete_pages` also needs the delete permission
+  (`content:delete`). Edits change your live storefront immediately, so grant
+  edit permission only when you want the assistant to make changes. Weaverse
+  is not yet listed in the Claude or ChatGPT app directories, so add the URL
+  yourself as shown below.
+</Warning>
+
+<Steps>
+  <Step title="Add the connector">
+    - **Claude**: open **Customize → Connectors**, add a custom connector, and
+      enter `https://mcp.weaverse.io/mcp`.
+    - **ChatGPT**: open **Plugins**, select **+ → Add custom MCP server**, enter
+      a name and `https://mcp.weaverse.io/mcp`, choose OAuth authentication,
+      accept the risk warning, and select **Create as a plugin** (per OpenAI's
+      [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt)
+      guide). Workspace policies may restrict custom MCP servers.
+  </Step>
+  <Step title="Sign in with your store">
+    You are sent to Weaverse. Sign in with the Shopify account that owns the
+    store. If you are already signed in to Weaverse, you go straight to the
+    approval screen.
+  </Step>
+  <Step title="Approve access">
+    The approval screen shows the app asking, your store, and where it sends you
+    back. Reading your projects, pages and theme settings is always included.
+    Every other permission the assistant requests is a separate checkbox, off
+    by default, so leave edit permission unchecked for read-only use. Choose
+    **Approve** or **Deny**.
+  </Step>
+  <Step title="Try a read">
+    Ask "Which Weaverse projects does my store have?" The assistant calls
+    `list_projects` and shows only your store's projects.
+  </Step>
+</Steps>
+
+### Permissions
+
+| Permission | Approval screen | What the connector can do |
+| --- | --- | --- |
+| `content:read` | Always included | Every read tool and docs search. |
+| `content:write` | "Save drafts and edit content" checkbox | `update_page`, `update_theme_settings`, `update_project`, `create_page`, `assign_template_resources`. Page and theme edits go **live on the storefront immediately**: this connector does not use drafts. `update_project` only renames the project in Weaverse. |
+| `content:delete` | "Delete content" checkbox | Additionally needed for `delete_pages`. If you ask to delete without it, the assistant asks you to approve it. |
+
+The connector's tools never use publishing, project-management or translation
+permissions. Leave those unchecked if an assistant requests them.
+
+Access tokens last one hour and are renewed automatically while the connection
+is active. If the store uninstalls Weaverse, every connection stops working
+immediately.
+
+### Disconnect
+
+- In the assistant, remove or disconnect the Weaverse connector.
+- In Weaverse, open **[Dashboard → Account](https://studio.weaverse.io/dashboard/account) → Connected AI apps** and choose
+  **Disconnect**. Access is revoked on the very next request. To use the
+  connector again, connect and approve again.
 
 <Note>
   Both surfaces search the same documentation. `@weaverse/mcp` proxies that same
@@ -38,7 +111,7 @@ shop that key belongs to.
   hosted docs MCP.
 </Note>
 
-## Install & configure `@weaverse/mcp`
+## Install & configure `@weaverse/mcp` (local)
 
 Add the server to your MCP client. Pass your API key (optional — omit it for
 docs-only use) via the `env` block.
@@ -146,41 +219,39 @@ docs-only use) via the `env` block.
   the server's environment.
 </Note>
 
-## Authentication
+## Authentication (local server)
 
-The server forwards `WEAVERSE_API_KEY` to the Content API as
+The local server forwards `WEAVERSE_API_KEY` to the Content API as
 `Authorization: Bearer <key>`. It never validates or stores the token itself —
 the Content API enforces shop scoping and scopes. An account tool called without
 a valid, sufficiently-scoped key returns a clear auth error, never data.
 
 <Steps>
   <Step title="Get a key">
-    Today: create a Content API key in **[Weaverse Dashboard → Settings →
-    API Keys](https://studio.weaverse.io)**.
-
-    Coming soon: your agent can obtain a scoped, expiring `agent_cli` token via
-    the **device handshake** — the agent starts the flow, you approve it once in
-    Builder, and the agent stores the key.
+    Create a Content API key in **[Weaverse Dashboard → Account → API
+    Keys](https://studio.weaverse.io/dashboard/account)**.
   </Step>
   <Step title="Add it to your MCP config">
     Put it in the `env` block as shown above.
   </Step>
   <Step title="Confirm">
-    Ask your agent to run `whoami`. It returns the projects the key can access
-    (and its shop id + scopes once the handshake ships).
+    Ask your agent to call `list_projects`. It returns the projects the key can
+    access.
   </Step>
 </Steps>
 
 ### Scopes & shop isolation
 
-Account tools map to Content API scopes (`content:read` for the read tools). Each
-key is scoped to a single Weaverse shop — requests can only touch that shop's
-projects, and reaching across shops returns a `403`-style error. Tokens are
-revocable any time from **Settings → Connected agents / API keys** in Builder.
+Account tools map to Content API scopes (`content:read` for reads,
+`content:write` for edits, `content:delete` for `delete_pages`). Each key or
+connection is scoped to a single Weaverse store: requests can only touch that
+store's projects, and reaching across stores returns a `403`. Revoke keys in
+**Dashboard → Account → API Keys** and hosted connections in **Dashboard →
+Account → Connected AI apps**.
 
 ## Available tools
 
-### Docs (public — no API key)
+### Docs (no API key; the hosted connector still requires sign-in)
 
 <Card title="search_weaverse_docs" icon="magnifying-glass">
   Search the Weaverse knowledge base for features, schema/input settings, SDK
@@ -191,59 +262,87 @@ revocable any time from **Settings → Connected agents / API keys** in Builder.
   knowledge base, ranking, and freshness all live upstream.
 </Card>
 
-### Account (requires `WEAVERSE_API_KEY`)
-
-<Note>
-  **Account tools require `@weaverse/mcp` v2.2.0 or later; write tools require v2.3.0 or later** (the unified server,
-  shipped with this release). Documentation search works on every version.
-  Because `npx -y @weaverse/mcp` always fetches the latest, a fresh install
-  gets the account tools automatically; pin or upgrade if you installed an older
-  version.
-</Note>
+### Account reads (hosted connection or `WEAVERSE_API_KEY`)
 
 | Tool | Description |
 | ---- | ----------- |
-| `whoami` | Identify the token: shop id + scopes (when available) and the projects it can access. Call first. |
-| `list_projects` | List the projects in your shop (cursor-paginated). |
-| `list_pages` | List pages in a project (filter by `type` / `locale`). |
-| `get_page` | Get a page's content. Defaults to **Portable Text**; pass `format: "weaverse"` for the raw item tree. |
-| `get_theme_settings` | Get a project's theme settings (design tokens + config). |
+| `list_projects` | List the projects in your store (cursor-paginated). |
+| `get_project` | Get one project, including its `revision`. |
+| `list_pages` | List page assignments in a project (filter by `type` / `locale`). |
+| `get_page` | Get a page's content and its `updatedAt`. Defaults to the editable `weaverse` item tree; `format: "portable-text"` is a read-only view. |
+| `get_theme_settings` | Get a project's own theme settings and their `revision`. |
 | `list_languages` | List a project's locales. |
-| `update_page` | Edit a page: merge `data` into existing items, create new typed items, relink `children`. Goes live immediately. |
-| `delete_pages` | Soft-delete pages by ids or handles + type. Takes effect on the live storefront immediately. |
-| `update_theme_settings` | Merge top-level theme settings keys. Snapshots a restorable theme version first. |
-| `update_project` | Rename a project (`name` is the only writable field). |
+| `get_openapi_spec` | Get the Content API's OpenAPI document (public reference data). |
+
+### Live edits (opt-in)
+
+Edit tools appear only when edits are allowed: on the local server with
+`WEAVERSE_ENABLE_LIVE_WRITES=true` and a key, and on the hosted connector when
+you granted the edit permission (`content:write`). `delete_pages` is listed
+with them but also needs the delete permission (`content:delete`).
+
+| Tool | Description |
+| ---- | ----------- |
+| `update_page` | Merge item data, create typed items, relink `children`. Pass `expectedUpdatedAt` from `get_page`. Live immediately. |
+| `update_theme_settings` | Merge top-level theme keys. Pass `expectedRevision` from `get_theme_settings`. Live immediately. |
+| `update_project` | Rename a project (Weaverse metadata only, not storefront content). Pass `expectedUpdatedAt` = `get_project.revision`. |
+| `create_page` | Create a page and its assignment. Live immediately. |
+| `assign_template_resources` | Attach products/collections to an existing shared template page. New routes go live immediately. |
+| `delete_pages` | Soft-delete pages by ids, or by handles + type + locale. Needs `content:delete`. Live immediately. |
+
+<Note>
+  The edit tools require `@weaverse/mcp` 4.0.0 or later for the
+  `update_project` revision check and the required `locale` on handle
+  deletes. `npx -y @weaverse/mcp` fetches the latest version.
+</Note>
 
 <Tip>
-  `get_page` returns [Portable Text](/content-api/portable-text)
-  by default — structured JSON that is far easier for an LLM to reason over than
-  raw HTML strings.
+  `get_page` can also return [Portable Text](/content-api/portable-text)
+  (`format: "portable-text"`), structured JSON that is easier for an LLM to
+  read. It is read-only: edit with the default `weaverse` format.
 </Tip>
 
 ### Try it
 
 Once `@weaverse/mcp` is connected, a read-only prompt is a safe first check:
 
-<Prompt description="Use the Weaverse MCP server. Call `whoami` to confirm which shop and scopes my API key has, then list my Weaverse projects. For the first project, list its pages and summarize them by page type and locale. Do not call any write tools." actions={["copy", "cursor"]}>
-Use the Weaverse MCP server. Call `whoami` to confirm which shop and scopes my API key has, then list my Weaverse projects. For the first project, list its pages and summarize them by page type and locale. Do not call any write tools.
+<Prompt description="Use the Weaverse MCP server. List my Weaverse projects. For the first project, list its pages and summarize them by page type and locale. Do not call any write tools." actions={["copy", "cursor"]}>
+Use the Weaverse MCP server. List my Weaverse projects. For the first project, list its pages and summarize them by page type and locale. Do not call any write tools.
 </Prompt>
 
 ## Content writes & safety
 
 <Warning>
-  Write tools change the **live storefront immediately** — edits propagate
-  through the same cache-invalidation path as a Studio save. Read the current
-  value first (`get_page`, `get_theme_settings`), send only the keys you mean
-  to change, and remember nested objects are replaced wholesale.
+  Write tools change the **live storefront immediately**: edits propagate
+  through the same cache-invalidation path as a Studio save. The MCP tools have
+  **no draft, preview, publish or restore step** and no automatic rollback.
+  Weaverse's own drafts, publishing and version restore exist in Studio and the
+  [Content API](/content-api/overview), but this connector does not use them.
+  The assistant should confirm each change with you first.
 </Warning>
+
+- **Read first, then write.** The three update tools take a baseline from
+  your last read: `update_page` (`get_page.updatedAt`),
+  `update_theme_settings` (`get_theme_settings.revision`) and `update_project`
+  (`get_project.revision`). If someone changed the content since (for example
+  in Studio), the write is rejected with `409` instead of overwriting newer
+  work. Re-read and try again. The hosted connector requires the baseline on
+  these three tools. `create_page`, `assign_template_resources` and
+  `delete_pages` take no baseline; they have their own checks (for example, a
+  duplicate page or a missing `content:delete` permission is refused).
+- Send only the keys you mean to change; nested objects are replaced wholesale.
+- A `500` after a create, delete or assignment may come after the change was
+  saved. Re-read before retrying.
 
 Write scope is deliberately narrow:
 
 - **Page content** — merge item data, create items, relink children
-  (`update_page`), and soft-delete pages (`delete_pages`).
-- **Theme settings** — top-level key merges only; a restorable theme version is
-  snapshotted before every change (`update_theme_settings`).
-- **Project** — `name` only (`update_project`).
+  (`update_page`), create pages (`create_page`), attach resources to a template
+  page (`assign_template_resources`), and soft-delete pages (`delete_pages`).
+- **Theme settings** — top-level key merges only (`update_theme_settings`).
+  Weaverse attempts a theme-version snapshot, but this connector cannot restore it.
+- **Project** — `name` only (`update_project`). This renames the project in
+  Weaverse (project metadata); it does not change storefront content.
 
 **Account-level operations are never exposed via MCP** — creating or deleting
 projects, billing, team/members, plan changes, and store linkage stay
@@ -277,13 +376,21 @@ lookup; pick `@weaverse/mcp` when you want your agent to work with your projects
 
 <AccordionGroup>
   <Accordion title="Account tools return an authentication error" icon="key">
-    - Confirm `WEAVERSE_API_KEY` is set in the server's `env` block.
-    - Verify the key in **Weaverse Dashboard → Settings → API Keys** (not revoked).
+    - Local server: confirm `WEAVERSE_API_KEY` is set in the server's `env`
+      block and the key is not revoked in **Dashboard → Account → API Keys**.
+    - Hosted connector: reconnect. The connection may have been disconnected in
+      **Connected AI apps**, or the store uninstalled Weaverse.
     - Docs tools work without a key; only the account tools need one.
+  </Accordion>
+  <Accordion title="An edit is rejected with 409 or asks for a baseline" icon="rotate">
+    - Someone changed the content since your last read. Re-read with `get_page`,
+      `get_theme_settings` or `get_project`, then apply the change again.
+    - The hosted connector requires `expectedUpdatedAt` / `expectedRevision` from
+      that read for `update_page`, `update_theme_settings` and `update_project`.
   </Accordion>
   <Accordion title="“Access denied” on a project" icon="lock">
     - The key is scoped to one shop. You can only access that shop's projects.
-    - Use `list_projects` / `whoami` to see exactly what the key can reach.
+    - Use `list_projects` to see exactly what the key or connection can reach.
   </Accordion>
   <Accordion title="Server won't start" icon="circle-exclamation">
     - Ensure Node.js is installed and `npx -y @weaverse/mcp` can run.
