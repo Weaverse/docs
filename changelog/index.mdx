@@ -16,6 +16,25 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Custom pages from theme starters**: A new project created from a theme now includes the starter's custom pages, alongside its default page templates.
 </Update>
 
+<Update label="CLI v5.7.1" description="October 29, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### Fixes
+
+  - **`--version` shows the CLI version**: `weaverse --version` printed `unknown`; it now prints the installed version.
+  - **Clear error in read-only folders**: `weaverse create` now stops before any prompts when you can't write to the current folder, and tells you to run it from a folder you own, such as your home directory.
+  - **Correct example command**: when required options are missing, the suggested command now uses the template you chose (for example `--template=forward`) instead of always Pilot.
+  - **Bun install on npm 11**: when the CLI installs Bun for you, it now approves Bun's install script, so the install completes on npm 11.
+
+  #### Upgrade
+
+  ```bash
+  npx @weaverse/cli@latest --version
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.7.1)
+</Update>
+
 <Update label="SDK v5.24.0" description="October 28, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
