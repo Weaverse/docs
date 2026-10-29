@@ -57,7 +57,7 @@ The theme schema's `i18n` is what Studio's market selector and Translation Manag
 // app/weaverse/schema.ts
 import type { WeaverseNextI18n, WeaverseNextThemeSchema } from '@weaverse/next'
 import { DEFAULT_LOCALE, LOCALE_IDS, LOCALES, type LocaleId, localePathPrefix, localeTag } from '@/i18n/locales'
-import { STATIC_CONTENT } from '@/i18n/static-content'
+import STATIC_CONTENT from '@/translations/en.json'
 
 function shopLocale(locale: LocaleId): WeaverseNextI18n {
   let { country, currency, direction, label, language } = LOCALES[locale]
@@ -178,22 +178,74 @@ Format prices with the currency the Storefront API returns, never one derived fr
 
 ## Translate theme copy
 
-Theme copy is the text your theme renders that merchants don't author: button labels, empty states, cart messages. Keep it in one object in the default language and register it as `staticContent`:
+Theme copy is the text your theme renders that merchants don't author: button labels, empty states, cart messages. Keep it in a JSON file in the default language and register it as `staticContent`:
 
-```ts
-// app/i18n/static-content.ts
-export let STATIC_CONTENT = {
-  cart: {
-    title: 'Your cart',
-    empty: 'Your cart is empty.',
+```json
+// translations/en.json
+{
+  "cart": {
+    "title": "Your cart",
+    "empty": "Your cart is empty."
   },
-  product: {
-    sale: '-{{percentage}}% Off',
-  },
+  "product": {
+    "sale": "-{{percentage}}% Off"
+  }
 }
 ```
 
+With `resolveJsonModule` on (the Next.js default), the import is typed, so you can still derive a key type from it:
+
+```ts
+import STATIC_CONTENT from '@/translations/en.json'
+
+type DotPaths<T> = {
+  [K in keyof T & string]: T[K] extends string ? K : `${K}.${DotPaths<T[K]>}`
+}[keyof T & string]
+
+export type TranslationKey = DotPaths<typeof STATIC_CONTENT> // 'cart.title' | 'cart.empty' | 'product.sale'
+```
+
 Merchants translate it per market in Studio's Translation Manager. Section settings and Shopify content are not theme copy; Weaverse and Shopify localize those themselves.
+
+### Ship translations for other languages
+
+So that a market reads in its own language before anyone translates it in Studio, ship one JSON file per language next to `en.json` and merge the market's file over the default language on the server:
+
+```ts
+// i18n/theme-content.ts (import from server code only)
+import STATIC_CONTENT from '@/translations/en.json'
+import de from '@/translations/de.json'
+import fr from '@/translations/fr.json'
+import { LOCALES, type LocaleId } from '@/i18n/locales'
+
+type Copy = Record<string, unknown>
+
+let BUNDLES: Record<string, Copy> = { de, fr }
+
+function isGroup(value: unknown): value is Copy {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function deepMerge(base: Copy, overrides: Copy): Copy {
+  let merged: Copy = { ...base }
+  for (let [key, value] of Object.entries(overrides)) {
+    merged[key] = isGroup(merged[key]) && isGroup(value) ? deepMerge(merged[key] as Copy, value) : value
+  }
+  return merged
+}
+
+/** The default copy with the market's language layered on top. */
+export function themeContent(locale: LocaleId): Copy {
+  let bundle = BUNDLES[LOCALES[locale].language.toLowerCase()]
+  return bundle ? deepMerge(STATIC_CONTENT, bundle) : STATIC_CONTENT
+}
+```
+
+- Pick the file by the market's **language**, not its country: an English-language market in Germany keeps `en.json`.
+- Merge deeply, so a key a language file leaves out falls back to the default language instead of disappearing.
+- Pass the result as `staticContent`, never as `merchantOverrides`. A merchant's translation in Studio still wins, and bundled copy must not look like copy the merchant published.
+- Keep `themeSchema.i18n.staticContent` on the default language: it is the list of keys the Translation Manager shows.
+- Resolve it on the server and pass it down, as in the layout below, so the browser receives one language instead of every file.
 
 ### Load the market's overrides
 
@@ -207,13 +259,13 @@ Load it once in the `[locale]` layout and pass it to the root provider. Extend t
 
 import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/next'
 import type { ReactNode } from 'react'
-import { STATIC_CONTENT } from '@/i18n/static-content'
 import { themeSchema } from './theme-schema'
 
 export function WeaverseRoot(props: {
   children: ReactNode
   theme?: Record<string, unknown>
   merchantOverrides?: Record<string, unknown>
+  staticContent?: Record<string, unknown>
   publicEnv?: Record<string, string | undefined>
 }) {
   return (
@@ -221,7 +273,7 @@ export function WeaverseRoot(props: {
       initialThemeSettings={props.theme}
       merchantOverrides={props.merchantOverrides}
       publicEnv={props.publicEnv}
-      staticContent={STATIC_CONTENT}
+      staticContent={props.staticContent}
       themeSchema={themeSchema}
     >
       <WeaverseNextStudioConnect />
@@ -234,6 +286,7 @@ export function WeaverseRoot(props: {
 ```tsx
 // app/[locale]/layout.tsx
 import { LOCALES, localeTag } from '@/i18n/locales'
+import { themeContent } from '@/i18n/theme-content'
 import { WeaverseRoot } from '@/weaverse/root'
 
 export default async function LocaleLayout({
@@ -252,6 +305,7 @@ export default async function LocaleLayout({
         <WeaverseRoot
           theme={theme?.theme}
           merchantOverrides={theme?.merchantOverrides}
+          staticContent={themeContent(locale)}
         >
           {children}
         </WeaverseRoot>
@@ -261,7 +315,7 @@ export default async function LocaleLayout({
 }
 ```
 
-`staticContent` falls back to `themeSchema.i18n.staticContent` when omitted.
+`staticContent` falls back to `themeSchema.i18n.staticContent` when omitted. A theme that ships only the default language can leave it out.
 
 ### Use `t()` in components
 
@@ -269,8 +323,8 @@ export default async function LocaleLayout({
 
 1. An external `t` passed to `WeaverseNextRootProvider` (your own i18n library), unless it returns the key unchanged
 2. Live edits from Studio's Translation Manager (design mode)
-3. `merchantOverrides` for the active market
-4. `staticContent`
+3. `merchantOverrides` for the active market (the merchant's Studio translation)
+4. `staticContent` (the market's language file over the default language)
 5. The key itself
 
 ```tsx
@@ -294,7 +348,7 @@ Outside React, for example in `generateMetadata`, build the same function with `
 import { createTranslate } from '@weaverse/next'
 
 let t = createTranslate({
-  staticContent: STATIC_CONTENT,
+  staticContent: themeContent(locale),
   merchantOverrides: theme?.merchantOverrides,
 })
 let title = t('cart.title')
@@ -307,7 +361,7 @@ Server Components can't call hooks. Render theme copy from a small client leaf t
 ## In Studio
 
 - The **market selector** lists every entry of `i18n.shopLocales`. Picking a market loads the preview under its `pathPrefix`, and merchants can author a localized page per market.
-- The **Translation Manager** lists your `staticContent` keys. Edits show live in the preview and are saved as that market's `merchantOverrides`.
+- The **Translation Manager** lists the keys of `themeSchema.i18n.staticContent`. Edits show live in the preview and are saved as that market's `merchantOverrides`, which win over any language file the theme ships.
 
 See the [Translation Feature Guide](/features/translation-feature-guide) for the merchant workflow.
 
