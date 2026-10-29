@@ -46,11 +46,13 @@ hosted request needs that sign-in, even documentation search; use the
 docs-only MCP if you want docs without connecting a store.
 
 <Warning>
-  **Currently read-only.** Today the hosted connector offers the nine read
-  tools. Live editing through the hosted connector is not enabled yet; the
-  permission and editing details below describe how it works once it is.
-  Weaverse is not yet listed in the Claude or ChatGPT app directories, so add
-  the URL yourself as shown below.
+  **Edits are live.** The hosted connector offers the nine read tools to every
+  connection. The six edit tools appear only if you grant the edit permission
+  (`content:write`), and `delete_pages` also needs the delete permission
+  (`content:delete`). Edits change your live storefront immediately, so grant
+  edit permission only when you want the assistant to make changes. Weaverse
+  is not yet listed in the Claude or ChatGPT app directories, so add the URL
+  yourself as shown below.
 </Warning>
 
 <Steps>
@@ -274,9 +276,10 @@ Account → Connected AI apps**.
 
 ### Live edits (opt-in)
 
-Edit tools appear only when edits are enabled: on the local server with
-`WEAVERSE_ENABLE_LIVE_WRITES=true` and a key, and on the hosted connector once
-editing is enabled and you granted the edit permission.
+Edit tools appear only when edits are allowed: on the local server with
+`WEAVERSE_ENABLE_LIVE_WRITES=true` and a key, and on the hosted connector when
+you granted the edit permission (`content:write`). `delete_pages` is listed
+with them but also needs the delete permission (`content:delete`).
 
 | Tool | Description |
 | ---- | ----------- |
