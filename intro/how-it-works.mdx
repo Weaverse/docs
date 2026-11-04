@@ -6,7 +6,41 @@ published: true
 
 # How Weaverse Works
 
-Weaverse seamlessly integrates with Shopify Hydrogen to provide a visual page building experience without compromising developer control or performance.
+Weaverse is a visual page builder for Shopify Hydrogen and other supported Shopify headless storefronts. Developers set up the storefront and its Weaverse integration; merchants then edit the content and layouts exposed by that integration in Weaverse Studio.
+
+<Warning>
+  **Headless storefronts only, not Liquid themes.** Weaverse does not build or edit Shopify Online Store Liquid themes. Installing the app does not convert an existing Liquid theme into a Hydrogen storefront or make that theme editable in Weaverse Studio.
+</Warning>
+
+## Supported Storefronts
+
+- **Shopify Hydrogen:** a Hydrogen storefront with the Weaverse integration, such as a project based on Pilot.
+- **Next.js App Router:** a Shopify headless storefront using the supported `@weaverse/next` integration. See the [Next.js integration guide](/nextjs/overview).
+
+A Shopify store is still required for commerce data. The storefront being edited must run the relevant Weaverse integration. A Shopify store with only a Liquid theme is not a supported editing environment.
+
+## Shopify Store Domain vs. Studio Preview URL
+
+These addresses serve different purposes:
+
+- **Shopify store domain:** `your-store.myshopify.com` identifies the Shopify store used for commerce data. It is not the headless application's preview address. The storefront served at this address normally belongs to Shopify's Liquid-based Online Store.
+- **Studio preview URL:** the address of your running, Weaverse-integrated headless application. For the local Hydrogen quickstart, this is `http://localhost:3456`. For a hosted setup, use the actual deployed application's URL.
+
+The headless storefront can be connected to the same Shopify store while running at a different URL. Pointing Studio at a Liquid storefront does not add the Weaverse integration to it.
+
+## What the Shopify App Does
+
+The Shopify app connects your store to the Weaverse project workflow. Creating a project and installing the app are not substitutes for setting up a compatible headless storefront. Weaverse Studio edits the registered components and content in that storefront, not the Liquid theme under **Online Store > Themes**.
+
+## Set Up and Verify Your Headless Storefront
+
+1. **Use a supported storefront.** Follow the [Hydrogen quickstart](/intro/quickstart) to set up a Weaverse-integrated storefront, or connect an existing storefront with the appropriate Weaverse integration. A store using only a Liquid theme is not enough.
+2. **Confirm the headless application loads.** Open its preview URL directly. If testing on another machine, use a reachable hosted preview; `localhost` refers to the machine running the browser.
+3. **Connect Studio to that application.** Open the corresponding Weaverse project. If Studio shows **Preview Connection Lost**, use **Manage previews** to check that the selected URL belongs to the running headless application, not the store's Liquid storefront.
+4. **Verify visual editing.** Open a page containing Weaverse sections, select a section, change an available content setting, and confirm the change appears in Studio's preview. Use the project's normal save and publish workflow to verify the result on that headless storefront.
+5. **Check the correct output.** The expected result is on the connected headless storefront. The store's separate Liquid theme is not the output of this workflow.
+
+**If the preview still fails:** an incorrect storefront URL is one possible cause, not the only one. A stopped application, an incomplete integration, or embedding restrictions can also prevent Studio from connecting. Follow [Preview Connection Errors](/troubleshooting/preview-errors) rather than treating every connection error as proof of a Liquid-theme setup.
 
 <Note>
   This page uses the React Router adapter, `@weaverse/hydrogen`, in its examples. Weaverse also supports Hydrogen storefronts on the Next.js App Router through `@weaverse/next`: the Studio workflow and component schemas are the same, while routes load pages through a request-scoped server client. See [how the Next.js integration differs](/nextjs/overview).
