@@ -145,7 +145,7 @@ export let serverComponents: WeaverseNextComponent[] = [
 
 The server registry imports the schema file, never the component, so the server graph never pulls in a Client Component. Add a `loader` to a server entry to fetch data; see [Data fetching](/nextjs/data-fetching).
 
-Declare the theme schema once. It holds your [theme settings](/api-reference/use-theme-settings), and later your markets and routes:
+Declare the theme schema once. It holds your [theme settings](/nextjs/api/main/functions/useThemeSettings), and later your markets and routes:
 
 ```ts
 // weaverse/theme-schema.ts
