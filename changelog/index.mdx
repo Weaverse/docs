@@ -16,6 +16,20 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Page selector without a running preview**: Home page, All products and Collections list now show their names, and page lists show "Preview not connected" instead of loading forever when the preview can't connect.
 </Update>
 
+<Update label="SDK v5.25.0" description="November 6, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Studio selection hook**: `useStudioSelection()` in `@weaverse/react` returns `{ selectedItemId, selectedThemeGroup }`, the page item or theme settings group the merchant has selected in Weaverse Studio. Both values are `null` on the storefront and during server rendering. Hydrogen and Next.js start providing the selection in upcoming releases; until then the hook returns `null` for both.
+
+  #### Upgrade
+
+  Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.25.0.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.25.0)
+</Update>
+
 <Update label="@weaverse/next 1.0.2" description="October 29, 2026" tags={["SDK", "Next.js"]}>
   ### Weaverse SDK for Next.js
 
