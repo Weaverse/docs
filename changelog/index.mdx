@@ -16,6 +16,32 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Development and client-transfer stores**: Shopify development and client-transfer stores can keep using Studio and the dashboard without being redirected to plan selection, even after passing the free view allowance. Once a store moves to a paid Shopify plan, the usual plan requirement applies.
 </Update>
 
+<Update label="SDK v6.1.0" description="November 9, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Market locale for Weaverse**: `WeaverseClient` takes an optional `locale`, the market as Weaverse identifies it. It selects the Translation Manager overrides, the locale sent with page requests and the locale Studio reads, including `pathPrefix`, while the Storefront API keeps its own `i18n`. Use it when a market's Shopify `LanguageCode` differs from its public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market, whose translations otherwise fall back to theme defaults. Without `locale`, nothing changes.
+
+  ```ts
+  new WeaverseClient({
+    storefront,
+    locale: { language: 'ZH', country: 'HK', pathPrefix: '/zh-hk' },
+    // ...env, cache, waitUntil, request, components, themeSchema
+  })
+  ```
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.0
+  ```
+
+  Released with `@weaverse/next` 1.1.1, which pins the same `@weaverse/react`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.0)
+</Update>
+
 <Update label="Pilot v2026.11.7" description="November 7, 2026" tags={["Theme", "Pilot"]}>
   ### Weaverse Pilot Theme
 
