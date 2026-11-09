@@ -1,0 +1,1236 @@
+---
+title: Weaverse v6 & Hydrogen 2026.10 Migration Guide
+description: 'Upgrade a Weaverse Hydrogen storefront from classic Hydrogen and @weaverse/hydrogen 5 to Hydrogen 2026.10 and @weaverse/hydrogen 6, step by step.'
+published: true
+featured: true
+---
+
+# Weaverse v6 & Hydrogen 2026.10
+
+<Visibility for="agents">
+> **Agent note:** This page migrates a storefront from classic Hydrogen (2026.4 and earlier) with `@weaverse/hydrogen` 5.x to Hydrogen 2026.10 with `@weaverse/hydrogen` 6. The "Before" samples show the old code being removed. For v6 projects, import Weaverse from `@weaverse/hydrogen/react-router`, query Shopify with `storefront.graphql(gql(...), { variables, cache })`, and never use `CartForm`, `Analytics.Provider`, `createHydrogenContext`, `storefront.query()` or the `hydrogen()` Vite plugin. Pilot `main` (Weaverse/pilot#209) is the reference implementation.
+</Visibility>
+
+`@weaverse/hydrogen` 6 runs on **Hydrogen 2026.10**, the release where Shopify turns Hydrogen from a framework into a library of server handlers and client stores. This guide moves a Weaverse Hydrogen storefront from classic Hydrogen (2026.4 and earlier, `@weaverse/hydrogen` 5.x) to Hydrogen 2026.10 and `@weaverse/hydrogen` 6, the same way the [v5 guide](/migration-advanced/v5-migration) covered the move to React Router v7.
+
+Every sample on this page comes from [Pilot](https://github.com/Weaverse/pilot), which made this move in [Weaverse/pilot#209](https://github.com/Weaverse/pilot/pull/209) and shipped it as [v2026.11.7](https://github.com/Weaverse/pilot/releases/tag/v2026.11.7). Samples are trimmed; `// ...` marks omitted code.
+
+## What Changed and Why
+
+Classic Hydrogen owned the request: `createHydrogenContext()` built the storefront client, cart, session and customer account, `createRequestHandler` from `@shopify/hydrogen/oxygen` ran React Router, the `hydrogen()` Vite plugin and `shopify hydrogen dev` drove development, and components such as `CartForm`, `Analytics.Provider`, `Image` and `Money` came from the package.
+
+Hydrogen 2026.10 is a **server-handler library**. Your app composes the request lifecycle itself and calls into Hydrogen where it needs Shopify:
+
+| Concern | Classic Hydrogen (2026.4) | Hydrogen 2026.10 |
+| --- | --- | --- |
+| Request lifecycle | `createHydrogenContext()` + `createRequestHandler` from `@shopify/hydrogen/oxygen` | Your `server.ts`: `createShopifyRequestContext`, `createStorefrontClient`, `handleShopifyRoutes`, `handleShopifyRedirects`, React Router's `createRequestHandler` |
+| Tooling | `shopify hydrogen dev/build`, `hydrogen()` Vite plugin, GraphQL codegen | `vite dev`, `react-router build`, `gql()` with `@shopify/hydrogen/ts-plugin` |
+| Storefront API | `storefront.query()`, throws on errors, default cache | `storefront.graphql()`, returns `{ data, errors }`, no default cache |
+| Cart | `context.cart`, `CartForm`, a `/cart` action | `createCartServerHandlers()` at `/api/cart`, `createCartComponents()` store |
+| Product form | `useOptimisticVariant`, `getAdjacentAndFirstAvailableVariants` | `createProductComponents()`: `ProductProvider`, `useProductForm` |
+| Analytics | `Analytics.Provider`, `Analytics.ProductView`, ... | `ShopifyScripts` and the `window.Shopify.analytics` bus |
+| Customer Account | `context.customerAccount.login()` in your routes | `createCustomerAccountServerHandlers()` at fixed `/account/*` paths |
+| UI helpers | `Image`, `Money`, `Pagination`, `getSeoMeta`, sitemaps, CSP | Removed: port them into your theme |
+
+`@weaverse/hydrogen` 6 follows: `WeaverseClient` takes the 2026.10 Storefront client instead of a classic Hydrogen context, and the SDK ships one entry point per framework.
+
+## Supported Versions
+
+| Package | Version |
+| --- | --- |
+| `@shopify/hydrogen` | `2026.10.x` (Pilot uses `^2026.10.2`) |
+| `@weaverse/hydrogen` | `6.x` |
+| `@weaverse/react` / `@weaverse/next` | `6.0.0` / `1.1.0`, pinned by `@weaverse/hydrogen` 6.0.0 |
+| `react-router`, `@react-router/dev` | `7.18` or later 7.x, both on the same version (Pilot uses `7.18.5`) |
+| `vite` | `8` |
+| `@shopify/mini-oxygen` | `^4.2.3` |
+| Node.js | `^22.18 \|\| ^24.11` (Pilot's `engines`) |
+
+Themes on Hydrogen 2026.4 or earlier stay on `@weaverse/hydrogen` 5.x. React Router 8 is not supported yet.
+
+<Warning>
+  `@weaverse/hydrogen` 6.0.0 depends on exactly `@weaverse/react` 6.0.0 and `@weaverse/next` 1.1.0, which are released together as one version group. If your `package.json` also lists `@weaverse/react` or `@weaverse/next`, align them to those versions. Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
+</Warning>
+
+## Before You Begin
+
+This is a major upgrade with breaking changes across the whole theme. Before you start:
+
+1. **Commit everything** and work on a branch.
+2. **Read Shopify's migration skill.** `@shopify/hydrogen` 2026.10 ships one at `node_modules/@shopify/hydrogen/skills/migrate-to-hydrogen-2026-10/`, with one reference file per area (cart, analytics, customer account, ...). Install `@shopify/hydrogen@2026.10` first, or read it in a fresh Pilot checkout.
+3. **Keep Pilot's cut-over open** as a reference: the [PR diff](https://github.com/Weaverse/pilot/pull/209/files) and the spec at `.weaverse/specs/2026-10-29-hydrogen-2026-10-cut-over.md` in the Pilot repo, which lists every decision and its reason.
+4. **Plan for a full regression pass.** Cart, product forms, analytics and customer accounts are rewritten, not renamed.
+
+<Warning>
+  Classic projects should pin `@shopify/hydrogen` to `~2026.4.x` until they migrate. A `^2026.4.0` range resolves to 2026.10, whose `hydrogen()` Vite plugin only throws an error telling you to pin.
+</Warning>
+
+## Migration Options
+
+### Option 1: Start From the Latest Pilot (Recommended)
+
+If your theme is close to Pilot, create a new project from the current Pilot and move your customizations over:
+
+```bash
+npx @weaverse/cli@latest create \
+  --template=pilot \
+  --project-id="your-project-id" \
+  --project-name=my-storefront
+```
+
+Then copy your sections and components into `app/sections/` and `app/components/`, run the codemod from [Step 2](#step-2-run-the-weaverse-codemod) on them, and port each Storefront API query to `gql()` ([Step 6](#step-6-move-queries-to-the-new-graphql-client)). Your Weaverse project, pages and theme settings are not affected: point the project's preview URL at the new storefront.
+
+### Option 2: Upgrade in Place
+
+Follow the steps below. They follow the order Pilot used, so the project builds again as early as possible.
+
+## Step 1: Update Dependencies, Scripts and Config
+
+### Dependencies
+
+```bash
+npm install @shopify/hydrogen@^2026.10.2 @weaverse/hydrogen@^6.0.0 \
+  react-router@7.18.5 @react-router/dev@7.18.5
+npm install -D gql.tada @types/node @shopify/mini-oxygen@^4.2.3
+npm uninstall @shopify/hydrogen-codegen @graphql-codegen/cli
+rm codegen.ts storefront-api.generated.d.ts customer-account-api.generated.d.ts
+```
+
+Keep `@shopify/cli` as a dev dependency for `shopify hydrogen deploy`, `link` and `env pull`.
+
+### Scripts
+
+**Before (classic):**
+
+```json
+{
+  "scripts": {
+    "build": "shopify hydrogen build --codegen",
+    "dev": "react-router typegen && shopify hydrogen dev --codegen --port 3456",
+    "preview": "shopify hydrogen preview --build",
+    "typecheck": "tsc --noEmit",
+    "codegen": "shopify hydrogen codegen"
+  }
+}
+```
+
+**After (Hydrogen 2026.10):**
+
+```json
+{
+  "scripts": {
+    "build": "react-router build",
+    "dev": "hydrogen skills check --mode=warn && vite dev --port 3456",
+    "dev:https": "hydrogen skills check --mode=warn && vite dev --port 3456",
+    "preview": "react-router build && vite preview --port 3456",
+    "start": "vite preview --port 3456",
+    "typecheck": "react-router typegen && tsc --noEmit && hydrogen gql check --fail-on-warn",
+    "deploy": "shopify hydrogen deploy --assets-dir dist/client --worker-dir dist/server"
+  }
+}
+```
+
+The `hydrogen` binary ships with `@shopify/hydrogen`. `dev:https` runs the same command; `vite.config.ts` reads `npm_lifecycle_event` to turn on local HTTPS, which Customer Account login needs.
+
+### `vite.config.ts`
+
+```typescript
+// Before
+import { hydrogen } from "@shopify/hydrogen/vite";
+
+plugins: [hydrogen(), oxygen(), reactRouter(), tailwindcss()],
+
+// After
+import { localHttps } from "@shopify/hydrogen/vite";
+import { oxygen } from "@shopify/mini-oxygen/vite";
+
+plugins: [
+  // `npm run dev:https` serves https://local.tryhydrogen.dev
+  localHttps({ enabled: process.env.npm_lifecycle_event === "dev:https" }),
+  ...oxygen(), // returns an array: spread it
+  reactRouter(),
+  tailwindcss(),
+],
+ssr: {
+  optimizeDeps: {
+    // React and React Router must be pre-bundled for the workerd SSR runtime
+    include: [
+      "react",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+      "react-dom",
+      "react-dom/server",
+      "react-router",
+      "react-router > cookie",
+      "react-router > set-cookie-parser",
+    ],
+  },
+},
+```
+
+### `react-router.config.ts`
+
+Hydrogen 2026.10 has no React Router preset. Replace `hydrogenPreset()` with the values it applied:
+
+```typescript
+import type { Config } from "@react-router/dev/config";
+
+export default {
+  appDirectory: "app",
+  // `shopify hydrogen deploy --assets-dir dist/client --worker-dir dist/server`
+  // reads this directory; React Router's default is `build/`.
+  buildDirectory: "dist",
+  ssr: true,
+  subResourceIntegrity: false,
+  future: {
+    v8_middleware: true,
+    v8_splitRouteModules: true,
+    v8_viteEnvironmentApi: false,
+    unstable_optimizeDeps: true,
+    v8_passThroughRequests: true,
+    v8_trailingSlashAwareDataRequests: true,
+  },
+} satisfies Config;
+```
+
+### `tsconfig.json` and `.gitignore`
+
+Drop the generated-types paths and `@shopify/hydrogen/react-router-types`, and add the GraphQL TypeScript plugin:
+
+```jsonc
+{
+  "compilerOptions": {
+    "types": ["@shopify/oxygen-workers-types", "node", "react-router", "vite/client"],
+    "paths": { "~/*": ["./app/*"] },
+    "plugins": [{ "name": "@shopify/hydrogen/ts-plugin" }]
+  }
+}
+```
+
+```gitignore
+# Generated by @shopify/hydrogen/ts-plugin
+storefront-graphql-env.d.ts
+customer-account-graphql-env.d.ts
+```
+
+## Step 2: Run the Weaverse Codemod
+
+`@weaverse/cli` 5.9.0 ships a codemod for `@weaverse/hydrogen` 6. Preview first:
+
+```bash
+npx @weaverse/cli@latest migrate v6 --dry-run
+```
+
+`--dry-run` lists the files it would change without writing them. Then apply it and review the diff:
+
+```bash
+npx @weaverse/cli@latest migrate v6
+git diff
+```
+
+Use `--dir` to run it on another project folder. The codemod only touches files that import `@weaverse/hydrogen` or `@weaverse/next`, and does two things:
+
+- **Moves imports** to the new entry points: `@weaverse/hydrogen` → `@weaverse/hydrogen/react-router`, `@weaverse/next` → `@weaverse/hydrogen/next`, `@weaverse/next/server` → `@weaverse/hydrogen/next/server`.
+- **Renames types** listed in the table below.
+
+<Warning>
+  The renames are plain find-and-replace on whole words across each file that imports Weaverse. A local type with the same name, such as your own `ThemeSettingsResponse`, is renamed too. Review the diff before you commit.
+</Warning>
+
+### `@weaverse/hydrogen` 6 API Changes
+
+**Entry points.** Hydrogen and React Router themes import everything from `@weaverse/hydrogen/react-router`, which re-exports the other public entries:
+
+| Entry | Contents |
+| --- | --- |
+| `@weaverse/hydrogen/react-router` | Everything a Hydrogen theme uses: `WeaverseClient`, `withWeaverse`, `WeaverseHydrogenRoot`, `useThemeSettings`, `useTranslation`, `TranslationProvider`, `getSelectedProductOptions`, `getWeaverseSeoMeta`, `createSchema`, the hooks and the types |
+| `@weaverse/hydrogen` | Schemas, data helpers and types, without React or a router |
+| `@weaverse/hydrogen/react` | Framework-free React hooks: `useWeaverse`, `useItemInstance`, `useParentInstance`, `useChildInstances` |
+| `@weaverse/hydrogen/next`, `@weaverse/hydrogen/next/server` | The Next.js SDK, also published as `@weaverse/next` 1.1.0 |
+
+**Renamed types** (applied by the codemod):
+
+| v5 | v6 |
+| --- | --- |
+| `HydrogenComponent` | `WeaverseComponent` |
+| `HydrogenComponentProps` | `WeaverseComponentProps` |
+| `HydrogenComponentSchema` | `WeaverseComponentSchema` |
+| `HydrogenComponentData` | `WeaverseComponentData` |
+| `HydrogenChildComponentReference` | `WeaverseChildComponentReference` |
+| `HydrogenThemeSchema` | `WeaverseThemeSchema` |
+| `HydrogenThemeSettings` | `WeaverseThemeSettings` |
+| `HydrogenPageData` | `WeaversePageData` |
+| `HydrogenPageAssignment` | `WeaversePageAssignment` |
+| `HydrogenProjectType` | `WeaverseProjectType` |
+| `ThemeSettingsResponse` | `WeaverseThemeSettingsResponse` |
+| `ComponentLoaderArgs` | `WeaverseComponentLoaderArgs` |
+
+**Removed from the public entries** (fix these by hand):
+
+- `useThemeText`, `ThemeTextProvider` and `ThemeTextStore`, the deprecated aliases: use `useTranslation`, `TranslationProvider` and `TranslationStore`.
+- `interpolate`, `createWeaverseDataContext`, `useWeaverseDataContext` and `WeaverseArticle` (`WeaverseArticle` had the same resource-picker shape as `WeaverseBlog`).
+- `CachingStrategy`: import it from `@shopify/hydrogen`.
+
+**Behavior changes:**
+
+- `WeaverseClient` takes the request's Storefront client plus `env`, `cache` and `waitUntil` instead of a spread classic Hydrogen context ([Step 5](#step-5-create-the-weaverseclient-from-the-storefront-client)).
+- Section loaders query Shopify with `weaverse.storefront.graphql()`; there is no `query()` shim.
+- `Env` extends the SDK's `WeaverseEnv` instead of Hydrogen's removed `HydrogenEnv`.
+- `getSelectedProductOptions(request)` keeps its signature and still drops Weaverse's Studio query params.
+- `@shopify/hydrogen` `>=2026.10.0` is now a peer dependency.
+- Weaverse content keeps its caching: 60 seconds fresh, then up to a day stale while it revalidates or when the API fails.
+
+## Step 3: Own the Request Lifecycle in the Server Entry
+
+Classic `server.ts` built a Hydrogen context and handed the request to Hydrogen's handler. In 2026.10 it composes the lifecycle itself.
+
+**Before (classic):**
+
+```typescript
+// server.ts
+import * as remixBuild from "virtual:react-router/server-build";
+import { storefrontRedirect } from "@shopify/hydrogen";
+import { createRequestHandler } from "@shopify/hydrogen/oxygen";
+import { createHydrogenRouterContext } from "~/.server/context";
+
+export default {
+  async fetch(request: Request, env: Env, executionContext: ExecutionContext) {
+    const hydrogenContext = await createHydrogenRouterContext(request, env, executionContext);
+    const handleRequest = createRequestHandler({
+      build: remixBuild,
+      mode: process.env.NODE_ENV,
+      getLoadContext: () => hydrogenContext,
+    });
+
+    const response = await handleRequest(request);
+    if (hydrogenContext.session.isPending) {
+      response.headers.set("Set-Cookie", await hydrogenContext.session.commit());
+    }
+    if (response.status === 404) {
+      return storefrontRedirect({ request, response, storefront: hydrogenContext.storefront });
+    }
+    return response;
+  },
+};
+```
+
+**After (Hydrogen 2026.10):**
+
+```typescript
+// server.ts
+import { handleShopifyRedirects, handleShopifyRoutes } from "@shopify/hydrogen";
+import { createRequestHandler, RouterContextProvider } from "react-router";
+import * as serverBuild from "virtual:react-router/server-build";
+import { cartHandlers, createPilotCartHandlers } from "~/.server/cart";
+import { createAppContext } from "~/.server/context";
+import { getCustomerAccountHandlers } from "~/.server/customer-account";
+import { predictiveSearchHandlers } from "~/.server/predictive-search";
+import { routeTemplates } from "~/utils/route-templates";
+
+const handleRequest = createRequestHandler(serverBuild, process.env.NODE_ENV);
+
+export default {
+  async fetch(request: Request, env: Env, executionContext: ExecutionContext) {
+    try {
+      // 1. The request context and clients
+      const appContext = await createAppContext(request, env, executionContext);
+      const { session, storefront } = appContext;
+      const requestContext = storefront.requestContext;
+
+      // 2. Routes Hydrogen owns: /api/cart, predictive search, /account/login, ...
+      const shopifyRoute = handleShopifyRoutes({
+        request,
+        requestContext,
+        sessionManager: session,
+        storefrontClient: storefront,
+        routeTemplates,
+        handlers: [
+          createPilotCartHandlers({
+            getCustomerAccessToken: appContext.customerAccount.getAccessToken,
+          }),
+          cartHandlers,
+          predictiveSearchHandlers,
+          getCustomerAccountHandlers(env),
+        ],
+      });
+      if (shopifyRoute) {
+        const response = await shopifyRoute;
+        await commitSession(response, appContext);
+        return response;
+      }
+
+      // 3. Render the app; loaders read `context.storefront`, `context.weaverse`, ...
+      const routerContext = Object.assign(new RouterContextProvider(), appContext);
+      const response = await handleRequest(request, routerContext);
+
+      // 4. On a 404, look the path up in Shopify's URL redirects
+      if (response.status === 404) {
+        const redirect = await handleShopifyRedirects({
+          request,
+          storefrontClient: storefront,
+          routeTemplates,
+        });
+        if (redirect) return redirect;
+      }
+
+      // 5. Commit the session, then apply Shopify's response headers
+      await commitSession(response, appContext);
+      requestContext.applyResponseHeaders(response.headers);
+      return response;
+    } catch (error) {
+      console.error(error);
+      return new Response("An unexpected error occurred", { status: 500 });
+    }
+  },
+};
+
+async function commitSession(
+  response: Response,
+  { session }: Awaited<ReturnType<typeof createAppContext>>,
+) {
+  const headers = new Headers((await session.commit()) ?? undefined);
+  for (const [name, value] of headers) response.headers.append(name, value);
+}
+```
+
+Notes:
+
+- `handleShopifyRoutes` decides synchronously: it returns a `Promise<Response>` for a path a handler owns, otherwise `null`. Check it without `await`.
+- Handlers are matched in order, so app handlers that wrap a library handler (Pilot's `POST /api/cart` syncs the cart's market, then calls `cartHandlers.post`) go first.
+- `routeTemplates` comes from `createShopifyRouteTemplates()` and maps Shopify resources to your routes, for `?variant=` links, URL redirects and `ShopifyScripts`. Omitting it, or `applyResponseHeaders`, fails silently.
+- Pilot's real `server.ts` also skips the redirect lookup for unsupported markets, makes the lookup market-aware ([Markets](#markets)), and leaves cart permalinks without a `payment` param to its own `/cart/:lines` route.
+
+## Step 4: Build the App Context Yourself
+
+`createHydrogenContext()` is gone. Pilot replaces `createHydrogenRouterContext()` with `createAppContext()` in `app/.server/context.ts`, which builds the same values and returns a plain object that `server.ts` copies onto React Router's context:
+
+```typescript
+// app/.server/context.ts
+export async function createAppContext(
+  request: Request,
+  env: Env,
+  executionContext: ExecutionContext,
+) {
+  const waitUntil = executionContext.waitUntil.bind(executionContext);
+  const [cache, session] = await Promise.all([
+    caches.open("hydrogen"),
+    AppSession.init(request, [env.SESSION_SECRET]),
+  ]);
+  const storefront = createRequestStorefront({ request, env, cache, waitUntil });
+  const customerAccount = createCustomerAccount({ env, request, session, storefront });
+  const weaverse = new WeaverseClient({ /* Step 5 */ });
+
+  return { env, cache, waitUntil, session, storefront, customerAccount, weaverse };
+}
+
+export type AppContext = Awaited<ReturnType<typeof createAppContext>>;
+```
+
+### The Storefront Client
+
+`createRequestStorefront()` (Pilot's `app/.server/storefront.ts`) builds a request-scoped client. It uses the private token when Oxygen injects one, and the public token otherwise:
+
+```typescript
+import {
+  type CachingStrategy,
+  createShopifyRequestContext,
+  createStorefrontClient,
+  type PublicStorefrontClient,
+  type RequestScopedPrivateStorefrontClient,
+} from "@shopify/hydrogen";
+
+// The bare client types drop `cache` from `graphql()` options; carry it.
+type StorefrontCallOptions = { cache?: CachingStrategy };
+
+export function createRequestStorefront({ request, env, cache, waitUntil }) {
+  const i18n = getRequestI18n(request); // { country, language, pathPrefix, ... }
+  const buyerIp = getBuyerIp(request.headers); // `oxygen-buyer-ip`, then proxy headers
+  const config = {
+    storeDomain: env.PUBLIC_STORE_DOMAIN,
+    storefrontId: env.PUBLIC_STOREFRONT_ID || undefined,
+    cache,
+    waitUntil,
+  };
+
+  if (env.PRIVATE_STOREFRONT_API_TOKEN && buyerIp) {
+    return createStorefrontClient({
+      type: "private",
+      requestContext: createShopifyRequestContext({ request, i18n, buyerIp }),
+      config: { ...config, privateStorefrontToken: env.PRIVATE_STOREFRONT_API_TOKEN },
+    });
+  }
+
+  return createStorefrontClient({
+    type: "public",
+    requestContext: createShopifyRequestContext({ request, i18n }),
+    config: { ...config, publicStorefrontToken: env.PUBLIC_STOREFRONT_API_TOKEN },
+  });
+}
+```
+
+`getRequestI18n` and `getBuyerIp` are app code. Pilot resolves the market from the URL prefix, or from the `Referer` for unprefixed handler paths ([Markets](#markets)).
+
+### The Session
+
+The session is now any object that implements Hydrogen's `WritableCustomerSessionManager` (`getSessionOrigin`, `getSessionItem`, `setSessionItem`, `removeSessionItem`, plus an optional `commit()` returning cookie headers). Pilot's `AppSession` in `app/.server/session.ts` wraps React Router's `createCookieSessionStorage` and only commits when something changed, so anonymous pages never get a `Set-Cookie` that would make them uncacheable. An in-memory session works for carts but cannot complete Customer Account login, which spans two requests.
+
+### Types: `env.d.ts`
+
+**Before (classic):**
+
+```typescript
+import type { HydrogenEnv, HydrogenSessionData } from "@shopify/hydrogen";
+import type { WeaverseClient } from "@weaverse/hydrogen";
+import type { createHydrogenRouterContext } from "./app/.server/context";
+
+declare global {
+  interface Env extends HydrogenEnv {
+    // ...
+  }
+}
+
+declare module "react-router" {
+  interface AppLoadContext extends Awaited<ReturnType<typeof createHydrogenRouterContext>> {
+    weaverse: WeaverseClient;
+    // ...
+  }
+  interface SessionData extends HydrogenSessionData {}
+}
+```
+
+**After (Hydrogen 2026.10):**
+
+```typescript
+/// <reference types="vite/client" />
+/// <reference types="react-router" />
+/// <reference types="@shopify/oxygen-workers-types" />
+import type { WeaverseEnv } from "@weaverse/hydrogen/react-router";
+import type { AppContext } from "./app/.server/context";
+
+declare global {
+  /** The Oxygen worker bindings (`.env` locally). */
+  interface Env extends WeaverseEnv {
+    SESSION_SECRET: string;
+    PUBLIC_STORE_DOMAIN: string;
+    PUBLIC_STOREFRONT_API_TOKEN?: string;
+    PRIVATE_STOREFRONT_API_TOKEN?: string;
+    PUBLIC_STOREFRONT_ID?: string;
+    PUBLIC_CHECKOUT_DOMAIN: string;
+    SHOP_ID: string;
+    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
+    WEAVERSE_PROJECT_ID: string;
+    // ...
+  }
+}
+
+declare module "react-router" {
+  interface AppLoadContext extends AppContext {}
+  interface RouterContextProvider extends AppContext {}
+}
+```
+
+`HydrogenEnv` no longer exists, so list every variable your theme reads.
+
+## Step 5: Create the `WeaverseClient` From the Storefront Client
+
+**Before (v5):**
+
+```typescript
+import { WeaverseClient } from "@weaverse/hydrogen";
+
+const weaverse = new WeaverseClient({
+  ...hydrogenContext,
+  request,
+  cache,
+  themeSchema,
+  components,
+});
+Object.assign(hydrogenContext, { weaverse });
+```
+
+**After (v6):**
+
+```typescript
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
+
+const weaverse = new WeaverseClient({
+  storefront, // the request-scoped Storefront client from Step 4
+  env,
+  cache,
+  waitUntil,
+  request,
+  customerAccount, // optional; passed through to section loaders
+  themeSchema,
+  components,
+});
+```
+
+`projectId`, `fetchTimeoutMs` and `throwPageLoadFailures` work as before. Weaverse reads `storefront.i18n` (`language`, `country`, `pathPrefix`) for the content locale and passes `pathPrefix` to Studio. Root `withWeaverse(Layout)`, `WeaverseHydrogenRoot`, `useThemeSettings` and `loadPage()` / `loadThemeSettings()` don't change beyond the import path.
+
+## Step 6: Move Queries to the New GraphQL Client
+
+GraphQL codegen is replaced by `gql()`: TypeScript infers result and variable types from Hydrogen's bundled Storefront API schema, and `hydrogen gql check` validates every document.
+
+**Before (classic):**
+
+```typescript
+import type { ProductQuery } from "storefront-api.generated";
+
+const PRODUCT_QUERY = `#graphql
+  query product($country: CountryCode, $language: LanguageCode, $handle: String!)
+  @inContext(country: $country, language: $language) {
+    product(handle: $handle) { ...ProductDetails }
+  }
+  ${PRODUCT_FRAGMENT}
+` as const;
+
+const { product } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
+  variables: {
+    handle,
+    country: storefront.i18n.country,
+    language: storefront.i18n.language,
+  },
+  cache: storefront.CacheLong(),
+});
+```
+
+**After (Hydrogen 2026.10):**
+
+```typescript
+import { gql, type StorefrontApi } from "@shopify/hydrogen";
+import { CACHE_LONG } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
+
+const PRODUCT_QUERY = gql(
+  `
+  query product($country: CountryCode, $language: LanguageCode, $handle: String!)
+  @inContext(country: $country, language: $language) {
+    product(handle: $handle) { ...ProductDetails }
+  }
+`,
+  [PRODUCT_FRAGMENT], // fragments are passed, not interpolated
+);
+
+export type ProductQuery = StorefrontApi.ResultOf<typeof PRODUCT_QUERY>;
+
+const { product } = await storefront
+  .graphql(PRODUCT_QUERY, { variables: { handle }, cache: CACHE_LONG })
+  .then(unwrapStorefront);
+```
+
+What changes at every call site:
+
+- **`$country` and `$language` are injected** from the request context. Drop them from `variables`.
+- **`graphql()` returns `{ data, errors, headers }`** and does not throw on GraphQL errors. Pilot keeps the throwing behavior with a small helper:
+
+  ```typescript
+  // app/utils/storefront.ts
+  import type { GraphQLFormattedError } from "@shopify/hydrogen";
+
+  export function unwrapStorefront<T>(result: {
+    data: T | null;
+    errors?: GraphQLFormattedError[];
+  }): T {
+    if (result.errors?.length || !result.data) {
+      const messages = result.errors?.map(({ message }) => message) ?? ["No data returned"];
+      throw new Error(`[storefront.graphql] ${messages.join("\n")}`);
+    }
+    return result.data;
+  }
+  ```
+
+- **There is no default cache.** Pass `cache` on every query, or it hits the API on every request. Pilot maps the classic strategies in `app/utils/cache.ts`:
+
+  ```typescript
+  import { Cache } from "@shopify/hydrogen";
+
+  // Classic Hydrogen's implicit default: fresh for a second, stale for a day
+  export const CACHE_DEFAULT = Cache({ mode: "public", maxAge: 1, staleWhileRevalidate: 86_399 });
+  export const CACHE_SHORT = Cache.short();
+  export const CACHE_LONG = Cache.long();
+  export const CACHE_NONE = Cache.none();
+  ```
+
+  `generateCacheControlHeader` is gone too; Pilot builds `Cache-Control` values from these strategies with a local `cacheControlHeader()`.
+
+### Section Loaders
+
+Section loaders keep `{ data, weaverse }`; `weaverse.storefront` is the 2026.10 client.
+
+**Before (v5):**
+
+```typescript
+import { type ComponentLoaderArgs } from "@weaverse/hydrogen";
+import type { CollectionsByIdsQuery } from "storefront-api.generated";
+
+export const loader = async ({ data, weaverse }: ComponentLoaderArgs<FeaturedCollectionsData>) => {
+  const { nodes } = await weaverse.storefront.query<CollectionsByIdsQuery>(COLLECTIONS_QUERY, {
+    variables: { ids },
+  });
+  return nodes.filter(Boolean);
+};
+```
+
+**After (v6):**
+
+```typescript
+import { gql } from "@shopify/hydrogen";
+import { type WeaverseComponentLoaderArgs } from "@weaverse/hydrogen/react-router";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
+
+const COLLECTIONS_QUERY = gql(`
+  query collectionsByIds($country: CountryCode, $language: LanguageCode, $ids: [ID!]!)
+  @inContext(country: $country, language: $language) {
+    nodes(ids: $ids) { ... on Collection { id title handle } }
+  }
+`);
+
+export const loader = async ({ data, weaverse }: WeaverseComponentLoaderArgs<FeaturedCollectionsData>) => {
+  const { nodes } = unwrapStorefront(
+    await weaverse.storefront.graphql(COLLECTIONS_QUERY, {
+      variables: { ids },
+      cache: CACHE_DEFAULT,
+    }),
+  );
+  return nodes.filter((node) => Boolean(node && "id" in node));
+};
+```
+
+`gql()` results are typed precisely, including nullable and union fields such as `nodes(ids:)`. Narrow them where you read them instead of casting to `any`.
+
+Customer Account documents use `gql` from `@shopify/hydrogen/customer-account`, with `InferResult<SourceOf<typeof DOC>>` for their result types.
+
+## Step 7: Update `app/routes.ts`
+
+- **Remove `hydrogenRoutes()`.** It no longer exists; export the route array directly.
+- **Delete routes Hydrogen now owns.** In Pilot these were `routes/api/cart.ts` (the library serves `/api/cart`), `routes/account/auth/login.ts`, `authorize.ts` and `logout.ts` (the Customer Account handlers), `routes/api/predictive-search.ts` and `routes/api/graphql.json.ts`.
+- **Wrap the `:locale?` routes in the market guard layouts** described in [Markets](#markets).
+
+```typescript
+// app/routes.ts
+import { index, layout, prefix, type RouteConfig, route } from "@react-router/dev/routes";
+
+export default [
+  route("robots.txt", "routes/seo/robots.ts"),
+  layout("routes/market-guard-resources.ts", [
+    ...prefix(":locale?", [
+      route("sitemap.xml", "routes/seo/sitemap.ts"),
+      route("discount/:code", "routes/others/discount-code.tsx"),
+      route("cart/checkout", "routes/cart/checkout.tsx"),
+      // ... other resource routes and `api/*`
+    ]),
+  ]),
+  layout("routes/market-guard.ts", [
+    ...prefix(":locale?", [
+      index("routes/home.tsx"),
+      route("products/:productHandle", "routes/products/product.tsx"),
+      // ... other pages
+      route("*", "routes/catch-all.tsx"), // Weaverse custom pages
+    ]),
+  ]),
+] satisfies RouteConfig;
+```
+
+## Step 8: Move the Cart to Hydrogen's Cart Store
+
+`context.cart`, `CartForm` and the `/cart` action are replaced by server handlers at `/api/cart` and a client store.
+
+**Server.** Create the handlers once, extending the default cart fields with your fragment, and register them in `handleShopifyRoutes` ([Step 3](#step-3-own-the-request-lifecycle-in-the-server-entry)):
+
+```typescript
+// app/.server/cart.ts
+import { createCartServerHandlers, gql } from "@shopify/hydrogen";
+
+const CART_FRAGMENT = gql(`
+  fragment CartFragment on Cart {
+    appliedGiftCards { id lastCharacters }
+    buyerIdentity { countryCode }
+    # ... the extra fields your cart UI renders
+  }
+`);
+
+export const cartHandlers = createCartServerHandlers({ fragment: CART_FRAGMENT });
+```
+
+**Client.** Bind the store to your handlers' type and render the provider once in `app/root.tsx`:
+
+```typescript
+// app/components/cart/cart-store.ts
+import type { CartDataFromHandlers } from "@shopify/hydrogen";
+import { createCartComponents } from "@shopify/hydrogen/react";
+import type { cartHandlers } from "~/.server/cart";
+
+export type CartData = CartDataFromHandlers<typeof cartHandlers>;
+
+export const { CartProvider, useCart, useCartActions, useCartForm } =
+  createCartComponents<typeof cartHandlers>();
+```
+
+```tsx
+// app/root.tsx, inside the Layout <body>
+<CartProvider>
+  {/* header, main, footer */}
+</CartProvider>
+```
+
+<Tip>
+  Pilot renders `CartProvider` without server `initialData`. The cart loads from `/api/cart` after hydration, so the HTML stays anonymous and Oxygen can full-page cache it.
+</Tip>
+
+**Forms.** Cart forms post to `/api/cart`, so they work without JavaScript; once hydrated, the store applies the change optimistically.
+
+**Before (classic):**
+
+```tsx
+<CartForm
+  route="/cart"
+  action={CartForm.ACTIONS.LinesRemove}
+  inputs={{ lineIds: [lineId] }}
+>
+  <button type="submit">Remove</button>
+</CartForm>
+```
+
+**After (Hydrogen 2026.10):**
+
+```tsx
+function ItemRemoveButton({ lineId }: { lineId: string }) {
+  const { formProps, register } = useCartForm();
+  return (
+    <form {...formProps()}>
+      <input type="hidden" {...register("lineId", { value: lineId })} />
+      <button type="submit" {...register("remove")}>Remove</button>
+    </form>
+  );
+}
+```
+
+Read state with selectors, for example `useCart((state) => state.data)`, `useCart((state) => state.pending.lines.has(line.id))` and `useCart((state) => state.errors)`. After an app-owned change (a gift card, a market switch), call `refresh()` from `useCartActions()`.
+
+**What Pilot keeps as app code**, because the library doesn't cover it yet:
+
+- `POST /api/cart`, registered before `cartHandlers`: syncs the cart's country and the signed-in customer's access token, drops a `cart` cookie whose cart no longer exists, then delegates to `cartHandlers.post`.
+- `POST /api/cart/buyer-identity` for the country selector and `POST /api/cart/gift-cards` for gift cards, built with `createShopifyRouteHandler`.
+- `/cart/:lines` permalinks, `/discount/:code` and `/cart/checkout` with attribution, as routes.
+
+See `app/.server/cart.ts` in Pilot for these handlers. Note that `CartCost.totalDutyAmount` and `totalTaxAmount` are no longer populated, and the order discount total comes from `lines.discountAllocations(lineLevelOnly: false)` rather than the deprecated `Cart.discountAllocations`.
+
+## Step 9: Rebuild Product Forms and Variant Selection
+
+`useOptimisticVariant`, `getAdjacentAndFirstAvailableVariants` and `getProductOptions` are replaced by Hydrogen's product form store. Keep `getSelectedProductOptions(request)` from `@weaverse/hydrogen/react-router` in the loader: it now wraps Hydrogen 2026.10's version and still filters out Studio params.
+
+```typescript
+// app/components/product/product-form.tsx
+import { createProductComponents } from "@shopify/hydrogen/react";
+import type { ProductQuery } from "~/graphql/queries";
+
+export type ProductFormData = NonNullable<ProductQuery["product"]>;
+
+export const { ProductProvider, useProduct, useProductForm } =
+  createProductComponents<ProductFormData>();
+```
+
+The product query must select `encodedVariantExistence`, `encodedVariantAvailability`, `options`, `selectedOrFirstAvailableVariant` and `adjacentVariants`, as Pilot's `PRODUCT_QUERY` does.
+
+**Before (classic):**
+
+```tsx
+export default function Product() {
+  const { product } = useLoaderData<typeof loader>();
+  const selectedVariant = useOptimisticVariant(
+    product.selectedOrFirstAvailableVariant,
+    getAdjacentAndFirstAvailableVariants(product),
+  );
+  // ... sync search params with window.history.replaceState
+  return (
+    <>
+      <WeaverseContent />
+      <Analytics.ProductView data={{ products: [/* ... */] }} />
+    </>
+  );
+}
+```
+
+**After (Hydrogen 2026.10):**
+
+```tsx
+import { type ValidProductSelectionResult } from "@shopify/hydrogen";
+
+export default function Product() {
+  const { product } = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const { pathname, search } = useLocation();
+
+  // A selection updates every section at once; the URL follows with a
+  // client-side replace. A variant the page already loaded needs no loader run.
+  function handleSelect(result: ValidProductSelectionResult<ProductFormData>) {
+    const path = productOptionPath(
+      product,
+      result.selectedOptions,
+      result.selectedVariant?.product?.handle, // combined listings link to the other product
+      new URLSearchParams(search),
+    );
+    navigate(localizePath(path, resolveLocale(pathname)), {
+      replace: true,
+      preventScrollReset: true,
+      ...(result.status === "resolved" ? { defaultShouldRevalidate: false } : {}),
+    });
+  }
+
+  return (
+    <ProductProvider product={product} onSelect={handleSelect}>
+      <WeaverseContent />
+      <ProductAnalytics product={product} />
+    </ProductProvider>
+  );
+}
+```
+
+`productOptionPath` is Pilot's wrapper around Hydrogen's `buildProductSelectionSearchParams`. Pilot's product route also remounts the provider when a link returns to the variant the page loaded; see `app/routes/products/product.tsx`.
+
+Every section under the provider reads the same selection. Option pickers and the add-to-cart button use `useProduct()` and `useProductForm()`:
+
+```tsx
+function OptionPicker() {
+  const { options } = useProduct();
+  const { register } = useProductForm();
+  return options.map((option) => (
+    <fieldset key={option.name}>
+      <legend>{option.name}</legend>
+      {option.values.map((value) => (
+        <button
+          key={value.name}
+          type="button"
+          aria-pressed={value.selected}
+          disabled={!value.exists}
+          onClick={register("optionValue", { optionName: option.name, value: value.name }).onClick}
+        >
+          {value.name}
+        </button>
+      ))}
+    </fieldset>
+  ));
+}
+
+function AddToCartButton({ product }: { product: ProductFormData }) {
+  const { options, register, formProps, pending } = useProductForm();
+  return (
+    <form {...formProps({ beforeSubmit: () => openCartDrawer() })}>
+      <input type="hidden" {...register("merchandiseId", {})} />
+      <input type="hidden" {...register("quantity", { value: 1 })} />
+      <button {...register("addToCart", {})} disabled={pending || !canAddToCart(product, options)}>
+        Add to cart
+      </button>
+    </form>
+  );
+}
+```
+
+`canAddToCart` comes from `@shopify/hydrogen`; `openCartDrawer` is your own UI. Quick shop and single-product sections render their own `ProductProvider`, inside the root `CartProvider`.
+
+## Step 10: Replace `Analytics.Provider` With `ShopifyScripts`
+
+`Analytics.*` and `getShopAnalytics` are gone. `ShopifyScripts` from `@shopify/hydrogen/react` loads Shopify's runtime: `window.Shopify`, the analytics bus at `window.Shopify.analytics`, the consent banner, Shopify analytics and Standard Actions.
+
+**Before (classic):**
+
+```tsx
+<Analytics.Provider cart={cart} shop={data.shop} consent={data.consent}>
+  {children}
+</Analytics.Provider>
+```
+
+**After (Hydrogen 2026.10):**
+
+```tsx
+// app/root.tsx, first in <head>
+<ShopifyScripts
+  nonce={nonce}
+  shop={data.shopifyScripts.shop} // { shopId, storefrontId, myshopifyDomain }
+  i18n={data.shopifyScripts.i18n} // { country, language, pathPrefix, currency }
+  analytics={{ channel: data.shopifyScripts.channel }}
+  shopifyAnalytics={data.shopifyScripts.shopifyAnalytics}
+  consent={{ mode: data.consent.mode }} // "default-banner" for Shopify's banner
+  routes={routeTemplates}
+  navigate={navigate}
+/>
+
+// app/root.tsx, inside <CartProvider>
+<CustomAnalytics />
+<PageView />
+<CartAnalytics />
+```
+
+- Build `shop` and `i18n` in the root loader from `env` and `storefront.i18n`. Keep them per market, never per shopper, so the document stays cacheable.
+- Route events are published to the bus. Pilot's `app/components/root/analytics-views.tsx` has small trackers (`PageView`, `ProductView`, `CollectionView`, `SearchView`, `CartView`) that call `window.Shopify.analytics.publish(AnalyticsEvent.PRODUCT_VIEWED, { products })` once per URL.
+- `useCartAnalytics()` from `@shopify/hydrogen/react` publishes `cart_updated`, `product_added_to_cart` and `product_removed_from_cart` from the cart store. Render it inside `CartProvider`, after `ShopifyScripts`.
+- Third-party tags subscribe through a destination instead of `useAnalytics().subscribe`, so they follow Customer Privacy consent:
+
+  ```typescript
+  window.Shopify.analytics.addDestination({
+    name: "gtm",
+    setup({ subscribe }) {
+      subscribe(AnalyticsEvent.PRODUCT_VIEWED, (data) => {
+        window.dataLayer?.push({ event: "product_viewed", product_id: data.products?.[0]?.id });
+      });
+    },
+  });
+  ```
+
+  Add a destination once per page: adding it again replays the bus's retained events.
+- `ShopifyScripts` reads the market once. After a client-side market switch, Pilot's `syncShopifyMarket()` updates `window.Shopify` (country, currency, locale, routes root).
+
+## Step 11: Move Customer Accounts to Hydrogen's Handlers
+
+`context.customerAccount.login()`, `authorize()` and `logout()` in your routes are replaced by handlers that own the fixed, unprefixed paths `/account/login`, `/account/authorize`, `/account/refresh` and `/account/logout`.
+
+**Before (classic):**
+
+```typescript
+// app/routes/account/auth/login.ts
+export async function loader({ context }: LoaderFunctionArgs) {
+  return context.customerAccount.login();
+}
+```
+
+**After (Hydrogen 2026.10):**
+
+```typescript
+// app/.server/customer-account.ts
+import {
+  createCustomerAccountClient,
+  createCustomerAccountServerHandlers,
+  createCustomerSession,
+} from "@shopify/hydrogen/customer-account";
+
+const customerSession = createCustomerSession({
+  shopId: env.SHOP_ID,
+  customerAccountApiClientId: env.PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID,
+});
+
+// Registered in handleShopifyRoutes (Step 3)
+const handlers = createCustomerAccountServerHandlers({
+  customerSession,
+  defaultPostLoginRedirectPathname: "/account",
+});
+```
+
+Account loaders then call the Customer Account API with the session's token:
+
+```typescript
+const accessToken = await customerSession.getOrRefreshAccessToken(session, requestContext);
+const client = createCustomerAccountClient({ shopId: env.SHOP_ID, requestContext });
+const { data, errors } = await client.graphql(CUSTOMER_DETAILS_QUERY, { accessToken });
+```
+
+Pilot wraps this in `context.customerAccount` (`graphql`, `isLoggedIn`, `getAccessToken`, `handleAuthStatus`, `logout`), so its account routes keep reading `context.customerAccount`. Without a token, the wrapper throws a `redirectDocument` to `/account/login?return_to=<localized path>&locale=<language>`, so the shopper returns to their market after signing in.
+
+- Link to the handler paths with a plain `<a>` or `<form>`, never React Router's `<Link>` or `<Form>`: the handlers answer with a raw redirect that client-side routing cannot follow.
+- Customer Account OAuth needs HTTPS locally: run `npm run dev:https`.
+- `createCustomerSession()` throws when `SHOP_ID` or the client ID is missing or invalid. Pilot only creates it when both are set, so a store without accounts keeps serving pages.
+- Register every market's home URL as an allowed logout URI in the Customer Account API settings.
+- Addresses use `countryCode`.
+
+## Step 12: Port Removed Classic Helpers
+
+These classic exports are gone. Pilot ports them as local files with unchanged output, so you can copy them:
+
+| Removed classic export | Pilot replacement |
+| --- | --- |
+| `Image` | `app/components/shopify-image.tsx` (CDN `srcset`), used by `app/components/image.tsx` |
+| `Money`, `useMoney` | `app/components/money.tsx`, on Hydrogen's `formatMoney()` |
+| `getSeoMeta`, `SeoConfig` | `app/utils/seo-meta.ts` |
+| `getSitemapIndex`, `getSitemap` | `app/.server/sitemap.ts` |
+| `Pagination`, `getPaginationVariables` | `app/components/pagination.tsx`, `app/utils/pagination.ts` |
+| `ExternalVideo`, `ModelViewer` | `app/components/product-media/` |
+| `parseGid` | `app/utils/shopify.ts` |
+| `createContentSecurityPolicy`, `NonceProvider`, `useNonce` | `app/utils/csp.ts`, see [Content Security Policy](/features/content-security) |
+| `ShopPayButton` | Import it from `@shopify/hydrogen/react` |
+| `CacheLong`, `CacheShort`, `CacheNone`, `generateCacheControlHeader` | `app/utils/cache.ts` ([Step 6](#step-6-move-queries-to-the-new-graphql-client)) |
+
+Most ports are a find-and-replace of the import path:
+
+```typescript
+// Before
+import { Image, Money, Pagination, getPaginationVariables, getSeoMeta } from "@shopify/hydrogen";
+
+// After
+import { Image } from "~/components/image";
+import { Money } from "~/components/money";
+import { Pagination } from "~/components/pagination";
+import { getPaginationVariables } from "~/utils/pagination";
+import { getSeoMeta } from "~/utils/seo-meta";
+```
+
+`flattenConnection` is still exported by `@shopify/hydrogen`.
+
+## Step 13: Verify
+
+```bash
+npm run typecheck   # react-router typegen && tsc && hydrogen gql check --fail-on-warn
+npm run build
+npm run preview     # production build on http://localhost:3456
+```
+
+Then test in a browser with the console open. Check for CSP violations, cart add/remove/quantity, variant selection without a full navigation, analytics events, and Customer Account login over `npm run dev:https`. Finally, open the storefront in Weaverse Studio and check design mode, section loaders and theme settings.
+
+## Markets
+
+Pilot keeps one list of markets, `SUPPORTED_LOCALES` in `app/utils/locale.ts`, and serves them as URL prefixes (`/fr-fr/products/...`). Three parts change on 2026.10.
+
+### Locale-Prefixed Routes
+
+Routes still sit under `prefix(":locale?", [...])`. The request's market becomes the `i18n` of `createShopifyRequestContext()`, and `storefront.graphql()` fills `$country` and `$language` from it.
+
+Hydrogen's handler paths (`/api/cart`, `/api/predictive-search`, `/account/login`, ...) are exact and never carry a prefix. Pilot resolves their market from the same-origin `Referer` instead (and from `return_to` for `/account/login`), falling back to the default market.
+
+Shopify's URL redirects are stored on market-neutral paths, and `handleShopifyRedirects` only matches document paths. Pilot's `marketAwareRedirect()` (`app/.server/market-redirect.ts`) looks redirects up on the neutral path, re-prefixes the target, and answers single-fetch `.data` requests with `204` and `X-Remix-Redirect`, as classic `storefrontRedirect` did.
+
+<Note>
+  Chinese markets need two language codes: Shopify wants its `LanguageCode` (`ZH_TW`), while Weaverse keys translations by the public locale (`zh-tw`). Pilot gives the Storefront client the Shopify code and hands `WeaverseClient` a copy of the client whose `i18n` carries the public one (`weaverseStorefront()` in `app/.server/context.ts`). `graphql()` reads `$language` from the request context, so Shopify still receives `ZH_TW`.
+</Note>
+
+### Unsupported Markets Answer 404
+
+A market-shaped prefix the store doesn't sell in (`/en-xx/products/hoodie`) must not render the default market's catalogue at an unlimited number of URLs. Pilot uses **two layout routes**, because page routes and resource routes run differently:
+
+```typescript
+// app/routes/market-guard.ts — wraps the `:locale?` page routes
+export function loader({ request }: LoaderFunctionArgs) {
+  if (isUnsupportedMarketPath(new URL(request.url).pathname)) {
+    throw new Response("page", { status: 404 });
+  }
+  return null;
+}
+```
+
+```typescript
+// app/routes/market-guard-resources.ts — wraps the `:locale?` resource routes
+function guardMarket({ request }: { request: Request }, next: () => Promise<Response>) {
+  if (isUnsupportedMarketPath(new URL(request.url).pathname)) {
+    throw new Response(null, { status: 404 });
+  }
+  return next();
+}
+
+export const middleware: MiddlewareFunction<Response>[] = [guardMarket];
+```
+
+- **Pages** throw from a layout loader below the root route. The root loader's data survives, so the root `ErrorBoundary` renders the regular 404 page inside the header and footer, for documents and `.data` navigations alike. A 404 from `server.ts` would have no header or footer.
+- **Resource routes** (APIs, sitemaps, `/discount/:code`, `/cart/checkout`) need the second layout. A resource-route request runs only that route's loader, never the page guard's, so the check runs as middleware, which React Router calls for every matched route. It needs `future.v8_middleware: true`.
+
+`server.ts` also skips the redirect lookup for unsupported market paths, which would otherwise fall back to the default market.
+
+### Switching the Cart's Market
+
+A cart keeps the country it was created in. If the shopper switches market, the cart keeps the old market's prices and taxes until its buyer identity changes. Pilot handles this in two places:
+
+- Its `POST /api/cart` handler calls `cartBuyerIdentityUpdate` with the request's country (and the customer's access token) before every cart change.
+- The country selector posts the new country to `/api/cart/buyer-identity` while it navigates, then refreshes the store and `window.Shopify`:
+
+  ```typescript
+  // app/components/layout/country-selector/market-form.tsx
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    syncShopifyMarket(locale); // before navigating, so the next page view reports the new market
+    await Promise.all([
+      navigate(redirectTo),
+      fetch(CART_BUYER_IDENTITY_PATH, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ countryCode: locale.country }),
+      }).catch(() => null),
+    ]);
+    refresh(); // from useCartActions()
+  }
+  ```
+
+  Without JavaScript, the same form posts to `/api/cart/buyer-identity`, which updates the cart and redirects.
+
+## Common Pitfalls
+
+<AccordionGroup>
+  <Accordion title="The codemod renamed one of my own types">
+    The renames match whole words in every file that imports Weaverse. A local `ThemeSettingsResponse` becomes `WeaverseThemeSettingsResponse` too. Run with `--dry-run` first and review `git diff` after applying.
+  </Accordion>
+  <Accordion title="Weaverse components lose their data after the upgrade">
+    Two copies of `@weaverse/react` are installed. Keep `@weaverse/hydrogen` 6.0.0, `@weaverse/react` 6.0.0 and `@weaverse/next` 1.1.0 aligned, and check with `npm ls @weaverse/react`.
+  </Accordion>
+  <Accordion title="Pages hit the Storefront API on every request">
+    Hydrogen 2026.10 has no default cache. Pass `cache` to every `storefront.graphql()` call.
+  </Accordion>
+  <Accordion title="A failed query renders a half-empty page">
+    `graphql()` returns `errors` instead of throwing. Check `errors` or unwrap the result as in [Step 6](#step-6-move-queries-to-the-new-graphql-client).
+  </Accordion>
+  <Accordion title="Shopify headers or redirect targets are missing">
+    `requestContext.applyResponseHeaders()` must run on the normal response path, and `routeTemplates` must reach both `handleShopifyRoutes` and `handleShopifyRedirects`. Both fail silently.
+  </Accordion>
+  <Accordion title="Error: requestContext.buyerIp is required for private Storefront API clients">
+    The private client needs the buyer IP on the request context. Read it from `oxygen-buyer-ip` (or your proxy's header), or fall back to the public client as Pilot does.
+  </Accordion>
+  <Accordion title="Login links land on the account catch-all route">
+    `/account/login` and the other handler paths must be reached with a full document request. Use `<a>`/`<form>`, and `redirectDocument` when redirecting from a loader.
+  </Accordion>
+  <Accordion title="The cart shows old totals after a /discount/:code link">
+    The cart store loads the cart once, on mount. The `/discount/:code` loader must end with `redirectDocument` (not `redirect`), so a client-side link to it reloads the page and the store.
+  </Accordion>
+  <Accordion title="Products are priced in the store's primary currency in one market">
+    With `@inContext(country:)`, Shopify silently falls back to the store's primary country when the store doesn't sell to that country, while a cart whose `buyerIdentity.countryCode` is that country prices in its currency. This is store configuration, not a code bug: add the country to a Market in Shopify admin.
+  </Accordion>
+  <Accordion title="Customer access tokens on carts break vite dev">
+    In `@shopify/hydrogen` 2026.10.2, the `./customer-account` export has no `development` condition, and passing `customerSession` to `createCartServerHandlers` breaks under `vite dev`. Pilot attaches `customerAccessToken` in its own `POST /api/cart` handler instead.
+  </Accordion>
+  <Accordion title="Loading components through Vite ssrLoadModule fails on extensionless imports">
+    If a script loads your component registry or manifest through Vite's `ssrLoadModule`, packages that publish ESM with extensionless relative imports (such as `react-use/esm/*`) fail under Node's ESM resolver. Add them to `ssr.noExternal` in that Vite server config, as Pilot's `other/weaverse-manifest.mjs` does with `noExternal: [/^@weaverse\//, "react-use"]`.
+  </Accordion>
+  <Accordion title="Hydration is silently dead (cart, variant picker, analytics)">
+    The nonce was dropped while porting CSP. Pass the nonce to `ShopifyScripts`, `Scripts` and `ScrollRestoration`, and check the console for CSP violations. See [Content Security Policy](/features/content-security).
+  </Accordion>
+  <Accordion title="Anonymous pages are no longer cached">
+    Something personalized reached the document: a cart passed as `CartProvider` `initialData`, a customer token in a loader, or a session committed on every response. Load the cart after hydration and commit the session only when it changed.
+  </Accordion>
+</AccordionGroup>
+
+## Migration Checklist
+
+- `@shopify/hydrogen` `^2026.10`, `@weaverse/hydrogen` `^6`, React Router 7.18+ on one version, Vite 8
+- Scripts: `vite dev`, `dev:https`, `react-router build`, `vite preview`, `shopify hydrogen deploy`
+- `vite.config.ts` without `hydrogen()`; `react-router.config.ts` with `buildDirectory: "dist"` and `v8_middleware`
+- GraphQL codegen removed; `@shopify/hydrogen/ts-plugin` and `hydrogen gql check` in place
+- `npx @weaverse/cli@latest migrate v6` applied and its diff reviewed
+- `server.ts` composes the request lifecycle: `handleShopifyRoutes`, session commit, `applyResponseHeaders`, `handleShopifyRedirects`
+- `WeaverseClient` built from the request's Storefront client
+- Every query is a `gql()` document run with `storefront.graphql()`, checks `errors`, and passes `cache`
+- `hydrogenRoutes()` removed, classic cart and auth routes deleted, market guard layouts added
+- Cart on `createCartServerHandlers` and `createCartComponents`; no `CartForm`
+- Product pages on `ProductProvider` and `useProductForm`; no `useOptimisticVariant`
+- `ShopifyScripts`, route trackers and `useCartAnalytics` in place of `Analytics.*`
+- Customer Account handlers registered; login over `dev:https` works
+- `Image`, `Money`, `getSeoMeta`, sitemaps, `Pagination` and CSP ported
+- `npm run typecheck` and `npm run build` pass; Studio preview, design mode and section loaders work
+
+## Reference Implementation
+
+<GitHub.Repo repo="Weaverse/pilot" />
+
+- [Weaverse/pilot#209](https://github.com/Weaverse/pilot/pull/209): the full cut-over, one area per commit
+- [Pilot v2026.11.7](https://github.com/Weaverse/pilot/releases/tag/v2026.11.7): the first release on Hydrogen 2026.10 and `@weaverse/hydrogen` 6.0
+- `.weaverse/specs/2026-10-29-hydrogen-2026-10-cut-over.md` in the Pilot repo: scope, decisions and acceptance checklist
+
+## Getting Help
+
+1. **Compare with Pilot**: most questions are answered by the matching file in Pilot `main`.
+2. **Read Shopify's packaged skills** in `node_modules/@shopify/hydrogen/skills/`.
+3. **Community Support**: join our [Slack Community](https://wvse.cc/weaverse-slack).
+4. **Official Support**: contact support@weaverse.io.
+
+## Additional Resources
+
+- [Weaverse v6 release notes](/changelog/weaverse-v6-release)
+- [Full Weaverse Changelog](/changelog)
+- [Weaverse CLI](/developer-tools/weaverse-cli)
+- [Content Security Policy](/features/content-security)
+- [Markets & Localization](/features/markets-localization)
+- [Shopify Hydrogen updates](https://hydrogen.shopify.dev/updates)
+- [Weaverse v5 Migration Guide](/migration-advanced/v5-migration), for projects still on Remix

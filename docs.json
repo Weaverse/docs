@@ -328,6 +328,7 @@
                 "group": "Migration",
                 "pages": [
                   "migration-advanced/index",
+                  "migration-advanced/v6-migration",
                   "migration-advanced/v5-migration",
                   "migration-advanced/existing-hydrogen-integration"
                 ]
