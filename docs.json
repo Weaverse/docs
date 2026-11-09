@@ -528,9 +528,10 @@
     "instructions": [
       "Weaverse component configuration uses `settings`. `inspector` is deprecated; never generate it.",
       "Weaverse Hydrogen themes use React Router v7: import from `react-router`, never `react-router-dom` or `@remix-run/*`.",
-      "Define component schemas with `createSchema()` from `@weaverse/hydrogen` (React Router themes) or `@weaverse/next` (Next.js themes).",
-      "These docs cover @weaverse/hydrogen, @weaverse/react and @weaverse/core 5.x, and @weaverse/next 1.x. Do not use APIs from other major versions.",
-      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://docs.weaverse.io/developer-tools/weaverse-mcp"
+      "The current SDK is `@weaverse/hydrogen` 6 for Shopify Hydrogen 2026.10 and later. React Router themes import from `@weaverse/hydrogen/react-router`; the root `@weaverse/hydrogen` entry only exports `createSchema()`, data helpers and types.",
+      "Some examples still show 5.x imports and type names. In 6.x, `HydrogenComponentProps` is `WeaverseComponentProps` and `HydrogenComponentSchema` is `WeaverseComponentSchema`; run `npx @weaverse/cli@latest migrate v6` to convert code. Projects on Hydrogen 2026.4 or earlier stay on 5.x. Do not mix major versions.",
+      "Next.js themes use `@weaverse/next` 1.x.",
+      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://weaverse.io/docs/developer-tools/weaverse-mcp"
     ]
   },
   "api": {
