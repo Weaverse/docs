@@ -361,6 +361,7 @@
                 "pages": [
                   "community/community",
                   "changelog/index",
+                  "changelog/weaverse-v6-release",
                   "changelog/weaverse-v5-release"
                 ]
               }
