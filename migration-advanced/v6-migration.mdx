@@ -91,12 +91,12 @@ Follow the steps below. They follow the order Pilot used, so the project builds 
 ```bash
 npm install @shopify/hydrogen@^2026.10.2 @weaverse/hydrogen@^6.0.0 \
   react-router@7.18.5 @react-router/dev@7.18.5
-npm install -D gql.tada @types/node @shopify/mini-oxygen@^4.2.3
+npm install -D gql.tada @types/node @shopify/mini-oxygen@^4.2.3 @shopify/cli@^4.9.4
 npm uninstall @shopify/hydrogen-codegen @graphql-codegen/cli
 rm codegen.ts storefront-api.generated.d.ts customer-account-api.generated.d.ts
 ```
 
-Keep `@shopify/cli` as a dev dependency for `shopify hydrogen deploy`, `link` and `env pull`.
+`@shopify/cli` stays a dev dependency for `shopify hydrogen deploy`, `link` and `env pull`. It must be 4.4.0 or later: older versions, including every 3.x release, don't support the `--assets-dir` and `--worker-dir` flags the new `deploy` script uses. Pilot uses `^4.9.4`.
 
 ### Scripts
 
