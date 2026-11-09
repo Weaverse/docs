@@ -425,12 +425,10 @@ Changes deploy automatically:
 ## Package Versions
 
 Documentation covers:
-- **@weaverse/hydrogen**: v5.23.0
-- **@weaverse/react**: v5.23.0
-- **@weaverse/core**: v5.23.0
-- **@weaverse/next**: v1.0.1
+- **@weaverse/hydrogen**, **@weaverse/react**, **@weaverse/core**: v6.x for Shopify Hydrogen 2026.10 and later. Classic Hydrogen projects (2026.4 and earlier) stay on v5.x; the v6 migration guide covers the move. Some examples still use 5.x imports and type names (`HydrogenComponentProps` is `WeaverseComponentProps` in v6); convert them when you edit those pages.
+- **@weaverse/next**: v1.x
 - **@weaverse/shopify**: v5.8.4
-- **@weaverse/schema**: v0.19.0
+- **@weaverse/schema**: v0.20.x
 - **@weaverse/cli**: Latest
 - **@weaverse/mcp**: Latest
 
