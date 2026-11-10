@@ -29,10 +29,9 @@ Pilot already does this ([Weaverse/pilot#204](https://github.com/Weaverse/pilot/
 Generate one nonce per request, build the header, and pass the same nonce to React's renderer, `ServerRouter`, and `NonceProvider`:
 
 ```tsx app/entry.server.tsx
-import type { HydrogenRouterContextProvider } from "@shopify/hydrogen";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
-import type { EntryContext } from "react-router";
+import type { EntryContext, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
 import {
   createContentSecurityPolicy,
@@ -46,7 +45,7 @@ export default async function handleRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   reactRouterContext: EntryContext,
-  context: HydrogenRouterContextProvider,
+  context: RouterContextProvider,
 ) {
   const nonce = generateNonce();
   const header = createContentSecurityPolicy(
@@ -94,6 +93,8 @@ export default async function handleRequest(
   });
 }
 ```
+
+Hydrogen 2026.10 has no `HydrogenRouterContextProvider`: the context is React Router's `RouterContextProvider`, which `server.ts` fills with your app context. `context.env` is typed once `env.d.ts` declares `interface RouterContextProvider extends AppContext {}` (see [Step 2 of the integration guide](/migration-advanced/existing-hydrogen-integration#step-2-configure-environment-variables)). On classic Hydrogen 2026.4, type the parameter as `HydrogenRouterContextProvider` from `@shopify/hydrogen` instead.
 
 <Note>
   Unlike Hydrogen's `NonceProvider`, this one is a plain React context provider, so it needs `value={nonce}`.
