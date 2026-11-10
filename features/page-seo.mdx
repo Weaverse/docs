@@ -16,14 +16,16 @@ This guide explains where to wire the helper, how it interacts with code-defined
 
 ## Prerequisites
 
-- `@weaverse/hydrogen` **>= 5.14.0** (the version that introduced `getWeaverseSeoMeta`).
+- Hydrogen 2026.10 with `@weaverse/hydrogen` **6** (the samples import from `@weaverse/hydrogen/react-router`).
 - A Hydrogen route that loads a Weaverse page via `context.weaverse.loadPage(...)`.
 
-If your theme is on an older SDK, bump it:
+If your theme is on an older SDK, install v6:
 
 ```bash
-npm install @weaverse/hydrogen@^5.14.0
+npm install @weaverse/hydrogen@^6
 ```
+
+`getWeaverseSeoMeta` was introduced in `@weaverse/hydrogen` 5.14.0. A theme still on classic Hydrogen (2026.4 or earlier) can use it from `@weaverse/hydrogen@^5.14.0`, importing from `@weaverse/hydrogen` instead of `@weaverse/hydrogen/react-router`; moving to v6 means moving to Hydrogen 2026.10, as described in the [v6 migration guide](/migration-advanced/v6-migration).
 
 
 ---
@@ -163,7 +165,7 @@ Routes for Shopify resources (product, collection, blog, article, Shopify pages)
 
 ## Step-by-step: applying this to a theme
 
-1. **Bump the SDK** to `@weaverse/hydrogen@^5.14.0` and reinstall.
+1. **Bump the SDK** to `@weaverse/hydrogen@^6` (Hydrogen 2026.10) and reinstall. On classic Hydrogen, use `@weaverse/hydrogen@^5.14.0` instead.
 2. **Locate every route that calls `context.weaverse.loadPage(...)`** — `grep -rln "weaverse.loadPage" app/routes`.
 3. **For each, decide which recipe applies** (catch-all, home/index, or — optionally — template) and apply it. Routes that already build SEO from Shopify data stay as they are.
 4. **Remove legacy overrides** (see next section), if any.

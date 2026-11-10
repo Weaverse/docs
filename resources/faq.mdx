@@ -1475,8 +1475,10 @@ export let schema = createSchema({
 
 **1. TypeScript Configuration Issues**:
 ```bash
-# Error: Cannot find module '@weaverse/hydrogen'
-npm install @weaverse/hydrogen @weaverse/react @weaverse/core
+# Error: Cannot find module '@weaverse/hydrogen/react-router'
+# v6 (Hydrogen 2026.10) pins the matching @weaverse/react itself; don't
+# install a different @weaverse/react version next to it
+npm install @weaverse/hydrogen@^6
 
 # Error: Type definitions missing
 npm run typecheck  # Identify specific type issues
