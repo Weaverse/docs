@@ -95,35 +95,38 @@ CUSTOM_COLLECTION_BANNER_METAFIELD="custom.collection_banner"  # Optional
 
 ## TypeScript Support
 
-For TypeScript support, add your environment variables to `env.d.ts`:
+For TypeScript support, add your environment variables to `env.d.ts`. Hydrogen 2026.10 removed `HydrogenEnv`, so `Env` extends `WeaverseEnv` and lists every variable your theme reads:
 
 ```typescript
-interface Env extends HydrogenEnv {
-  // Shopify and Hydrogen
-  SESSION_SECRET: string;
-  PUBLIC_STORE_DOMAIN: string;
-  PUBLIC_STOREFRONT_API_TOKEN: string;
-  PRIVATE_STOREFRONT_API_TOKEN?: string;
-  PUBLIC_STOREFRONT_ID?: string;
-  PUBLIC_CHECKOUT_DOMAIN?: string;
-  PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
-  PUBLIC_CUSTOMER_ACCOUNT_API_URL?: string;
-  SHOP_ID: string;
+import type { WeaverseEnv } from "@weaverse/hydrogen/react-router";
+
+declare global {
+  interface Env extends WeaverseEnv {
+    // Shopify and Hydrogen
+    SESSION_SECRET: string;
+    PUBLIC_STORE_DOMAIN: string;
+    PUBLIC_STOREFRONT_API_TOKEN?: string;
+    PRIVATE_STOREFRONT_API_TOKEN?: string;
+    PUBLIC_STOREFRONT_ID?: string;
+    PUBLIC_CHECKOUT_DOMAIN?: string;
+    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
+    SHOP_ID: string;
   
-  // Weaverse
-  WEAVERSE_PROJECT_ID: string;
-  WEAVERSE_API_KEY?: string;
-  WEAVERSE_HOST?: string;
+    // Weaverse
+    WEAVERSE_PROJECT_ID: string;
+    WEAVERSE_API_KEY?: string;
+    WEAVERSE_HOST?: string;
   
-  // Optional integrations
-  PUBLIC_GOOGLE_GTM_ID?: string;
-  JUDGEME_PRIVATE_API_TOKEN?: string;
-  KLAVIYO_PRIVATE_API_TOKEN?: string;
-  PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
+    // Optional integrations
+    PUBLIC_GOOGLE_GTM_ID?: string;
+    JUDGEME_PRIVATE_API_TOKEN?: string;
+    KLAVIYO_PRIVATE_API_TOKEN?: string;
+    PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
   
-  // Optional theme-specific metafields
-  METAOBJECT_COLORS_TYPE?: string;
-  CUSTOM_COLLECTION_BANNER_METAFIELD?: string;
+    // Optional theme-specific metafields
+    METAOBJECT_COLORS_TYPE?: string;
+    CUSTOM_COLLECTION_BANNER_METAFIELD?: string;
+  }
 }
 ```
 

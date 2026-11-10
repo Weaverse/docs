@@ -25,7 +25,9 @@ Weaverse section components use the loader pattern for server-side data fetching
 
 ```tsx
 // app/sections/featured-collection/index.tsx
+import { Cache } from '@shopify/hydrogen'
 import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
+import { unwrapStorefront } from '~/utils/storefront'
 
 // Define the expected input data type
 type FeaturedCollectionData = {
@@ -43,11 +45,12 @@ export let loader = async (args: WeaverseComponentLoaderArgs<FeaturedCollectionD
   const { collection } = data
   
   // Fetch and return the data
-  return await storefront.query(COLLECTION_QUERY, {
-    variables: {
-      handle: collection.handle
-    }
-  })
+  return unwrapStorefront(
+    await storefront.graphql(COLLECTION_QUERY, {
+      variables: { handle: collection.handle },
+      cache: Cache.short(),
+    })
+  )
 }
 ```
 
@@ -57,13 +60,22 @@ The loader function:
 3. Fetches necessary data from APIs
 4. Returns data that will be automatically passed to the component as `props.loaderData`
 
+`weaverse.storefront` is the request's Hydrogen 2026.10 Storefront API client. Its `graphql()` method:
+
+- Takes a `gql()` document from `@shopify/hydrogen` and injects `$country` and `$language` from the request, so you don't pass them in `variables`.
+- Returns `{ data, errors }` instead of throwing on GraphQL errors. The samples on this page use `unwrapStorefront`, a small helper from [Pilot](https://github.com/Weaverse/pilot/blob/main/app/utils/storefront.ts) that throws when `errors` is set (see the [v6 migration guide](/migration-advanced/v6-migration#step-6-move-queries-to-the-new-graphql-client)).
+- Has no default cache. Pass a `cache` strategy on every call, or the query hits the API on every request.
+
 ### Type Safety with TypeScript
 
 Using TypeScript with your component loaders provides several benefits:
 
 ```tsx
+import type { StorefrontApi } from '@shopify/hydrogen'
 import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
-import type { CollectionQuery } from 'storefrontapi.generated'
+
+// `gql()` documents are typed: no GraphQL codegen needed
+type CollectionQuery = StorefrontApi.ResultOf<typeof COLLECTION_QUERY>
 
 // Define input data shape
 type FeaturedCollectionData = {
@@ -102,17 +114,17 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Produ
   
   if (!product?.handle) return null
   
-  return await storefront.query(PRODUCT_QUERY, {
-    variables: {
-      handle: product.handle,
-      language: storefront.i18n.language,
-      country: storefront.i18n.country
-    }
-  })
+  // `$country` and `$language` are filled in from the request's market
+  return unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: product.handle },
+      cache: Cache.long(),
+    })
+  )
 }
 
 // GraphQL query defined elsewhere
-const PRODUCT_QUERY = `#graphql
+const PRODUCT_QUERY = gql(`
   query Product($handle: String!, $language: LanguageCode, $country: CountryCode)
   @inContext(language: $language, country: $country) {
     product(handle: $handle) {
@@ -122,7 +134,7 @@ const PRODUCT_QUERY = `#graphql
       # Other fields...
     }
   }
-` as const
+`)
 ```
 
 ### External APIs
@@ -142,8 +154,8 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Weath
         'API-Key': env.WEATHER_API_KEY
       },
       body: JSON.stringify({ location }),
-      // Use built-in caching
-      strategy: weaverse.storefront.CacheShort()
+      // Use built-in caching (`Cache` from `@shopify/hydrogen`)
+      strategy: Cache.short()
     })
   } catch (error) {
     console.error('Weather API error:', error)
@@ -193,9 +205,12 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Produ
   const { storefront } = weaverse
   const { productHandle } = data
   
-  return await storefront.query(PRODUCT_QUERY, {
-    variables: { handle: productHandle }
-  })
+  return unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: productHandle },
+      cache: Cache.long(),
+    })
+  )
 }
 ```
 
@@ -221,7 +236,9 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Testi
       })
     
     case 'store-testimonials':
-      return await storefront.query(TESTIMONIALS_QUERY)
+      return unwrapStorefront(
+        await storefront.graphql(TESTIMONIALS_QUERY, { cache: Cache.long() })
+      )
       
     default:
       return { testimonials: [] }
@@ -241,9 +258,12 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Produ
   // Fetch from multiple sources simultaneously
   const [productData, reviewsData, inventoryData] = await Promise.all([
     // Product data from Shopify
-    storefront.query(PRODUCT_QUERY, {
-      variables: { handle: productHandle }
-    }),
+    storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: { handle: productHandle },
+        cache: Cache.long(),
+      })
+      .then(unwrapStorefront),
     
     // Reviews from third-party API
     fetchWithCache(`https://api.reviews.example/products/${productHandle}`, {
@@ -313,20 +333,26 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Relat
   const { productHandle } = data
   
   // Step 1: Get the main product to find its type
-  const { product } = await storefront.query(PRODUCT_BASIC_QUERY, {
-    variables: { handle: productHandle }
-  })
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_BASIC_QUERY, {
+      variables: { handle: productHandle },
+      cache: Cache.long(),
+    })
+  )
   
   if (!product) return { relatedProducts: [] }
   
   // Step 2: Use the product type to find related products
-  const { products } = await storefront.query(RELATED_PRODUCTS_QUERY, {
-    variables: { 
-      productType: product.productType,
-      excludeId: product.id,
-      first: 4
-    }
-  })
+  const { products } = unwrapStorefront(
+    await storefront.graphql(RELATED_PRODUCTS_QUERY, {
+      variables: {
+        productType: product.productType,
+        excludeId: product.id,
+        first: 4
+      },
+      cache: Cache.long(),
+    })
+  )
   
   return { relatedProducts: products.nodes }
 }
@@ -466,15 +492,16 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Produ
   
   // This query will re-run whenever collection, sortBy, or productsToShow changes
   // because they have shouldRevalidate: true in the schema
-  return await storefront.query(COLLECTION_PRODUCTS_QUERY, {
-    variables: {
-      handle: collection.handle,
-      sortKey: sortBy,
-      first: productsToShow,
-      language: storefront.i18n.language,
-      country: storefront.i18n.country
-    }
-  })
+  return unwrapStorefront(
+    await storefront.graphql(COLLECTION_PRODUCTS_QUERY, {
+      variables: {
+        handle: collection.handle,
+        sortKey: sortBy,
+        first: productsToShow,
+      },
+      cache: Cache.short(),
+    })
+  )
 }
 
 // Component implementation...
@@ -488,16 +515,16 @@ This optimizes performance by only reloading data when necessary, while ensuring
 
 ## Caching Strategies
 
-Weaverse components inherit Hydrogen's powerful caching system, allowing you to optimize performance based on how frequently your data changes.
+Weaverse components use Hydrogen's caching system, allowing you to optimize performance based on how frequently your data changes. Strategies come from `Cache` in `@shopify/hydrogen`: pass one as `cache` to `storefront.graphql()` and as `strategy` to `fetchWithCache`. Storefront API queries have no default cache, so always pass one.
 
 ### Available Caching Options
 
 | Strategy | Cache Control Header | Best Used For |
 |----------|---------------------|--------------|
-| `CacheShort()` | public, max-age=1, stale-while-revalidate=9 | Frequently changing data (price, inventory) |
-| `CacheLong()` | public, max-age=3600, stale-while-revalidate=82800 | Rarely changing data (product details, images) |
-| `CacheNone()` | no-store | Personalized or uncacheable data |
-| `CacheCustom()` | Custom defined | Special caching requirements |
+| `Cache.short()` | public, max-age=1, stale-while-revalidate=9 | Frequently changing data (price, inventory) |
+| `Cache.long()` | public, max-age=3600, stale-while-revalidate=82800 | Rarely changing data (product details, images) |
+| `Cache.none()` | no-store | Personalized or uncacheable data |
+| `Cache({ ... })` | Custom defined | Special caching requirements |
 
 ### Custom Caching
 
@@ -505,11 +532,11 @@ For fine-tuned control over caching behavior:
 
 ```tsx
 export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<StockTickerData>) => {
-  const { fetchWithCache, storefront } = weaverse
+  const { fetchWithCache } = weaverse
   
   // Fast-changing financial data needs custom caching
   return await fetchWithCache('https://api.stocks.example/ticker', {
-    strategy: storefront.CacheCustom({
+    strategy: Cache({
       // Cache for 30 seconds
       maxAge: 30,
       // Allow stale content for up to 2 minutes while revalidating
@@ -526,9 +553,9 @@ export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<StockTicker
 ### Caching Best Practices
 
 1. **Match cache duration to data volatility**:
-   - Product descriptions: `CacheLong()`
-   - Prices and inventory: `CacheShort()`
-   - User-specific content: `CacheNone()`
+   - Product descriptions: `Cache.long()`
+   - Prices and inventory: `Cache.short()`
+   - User-specific content: `Cache.none()`
 
 2. **Use stale-while-revalidate** for a balance of freshness and performance
 
@@ -567,20 +594,24 @@ export let loader = async ({
   switch (recommendationType) {
     case 'related':
     case 'complementary':
-      return await storefront.query(RECOMMENDATIONS_QUERY, {
-        variables: {
-          productId: product.id,
-          intent: recommendationType.toUpperCase(),
-          count: maxProducts
-        }
-      })
+      return unwrapStorefront(
+        await storefront.graphql(RECOMMENDATIONS_QUERY, {
+          variables: {
+            productId: product.id,
+            intent: recommendationType.toUpperCase(),
+            count: maxProducts
+          },
+          cache: Cache.short(),
+        })
+      )
     
     case 'bestsellers':
-      return await storefront.query(BESTSELLERS_QUERY, {
-        variables: {
-          count: maxProducts
-        }
-      })
+      return unwrapStorefront(
+        await storefront.graphql(BESTSELLERS_QUERY, {
+          variables: { count: maxProducts },
+          cache: Cache.short(),
+        })
+      )
   }
 }
 ```
@@ -620,12 +651,15 @@ export let loader = async ({
   if (!blog?.handle) return { articles: [] }
   
   // Get all articles for the blog
-  const response = await storefront.query(BLOG_ARTICLES_QUERY, {
-    variables: {
-      blogHandle: blog.handle,
-      first: 250 // Maximum to retrieve
-    }
-  })
+  const response = unwrapStorefront(
+    await storefront.graphql(BLOG_ARTICLES_QUERY, {
+      variables: {
+        blogHandle: blog.handle,
+        first: 250 // Maximum to retrieve
+      },
+      cache: Cache.short(),
+    })
+  )
   
   // Client-side filtering and sorting (could be moved to a server query with a custom app extension)
   let articles = response.blog.articles.nodes
@@ -694,7 +728,7 @@ export let loader = async ({
   weaverse, 
   data 
 }: WeaverseComponentLoaderArgs<CurrencyConverterData>) => {
-  const { fetchWithCache, env, storefront } = weaverse
+  const { fetchWithCache, env } = weaverse
   const { 
     baseCurrency = 'USD', 
     targetCurrencies = ['EUR', 'GBP', 'JPY', 'CAD'],
@@ -707,7 +741,7 @@ export let loader = async ({
       `https://api.exchangerate.host/latest?base=${baseCurrency}&symbols=${targetCurrencies.join(',')}`,
       {
         // Exchange rates change throughout the day, but we don't need to fetch every request
-        strategy: storefront.CacheCustom({
+        strategy: Cache({
           maxAge: 900, // 15 minutes
           staleWhileRevalidate: 3600 // 1 hour
         })
@@ -725,7 +759,7 @@ export let loader = async ({
         `https://api.exchangerate.host/timeseries?start_date=${formattedDate}&end_date=${new Date().toISOString().split('T')[0]}&base=${baseCurrency}&symbols=${targetCurrencies.join(',')}`,
         {
           // Historical data can be cached longer
-          strategy: storefront.CacheLong()
+          strategy: Cache.long()
         }
       )
     }
@@ -773,20 +807,22 @@ Common issues and their solutions:
 
 ```tsx
 // Problem: Data is sometimes undefined
-export let loader = async ({ data }: WeaverseComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ data, weaverse }: WeaverseComponentLoaderArgs<ProductData>) => {
   // ❌ This might cause an error if data.product is undefined
-  return await storefront.query(QUERY, { 
-    variables: { handle: data.product.handle }
+  return await weaverse.storefront.graphql(QUERY, {
+    variables: { handle: data.product.handle },
+    cache: Cache.long(),
   })
 }
 
 // Solution: Add proper validation
-export let loader = async ({ data }: WeaverseComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ data, weaverse }: WeaverseComponentLoaderArgs<ProductData>) => {
   // ✅ Check for existence before accessing properties
   if (!data?.product?.handle) return null
   
-  return await storefront.query(QUERY, { 
-    variables: { handle: data.product.handle }
+  return await weaverse.storefront.graphql(QUERY, {
+    variables: { handle: data.product.handle },
+    cache: Cache.long(),
   })
 }
 ```
@@ -817,12 +853,12 @@ Implement proper caching and error handling:
 
 ```tsx
 export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<ApiData>) => {
-  const { fetchWithCache, storefront } = weaverse
+  const { fetchWithCache } = weaverse
   
   try {
     return await fetchWithCache('https://rate-limited-api.example/data', {
       // Use longer cache times for rate-limited APIs
-      strategy: storefront.CacheCustom({
+      strategy: Cache({
         maxAge: 600, // 10 minutes
         staleWhileRevalidate: 3600, // 1 hour
         staleIfError: 86400 // 1 day - use stale data on errors for a while

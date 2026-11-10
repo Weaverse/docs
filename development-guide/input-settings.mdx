@@ -487,14 +487,15 @@ type WeaverseImage = {
 
 **Usage**
 
-We highly recommend developers use the `Image` component from the
-**`@shopify/hydrogen`** package to render images. It's optimized to work with the data returned from
+We highly recommend rendering images with an `Image` component that works with Shopify's image CDN.
+Hydrogen 2026.10 no longer exports `Image`, so Pilot ships a port of it in
+[`app/components/image.tsx`](https://github.com/Weaverse/pilot/blob/main/app/components/image.tsx). It's optimized to work with the data returned from
 the **`image`** input, ensuring efficient image delivery.
 
 Here's a simple example:
 
 ```tsx
-import { Image } from '@shopify/hydrogen'
+import { Image } from '~/components/image'
 import type { WeaverseComponentProps, WeaverseImage } from '@weaverse/hydrogen/react-router'
 import { forwardRef } from 'react'
 
@@ -681,7 +682,7 @@ intuitive directional arrows.
 
 The `blog` input provides merchants with an intuitive search and select interface to choose a specific blog from their store.
 
-**Return:** `object` - A `WeaverseBlog` object (type can be imported from `@weaverse/hydrogen` package).
+**Return:** `object` - A `WeaverseBlog` object (type can be imported from `@weaverse/hydrogen/react-router`).
 
 **Example:**
 
@@ -730,7 +731,7 @@ Similar to other resource picker inputs, when selecting a metaobject definition,
 
 The `collection` input provides merchants with an intuitive search and select interface to choose a specific collection from their store.
 
-**Return:** `object` - A `WeaverseCollection` object (type can be imported from `@weaverse/hydrogen` package).
+**Return:** `object` - A `WeaverseCollection` object (type can be imported from `@weaverse/hydrogen/react-router`).
 
 **Example:**
 
@@ -774,7 +775,7 @@ Similar to the `product` input, the preview will automatically revalidate and ru
 
 After using the Resource Picker inputs, you might notice that the returned data is limited, typically just the `id` and `handle` of the selected resource. In most cases, you'll need more detailed data for your components or routes.
 
-This is where the **Weaverse** client comes in handy. Using its **`storefront.query`** function, you can fetch the full set of data related to your selection from [Shopify's Storefront API](https://shopify.dev/docs/api/storefront).
+This is where the **Weaverse** client comes in handy. Using its **`storefront.graphql`** function, you can fetch the full set of data related to your selection from [Shopify's Storefront API](https://shopify.dev/docs/api/storefront).
 
 To learn more about how to effectively fetch and utilize data within Weaverse, refer to our dedicated section on [Data Fetching & Caching](/development-guide/data-fetching#shopify-storefront-api).
 
@@ -805,7 +806,7 @@ The **`url`** input allows merchants to enter a URL or select a page from their 
 
 The **`product`** input provides merchants with an intuitive search and select interface to choose a specific product from their store.
 
-**Return:** `object` - A `WeaverseProduct` object (type can be imported from `@weaverse/hydrogen` package).
+**Return:** `object` - A `WeaverseProduct` object (type can be imported from `@weaverse/hydrogen/react-router`).
 
 **Example:**
 
@@ -826,6 +827,8 @@ The `loader` function will read the `handle` or `id` of the selected product and
 
 ```tsx
 // <root>/app/sections/single-product/index.tsx
+import { Cache } from '@shopify/hydrogen'
+import { unwrapStorefront } from '~/utils/storefront'
 
 export let loader = async (args: WeaverseComponentLoaderArgs<SingleProductData>) => {
   let { weaverse, data } = args
@@ -834,21 +837,22 @@ export let loader = async (args: WeaverseComponentLoaderArgs<SingleProductData>)
     return null
   }
   let productHandle = data.product.handle
-  let { product, shop } = await storefront.query<ProductQuery>(PRODUCT_QUERY, {
-    variables: {
-      handle: productHandle,
-      selectedOptions: [],
-      language: storefront.i18n.language,
-      country: storefront.i18n.country,
-    },
-  })
-  let variants = await storefront.query(VARIANTS_QUERY, {
-    variables: {
-      handle: productHandle,
-      language: storefront.i18n.language,
-      country: storefront.i18n.country,
-    },
-  })
+  // `$country` and `$language` come from the request; `unwrapStorefront`
+  // throws if the query returns errors
+  let [{ product, shop }, variants] = await Promise.all([
+    storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: { handle: productHandle, selectedOptions: [] },
+        cache: Cache.short(),
+      })
+      .then(unwrapStorefront),
+    storefront
+      .graphql(VARIANTS_QUERY, {
+        variables: { handle: productHandle },
+        cache: Cache.short(),
+      })
+      .then(unwrapStorefront),
+  ])
 
   return {
     product,
@@ -884,7 +888,7 @@ Similar to the `product` input, the preview will automatically revalidate and ru
 
 The `collection` input provides merchants with an intuitive search and select interface to choose a specific collection from their store.
 
-**Return:** `object` - A `WeaverseCollection` object (type can be imported from `@weaverse/hydrogen` package).
+**Return:** `object` - A `WeaverseCollection` object (type can be imported from `@weaverse/hydrogen/react-router`).
 
 **Example:**
 
@@ -928,7 +932,7 @@ Similar to the `product` input, the preview will automatically revalidate and ru
 
 The `blog` input provides merchants with an intuitive search and select interface to choose a specific blog from their store.
 
-**Return:** `object` - A `WeaverseBlog` object (type can be imported from `@weaverse/hydrogen` package).
+**Return:** `object` - A `WeaverseBlog` object (type can be imported from `@weaverse/hydrogen/react-router`).
 
 **Example:**
 
@@ -977,7 +981,7 @@ Similar to other resource picker inputs, when selecting a metaobject definition,
 
 After using the Resource Picker inputs, you might notice that the returned data is limited, typically just the `id` and `handle` of the selected resource. In most cases, you'll need more detailed data for your components or routes.
 
-This is where the **Weaverse** client comes in handy. Using its **`storefront.query`** function, you can fetch the full set of data related to your selection from [Shopify's Storefront API](https://shopify.dev/docs/api/storefront).
+This is where the **Weaverse** client comes in handy. Using its **`storefront.graphql`** function, you can fetch the full set of data related to your selection from [Shopify's Storefront API](https://shopify.dev/docs/api/storefront).
 
 To learn more about how to effectively fetch and utilize data within Weaverse, refer to our dedicated section on [Data Fetching & Caching](/development-guide/data-fetching#shopify-storefront-api).
 

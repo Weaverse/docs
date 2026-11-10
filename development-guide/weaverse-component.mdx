@@ -142,7 +142,7 @@ For more complex components, you may need to handle data loading, custom styling
 import { createSchema } from "@weaverse/hydrogen/react-router";
 import { Await, useLoaderData } from "react-router";
 import { Suspense, forwardRef } from "react";
-import type { ProductCardFragment } from "storefront-api.generated";
+import type { ProductCardFragment } from "~/graphql/fragments";
 import Heading, { type HeadingProps, headingInputs } from "~/components/heading";
 import { ProductCard } from "~/components/product/product-card";
 import { Section, type SectionProps, layoutInputs } from "~/components/section";
@@ -485,16 +485,22 @@ In React Router route files, you define loaders that run on the server and provi
 
 ```tsx
 // app/routes/products/product.tsx
+import { Cache } from '@shopify/hydrogen';
 import type { LoaderFunctionArgs } from 'react-router';
 import { useLoaderData } from 'react-router';
+import { unwrapStorefront } from '~/utils/storefront';
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle: handle } = params;
   const { storefront } = context;
 
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: { handle },
-  });
+  // `graphql()` returns `{ data, errors }`; `unwrapStorefront` throws on errors
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle },
+      cache: Cache.short(),
+    }),
+  );
 
   // Return a plain object — `json()` is no longer needed in React Router v7
   return { product };
@@ -519,12 +525,14 @@ Weaverse components can define their own loaders, which fetch data specifically 
 
 ```tsx
 // app/sections/featured-product/index.tsx
+import { Cache } from '@shopify/hydrogen';
 import type {
   WeaverseComponentLoaderArgs,
   WeaverseComponentProps,
   WeaverseProduct,
 } from '@weaverse/hydrogen/react-router';
 import { PRODUCT_QUERY } from '~/graphql/queries';
+import { unwrapStorefront } from '~/utils/storefront';
 
 interface FeaturedProductData {
   product: WeaverseProduct;
@@ -538,11 +546,12 @@ export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductDa
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: {
-      handle: data.product.handle,
-    },
-  });
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.product.handle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
@@ -664,7 +673,16 @@ export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
 4. **Caching**: Leverage Hydrogen's built-in caching mechanisms and Weaverse's utilities for improved performance:
 
 ```tsx
-import { CacheLong } from '@shopify/hydrogen';
+import { Cache, gql } from '@shopify/hydrogen';
+
+const COLLECTION_QUERY = gql(`
+  query CollectionDetails($handle: String!) {
+    collection(handle: $handle) {
+      title
+      description
+    }
+  }
+`);
 
 export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const { storefront, fetchWithCache } = weaverse;
@@ -678,7 +696,7 @@ export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
       headers: {
         'Content-Type': 'application/json',
       },
-      strategy: CacheLong(), // Use appropriate cache strategy
+      strategy: Cache.long(), // Use appropriate cache strategy
     }
   );
 
@@ -691,25 +709,18 @@ export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: 'my-product' }),
-      strategy: CacheLong(),
+      strategy: Cache.long(),
     }
   );
 
-  // Or using storefront API with caching
-  const { collection } = await storefront.query(
-    `query CollectionDetails($handle: String!) {
-      collection(handle: $handle) {
-        title
-        description
-      }
-    }`,
-    {
-      variables: {
-        handle: 'summer-collection',
-      },
-      cache: CacheLong(), // Cache for a long time (1 day by default)
-    }
-  );
+  // Or using the Storefront API with caching (there is no default cache)
+  const { data: collectionData } = await storefront.graphql(COLLECTION_QUERY, {
+    variables: {
+      handle: 'summer-collection',
+    },
+    cache: Cache.long(), // Fresh for an hour, then stale for up to 23 hours
+  });
+  const collection = collectionData?.collection;
   
   return { product, collection, data };
 }
@@ -724,20 +735,20 @@ export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
 - Includes the URL, method, body, and project ID in the cache key, so POST requests cache correctly
 - Bypasses the cache automatically while in Studio design mode
 
-Hydrogen provides several caching strategies out of the box:
+Hydrogen provides its caching strategies through `Cache` from `@shopify/hydrogen`:
 
-- `CacheNone()`: No caching, always fetches fresh data
-- `CacheShort()`: Short-term caching (a few minutes)
-- `CacheLong()`: Long-term caching (1 day by default)
-- `cache.with()`: Custom cache control
+- `Cache.none()`: No caching, always fetches fresh data
+- `Cache.short()`: Short-term caching (fresh for 1 second, stale for 9 more)
+- `Cache.long()`: Long-term caching (fresh for 1 hour, stale for 23 more)
+- `Cache({ ... })`: Custom cache durations
 
 You can also customize cache durations:
 
 ```tsx
-import { CacheLong } from '@shopify/hydrogen';
+import { Cache } from '@shopify/hydrogen';
 
 // Cache for 60 seconds
-const cacheStrategy = CacheLong({
+const cacheStrategy = Cache({
   maxAge: 60,
   staleWhileRevalidate: 10,
 });
@@ -748,8 +759,8 @@ const data = await weaverse.fetchWithCache(
   { method: 'GET', strategy: cacheStrategy }
 );
 
-// Or use in storefront query
-const data = await storefront.query(QUERY, {
+// Or use in a Storefront API query
+const result = await storefront.graphql(QUERY, {
   variables,
   cache: cacheStrategy,
 });

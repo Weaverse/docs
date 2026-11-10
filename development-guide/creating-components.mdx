@@ -385,7 +385,9 @@ export const schema = createSchema({
 For components that need server-side data, export a loader function:
 
 ```tsx
+import { Cache } from "@shopify/hydrogen";
 import type { WeaverseComponentLoaderArgs } from "@weaverse/hydrogen/react-router";
+import { unwrapStorefront } from "~/utils/storefront";
 
 interface FeaturedProductData {
   productHandle: string;
@@ -399,9 +401,13 @@ export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductDa
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: { handle: data.productHandle },
-  });
+  // `graphql()` returns `{ data, errors }` and has no default cache
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.productHandle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
