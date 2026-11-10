@@ -124,13 +124,12 @@ WORKDIR /myapp
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy build output only. No .env, no credentials — configuration is
-# injected at run time.
-COPY --from=build /myapp/dist /myapp/dist
-COPY --from=build /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/package.json /myapp/package.json
-# `vite preview` reads the Vite config, which loads the Oxygen plugin
-COPY --from=build /myapp/vite.config.ts /myapp/vite.config.ts
+# Copy the built project. `vite preview` loads `vite.config.ts`, whose
+# React Router plugin reads `react-router.config.ts` and `app/`, so the
+# source tree is needed next to `dist/`. No .env, no credentials:
+# `.dockerignore` keeps them out of the build context, and configuration
+# is injected at run time.
+COPY --from=build /myapp /myapp
 
 EXPOSE 3000
 # Bind to 0.0.0.0 so the container is reachable
@@ -138,7 +137,7 @@ CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
 ```
 
 <Note>
-`vite` and `@shopify/mini-oxygen` are dev dependencies. That is why the production stage copies the full `node_modules` from the build stage rather than running `npm ci --omit=dev`. If your `vite.config.ts` imports other local files, copy those too.
+`vite` and `@shopify/mini-oxygen` are dev dependencies, and `vite preview` runs the same Vite config as the build, including the React Router plugin. That is why the production stage copies the whole project from the build stage (full `node_modules`, `app/`, `react-router.config.ts` and any local files the config imports) rather than only `dist/` with `npm ci --omit=dev`. Copying only `dist/` fails at startup with `Could not find a root route module`.
 </Note>
 
 ### 3. Environment variables
@@ -250,7 +249,7 @@ Verify `WEAVERSE_PROJECT_ID` is set in the running environment and that the depl
 ## Limitations and Considerations
 
 1. **Runtime simulation** — `vite preview` with Mini Oxygen runs the worker in a local `workerd`. Not every Worker API or performance characteristic matches Oxygen.
-2. **Image size** — the production stage ships the full `node_modules` because the preview server comes from dev dependencies (`vite`, `@shopify/mini-oxygen`).
+2. **Image size** — the production stage ships the full project and `node_modules` because the preview server comes from dev dependencies (`vite`, `@shopify/mini-oxygen`) and loads the project's Vite config.
 3. **Operational ownership** — scaling, TLS, log retention, and monitoring are yours to configure. [Oxygen](/guides/deployment/oxygen) handles these for you.
 
 ## Related
