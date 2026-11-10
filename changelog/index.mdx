@@ -16,6 +16,24 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Agent index**: [weaverse.io/llms.txt](https://weaverse.io/llms.txt) now covers SDK v6, Next.js and the Forward theme, and agents that request Markdown from the homepage now receive the full index.
 </Update>
 
+<Update label="SDK v6.1.1" description="November 10, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **`fetchWithCache` with form bodies**: Requests whose body is `FormData`, a `Blob` or another non-string body are no longer cached under one shared entry, so two such requests with different bodies each get their own response. These requests now skip the cache; string, `URLSearchParams` and body-less requests are cached as before.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.1
+  ```
+
+  Released with `@weaverse/next` 1.1.2, which pins the same `@weaverse/react`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.1)
+</Update>
+
 <Update label="2026.11.9" description="November 3, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
