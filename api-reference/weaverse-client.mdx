@@ -13,7 +13,7 @@ published: true
 Create the client in your app load context:
 
 ```tsx
-import { WeaverseClient } from '@weaverse/hydrogen'
+import { WeaverseClient } from '@weaverse/hydrogen/react-router'
 
 export async function createAppLoadContext(
   request: Request,
@@ -74,15 +74,15 @@ class WeaverseClient {
     options?: WeaverseFetchWithCacheOptions
   ): Promise<T>
   fetchCustomPages(options?: FetchCustomPagesOptions): Promise<CustomPageEntry[]>
-  loadThemeSettings(strategy?: CachingStrategy): Promise<ThemeSettingsResponse>
+  loadThemeSettings(strategy?: CachingStrategy): Promise<WeaverseThemeSettingsResponse>
   loadPage(params?: LoadPageParams): Promise<WeaverseLoaderData | null>
-  execComponentLoader(item: HydrogenComponentData): Promise<HydrogenComponentData>
-  generateFallbackPage(message: string): HydrogenPageData
+  execComponentLoader(item: WeaverseComponentData): Promise<WeaverseComponentData>
+  generateFallbackPage(message: string): WeaversePageData
 }
 
 type WeaverseClientArgs = HydrogenContext & {
-  components: HydrogenComponent[]
-  themeSchema: HydrogenThemeSchema
+  components: WeaverseComponent[]
+  themeSchema: WeaverseThemeSchema
   request: Request
   cache: Cache
   projectId?: string | (() => string) | (() => Promise<string>)
@@ -109,7 +109,7 @@ fetchWithCache<T>(
 ```
 
 ```typescript
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const products = await weaverse.fetchWithCache<Product[]>(
     'https://api.example.com/products',
     {
@@ -131,15 +131,15 @@ Use `strategy`, not the Fetch API `cache` property, for Hydrogen cache-control o
 ```typescript
 loadThemeSettings(
   strategy?: CachingStrategy
-): Promise<ThemeSettingsResponse>
+): Promise<WeaverseThemeSettingsResponse>
 ```
 
 The response can contain:
 
 ```typescript
-type ThemeSettingsResponse = {
-  theme?: HydrogenThemeSettings
-  schema?: HydrogenThemeSchema
+type WeaverseThemeSettingsResponse = {
+  theme?: WeaverseThemeSettings
+  schema?: WeaverseThemeSchema
   publicEnv?: PublicEnv
   staticContent?: Record<string, unknown>
   merchantOverrides?: Record<string, unknown>
@@ -257,8 +257,8 @@ const pages = await context.weaverse.fetchCustomPages({
 
 ```typescript
 execComponentLoader(
-  item: HydrogenComponentData
-): Promise<HydrogenComponentData>
+  item: WeaverseComponentData
+): Promise<WeaverseComponentData>
 ```
 
 Runs the registered loader for one component and attaches its loader data. `loadPage()` calls this internally.
@@ -266,7 +266,7 @@ Runs the registered loader for one component and attaches its loader data. `load
 ### `generateFallbackPage`
 
 ```typescript
-generateFallbackPage(message: string): HydrogenPageData
+generateFallbackPage(message: string): WeaversePageData
 ```
 
 Creates the page structure used when the content response does not include page data.

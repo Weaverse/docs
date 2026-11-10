@@ -236,16 +236,16 @@ Build a global storefront with different domains per country, each with market-s
 
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
-import { WeaverseClient } from "@weaverse/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 import type { HydrogenContext } from "@shopify/hydrogen";
-import type { HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseThemeSchema, WeaverseComponent } from "@weaverse/hydrogen/react-router";
 
 export function createWeaverseClient(args: {
   hydrogenContext: HydrogenContext;
   request: Request;
   cache: Cache;
-  themeSchema: HydrogenThemeSchema;
-  components: HydrogenComponent[];
+  themeSchema: WeaverseThemeSchema;
+  components: WeaverseComponent[];
 }) {
   let { hydrogenContext, request, cache, themeSchema, components } = args;
 
@@ -539,7 +539,7 @@ Each variant is a duplicated Weaverse **project**. The package deterministically
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
 import { getExperiments } from "@weaverse/experiments/server";
-import { WeaverseClient } from "@weaverse/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 
 export function createWeaverseClient(args: CreateWeaverseClientArgs) {
   let { hydrogenContext, request, cache, themeSchema, components } = args;
@@ -1386,7 +1386,7 @@ Step-by-step guide to migrate from single-project to multi-project architecture.
     **Create or update** `app/lib/weaverse/weaverse.server.ts`:
 
     ```typescript
-    import { WeaverseClient } from "@weaverse/hydrogen";
+    import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 
     export function createWeaverseClient(args: CreateWeaverseClientArgs) {
       let { hydrogenContext, request, cache, themeSchema, components } = args;

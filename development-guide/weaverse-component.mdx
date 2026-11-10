@@ -16,11 +16,11 @@ To use your components in Weaverse, you need to register them in your applicatio
 
 ```tsx
 // app/weaverse/components.ts
-import type { HydrogenComponent } from '@weaverse/hydrogen';
+import type { WeaverseComponent } from '@weaverse/hydrogen/react-router';
 import * as HeroImage from '~/sections/hero-image';
 import * as RelatedProducts from '~/sections/related-products';
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   HeroImage,
   RelatedProducts,
   // Add more components...
@@ -29,7 +29,7 @@ export const components: HydrogenComponent[] = [
 
 ```tsx
 // app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from "@weaverse/hydrogen";
+import { WeaverseHydrogenRoot } from "@weaverse/hydrogen/react-router";
 import { GenericError } from "~/components/root/generic-error";
 import { components } from "./components";
 
@@ -82,10 +82,10 @@ Every Weaverse component follows a consistent structure:
 ### Basic Component Template
 
 ```tsx
-import type { HydrogenComponentProps } from '@weaverse/hydrogen';
-import { createSchema } from '@weaverse/hydrogen';
+import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
-interface MyComponentProps extends HydrogenComponentProps {
+interface MyComponentProps extends WeaverseComponentProps {
   // Add your custom props here
   title?: string;
   description?: string;
@@ -128,7 +128,7 @@ export default MyComponent;
 
 ### Key Elements
 
-1. **HydrogenComponentProps**: Base props interface that all Weaverse components extend
+1. **WeaverseComponentProps**: Base props interface that all Weaverse components extend
 2. **ref and root props**: Pass `ref` and the remaining Weaverse props to the component's root DOM element
 3. **type property in schema**: Unique identifier for the component (must be unique across all components)
 4. **settings**: Defines the UI controls in Weaverse Studio
@@ -139,7 +139,7 @@ export default MyComponent;
 For more complex components, you may need to handle data loading, custom styling, or complex props management:
 
 ```tsx
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { Await, useLoaderData } from "react-router";
 import { Suspense, forwardRef } from "react";
 import type { ProductCardFragment } from "storefront-api.generated";
@@ -520,17 +520,17 @@ Weaverse components can define their own loaders, which fetch data specifically 
 ```tsx
 // app/sections/featured-product/index.tsx
 import type {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
+  WeaverseComponentLoaderArgs,
+  WeaverseComponentProps,
   WeaverseProduct,
-} from '@weaverse/hydrogen';
+} from '@weaverse/hydrogen/react-router';
 import { PRODUCT_QUERY } from '~/graphql/queries';
 
 interface FeaturedProductData {
   product: WeaverseProduct;
 }
 
-export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
+export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
@@ -547,7 +547,7 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
   return { product };
 };
 
-type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
+type FeaturedProductProps = WeaverseComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
 
 function FeaturedProduct({ ref, loaderData, product: selectedProduct, ...rest }: FeaturedProductProps) {
   const product = loaderData?.product;
@@ -601,7 +601,7 @@ export let schema = createSchema({
      - `weaverse`: The `WeaverseClient` instance — Storefront API access, `fetchWithCache`, `env`, and the current `request`
      - `data`: Contains the component's configured data from the editor
 
-   There is no `context` argument in `ComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
+   There is no `context` argument in `WeaverseComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
 
 4. **Use cases**:
    - Use route loaders for route-level data like page information
@@ -612,7 +612,7 @@ export let schema = createSchema({
 Components can access data from their parent components using the `useParentInstance` hook:
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen';
+import { useParentInstance } from '@weaverse/hydrogen/react-router';
 
 function ChildComponent() {
   const parent = useParentInstance();
@@ -630,7 +630,7 @@ interface ComponentData {
   // Define your data structure
 }
 
-export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> {
+export async function loader(args: WeaverseComponentLoaderArgs): Promise<ComponentData> {
   // Fetch data
   return data;
 }
@@ -639,7 +639,7 @@ export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> 
 2. **Error Handling**: Implement proper error handling in your loaders:
 
 ```tsx
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   try {
     const data = await fetchData(weaverse);
     return { data };
@@ -653,7 +653,7 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
 3. **Data Transformation**: Transform data in the loader before passing it to the component:
 
 ```tsx
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const rawData = await fetchData(weaverse);
   return {
     data: transformData(rawData), // Transform data for easier consumption
@@ -666,7 +666,7 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
 ```tsx
 import { CacheLong } from '@shopify/hydrogen';
 
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const { storefront, fetchWithCache } = weaverse;
 
   // Using Weaverse's fetchWithCache utility (recommended)

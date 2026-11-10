@@ -163,10 +163,10 @@ Let's create a customizable Hero Banner that showcases your products.
    ```typescript
    // app/sections/hero-banner/index.tsx
    import { Image } from '@shopify/hydrogen';
-   import { createSchema } from '@weaverse/hydrogen';
-   import type { HydrogenComponentProps } from '@weaverse/hydrogen';
+   import { createSchema } from '@weaverse/hydrogen/react-router';
+   import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 
-   interface HeroBannerProps extends HydrogenComponentProps {
+   interface HeroBannerProps extends WeaverseComponentProps {
      heading: string;
      description: string;
      buttonText: string;
@@ -280,7 +280,7 @@ Let's create a customizable Hero Banner that showcases your products.
    // app/weaverse/components.ts
    import * as HeroBanner from '~/sections/hero-banner';
 
-   export let components: HydrogenComponent[] = [
+   export let components: WeaverseComponent[] = [
      // ... existing components
      HeroBanner,
    ];
@@ -311,9 +311,9 @@ Let's enhance our Hero Banner to feature a specific product.
    ```typescript
    // Add to app/sections/hero-banner/index.tsx
 
-   import type { ComponentLoaderArgs } from '@weaverse/hydrogen';
+   import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router';
 
-   export async function loader(args: ComponentLoaderArgs<HeroBannerProps>) {
+   export async function loader(args: WeaverseComponentLoaderArgs<HeroBannerProps>) {
      const { weaverse } = args;
      const { storefront } = weaverse;
 
@@ -355,9 +355,9 @@ Let's enhance our Hero Banner to feature a specific product.
 
 2. **Update component to use product data**:
    ```typescript
-   import type { WeaverseProduct } from '@weaverse/hydrogen';
+   import type { WeaverseProduct } from '@weaverse/hydrogen/react-router';
 
-   interface HeroBannerProps extends HydrogenComponentProps {
+   interface HeroBannerProps extends WeaverseComponentProps {
      // ... existing props
      product?: WeaverseProduct;
      loaderData?: {
@@ -422,7 +422,7 @@ Let's enhance our Hero Banner to feature a specific product.
 
 4. **Add caching to your loader**:
    ```typescript
-   export async function loader(args: ComponentLoaderArgs<HeroBannerProps>) {
+   export async function loader(args: WeaverseComponentLoaderArgs<HeroBannerProps>) {
      const { weaverse } = args;
      const { storefront } = weaverse;
 

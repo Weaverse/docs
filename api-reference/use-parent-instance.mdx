@@ -11,7 +11,7 @@ The `useParentInstance` hook looks up the current component's parent item store 
 ## Import
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen'
+import { useParentInstance } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
@@ -33,7 +33,7 @@ function useParentInstance(): WeaverseItemStore | null
 ### Accessing Parent Loader Data
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen'
+import { useParentInstance } from '@weaverse/hydrogen/react-router'
 
 export function ProductItems() {
   const parent = useParentInstance()
@@ -54,7 +54,7 @@ export function ProductItems() {
 ### Reading Parent Configuration
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen'
+import { useParentInstance } from '@weaverse/hydrogen/react-router'
 
 export function ReviewItem() {
   const parent = useParentInstance()
@@ -80,7 +80,7 @@ export function ReviewItem() {
 Use React Router's `useFetcher` directly:
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen'
+import { useParentInstance } from '@weaverse/hydrogen/react-router'
 import { useEffect } from 'react'
 import { useFetcher } from 'react-router'
 

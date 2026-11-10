@@ -48,7 +48,7 @@ Do **not** use a module-global `i18next` singleton and call `changeLanguage()` f
 
 ```typescript
 import { createInstance, type i18n as I18nInstance } from 'i18next';
-import type { TranslateFunction } from '@weaverse/hydrogen';
+import type { TranslateFunction } from '@weaverse/hydrogen/react-router';
 
 // 1. Build a fresh, fully isolated instance for one request.
 export function createI18nForRequest(
@@ -101,7 +101,7 @@ On the browser there is only one visitor, so a single client-side instance is fi
 // app/root.tsx
 import { useMemo, type ReactNode } from 'react';
 import { useRouteLoaderData, type LoaderFunctionArgs } from 'react-router';
-import { withWeaverse } from '@weaverse/hydrogen';
+import { withWeaverse } from '@weaverse/hydrogen/react-router';
 import { createI18nForRequest, createWeaverseT } from '~/utils/i18n';
 import baseTranslations from '~/i18n/en.json';
 
@@ -163,7 +163,7 @@ Your components don't need any updates. Standard keys simply fall back to Weaver
 
 **React Component Example:**
 ```tsx
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 
 export function CartItemCount({ count }: { count: number }) {
   const { t } = useTranslation();

@@ -41,9 +41,9 @@ Definitions of the Weaverse and Shopify Hydrogen terms used throughout this docu
 
 ## Data & Theme Settings
 
-- **Loader** — A component's server-side data-fetching function. Weaverse calls it with `ComponentLoaderArgs` so a section can fetch its own data. See [Section Data Fetching](/development-guide/data-fetching).
+- **Loader** — A component's server-side data-fetching function. Weaverse calls it with `WeaverseComponentLoaderArgs` so a section can fetch its own data. See [Section Data Fetching](/development-guide/data-fetching).
 - **Theme Settings** — Global, site-wide configuration (colors, fonts, layout) defined in the theme schema and editable in Studio. See [Styling & Theming](/development-guide/styling-theming).
-- **Theme Schema** — The `HydrogenThemeSchema` that declares all global theme settings for a storefront. See [Styling & Theming](/development-guide/styling-theming).
+- **Theme Schema** — The `WeaverseThemeSchema` that declares all global theme settings for a storefront. See [Styling & Theming](/development-guide/styling-theming).
 - **Data Revalidation (`shouldRevalidate`)** — A flag on an input that tells Weaverse to re-run a component's loader when that setting changes, keeping displayed data in sync. See [Section Data Fetching](/development-guide/data-fetching).
 - **`fetchWithCache`** — A Weaverse utility for fetching external APIs with Hydrogen's caching applied. See [Section Data Fetching](/development-guide/data-fetching).
 - **Metaobjects** — Shopify's structured custom-content records, used by themes such as Pilot to model reusable content. See [Pilot Theme Overview](/hydrogen-themes/pilot-theme-overview).

@@ -18,7 +18,7 @@ Before diving into styling, you need to set up the Weaverse theme system. This i
 
 ```tsx
 // app/root.tsx
-import { withWeaverse } from "@weaverse/hydrogen";
+import { withWeaverse } from "@weaverse/hydrogen/react-router";
 import { Outlet } from "react-router";
 
 export const Layout = withWeaverse(function RootLayout({
@@ -52,9 +52,9 @@ Create a theme schema that defines all customizable settings for your storefront
 
 ```tsx
 // app/weaverse/schema.server.ts
-import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+import type { WeaverseThemeSchema } from "@weaverse/hydrogen/react-router";
 
-export const themeSchema: HydrogenThemeSchema = {
+export const themeSchema: WeaverseThemeSchema = {
   info: {
     version: "1.0.0",
     author: "Your Name",
@@ -164,7 +164,7 @@ Create a global style component that converts theme settings into CSS variables:
 
 ```tsx
 // app/weaverse/style.tsx
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 
 export function GlobalStyle() {
   const settings = useThemeSettings();
@@ -216,7 +216,7 @@ Add the `GlobalStyle` component to your root `Layout`'s `<head>` section — the
 
 ```tsx
 // app/root.tsx
-import { withWeaverse } from "@weaverse/hydrogen";
+import { withWeaverse } from "@weaverse/hydrogen/react-router";
 import { Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { GlobalStyle } from "./weaverse/style";
 
@@ -254,7 +254,7 @@ Access theme settings using the `useThemeSettings` hook:
 
 ```tsx
 // app/components/header.tsx
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 
 export function Header() {
   const { headerBgColor, headerText, logoWidth } = useThemeSettings();
@@ -551,11 +551,11 @@ Use theme settings directly in your Weaverse components:
 ```tsx
 // app/sections/hero-banner/index.tsx
 import type { Ref } from "react";
-import { useThemeSettings } from "@weaverse/hydrogen";
-import { createSchema } from "@weaverse/hydrogen";
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
+import { createSchema } from "@weaverse/hydrogen/react-router";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
 
-interface HeroBannerProps extends HydrogenComponentProps {
+interface HeroBannerProps extends WeaverseComponentProps {
   heading: string;
   showButton: boolean;
   ref?: Ref<HTMLElement>;
@@ -698,7 +698,7 @@ function Button(props: ButtonProps) {
 Use the `useThemeSettings` hook to access global theme configuration:
 
 ```tsx
-import { useThemeSettings } from "@weaverse/hydrogen";
+import { useThemeSettings } from "@weaverse/hydrogen/react-router";
 
 function Header(props: HeaderProps) {
   const themeSettings = useThemeSettings();

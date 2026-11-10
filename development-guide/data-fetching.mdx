@@ -25,7 +25,7 @@ Weaverse section components use the loader pattern for server-side data fetching
 
 ```tsx
 // app/sections/featured-collection/index.tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 
 // Define the expected input data type
 type FeaturedCollectionData = {
@@ -35,7 +35,7 @@ type FeaturedCollectionData = {
 // Component implementation...
 
 // Define the loader function to fetch data
-export let loader = async (args: ComponentLoaderArgs<FeaturedCollectionData>) => {
+export let loader = async (args: WeaverseComponentLoaderArgs<FeaturedCollectionData>) => {
   const { weaverse, data } = args
   const { storefront } = weaverse
   
@@ -52,7 +52,7 @@ export let loader = async (args: ComponentLoaderArgs<FeaturedCollectionData>) =>
 ```
 
 The loader function:
-1. Receives arguments via `ComponentLoaderArgs`
+1. Receives arguments via `WeaverseComponentLoaderArgs`
 2. Accesses the Weaverse client and component data
 3. Fetches necessary data from APIs
 4. Returns data that will be automatically passed to the component as `props.loaderData`
@@ -62,7 +62,7 @@ The loader function:
 Using TypeScript with your component loaders provides several benefits:
 
 ```tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 import type { CollectionQuery } from 'storefrontapi.generated'
 
 // Define input data shape
@@ -77,7 +77,7 @@ type LoaderReturnType = {
 }
 
 export let loader = async (
-  args: ComponentLoaderArgs<FeaturedCollectionData>
+  args: WeaverseComponentLoaderArgs<FeaturedCollectionData>
 ): Promise<LoaderReturnType | null> => {
   // Implementation...
 }
@@ -96,7 +96,7 @@ By specifying the input and output types, you get:
 The most common data source for Weaverse components is Shopify's Storefront API:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ProductData>) => {
   const { storefront } = weaverse
   const { product } = data
   
@@ -130,7 +130,7 @@ const PRODUCT_QUERY = `#graphql
 Weaverse components can also fetch data from any external API using the `fetchWithCache` utility:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WeatherWidgetData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WeatherWidgetData>) => {
   const { fetchWithCache, env } = weaverse
   const { location = 'New York' } = data
   
@@ -160,7 +160,7 @@ The `fetchWithCache` function:
 
 ### Component Data and Settings
 
-The `data` argument in `ComponentLoaderArgs` contains all the component's settings configured by merchants in the Weaverse editor:
+The `data` argument in `WeaverseComponentLoaderArgs` contains all the component's settings configured by merchants in the Weaverse editor:
 
 ```tsx
 type MapComponentData = {
@@ -171,7 +171,7 @@ type MapComponentData = {
   mapStyle: 'standard' | 'satellite' | 'terrain'
 }
 
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<MapComponentData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<MapComponentData>) => {
   const { fetchWithCache, env } = weaverse
   const { latitude, longitude, zoom, showTraffic, mapStyle } = data
   
@@ -189,7 +189,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<MapComponentD
 The simplest pattern is direct data fetching based on component settings:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ProductData>) => {
   const { storefront } = weaverse
   const { productHandle } = data
   
@@ -204,7 +204,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductData>)
 Often you'll need to conditionally fetch data based on component settings:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<TestimonialData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<TestimonialData>) => {
   const { storefront, fetchWithCache, env } = weaverse
   const { source, productHandle, collectionHandle } = data
   
@@ -234,7 +234,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<TestimonialDa
 For optimal performance, fetch multiple data sources in parallel:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductDetailData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ProductDetailData>) => {
   const { storefront, fetchWithCache, env } = weaverse
   const { productHandle } = data
   
@@ -272,7 +272,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductDetail
 Robust error handling ensures your components degrade gracefully when APIs fail:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<NewsData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<NewsData>) => {
   const { fetchWithCache } = weaverse
   const { source, category, count = 3 } = data
   
@@ -308,7 +308,7 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<NewsData>) =>
 Sometimes you need to fetch data sequentially, where one request depends on the results of another:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<RelatedProductsData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<RelatedProductsData>) => {
   const { storefront } = weaverse
   const { productHandle } = data
   
@@ -449,7 +449,7 @@ export const schema = {
 }
 
 // app/sections/dynamic-product-grid/index.ts
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 
 type ProductGridData = {
   collection: { handle: string }
@@ -458,7 +458,7 @@ type ProductGridData = {
   viewStyle: string
 }
 
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<ProductGridData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ProductGridData>) => {
   const { storefront } = weaverse
   const { collection, sortBy, productsToShow } = data
   
@@ -504,7 +504,7 @@ Weaverse components inherit Hydrogen's powerful caching system, allowing you to 
 For fine-tuned control over caching behavior:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs<StockTickerData>) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<StockTickerData>) => {
   const { fetchWithCache, storefront } = weaverse
   
   // Fast-changing financial data needs custom caching
@@ -546,7 +546,7 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs<StockTickerData>) =
 
 ```tsx
 // app/sections/product-recommendations/index.tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 import { RECOMMENDATIONS_QUERY } from '~/graphql/queries'
 
 type RecommendationsData = {
@@ -558,7 +558,7 @@ type RecommendationsData = {
 export let loader = async ({ 
   weaverse, 
   data 
-}: ComponentLoaderArgs<RecommendationsData>) => {
+}: WeaverseComponentLoaderArgs<RecommendationsData>) => {
   const { storefront } = weaverse
   const { product, recommendationType, maxProducts = 4 } = data
   
@@ -591,7 +591,7 @@ export let loader = async ({
 
 ```tsx
 // app/sections/blog-feed/index.tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 import { BLOG_ARTICLES_QUERY } from '~/graphql/queries'
 
 type BlogFeedData = {
@@ -606,7 +606,7 @@ type BlogFeedData = {
 export let loader = async ({ 
   weaverse, 
   data 
-}: ComponentLoaderArgs<BlogFeedData>) => {
+}: WeaverseComponentLoaderArgs<BlogFeedData>) => {
   const { storefront } = weaverse
   const { 
     blog, 
@@ -676,7 +676,7 @@ export let loader = async ({
 
 ```tsx
 // app/sections/currency-converter/index.tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
 
 type CurrencyConverterData = {
   baseCurrency: string
@@ -693,7 +693,7 @@ type ExchangeRateResponse = {
 export let loader = async ({ 
   weaverse, 
   data 
-}: ComponentLoaderArgs<CurrencyConverterData>) => {
+}: WeaverseComponentLoaderArgs<CurrencyConverterData>) => {
   const { fetchWithCache, env, storefront } = weaverse
   const { 
     baseCurrency = 'USD', 
@@ -773,7 +773,7 @@ Common issues and their solutions:
 
 ```tsx
 // Problem: Data is sometimes undefined
-export let loader = async ({ data }: ComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ data }: WeaverseComponentLoaderArgs<ProductData>) => {
   // ❌ This might cause an error if data.product is undefined
   return await storefront.query(QUERY, { 
     variables: { handle: data.product.handle }
@@ -781,7 +781,7 @@ export let loader = async ({ data }: ComponentLoaderArgs<ProductData>) => {
 }
 
 // Solution: Add proper validation
-export let loader = async ({ data }: ComponentLoaderArgs<ProductData>) => {
+export let loader = async ({ data }: WeaverseComponentLoaderArgs<ProductData>) => {
   // ✅ Check for existence before accessing properties
   if (!data?.product?.handle) return null
   
@@ -806,7 +806,7 @@ type ProductCarouselData = {
 // Use the type in your loader
 export let loader = async ({ 
   data 
-}: ComponentLoaderArgs<ProductCarouselData>) => {
+}: WeaverseComponentLoaderArgs<ProductCarouselData>) => {
   // TypeScript will now validate that data matches the expected structure
 }
 ```
@@ -816,7 +816,7 @@ export let loader = async ({
 Implement proper caching and error handling:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs<ApiData>) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<ApiData>) => {
   const { fetchWithCache, storefront } = weaverse
   
   try {

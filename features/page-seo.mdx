@@ -33,7 +33,7 @@ npm install @weaverse/hydrogen@^5.14.0
 In a route that should take its SEO from Studio (a `CUSTOM` page route, for example), export `meta` like this:
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -74,7 +74,7 @@ export default function Component() {
 **After**
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -99,7 +99,7 @@ Many themes serve both the real homepage (`type: "INDEX"`) **and** root-level CU
 **Loader** — compute `seo` only for INDEX, leave it `null` for CUSTOM, and return both `weaverseData` and `seo`:
 
 ```tsx
-import type { PageType } from "@weaverse/hydrogen";
+import type { PageType } from "@weaverse/hydrogen/react-router";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;
@@ -132,7 +132,7 @@ export async function loader(args: LoaderFunctionArgs) {
 **Meta** — code-defined SEO when it exists (INDEX), Weaverse SEO otherwise (CUSTOM):
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import { getSeoMeta, type SeoConfig } from "@shopify/hydrogen";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {

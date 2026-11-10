@@ -650,11 +650,11 @@ weaverse.loadPage({ type: "PRODUCT", handle })
 
 **Solution**: Ensure components are registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in Pilot template):
 ```typescript
-import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 import * as ProductInfo from "~/sections/product-info";
 import * as Hero from "~/sections/hero";
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   ProductInfo,
   Hero,
   // Add all your components here
@@ -669,7 +669,7 @@ export const components: HydrogenComponent[] = [
 
 **Solution**: Ensure proper type imports:
 ```typescript
-import type { WeaverseLoaderData } from "@weaverse/hydrogen";
+import type { WeaverseLoaderData } from "@weaverse/hydrogen/react-router";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const weaverseData: WeaverseLoaderData = await context.weaverse.loadPage({

@@ -77,10 +77,10 @@ export function Button({ children, className = '', ...props }) {
 Theme sections for Weaverse Studio:
 ```tsx
 // Example: app/sections/hero/index.tsx
-import { createSchema } from '@weaverse/hydrogen';
-import type { HydrogenComponentProps } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
+import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 
-interface HeroProps extends HydrogenComponentProps {
+interface HeroProps extends WeaverseComponentProps {
   heading: string;
   description: string;
 }
@@ -136,7 +136,7 @@ Core Weaverse configuration files:
 Creates the Hydrogen router context and attaches the Weaverse client to it:
 ```ts
 import { createHydrogenContext } from '@shopify/hydrogen';
-import { WeaverseClient } from '@weaverse/hydrogen';
+import { WeaverseClient } from '@weaverse/hydrogen/react-router';
 import {
   CART_MUTATION_FRAGMENT,
   CART_QUERY_FRAGMENT,

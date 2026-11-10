@@ -201,7 +201,7 @@ export async function loader({ context }: LoaderArgs) {
 }
 
 // In Weaverse components
-export let loader = async ({ weaverse }: ComponentLoaderArgs<{}, Env>) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<{}, Env>) => {
   const { env } = weaverse;
   return { projectId: env.WEAVERSE_PROJECT_ID };
 }

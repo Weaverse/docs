@@ -77,7 +77,7 @@ Pilot's `app/routes/catch-all.tsx` handles other unmatched paths with `type: "CU
 
 ```tsx
 // app/routes/catch-all.tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
 import { routeHeaders } from "~/utils/cache";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";

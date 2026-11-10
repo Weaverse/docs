@@ -190,12 +190,12 @@ When using `weaverse.fetchWithCache`, pass the same bounded URL and cache strate
 A server component loader can read presentation settings, fetch Instagram, and return normalized data to the section.
 
 ```ts
-import type { ComponentLoaderArgs } from "@weaverse/hydrogen";
+import type { WeaverseComponentLoaderArgs } from "@weaverse/hydrogen/react-router";
 
 export async function loader({
   weaverse,
   data,
-}: ComponentLoaderArgs<{ itemCount?: number }>) {
+}: WeaverseComponentLoaderArgs<{ itemCount?: number }>) {
   const itemCount = Math.min(Math.max(data.itemCount ?? 8, 1), 24);
   const result = await fetchInstagramFeed(weaverse.env, itemCount);
 

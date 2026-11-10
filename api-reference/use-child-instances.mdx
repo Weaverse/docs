@@ -11,7 +11,7 @@ The `useChildInstances` hook returns the direct child item stores of a Weaverse 
 ## Import
 
 ```tsx
-import { useChildInstances } from '@weaverse/hydrogen'
+import { useChildInstances } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
@@ -40,7 +40,7 @@ function useChildInstances(id?: string): WeaverseItemStore[]
 import {
   useChildInstances,
   useThemeSettings,
-} from '@weaverse/hydrogen'
+} from '@weaverse/hydrogen/react-router'
 import { useEffect } from 'react'
 
 export function ProductGrid() {
@@ -67,7 +67,7 @@ export function ProductGrid() {
 ### Managing Interactive Children
 
 ```tsx
-import { useChildInstances } from '@weaverse/hydrogen'
+import { useChildInstances } from '@weaverse/hydrogen/react-router'
 import { useEffect, useState } from 'react'
 
 export function Carousel() {
@@ -107,7 +107,7 @@ export function Carousel() {
 ### Summarizing Child Data
 
 ```tsx
-import { useChildInstances } from '@weaverse/hydrogen'
+import { useChildInstances } from '@weaverse/hydrogen/react-router'
 import { useMemo } from 'react'
 
 export function ReviewsSection() {

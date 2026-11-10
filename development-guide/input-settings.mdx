@@ -383,7 +383,7 @@ Here's how it works:
 #### Filtering the Media Manager gallery
 
 A theme can hide files from the gallery so a picker only offers what belongs in it. Declare the store-wide
-default on [`HydrogenThemeSchema.media`](/api-reference/types#hydrogenthemeschema), and override it for a
+default on [`WeaverseThemeSchema.media`](/api-reference/types#hydrogenthemeschema), and override it for a
 single input through `configs`:
 
 ```tsx
@@ -495,10 +495,10 @@ Here's a simple example:
 
 ```tsx
 import { Image } from '@shopify/hydrogen'
-import type { HydrogenComponentProps, WeaverseImage } from '@weaverse/hydrogen'
+import type { WeaverseComponentProps, WeaverseImage } from '@weaverse/hydrogen/react-router'
 import { forwardRef } from 'react'
 
-interface ImageGalleryItemProps extends HydrogenComponentProps {
+interface ImageGalleryItemProps extends WeaverseComponentProps {
   source: WeaverseImage
 }
 
@@ -827,7 +827,7 @@ The `loader` function will read the `handle` or `id` of the selected product and
 ```tsx
 // <root>/app/sections/single-product/index.tsx
 
-export let loader = async (args: ComponentLoaderArgs<SingleProductData>) => {
+export let loader = async (args: WeaverseComponentLoaderArgs<SingleProductData>) => {
   let { weaverse, data } = args
   let { storefront } = weaverse
   if (!data?.product) {

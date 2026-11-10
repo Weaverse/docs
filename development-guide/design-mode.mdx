@@ -50,7 +50,7 @@ See the [Content Security Policy](/features/content-security) guide for full CSP
 On the client, you can get the design mode status directly from the Weaverse instance using the `useWeaverse` hook:
 
 ```tsx
-import { useWeaverse } from "@weaverse/hydrogen";
+import { useWeaverse } from "@weaverse/hydrogen/react-router";
 
 export function MyComponent() {
   let weaverse = useWeaverse();
@@ -77,7 +77,7 @@ The `isDesignMode` property is `true` when the storefront is rendered inside the
 When a component requires user-configured data (e.g. a selected product), show a helpful prompt in Studio instead of an empty state:
 
 ```tsx
-import { useWeaverse } from "@weaverse/hydrogen";
+import { useWeaverse } from "@weaverse/hydrogen/react-router";
 
 function FeaturedProduct({ loaderData }: FeaturedProductProps) {
   let { isDesignMode } = useWeaverse();

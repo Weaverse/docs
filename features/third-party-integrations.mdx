@@ -67,7 +67,7 @@ Many third-party applications provide React components that you can incorporate 
 
    ```tsx
    // app/sections/third-party-widget/schema.ts
-   import { createSchema } from '@weaverse/hydrogen'
+   import { createSchema } from '@weaverse/hydrogen/react-router'
    
    export let schema = createSchema({
      type: 'third-party-widget',
@@ -130,8 +130,8 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
 
    ```tsx
    // app/sections/api-widget/index.tsx
-   import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
-   import { createSchema } from '@weaverse/hydrogen'
+   import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
+   import { createSchema } from '@weaverse/hydrogen/react-router'
    import { forwardRef } from 'react'
    import { Section, type SectionProps } from '~/components/section'
 
@@ -140,7 +140,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
      itemsToShow: number
    }
 
-   export const loader = async ({ weaverse, data }: ComponentLoaderArgs<ApiWidgetData>) => {
+   export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ApiWidgetData>) => {
      const { fetchWithCache, env, storefront } = weaverse
      const { resourceId, itemsToShow = 5 } = data
 
@@ -238,7 +238,7 @@ Weaverse provides multiple approaches to fetch data from third-party services, e
 Server-side data fetching is the preferred approach for most integrations as it keeps API keys secure and reduces client-side JavaScript:
 
 ```tsx
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { fetchWithCache, env } = weaverse
   
   return await fetchWithCache('https://api.third-party.com/data', {
@@ -299,7 +299,7 @@ Combine server and client approaches for the best of both worlds:
 
 ```tsx
 // Server component that fetches data
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   // Fetch initial data server-side
   return await weaverse.fetchWithCache('https://api.third-party.com/initial-data')
 }
@@ -358,7 +358,7 @@ Most third-party APIs require authentication. Here are the common approaches:
 1. **API Key Authentication**
 
    ```tsx
-   export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
+   export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
      const { env } = weaverse
      
      return await weaverse.fetchWithCache('https://api.example.com/data', {
@@ -374,7 +374,7 @@ Most third-party APIs require authentication. Here are the common approaches:
    For services using OAuth:
 
    ```tsx
-   export let loader = async ({ weaverse, context }: ComponentLoaderArgs) => {
+   export let loader = async ({ weaverse, context }: WeaverseComponentLoaderArgs) => {
      const { session } = context
      const accessToken = await session.get('thirdPartyAccessToken')
      
@@ -396,7 +396,7 @@ Most third-party APIs require authentication. Here are the common approaches:
 Prevent rate limit issues by implementing proper caching:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
   const { fetchWithCache, storefront } = weaverse
   
   return await fetchWithCache('https://rate-limited-api.example.com/data', {
@@ -415,7 +415,7 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
 Implement robust error handling for third-party services:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
   const { fetchWithCache } = weaverse
   
   try {
@@ -450,7 +450,7 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
 For widgets that need to stay in sync with your store data:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { storefront, fetchWithCache } = weaverse
   const { productId } = data
   
@@ -515,7 +515,7 @@ strategy: storefront.CacheCustom({
 Only load what's needed when it's needed:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { fetchWithCache, request } = weaverse
   const { widgetType, itemsToShow } = data
   

@@ -17,7 +17,7 @@ Use it on `Layout`, not only on the default route component. React Router keeps 
 ## Import
 
 ```tsx
-import { withWeaverse } from '@weaverse/hydrogen'
+import { withWeaverse } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
@@ -54,7 +54,7 @@ The theme store reads `weaverseTheme.theme`, while the translation provider also
 Export the wrapped component as the root route `Layout`:
 
 ```tsx
-import { withWeaverse } from '@weaverse/hydrogen'
+import { withWeaverse } from '@weaverse/hydrogen/react-router'
 import type { ReactNode } from 'react'
 
 function RootLayout({ children }: { children: ReactNode }) {

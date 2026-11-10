@@ -178,7 +178,7 @@ Each `name` must match a key that already exists in your `i18n.staticContent` JS
 Exactly as you would any other theme string — with `t()`:
 
 ```tsx
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 
 export function CartHeader() {
   const { t } = useTranslation();
@@ -378,13 +378,13 @@ To use translated theme content in your components, use the `useTranslation` hoo
 1. **Import the hook:**
 
 ```tsx
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 ```
 
 2. **Use the `t` function to render localized strings:**
 
 ```tsx
-import { useTranslation } from "@weaverse/hydrogen";
+import { useTranslation } from "@weaverse/hydrogen/react-router";
 
 export function CartSummary() {
   const { t } = useTranslation();

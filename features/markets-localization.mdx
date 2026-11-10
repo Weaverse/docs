@@ -67,11 +67,11 @@ Use the same table in the theme schema instead of maintaining another locale lis
 
 ```typescript
 // app/weaverse/schema.server.ts
-import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+import type { WeaverseThemeSchema } from "@weaverse/hydrogen/react-router";
 import staticContent from "~/i18n/en.json" with { type: "json" };
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/locale";
 
-export const themeSchema: HydrogenThemeSchema = {
+export const themeSchema: WeaverseThemeSchema = {
   // ...components and settings
   i18n: {
     urlStructure: "url-path",

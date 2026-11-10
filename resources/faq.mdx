@@ -187,9 +187,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 **Component Loaders** (Weaverse):
 ```typescript
 // app/sections/featured-product.tsx
-import type { ComponentLoaderArgs } from '@weaverse/hydrogen';
+import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router';
 
-export async function loader({ weaverse, data }: ComponentLoaderArgs) {
+export async function loader({ weaverse, data }: WeaverseComponentLoaderArgs) {
   // Provides data only to this component
 }
 ```
@@ -201,7 +201,7 @@ export async function loader({ weaverse, data }: ComponentLoaderArgs) {
 ### How does the createSchema() function validate schemas?
 
 ```typescript
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 export let schema = createSchema({
   type: 'my-component',
@@ -361,7 +361,7 @@ Weaverse does not automatically split every registered section. Use dynamic impo
 1. **Create Component File**:
 ```typescript
 // app/sections/my-section.tsx
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 interface MyComponentProps {
   title?: string;
@@ -1482,7 +1482,7 @@ npm run typecheck  # Identify specific type issues
 import { createSchema } from 'weaverse';
 
 // ✅ Correct - proper import path
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 ```
 
 **3. React Router v7 Type Issues**:

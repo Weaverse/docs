@@ -115,7 +115,7 @@ npm install @weaverse/hydrogen
 **Basic Usage:**
 ```tsx
 // app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen/react-router';
 import { GenericError } from '~/components/root/generic-error';
 import { components } from './components';
 
@@ -134,7 +134,7 @@ for the current React Router route. Its props are:
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `components` | `HydrogenComponent[]` | Yes | Theme components available to the page renderer |
+| `components` | `WeaverseComponent[]` | Yes | Theme components available to the page renderer |
 | `data` | `WeaverseLoaderData \| Promise<WeaverseLoaderData \| null> \| null` | No | Explicit `weaverseData` payload that bypasses automatic route-scoped resolution. Pass `null` to suppress rendering |
 | `errorComponent` | `React.FC<{ error: Error \| unknown }>` | No | Component rendered when page data cannot be resolved |
 
