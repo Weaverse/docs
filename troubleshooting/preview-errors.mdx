@@ -250,10 +250,10 @@ The preview uses PostMessage/RPC for Studio communication:
 // Check whether the Weaverse storefront runtime booted in the preview.
 // @weaverse/hydrogen stores runtimes by Weaverse page ID.
 const runtime = Object.values(window.__weaverses ?? {})[0]
-runtime?.sdkVersion // e.g. "5.19.1" when a runtime is mounted
+runtime?.sdkVersion // e.g. "6.1.0" when a runtime is mounted
 runtime?.isDesignMode // true when the page is rendered inside Studio
 
-window.__weaverses // Record<pageId, WeaverseHydrogen>
+window.__weaverses // Record<pageId, Weaverse runtime>
 ```
 
 <Note>

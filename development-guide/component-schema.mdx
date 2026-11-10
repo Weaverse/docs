@@ -172,7 +172,7 @@ The `title` property defines the human-readable name for your component. This na
 The `type` property serves as a unique identifier for your component within the Weaverse ecosystem. This property is used internally to differentiate between components and must be unique across your entire theme.
 
 **Under the Hood:**
-When components are registered with Weaverse, they're stored in a registry using this `type` as the key. The `WeaverseHydrogen.registerElement()` method uses this key to map components to their schemas and loaders.
+When components are registered with Weaverse, they're stored in a registry using this `type` as the key. `WeaverseHydrogenRoot` registers every module in your `components` list under this key (through the core `Weaverse.registerElement()`), which maps each component to its schema and loader.
 
 **Best Practices:**
 - Use kebab-case (e.g., `product-card`, `hero-banner`)
@@ -573,11 +573,16 @@ Understanding how data flows through the component schema system is crucial for 
 5. **Component Rendering**: The component receives its data as props when rendered, allowing it to display the appropriate UI based on user customizations.
 
 ```tsx
-// From WeaverseHydrogenItem constructor in WeaverseHydrogenRoot.tsx
+// The SDK's item store constructor (`WeaverseHydrogenRoot.tsx`, internal: not
+// part of the public `@weaverse/hydrogen/react-router` entry)
 constructor(initialData: WeaverseComponentData, weaverse: WeaverseHydrogen) {
   super(initialData, weaverse)
-  let { data, ...rest } = initialData
-  let schemaData = generateDataFromSchema(this.Element.schema)
+  const { data, ...rest } = initialData
+  if (!this.Element?.schema) {
+    console.error('Element is missing schema or not found!')
+    return
+  }
+  const schemaData = generateDataFromSchema(this.Element.schema)
   Object.assign(this._store, schemaData, data, rest)
 }
 ```
@@ -608,11 +613,12 @@ The `condition` property in inputs allows you to create dynamic UIs that respond
   condition: (data) => data.showButton === true
 }
 
-// Full condition type definition
-condition?: string | ((data: ElementData, weaverse: WeaverseHydrogen) => boolean)
+// Full condition type definition. `ElementData` and `Weaverse` (the runtime)
+// come from `@weaverse/core`; `@weaverse/hydrogen` 6 types it as `string | Function`.
+condition?: string | ((data: ElementData, weaverse: Weaverse) => boolean)
 ```
 
-Function-based conditions receive the component's current data and the Weaverse instance, allowing for more complex conditional logic that can reference multiple fields or perform calculations.
+Function-based conditions receive the component's current data and Studio's Weaverse runtime, allowing for more complex conditional logic that can reference multiple fields or perform calculations.
 
 ## Complete Example
 
