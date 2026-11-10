@@ -40,6 +40,8 @@ Add the GTM script to your root layout (`app/root.tsx`):
 
 ```tsx
 // app/root.tsx
+import { useNonce } from "~/utils/csp"; // your theme's CSP helpers
+
 export function Layout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
 

@@ -9,19 +9,27 @@ description: "How to set up and test Shopify Customer Account API locally in you
   This guide is for Shopify Hydrogen storefronts. Building on Next.js? See the [Next.js overview](/nextjs/overview).
 </Note>
 
-The Customer Account API requires OAuth 2.0 flows with HTTPS callback URLs — which means `http://localhost` won't work. This guide walks you through running the Pilot theme locally with full Customer Account API support.
+The Customer Account API requires OAuth 2.0 flows with HTTPS callback URLs — which means `http://localhost` won't work. Hydrogen 2026.10 refuses to build a login URL over plain HTTP, so `/account/login` fails under `npm run dev` by design. This guide walks you through running the Pilot theme locally with full Customer Account API support.
 
 <Warning>
   The setup differs depending on your **store type**:
-  - **Paid stores** (Basic, Shopify, Advanced, Plus) → use the built-in `dev:ca` command with automatic tunneling
+  - **Paid stores** (Basic, Shopify, Advanced, Plus) → use the built-in `dev:https` command, which serves the dev server over HTTPS and registers its URLs for you
   - **Development stores** (Partner/Staff) → use ngrok or Cloudflare Tunnel with manual OAuth configuration in the Headless sales channel app
 </Warning>
+
+## How Sign-In Works
+
+- Hydrogen 2026.10 owns the fixed, unprefixed routes `/account/login`, `/account/authorize`, `/account/refresh` and `/account/logout`, registered in `server.ts` with `createCustomerAccountServerHandlers()`. Link to them with a plain `<a>` or `<form>`, never React Router's `<Link>` or `<Form>`: they answer with a redirect that client-side routing cannot follow.
+- The market travels in the query string. An account page visited without a session redirects to `/account/login?return_to=/de-de/account&locale=de`, so the shopper signs in on Shopify's German login page and comes back to the German market.
+- The customer's tokens live in the signed session cookie (`SESSION_SECRET`).
+
+See [Step 11 of the v6 migration guide](/migration-advanced/v6-migration#step-11-move-customer-accounts-to-hydrogens-handlers) for the server code.
 
 ## Prerequisites
 
 - A Shopify store with the **Hydrogen** or **Headless** sales channel installed
 - Customer accounts enabled in your Shopify admin
-- Shopify CLI installed (`@shopify/cli`)
+- Shopify CLI installed (`@shopify/cli` 4.4.0 or later, with `@shopify/cli-hydrogen` 13.0.4 or later so the dev server can register its URLs for you)
 - Your Hydrogen project linked to your store (`shopify hydrogen link`)
 
 ---
@@ -64,12 +72,14 @@ shopify hydrogen env pull
 Verify your `.env` has these variables:
 
 ```env
+SESSION_SECRET="any-long-random-string"
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID=shp_xxxxx
-PUBLIC_CUSTOMER_ACCOUNT_API_URL=https://shopify.com/SHOP_ID
 PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 PUBLIC_STORE_DOMAIN="your-store.myshopify.com"
-SHOP_ID=your-shop-id
+SHOP_ID=your-numeric-shop-id
 ```
+
+`SHOP_ID` is the numeric shop ID, not a GID or domain. Leave `SHOP_ID` and `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID` empty to run the storefront without customer accounts.
 
 <Tip>
   When deploying to **Shopify Oxygen**, these variables are injected automatically — no manual setup needed for production.
@@ -79,39 +89,45 @@ SHOP_ID=your-shop-id
 
 ## Option A: Paid Stores (Basic to Plus)
 
-For stores on a paid Shopify plan, use the built-in `dev:ca` command. This is the easiest approach — it handles tunneling and OAuth configuration automatically.
+For stores on a paid Shopify plan, use the built-in `dev:https` command. This is the easiest approach — it serves the dev server over HTTPS and configures OAuth automatically.
 
 <Info>
-  The `dev:ca` script is already configured in the Pilot theme's [`package.json`](https://github.com/Weaverse/pilot/blob/main/package.json) — no additional setup needed.
+  The `dev:https` script is already configured in the Pilot theme's [`package.json`](https://github.com/Weaverse/pilot/blob/main/package.json) — no additional setup needed.
 </Info>
 
-### Start the dev server
+### Start the HTTPS dev server
 
 ```bash
-npm run dev:ca
+npm run dev:https
 ```
 
-This runs:
+This runs the same `vite dev --port 3456` as `npm run dev`, with Hydrogen's `localHttps` Vite plugin turned on in `vite.config.ts`:
 
-```bash
-shopify hydrogen dev --codegen --port 3456 --customer-account-push
+```ts
+import { localHttps } from "@shopify/hydrogen/vite";
+
+plugins: [
+  localHttps({ enabled: process.env.npm_lifecycle_event === "dev:https" }),
+  // ...
+],
 ```
 
-The `--customer-account-push` flag does two things:
+The plugin does two things:
 
-1. **Creates an HTTPS tunnel** — publishes your local dev server to a `*.tryhydrogen.dev` domain
-2. **Syncs OAuth credentials** — automatically configures the Callback URI, JavaScript Origin, and Logout URI in your Shopify admin
+1. **Serves HTTPS locally** — at `https://local.tryhydrogen.dev:3456`, a Shopify-owned name that resolves to `127.0.0.1`, with a locally trusted certificate. On the first run it installs a local certificate authority, which may prompt for your password. To do that ahead of time, run `npx hydrogen certs install`.
+2. **Syncs OAuth credentials** — uses Shopify CLI to add the Callback URI, JavaScript Origin, and Logout URI to your storefront's Customer Account API settings
 
-### Open the tunnel URL
+### Open the HTTPS URL
 
-After the dev server starts, look for the tunnel URL in your terminal:
+Open the HTTPS URL the dev server prints, for example `https://local.tryhydrogen.dev:3456`, and navigate to `/account` to test login.
 
-```
-  ➜  Local:   http://localhost:3456
-  ➜  Tunnel:  https://abc123.tryhydrogen.dev
-```
+If Shopify CLI is missing, outdated or the push fails, the dev server keeps running and prints the values. Set them manually in **Hydrogen > Storefront > Customer Account API settings**:
 
-**Use the `*.tryhydrogen.dev` URL** to test customer account flows. Navigate to `/account` to test login.
+| Field | Value |
+|---|---|
+| **Callback URI(s)** | `https://local.tryhydrogen.dev:3456/account/authorize` |
+| **JavaScript origin(s)** | `https://local.tryhydrogen.dev` (no port: Shopify rejects origins with a port) |
+| **Logout URI(s)** | `https://local.tryhydrogen.dev:3456`, plus every market's home page you sign out from (`https://local.tryhydrogen.dev:3456/de-de`, ...) |
 
 <Warning>
   Do **not** use `http://localhost:3456` for customer account testing — OAuth redirects will fail on non-HTTPS origins.
@@ -121,7 +137,7 @@ After the dev server starts, look for the tunnel URL in your terminal:
 
 ## Option B: Development Stores — Manual Tunnel Setup
 
-For **Shopify development stores** (Partner/Staff), the `--customer-account-push` flag is not available. You must use a third-party tunneling service and manually configure the Customer Account API in the **Headless** sales channel app.
+For **Shopify development stores** (Partner/Staff), the automatic Customer Account API setup is not available. You must use a third-party tunneling service and manually configure the Customer Account API in the **Headless** sales channel app.
 
 ### Set up a tunnel
 
@@ -167,7 +183,7 @@ For development stores, configure this in the **Headless** sales channel app:
 |---|---|
 | **Callback URI(s)** | `https://your-tunnel-domain/account/authorize` |
 | **JavaScript origin(s)** | `https://your-tunnel-domain` |
-| **Logout URI** | `https://your-tunnel-domain` |
+| **Logout URI** | `https://your-tunnel-domain`, plus each market's home page (`https://your-tunnel-domain/de-de`, ...) |
 
 ### Update Content Security Policy
 
@@ -189,19 +205,16 @@ See [Content Security Policy](/features/content-security) for how these directiv
 npm run dev
 ```
 
-Then access your storefront via the tunnel URL (not localhost).
+Then access your storefront via the tunnel URL (not localhost). Pilot honors the tunnel's `x-forwarded-proto: https` header, so the login URL uses HTTPS.
 
 ---
 
 ## Account Routes in Pilot Theme
 
-The Pilot theme includes a complete set of customer account routes at `app/routes/account/`:
+Login, OAuth callback, token refresh and logout are handled by Hydrogen's Customer Account handlers at `/account/login`, `/account/authorize`, `/account/refresh` and `/account/logout`, not by route files. The Pilot theme includes the account pages at `app/routes/account/`:
 
 | Route | Purpose |
 |-------|---------|
-| `auth/login.ts` | Redirects to Shopify login |
-| `auth/logout.ts` | Logs the customer out |
-| `auth/authorize.ts` | Handles OAuth callback |
 | `dashboard/index.tsx` | Account dashboard |
 | `dashboard/account-details.tsx` | Customer profile details |
 | `dashboard/address-book.tsx` | Saved addresses |
@@ -225,7 +238,7 @@ Source: [Pilot theme routes](https://github.com/Weaverse/pilot/tree/main/app/rou
 
 <AccordionGroup>
   <Accordion title="Login fails or redirect loop on localhost">
-    Customer Account API requires HTTPS. Use `npm run dev:ca` (paid stores) or set up a tunnel (dev stores). Never test account flows on `http://localhost`.
+    Customer Account API requires HTTPS. Use `npm run dev:https` (paid stores) or set up a tunnel (dev stores). Never test account flows on `http://localhost`. An error like `Customer Account OAuth origin must use HTTPS` means you opened the site over `http://`.
   </Accordion>
 
   <Accordion title="ACCESS_DENIED error on shopify hydrogen commands">
@@ -238,28 +251,18 @@ Source: [Pilot theme routes](https://github.com/Weaverse/pilot/tree/main/app/rou
   </Accordion>
 
   <Accordion title="OAuth redirect mismatch error">
-    The Callback URI in your Shopify admin must exactly match your tunnel URL (including no trailing slash). For paid stores using `--customer-account-push`, this is synced automatically. For dev stores, update it manually.
+    The Callback URI, JavaScript origin and Logout URI in your Shopify admin must exactly match the URL you are browsing, including the port (except the JavaScript origin, which has none). For paid stores using `dev:https`, this is synced automatically. For dev stores, update it manually. A sign-in that lands on `/account?login=failed` or loops back to Shopify usually has a mismatch here.
   </Accordion>
 
   <Accordion title="Customer data not persisting after login">
-    Ensure you commit the session at the end of any loader/action with a customer auth check:
-
-    ```tsx
-    export async function loader({ context }: LoaderFunctionArgs) {
-      const customer = await context.customerAccount.query(CUSTOMER_QUERY);
-      return json(
-        { customer },
-        { headers: { "Set-Cookie": await context.session.commit() } }
-      );
-    }
-    ```
+    The customer's tokens are stored in the session cookie, which `server.ts` must commit on every response path, including the responses of `handleShopifyRoutes`. Check that `SESSION_SECRET` is set and that your server entry commits the session as in [Step 3 of the v6 migration guide](/migration-advanced/v6-migration#step-3-own-the-request-lifecycle-in-the-server-entry).
   </Accordion>
 
   <Accordion title="Port already in use">
-    The dev server defaults to port `3456`. To free it:
+    The dev server uses port `3456` and exits when the port is taken. To free it:
 
     ```bash
-    lsof -ti:3456 | xargs kill -9
+    lsof -ti:3456 | xargs kill
     ```
   </Accordion>
 </AccordionGroup>

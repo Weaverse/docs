@@ -11,7 +11,7 @@ This comprehensive guide covers everything you need to know to develop themes an
 
 Before you start developing with Weaverse, ensure you have:
 
-- **Node.js 22.12+** installed (required by the Pilot theme)
+- **Node.js 22.18+ or 24.11+** installed (required by the Pilot theme)
 - **Familiarity with React and TypeScript**
 - **Basic knowledge of Shopify Hydrogen**
 - **Understanding of Tailwind CSS** (recommended)
@@ -99,11 +99,12 @@ Your storefront will be available at `http://localhost:3456`
 
 ### Core Development
 ```bash
-npm run dev          # Start development server
-npm run dev:ca       # Start dev server with Customer Account API (via CF tunnel)
-npm run build        # Production build
-npm run start        # Start production server
-npm run preview      # Build and start production
+npm run dev          # Start development server (vite dev on port 3456)
+npm run dev:https    # HTTPS dev server for Customer Account login
+npm run build        # Production build (react-router build)
+npm run start        # Preview the last production build
+npm run preview      # Build, then preview the production bundle
+npm run deploy       # Deploy dist/ to Oxygen
 ```
 
 ### Code Quality

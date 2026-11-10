@@ -16,14 +16,16 @@ This guide explains where to wire the helper, how it interacts with code-defined
 
 ## Prerequisites
 
-- `@weaverse/hydrogen` **>= 5.14.0** (the version that introduced `getWeaverseSeoMeta`).
+- Hydrogen 2026.10 with `@weaverse/hydrogen` **6** (the samples import from `@weaverse/hydrogen/react-router`).
 - A Hydrogen route that loads a Weaverse page via `context.weaverse.loadPage(...)`.
 
-If your theme is on an older SDK, bump it:
+If your theme is on an older SDK, install v6:
 
 ```bash
-npm install @weaverse/hydrogen@^5.14.0
+npm install @weaverse/hydrogen@^6
 ```
+
+`getWeaverseSeoMeta` was introduced in `@weaverse/hydrogen` 5.14.0. A theme still on classic Hydrogen (2026.4 or earlier) can use it from `@weaverse/hydrogen@^5.14.0`, importing from `@weaverse/hydrogen` instead of `@weaverse/hydrogen/react-router`; moving to v6 means moving to Hydrogen 2026.10, as described in the [v6 migration guide](/migration-advanced/v6-migration).
 
 
 ---
@@ -33,7 +35,7 @@ npm install @weaverse/hydrogen@^5.14.0
 In a route that should take its SEO from Studio (a `CUSTOM` page route, for example), export `meta` like this:
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -74,7 +76,7 @@ export default function Component() {
 **After**
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
 import type { MetaFunction } from "react-router";
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -99,7 +101,9 @@ Many themes serve both the real homepage (`type: "INDEX"`) **and** root-level CU
 **Loader** — compute `seo` only for INDEX, leave it `null` for CUSTOM, and return both `weaverseData` and `seo`:
 
 ```tsx
-import type { PageType } from "@weaverse/hydrogen";
+import type { PageType } from "@weaverse/hydrogen/react-router";
+import { CACHE_LONG } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;
@@ -117,7 +121,9 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const [weaverseData, { shop }] = await Promise.all([
     context.weaverse.loadPage({ type }),
-    context.storefront.query(SHOP_QUERY),
+    context.storefront
+      .graphql(SHOP_QUERY, { cache: CACHE_LONG })
+      .then(unwrapStorefront),
   ]);
 
   // INDEX uses the code-defined homepage SEO; CUSTOM pages (root-level
@@ -132,8 +138,9 @@ export async function loader(args: LoaderFunctionArgs) {
 **Meta** — code-defined SEO when it exists (INDEX), Weaverse SEO otherwise (CUSTOM):
 
 ```tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
-import { getSeoMeta, type SeoConfig } from "@shopify/hydrogen";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
+// Hydrogen 2026.10 removed `getSeoMeta`; Pilot ships a port with the same output
+import { getSeoMeta, type SeoConfig } from "~/utils/seo-meta";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   // INDEX (the real homepage) keeps the code-defined SEO — no Weaverse
@@ -158,7 +165,7 @@ Routes for Shopify resources (product, collection, blog, article, Shopify pages)
 
 ## Step-by-step: applying this to a theme
 
-1. **Bump the SDK** to `@weaverse/hydrogen@^5.14.0` and reinstall.
+1. **Bump the SDK** to `@weaverse/hydrogen@^6` (Hydrogen 2026.10) and reinstall. On classic Hydrogen, use `@weaverse/hydrogen@^5.14.0` instead.
 2. **Locate every route that calls `context.weaverse.loadPage(...)`** — `grep -rln "weaverse.loadPage" app/routes`.
 3. **For each, decide which recipe applies** (catch-all, home/index, or — optionally — template) and apply it. Routes that already build SEO from Shopify data stay as they are.
 4. **Remove legacy overrides** (see next section), if any.

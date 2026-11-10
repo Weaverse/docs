@@ -119,27 +119,29 @@ Pilot defines its routes explicitly with React Router 7's route helpers, so a ne
 // app/routes.ts
 import {
   index,
+  layout,
   prefix,
   route,
   type RouteConfig,
 } from "@react-router/dev/routes";
-import { hydrogenRoutes } from "@shopify/hydrogen";
 
-export default hydrogenRoutes([
+export default [
   // …
-  ...prefix(":locale?", [
-    index("routes/home.tsx"),
-    // Custom URL → your own module. `:productHandle` is the dynamic segment
-    // (e.g. `classic-varsity-jacket`), exposed to the loader as
-    // `params.productHandle`.
-    route("shop/:productHandle", "routes/items/item.tsx"),
-    // …existing routes…
-    route("*", "routes/catch-all.tsx"),
+  layout("routes/market-guard.ts", [
+    ...prefix(":locale?", [
+      index("routes/home.tsx"),
+      // Custom URL → your own module. `:productHandle` is the dynamic segment
+      // (e.g. `classic-varsity-jacket`), exposed to the loader as
+      // `params.productHandle`.
+      route("shop/:productHandle", "routes/items/item.tsx"),
+      // …existing routes…
+      route("*", "routes/catch-all.tsx"),
+    ]),
   ]),
-]) satisfies RouteConfig;
+] satisfies RouteConfig;
 ```
 
--   `:locale?` — the optional locale prefix Pilot already applies to storefront routes.
+-   `:locale?` — the optional locale prefix Pilot already applies to storefront routes. Pilot wraps it in the `market-guard` layout, which answers 404 for unsupported market prefixes (see [Markets in the v6 migration guide](/migration-advanced/v6-migration#markets)). Hydrogen 2026.10 has no `hydrogenRoutes()` wrapper, so the route array is exported directly.
 -   `shop/:productHandle` — your custom URL pattern, replacing `products/:productHandle`.
 -   The second argument is the module path **relative to `app/`**.
 
@@ -151,8 +153,10 @@ React Router ranks a concrete pattern like `shop/:productHandle` above the `*` c
 
 ```tsx
 // app/routes/items/item.tsx
-import { getSeoMeta } from "@shopify/hydrogen";
 import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { getSeoMeta } from "~/utils/seo-meta"; // Pilot's port of Hydrogen's removed helper
+import { unwrapStorefront } from "~/utils/storefront";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 // Import your product query (ensure it fetches necessary data)
@@ -160,8 +164,6 @@ import { PRODUCT_QUERY } from "~/graphql/queries"; // Example path
 import { seoPayload } from "~/.server/seo"; // Example path
 
 export async function loader({ params, context, request }: LoaderFunctionArgs) {
-  const { language, country } = context.storefront.i18n;
-
   // 1. Extract the handle from the custom route's parameters
   const { productHandle } = params;
 
@@ -172,8 +174,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
 
   // 2. Fetch Weaverse page data AND necessary Shopify data in parallel.
-  //    `storefront.query` throws on transport/GraphQL errors; `loadPage`
-  //    does not — it resolves to `null` instead (see step 3 below).
+  //    `unwrapStorefront` throws when `storefront.graphql` returns errors;
+  //    `loadPage` does not — it resolves to `null` instead (see step 4 below).
   const [weaverseData, shopifyProductData] = await Promise.all([
     // Call loadPage with EXPLICIT type 'PRODUCT' and the extracted handle
     weaverse.loadPage({
@@ -181,14 +183,16 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
       handle: productHandle,
     }),
     // Fetch the actual product data needed for SEO, analytics, etc.
-    storefront.query(PRODUCT_QUERY, {
-      variables: {
-        handle: productHandle,
-        country,
-        language,
-        // Ensure selectedOptions are handled if your query uses them
-      },
-    }),
+    // `$country` and `$language` are filled in from the request's market.
+    storefront
+      .graphql(PRODUCT_QUERY, {
+        variables: {
+          handle: productHandle,
+          // Ensure selectedOptions are handled if your query uses them
+        },
+        cache: CACHE_DEFAULT,
+      })
+      .then(unwrapStorefront),
     // Add other parallel fetches if needed (e.g., reviews)
   ]);
 
@@ -227,7 +231,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 -   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/shop/...`.
 -   **Extract `productHandle`:** Get the handle from `params`.
 -   **Fetch Shopify Data:** You still need to fetch the corresponding Shopify product data for SEO, potentially for component data binding (though Weaverse handles much of this), and analytics. Use `Promise.all` for efficiency.
--   **Nullable Weaverse data:** `loadPage()` never rejects on a load failure — it logs and resolves to `null`. A `try/catch` around it catches nothing, so branch on the result (or hand it to `validateWeaverseData`). Keep `try/catch` for the operations that really do throw, such as `storefront.query`.
+-   **Nullable Weaverse data:** `loadPage()` never rejects on a load failure — it logs and resolves to `null`. A `try/catch` around it catches nothing, so branch on the result (or hand it to `validateWeaverseData`). Keep `try/catch` for the operations that really do throw, such as a Storefront API query passed through `unwrapStorefront`.
 
 <Warning>
 If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null`. Passing a missing page straight to `<WeaverseContent />` renders the error component.
@@ -241,7 +245,7 @@ The component itself remains simple, primarily rendering `<WeaverseContent />` w
 // app/routes/items/item.tsx (continued)
 
 import { useLoaderData } from "react-router";
-import { Analytics } from "@shopify/hydrogen"; // For analytics
+import { ProductView } from "~/components/root/analytics-views"; // Pilot's analytics bus tracker
 
 export default function CustomProductRoute() {
   // Use optional chaining in case loader data is unexpectedly missing
@@ -254,20 +258,18 @@ export default function CustomProductRoute() {
       <WeaverseContent />
       {/* Optional: Add analytics specific to product view */}
       {product?.selectedVariant && (
-        <Analytics.ProductView
-          data={{
-            products: [
-              {
-                id: product.id,
-                title: product.title,
-                price: product.selectedVariant?.price.amount || "0",
-                vendor: product.vendor,
-                variantId: product.selectedVariant?.id || "",
-                variantTitle: product.selectedVariant?.title || "",
-                quantity: 1,
-              },
-            ],
-          }}
+        <ProductView
+          products={[
+            {
+              id: product.id,
+              title: product.title,
+              price: product.selectedVariant.price,
+              vendor: product.vendor,
+              variantId: product.selectedVariant.id,
+              variantTitle: product.selectedVariant.title,
+              quantity: 1,
+            },
+          ]}
         />
       )}
     </>
@@ -422,18 +424,20 @@ For top-level domain or subdomain-based localization, combine custom routing wit
 
 ```typescript
 // app/.server/context.ts
-export async function createHydrogenRouterContext(
+export async function createAppContext(
   request: Request,
   env: Env,
   executionContext: ExecutionContext,
 ) {
-  // …cache/session setup…
-  const hydrogenContext = createHydrogenContext({ /* … */ }, additionalContext);
+  // …cache, session, storefront and customerAccount setup…
 
   const weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
+    storefront,
+    env,
     cache,
+    waitUntil,
+    request,
+    customerAccount,
     themeSchema,
     components,
     projectId: () => {
@@ -451,12 +455,8 @@ export async function createHydrogenRouterContext(
     },
   });
 
-  // Attach `weaverse` to the existing context instance. Do NOT build a new
-  // object by spreading `hydrogenContext` — that would discard the
-  // RouterContextProvider class instance React Router 7 expects.
-  Object.assign(hydrogenContext, { weaverse });
-
-  return hydrogenContext;
+  // `server.ts` copies this plain object onto React Router's context
+  return { env, cache, waitUntil, session, storefront, customerAccount, weaverse };
 }
 
 // app/routes/items/item-sv.tsx (Swedish custom route)

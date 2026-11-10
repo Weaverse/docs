@@ -16,7 +16,7 @@ Get Weaverse installed and running in your Shopify Hydrogen project quickly and 
 
 ## Prerequisites
 
-- **Node.js 22.12+** - [Download here](https://nodejs.org/)
+- **Node.js 22.18+ or 24.11+** - [Download here](https://nodejs.org/)
 - **A Shopify store** - Development store or paid plan
 - **Basic terminal knowledge** - For running commands
 
@@ -114,7 +114,7 @@ After installation:
 ## Common Issues
 
 ### CLI Command Fails
-- Ensure Node.js 22.12+ installed: `node --version`
+- Ensure Node.js 22.18+ or 24.11+ installed: `node --version`
 - Clear npm cache: `npm cache clean --force`
 
 ### Studio Preview Not Loading
@@ -133,10 +133,10 @@ After installation, you can start building custom sections. Here's a simple exam
 
 ```tsx
 // app/sections/hero/index.tsx
-import { createSchema } from '@weaverse/hydrogen';
-import type { HydrogenComponentProps } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
+import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 
-interface HeroProps extends HydrogenComponentProps {
+interface HeroProps extends WeaverseComponentProps {
   heading: string;
   description: string;
 }
@@ -179,10 +179,10 @@ export const schema = createSchema({
 
    ```ts
    // app/weaverse/components.ts
-   import type { HydrogenComponent } from '@weaverse/hydrogen';
+   import type { WeaverseComponent } from '@weaverse/hydrogen/react-router';
    import * as Hero from '~/sections/hero';
 
-   export const components: HydrogenComponent[] = [Hero];
+   export const components: WeaverseComponent[] = [Hero];
    ```
 4. **Test in Studio** at `https://studio.weaverse.io/projects/your-project-id`
 

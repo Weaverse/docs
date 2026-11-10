@@ -89,10 +89,13 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 5. **Update Weaverse if needed**
    ```bash
-   npm install @weaverse/hydrogen@latest
-   # or
-   pnpm add @weaverse/hydrogen@latest
+   # Hydrogen 2026.10 and later
+   npm install @weaverse/hydrogen@^6
+   # Classic Hydrogen (2026.4 and earlier)
+   npm install @weaverse/hydrogen@^5
    ```
+
+   `@weaverse/hydrogen@latest` installs v6, which requires Hydrogen 2026.10. To move a classic theme to v6, follow the [v6 migration guide](/migration-advanced/v6-migration).
 
 <Note>If you just created a page, make sure it uses the Weaverse page template and has sections configured. See the [Rendering Weaverse Pages guide](/guides/rendering-page) for complete implementation details.</Note>
 
@@ -311,7 +314,7 @@ If you've tried all troubleshooting steps and still experiencing issues:
    ```
 
 3. **Use recommended Node.js version**
-   - Node.js 22.12 or newer for the current Pilot template
+   - Node.js 22.18+ or 24.11+ for the current Pilot template
    - Check with `node --version`
 
 4. **Monitor terminal output**

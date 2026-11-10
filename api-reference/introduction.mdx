@@ -13,7 +13,7 @@ The Weaverse SDK provides the runtime, React bindings, framework integrations, a
 
 ### `@weaverse/hydrogen`
 
-The adapter for Hydrogen storefronts on React Router. It includes:
+The adapter for Hydrogen storefronts on React Router. Version 6 runs on Hydrogen 2026.10; themes import it from the `@weaverse/hydrogen/react-router` entry point, which re-exports the framework-free `@weaverse/hydrogen` core and the `@weaverse/hydrogen/react` hooks. It includes:
 
 - `WeaverseClient` for server-side page and theme loading
 - `WeaverseHydrogenRoot` for page rendering
@@ -49,8 +49,8 @@ Schema definitions, Studio input types, availability types, and validation utili
 import {
   WeaverseHydrogenRoot,
   useWeaverse,
-  type WeaverseHydrogen,
-} from '@weaverse/hydrogen'
+  type WeaversePageData,
+} from '@weaverse/hydrogen/react-router'
 import { components } from '~/weaverse/components'
 
 export function WeaversePage() {
@@ -58,7 +58,7 @@ export function WeaversePage() {
 }
 
 export function RuntimeInfo() {
-  const weaverse = useWeaverse<WeaverseHydrogen>()
+  const weaverse = useWeaverse<{ data: WeaversePageData }>()
 
   return <span>{weaverse.data.name}</span>
 }

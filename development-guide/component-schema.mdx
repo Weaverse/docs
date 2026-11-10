@@ -22,10 +22,10 @@ Weaverse components are registered using static exports and configuration.
 
 ```tsx
 // components.ts
-import type { HydrogenComponent } from '@weaverse/hydrogen';
+import type { WeaverseComponent } from '@weaverse/hydrogen/react-router';
 import * as RelatedProducts from './sections/related-products';
 
-export let components: HydrogenComponent[] = [
+export let components: WeaverseComponent[] = [
   RelatedProducts,
   // Other components...
 ];
@@ -36,7 +36,7 @@ Each section component should be structured like this:
 ```tsx
 // sections/related-products.tsx
 import { forwardRef } from 'react';
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 import { Section } from '~/components/section';
 
 let RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>(
@@ -82,7 +82,7 @@ Weaverse provides the `createSchema()` function as the modern, recommended way t
 ### Basic Usage
 
 ```tsx
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 export let schema = createSchema({
   type: 'my-component',
@@ -101,7 +101,7 @@ You can import `createSchema` from either package:
 
 ```tsx
 // From @weaverse/hydrogen (recommended for Hydrogen projects)
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 // Or directly from @weaverse/schema (for advanced use cases)
 import { createSchema } from '@weaverse/schema';
@@ -109,14 +109,14 @@ import { createSchema } from '@weaverse/schema';
 
 ## Anatomy
 
-The `HydrogenComponentSchema` acts as a comprehensive definition for your component, specifying everything from its appearance in the editor to its behavior within the theme. This schema-driven approach ensures consistency, predictability, and a seamless user experience.
+The `WeaverseComponentSchema` acts as a comprehensive definition for your component, specifying everything from its appearance in the editor to its behavior within the theme. This schema-driven approach ensures consistency, predictability, and a seamless user experience.
 
 ### Core Schema Structure
 
 The recommended way to define component schemas is using the `createSchema()` function, which provides `SchemaType` checking and non-blocking development diagnostics:
 
 ```tsx
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 export let schema = createSchema({
   title: string
@@ -203,9 +203,9 @@ The optional `label` callback makes repeated elements easier to identify in the 
 Add `label` to each component schema you want to opt in. Annotate `data` with your component's props type, as in [Pilot's Heading component](https://github.com/Weaverse/pilot/blob/main/app/components/heading.tsx):
 
 ```tsx
-import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen';
+import { createSchema, type WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 
-interface HeadingProps extends HydrogenComponentProps {
+interface HeadingProps extends WeaverseComponentProps {
   content: string;
 }
 
@@ -352,7 +352,7 @@ Listing a type in any registered component's `childTypes` also changes how Studi
 To use one component both as a top-level section and nested inside a parent, keep the parent's `childTypes` and the child's stable `type`, and add `enabledOn.groups` with `'body'` or `'*'` to the child:
 
 ```tsx sections/feature-list.tsx
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 // Parent: unchanged, still allows the child in its nested picker
 export let schema = createSchema({
@@ -364,7 +364,7 @@ export let schema = createSchema({
 ```
 
 ```tsx sections/feature-card.tsx
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
 // Child: also available as a root section
 export let schema = createSchema({
@@ -574,7 +574,7 @@ Understanding how data flows through the component schema system is crucial for 
 
 ```tsx
 // From WeaverseHydrogenItem constructor in WeaverseHydrogenRoot.tsx
-constructor(initialData: HydrogenComponentData, weaverse: WeaverseHydrogen) {
+constructor(initialData: WeaverseComponentData, weaverse: WeaverseHydrogen) {
   super(initialData, weaverse)
   let { data, ...rest } = initialData
   let schemaData = generateDataFromSchema(this.Element.schema)
@@ -619,7 +619,7 @@ Function-based conditions receive the component's current data and the Weaverse 
 Let's look at a comprehensive, real-world example of a component schema:
 
 ```tsx
-import { createSchema } from '@weaverse/hydrogen'
+import { createSchema } from '@weaverse/hydrogen/react-router'
 
 export let schema = createSchema({
   title: 'Product Showcase',
@@ -883,7 +883,7 @@ const typographyInputs = [
   }
 ];
 
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   // ...
   settings: [
     {
@@ -905,7 +905,7 @@ If you have existing components using the `inspector` property, here's how to mi
 
 ```tsx
 // Before (deprecated)
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: 'my-component',
   title: 'My Component',
   inspector: [
@@ -931,23 +931,23 @@ export let schema = createSchema({
 
 ### Defining Schemas with createSchema()
 
-`HydrogenComponentSchema` remains a current public alias of `SchemaType`. Direct type annotation is supported; `createSchema()` is a convenient helper that adds non-blocking development diagnostics.
+`WeaverseComponentSchema` remains a current public alias of `SchemaType`. Direct type annotation is supported; `createSchema()` is a convenient helper that adds non-blocking development diagnostics.
 
 #### 1. Choose an authoring form
 
 ```tsx
 // Direct annotation (supported)
-import type { HydrogenComponentSchema } from '@weaverse/hydrogen';
+import type { WeaverseComponentSchema } from '@weaverse/hydrogen/react-router';
 
 // Helper with development diagnostics
-import { createSchema } from '@weaverse/hydrogen';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 ```
 
 #### 2. Use the helper when you want diagnostics
 
 ```tsx
 // Direct annotation
-export const schema: HydrogenComponentSchema = {
+export const schema: WeaverseComponentSchema = {
   type: 'my-component',
   title: 'My Component',
   // ... rest of schema
@@ -1025,6 +1025,6 @@ export let schema = createSchema({
 
 ## Conclusion
 
-The `HydrogenComponentSchema` is the foundation of your component's interaction with the Weaverse ecosystem. A well-designed schema creates an intuitive editing experience, ensures components are used appropriately, and provides the flexibility merchants need.
+The `WeaverseComponentSchema` is the foundation of your component's interaction with the Weaverse ecosystem. A well-designed schema creates an intuitive editing experience, ensures components are used appropriately, and provides the flexibility merchants need.
 
 By understanding the properties and patterns described in this guide, you can create components that are both powerful for developers and accessible to merchants. Remember to use `settings` for new components and migrate existing `inspector` properties when convenient.

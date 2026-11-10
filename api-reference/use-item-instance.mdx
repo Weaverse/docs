@@ -11,7 +11,7 @@ The `useItemInstance` hook returns a component item store. Pass an instance ID t
 ## Import
 
 ```tsx
-import { useItemInstance } from '@weaverse/hydrogen'
+import { useItemInstance } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
@@ -35,7 +35,7 @@ function useItemInstance(id?: string): WeaverseItemStore | null
 Call the hook without an ID inside a rendered Weaverse component:
 
 ```tsx
-import { useItemInstance } from '@weaverse/hydrogen'
+import { useItemInstance } from '@weaverse/hydrogen/react-router'
 
 export function ProductDetails() {
   const item = useItemInstance()
@@ -58,7 +58,7 @@ export function ProductDetails() {
 ### Accessing a Specific Component
 
 ```tsx
-import { useItemInstance } from '@weaverse/hydrogen'
+import { useItemInstance } from '@weaverse/hydrogen/react-router'
 
 export function ProductFilterControls() {
   const productGrid = useItemInstance('product-grid-main')
@@ -94,7 +94,7 @@ export function ProductFilterControls() {
 ### Finding the Closest Weaverse Component
 
 ```tsx
-import { useItemInstance } from '@weaverse/hydrogen'
+import { useItemInstance } from '@weaverse/hydrogen/react-router'
 import { useEffect, useState, type RefObject } from 'react'
 
 export function useClosestWeaverseItem(

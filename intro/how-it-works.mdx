@@ -66,9 +66,9 @@ graph LR
 ```tsx
 // app/sections/product-card/index.tsx
 // You write React components with schemas
-import { createSchema, type HydrogenComponentProps } from '@weaverse/hydrogen'
+import { createSchema, type WeaverseComponentProps } from '@weaverse/hydrogen/react-router'
 
-interface ProductCardProps extends HydrogenComponentProps {
+interface ProductCardProps extends WeaverseComponentProps {
   title: string
   price: string
 }
@@ -94,10 +94,10 @@ default export and its `schema`) and added to the `components` array in
 
 ```ts
 // app/weaverse/components.ts
-import type { HydrogenComponent } from '@weaverse/hydrogen'
+import type { WeaverseComponent } from '@weaverse/hydrogen/react-router'
 import * as ProductCard from '~/sections/product-card'
 
-export const components: HydrogenComponent[] = [ProductCard]
+export const components: WeaverseComponent[] = [ProductCard]
 ```
 
 ### 2. Merchant Experience
@@ -144,7 +144,7 @@ export const components: HydrogenComponent[] = [ProductCard]
 Every Weaverse component includes a schema that defines:
 
 ```typescript
-import { createSchema } from '@weaverse/hydrogen'
+import { createSchema } from '@weaverse/hydrogen/react-router'
 
 export const schema = createSchema({
   type: 'unique-component-name',

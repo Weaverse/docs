@@ -81,18 +81,24 @@ Your loader should look similar to the standard implementation, focusing on fetc
 // app/routes/products/product.tsx
 // Registered in app/routes.ts — a file under app/routes/ is not a route by itself.
 import type { LoaderFunctionArgs } from "react-router";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
-// ... other imports (storefront query, etc.)
+// ... other imports (PRODUCT_QUERY, etc.)
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle } = params;
   const { storefront, weaverse } = context;
 
-  // 1. Fetch product data from Shopify. `storefront.query` throws on
-  //    transport/GraphQL errors, so wrap it in try/catch if you need to.
-  const { product } = await storefront.query(/*... PRODUCT_QUERY ...*/, {
-    variables: { handle: productHandle /* ... */ },
-  });
+  // 1. Fetch product data from Shopify. `storefront.graphql` returns
+  //    `{ data, errors }`; `unwrapStorefront` throws on errors, so wrap it
+  //    in try/catch if you need to.
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: productHandle /* ... */ },
+      cache: CACHE_DEFAULT,
+    }),
+  );
 
   if (!product) { throw new Response(null, { status: 404 }); }
 

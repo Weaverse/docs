@@ -110,10 +110,10 @@ const weaverse = new WeaverseClient({
 });
 
 // Dynamic projectId (multi-project - recommended)
-// `hydrogenContext` and `request` are the values the factory received. On
-// Oxygen the runtime env arrives with the request — there is no `process.env`.
+// `env` and `request` are the values the factory received. On Oxygen the
+// runtime env arrives with the request — there is no `process.env`.
 export function createWeaverseClient({
-  hydrogenContext,
+  env,
   request,
   /* ...rest */
 }: CreateWeaverseClientArgs) {
@@ -128,7 +128,7 @@ export function createWeaverseClient({
         return "project-france-789";
       }
 
-      return hydrogenContext.env.WEAVERSE_PROJECT_ID;
+      return env.WEAVERSE_PROJECT_ID;
     },
   });
 }
@@ -236,43 +236,39 @@ Build a global storefront with different domains per country, each with market-s
 
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
-import { WeaverseClient } from "@weaverse/hydrogen";
-import type { HydrogenContext } from "@shopify/hydrogen";
-import type { HydrogenThemeSchema, HydrogenComponent } from "@weaverse/hydrogen";
+import {
+  WeaverseClient,
+  type WeaverseClientArgs,
+} from "@weaverse/hydrogen/react-router";
 
-export function createWeaverseClient(args: {
-  hydrogenContext: HydrogenContext;
-  request: Request;
-  cache: Cache;
-  themeSchema: HydrogenThemeSchema;
-  components: HydrogenComponent[];
-}) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
+// Everything `WeaverseClient` takes except `projectId`, which the factory picks:
+// the request's Storefront client, `env`, `cache`, `waitUntil`, `request`,
+// `themeSchema` and `components`.
+export type CreateWeaverseClientArgs = Omit<WeaverseClientArgs, "projectId">;
+
+export function createWeaverseClient(args: CreateWeaverseClientArgs) {
+  let { env, request } = args;
 
   return new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
+    ...args,
     projectId: () => {
       let origin = new URL(request.url).origin;
 
-      // Map domains to project IDs — runtime env comes from the Hydrogen context
+      // Map domains to project IDs — runtime env comes from the factory args
       const projectMap: Record<string, string> = {
-        "https://mystore.se": hydrogenContext.env.WEAVERSE_PROJECT_SWEDEN!,
-        "https://mystore.fr": hydrogenContext.env.WEAVERSE_PROJECT_FRANCE!,
-        "https://mystore.de": hydrogenContext.env.WEAVERSE_PROJECT_GERMANY!,
+        "https://mystore.se": env.WEAVERSE_PROJECT_SWEDEN!,
+        "https://mystore.fr": env.WEAVERSE_PROJECT_FRANCE!,
+        "https://mystore.de": env.WEAVERSE_PROJECT_GERMANY!,
       };
 
-      return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
+      return projectMap[origin] || env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
 ```
 
 <Note>
-On Oxygen the storefront runs in a worker, so there is no `process.env`. Read runtime variables from `hydrogenContext.env` inside your factory, or from `context.env` inside a route loader.
+On Oxygen the storefront runs in a worker, so there is no `process.env`. Read runtime variables from the factory's `env` argument, or from `context.env` inside a route loader.
 </Note>
 
 #### Environment Variables
@@ -285,31 +281,34 @@ WEAVERSE_PROJECT_FRANCE=project-france-789       # France: mystore.fr
 WEAVERSE_PROJECT_GERMANY=project-germany-012     # Germany: mystore.de
 ```
 
-#### Server Entry Point
+#### App Context
 
 ```typescript
-// app/entry.server.tsx or server.ts
+// app/.server/context.ts — called from `server.ts` for every request
 import { createWeaverseClient } from "~/lib/weaverse/weaverse.server";
 import { themeSchema } from "~/weaverse/schema.server";
 import { components } from "~/weaverse/components";
 
-export default {
-  async fetch(request: Request, env: Env, context: ExecutionContext) {
-    // ... Hydrogen context setup ...
+export async function createAppContext(
+  request: Request,
+  env: Env,
+  executionContext: ExecutionContext,
+) {
+  // ... cache, session and Storefront client setup (Hydrogen 2026.10) ...
 
-    let weaverse = createWeaverseClient({
-      hydrogenContext,
-      request,
-      cache,
-      themeSchema,
-      components,
-    });
+  let weaverse = createWeaverseClient({
+    storefront,
+    env,
+    cache,
+    waitUntil,
+    request,
+    themeSchema,
+    components,
+  });
 
-    // Preserve the RouterContextProvider instance React Router expects.
-    Object.assign(hydrogenContext, { weaverse });
-    return handleRequest(request, hydrogenContext);
-  },
-};
+  // `server.ts` copies this plain object onto React Router's context
+  return { env, cache, waitUntil, session, storefront, weaverse };
+}
 ```
 
 #### Route Usage
@@ -334,10 +333,14 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   let { weaverse, storefront } = context;
   let { productHandle } = params;
 
-  // Load product from Shopify (shared across all projects)
-  let { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: { handle: productHandle },
-  });
+  // Load product from Shopify (shared across all projects). `unwrapStorefront`
+  // and `CACHE_DEFAULT` are Pilot helpers for Hydrogen 2026.10's `graphql()`.
+  let { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: productHandle },
+      cache: CACHE_DEFAULT,
+    }),
+  );
 
   // Load Weaverse page (project-specific content and layout)
   let weaverseData = await weaverse.loadPage({
@@ -420,19 +423,14 @@ curl https://mystore.de
 
 // app/lib/weaverse/weaverse.server.ts
 export function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
+  let { env, request } = args;
 
   return new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
+    ...args,
     projectId: () => {
       let url = new URL(request.url);
       let origin = url.origin;
 
-      let { env } = hydrogenContext;
 
       // Market-specific projects
       if (origin === "https://mystore.se") {
@@ -539,10 +537,10 @@ Each variant is a duplicated Weaverse **project**. The package deterministically
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
 import { getExperiments } from "@weaverse/experiments/server";
-import { WeaverseClient } from "@weaverse/hydrogen";
+import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 
 export function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
+  let { env, request } = args;
 
   // Deterministic, sticky assignment — no manual cookie handling.
   let { projectId, assignments, headers } = getExperiments(request, {
@@ -550,19 +548,15 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
       {
         id: "green-theme-test",
         variants: [
-          { id: "control", projectId: hydrogenContext.env.WEAVERSE_PROJECT_CONTROL! },
-          { id: "b", projectId: hydrogenContext.env.WEAVERSE_PROJECT_VARIANT_B! },
+          { id: "control", projectId: env.WEAVERSE_PROJECT_CONTROL! },
+          { id: "b", projectId: env.WEAVERSE_PROJECT_VARIANT_B! },
         ],
       },
     ],
   });
 
   let weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
+    ...args,
     projectId, // the chosen variant's project
   });
 
@@ -579,9 +573,11 @@ import { data } from "react-router";
 
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse, assignments, headers } = await createWeaverseClient({
-    hydrogenContext: context,
+    storefront: context.storefront,
+    env: context.env,
+    cache: context.cache,
+    waitUntil: context.waitUntil,
     request,
-    cache: context.storefront.cache,
     themeSchema,
     components,
   });
@@ -593,7 +589,7 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 #### Adjusting the traffic split
 
-Variant `weight` is relative — omit it for an even split. For an 80/20 test, weight the variant down (only the ratio matters). This runs in the same factory as above, so `hydrogenContext.env` is still the source of the runtime variables:
+Variant `weight` is relative — omit it for an even split. For an 80/20 test, weight the variant down (only the ratio matters). This runs in the same factory as above, so its `env` argument is still the source of the runtime variables:
 
 ```typescript
 let { projectId } = getExperiments(request, {
@@ -601,8 +597,8 @@ let { projectId } = getExperiments(request, {
     {
       id: "green-theme-test",
       variants: [
-        { id: "control", projectId: hydrogenContext.env.WEAVERSE_PROJECT_CONTROL! }, // weight 1
-        { id: "b", weight: 0.25, projectId: hydrogenContext.env.WEAVERSE_PROJECT_VARIANT_B! }, // ~20%
+        { id: "control", projectId: env.WEAVERSE_PROJECT_CONTROL! }, // weight 1
+        { id: "b", weight: 0.25, projectId: env.WEAVERSE_PROJECT_VARIANT_B! }, // ~20%
       ],
     },
   ],
@@ -614,6 +610,10 @@ Need a specific audience instead of a random split? Pass your own `seed` (e.g. a
 </Tip>
 
 #### Tracking exposure and segmenting downstream events
+
+<Warning>
+The sample below uses classic Hydrogen's `Analytics.Provider` and `useAnalytics` (Hydrogen 2026.4 and earlier). Hydrogen 2026.10 removes them: `ShopifyScripts` loads the analytics bus at `window.Shopify.analytics` instead (see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration)). On 2026.10, keep `<WeaverseExperiments>` around `<Outlet />` as shown, and publish exposure and variant data through that bus.
+</Warning>
 
 Integrate with Hydrogen's [`Analytics.Provider`](https://shopify.dev/docs/api/hydrogen/hooks/useanalytics) at two points. Passing assignments to `customData` makes the variant ride along on **every** event (`page_viewed`, `product_added_to_cart`, `purchase`, …) — that's how you measure conversion impact, not just impressions. `onExpose` adds a one-time impression event.
 
@@ -841,25 +841,21 @@ Manage multiple brands with distinct identities from a single Shopify store.
 ```typescript
 // app/lib/weaverse/weaverse.server.ts
 export function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
+  let { env, request } = args;
 
   return new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
+    ...args,
     projectId: () => {
       let url = new URL(request.url);
       let subdomain = url.hostname.split(".")[0];
 
       // Map subdomains to brand projects
       const brandProjects: Record<string, string> = {
-        "brand-a": hydrogenContext.env.WEAVERSE_PROJECT_BRAND_A!,
-        "brand-b": hydrogenContext.env.WEAVERSE_PROJECT_BRAND_B!,
+        "brand-a": env.WEAVERSE_PROJECT_BRAND_A!,
+        "brand-b": env.WEAVERSE_PROJECT_BRAND_B!,
       };
 
-      return brandProjects[subdomain] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
+      return brandProjects[subdomain] || env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
@@ -890,11 +886,14 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
   // Filter Shopify products by brand tag
   let brandTag = brand === "brand-a" ? "Premium" : "Affordable";
 
-  let { products } = await storefront.query(PRODUCTS_QUERY, {
-    variables: {
-      filters: { tag: brandTag },
-    },
-  });
+  let { products } = unwrapStorefront(
+    await storefront.graphql(PRODUCTS_QUERY, {
+      variables: {
+        filters: { tag: brandTag },
+      },
+      cache: CACHE_DEFAULT,
+    }),
+  );
 
   return { weaverseData, products, brand };
 }
@@ -960,17 +959,13 @@ export function getBrandConfig(brand: Brand, env: Env) {
 import { detectBrand, getBrandConfig } from "./brand-detection.server";
 
 export function createWeaverseClient(args: CreateWeaverseClientArgs) {
-  let { hydrogenContext, request, cache, themeSchema, components } = args;
+  let { env, request } = args;
 
   let brand = detectBrand(request);
-  let brandConfig = getBrandConfig(brand, hydrogenContext.env);
+  let brandConfig = getBrandConfig(brand, env);
 
   let weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
-    cache,
-    themeSchema,
-    components,
+    ...args,
     projectId: brandConfig.projectId,
   });
 
@@ -991,9 +986,12 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
     ? { tag: brandConfig.productTag }
     : {};
 
-  let { products } = await context.storefront.query(PRODUCTS_QUERY, {
-    variables: { filters },
-  });
+  let { products } = unwrapStorefront(
+    await context.storefront.graphql(PRODUCTS_QUERY, {
+      variables: { filters },
+      cache: CACHE_DEFAULT,
+    }),
+  );
 
   return { weaverseData, products, brandConfig };
 }
@@ -1010,9 +1008,11 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 ```typescript
 // Simplest form - one project for entire app
 const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  request,
+  storefront,
+  env,
   cache,
+  waitUntil,
+  request,
   themeSchema,
   components,
   projectId: "project-123",
@@ -1024,9 +1024,11 @@ const weaverse = new WeaverseClient({
 ```typescript
 // Dynamic project selection
 const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  request,
+  storefront,
+  env,
   cache,
+  waitUntil,
+  request,
   themeSchema,
   components,
   projectId: () => {
@@ -1145,7 +1147,7 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
 
 ### Advanced Routing Patterns
 
-Each snippet below is the `projectId` option of the `createWeaverseClient` factory shown earlier, so `request` and `hydrogenContext` (and therefore `hydrogenContext.env`) are in scope.
+Each snippet below is the `projectId` option of the `createWeaverseClient` factory shown earlier, so `request` and `env` are in scope.
 
 #### Path-Based Routing
 
@@ -1154,7 +1156,6 @@ Each snippet below is the `projectId` option of the `createWeaverseClient` facto
 projectId: () => {
   let url = new URL(request.url);
   let path = url.pathname;
-  let { env } = hydrogenContext;
 
   // /pro routes use premium project
   if (path.startsWith("/pro")) {
@@ -1177,7 +1178,6 @@ projectId: () => {
 projectId: () => {
   let url = new URL(request.url);
   let variant = url.searchParams.get("variant");
-  let { env } = hydrogenContext;
 
   if (variant === "b") {
     return env.WEAVERSE_PROJECT_VARIANT_B!;
@@ -1198,7 +1198,7 @@ projectId: () => {
     return projectHeader;
   }
 
-  return hydrogenContext.env.WEAVERSE_PROJECT_ID!;
+  return env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1211,7 +1211,6 @@ projectId: () => {
   let origin = url.origin;
   let path = url.pathname;
   let subdomain = url.hostname.split(".")[0];
-  let { env } = hydrogenContext;
 
   // Priority 1: Domain-based (highest priority)
   if (origin === "https://mystore.se") {
@@ -1386,57 +1385,56 @@ Step-by-step guide to migrate from single-project to multi-project architecture.
     **Create or update** `app/lib/weaverse/weaverse.server.ts`:
 
     ```typescript
-    import { WeaverseClient } from "@weaverse/hydrogen";
+    import { WeaverseClient } from "@weaverse/hydrogen/react-router";
 
     export function createWeaverseClient(args: CreateWeaverseClientArgs) {
-      let { hydrogenContext, request, cache, themeSchema, components } = args;
+      let { env, request } = args;
 
       return new WeaverseClient({
-        ...hydrogenContext,
-        request,
-        cache,
-        themeSchema,
-        components,
+        ...args,
         projectId: () => {
           let origin = new URL(request.url).origin;
 
           // Add your routing logic
           const projectMap: Record<string, string> = {
-            "https://mystore.se": hydrogenContext.env.WEAVERSE_PROJECT_SWEDEN!,
-            "https://mystore.fr": hydrogenContext.env.WEAVERSE_PROJECT_FRANCE!,
-            "https://mystore.de": hydrogenContext.env.WEAVERSE_PROJECT_GERMANY!,
+            "https://mystore.se": env.WEAVERSE_PROJECT_SWEDEN!,
+            "https://mystore.fr": env.WEAVERSE_PROJECT_FRANCE!,
+            "https://mystore.de": env.WEAVERSE_PROJECT_GERMANY!,
           };
 
-          return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
+          return projectMap[origin] || env.WEAVERSE_PROJECT_ID!;
         },
       });
     }
     ```
   </Step>
 
-  <Step title="Update Server Entry Point">
-    **Modify** `app/entry.server.tsx` or `server.ts`:
+  <Step title="Update the App Context">
+    **Modify** the app context factory (`app/.server/context.ts` in Pilot) that `server.ts` calls:
 
     ```typescript
     import { createWeaverseClient } from "~/lib/weaverse/weaverse.server";
 
-    export default {
-      async fetch(request: Request, env: Env, context: ExecutionContext) {
-        // ... existing Hydrogen setup ...
+    export async function createAppContext(
+      request: Request,
+      env: Env,
+      executionContext: ExecutionContext,
+    ) {
+      // ... existing cache, session and Storefront client setup ...
 
-        // Replace static WeaverseClient initialization with factory
-        let weaverse = createWeaverseClient({
-          hydrogenContext,
-          request,
-          cache,
-          themeSchema,
-          components,
-        });
+      // Replace static WeaverseClient initialization with factory
+      let weaverse = createWeaverseClient({
+        storefront,
+        env,
+        cache,
+        waitUntil,
+        request,
+        themeSchema,
+        components,
+      });
 
-        Object.assign(hydrogenContext, { weaverse });
-        return handleRequest(request, hydrogenContext);
-      },
-    };
+      return { env, cache, waitUntil, session, storefront, weaverse };
+    }
     ```
   </Step>
 
@@ -1728,7 +1726,7 @@ projectId: () => {
   console.log("Request origin:", origin);
   console.log("Selected project:", projectMap[origin] || "default");
 
-  return projectMap[origin] || hydrogenContext.env.WEAVERSE_PROJECT_ID!;
+  return projectMap[origin] || env.WEAVERSE_PROJECT_ID!;
 }
 ```
 
@@ -1841,7 +1839,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
 
 ## Advanced Topics
 
-Except where noted, each snippet below is the `projectId` option inside `createWeaverseClient`, where `request` and `hydrogenContext.env` are in scope.
+Except where noted, each snippet below is the `projectId` option inside `createWeaverseClient`, where `request` and `env` are in scope.
 
 ### Dynamic Project Selection
 
@@ -1851,14 +1849,15 @@ Except where noted, each snippet below is the `projectId` option inside `createW
 // The projectId callback itself is synchronous.
 let user = await getUser(request);
 let projectId = user.tier === "premium"
-  ? hydrogenContext.env.WEAVERSE_PROJECT_PREMIUM
-  : hydrogenContext.env.WEAVERSE_PROJECT_STANDARD;
+  ? env.WEAVERSE_PROJECT_PREMIUM
+  : env.WEAVERSE_PROJECT_STANDARD;
 
 let weaverse = new WeaverseClient({
-  ...hydrogenContext,
+  storefront,
+  env,
   request,
   projectId,
-  // ...cache, themeSchema, components
+  // ...cache, waitUntil, themeSchema, components
 });
 ```
 
@@ -1867,7 +1866,6 @@ let weaverse = new WeaverseClient({
 // Oxygen forwards the visitor's country on the request
 projectId: () => {
   let country = request.headers.get("oxygen-buyer-country");
-  let { env } = hydrogenContext;
 
   const countryProjects: Record<string, string> = {
     "SE": env.WEAVERSE_PROJECT_SWEDEN!,
@@ -1887,7 +1885,6 @@ projectId: () => {
 // Special markets get dedicated projects
 projectId: () => {
   let origin = new URL(request.url).origin;
-  let { env } = hydrogenContext;
 
   // Japan gets dedicated project (unique branding)
   if (origin === "https://mystore.jp") {
@@ -1907,7 +1904,6 @@ projectId: () => {
 projectId: () => {
   let url = new URL(request.url);
   let featureFlag = url.searchParams.get("feature");
-  let { env } = hydrogenContext;
 
   // Beta project for testing new features
   if (featureFlag === "beta") {

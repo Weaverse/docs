@@ -11,16 +11,16 @@ The `useThemeSettings` hook provides access to the global theme settings within 
 ## Import
 
 ```tsx
-import { useThemeSettings } from '@weaverse/hydrogen'
+import { useThemeSettings } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
 
 ```typescript
-function useThemeSettings<T = HydrogenThemeSettings>(): T
+function useThemeSettings<T = WeaverseThemeSettings>(): T
 ```
 
-Where `HydrogenThemeSettings` is a flexible object type that contains all your theme's global settings.
+Where `WeaverseThemeSettings` is a flexible object type that contains all your theme's global settings.
 
 ## Usage
 
@@ -29,7 +29,7 @@ Call the hook within a React component to get an object containing the current g
 ### Basic example
 
 ```tsx
-import { useThemeSettings } from '@weaverse/hydrogen'
+import { useThemeSettings } from '@weaverse/hydrogen/react-router'
 
 export function GlobalStyle() {
   const settings = useThemeSettings()
@@ -63,7 +63,7 @@ export function GlobalStyle() {
 ### With TypeScript for type safety
 
 ```tsx
-import { useThemeSettings } from '@weaverse/hydrogen'
+import { useThemeSettings } from '@weaverse/hydrogen/react-router'
 
 type MyThemeSettings = {
   colorPrimary: string;
@@ -92,7 +92,7 @@ export function Header() {
 ### Conditional rendering based on theme settings
 
 ```tsx
-import { useThemeSettings } from '@weaverse/hydrogen'
+import { useThemeSettings } from '@weaverse/hydrogen/react-router'
 
 export function ProductCard() {
   const { showPrices, enableQuickView, productCardStyle } = useThemeSettings()

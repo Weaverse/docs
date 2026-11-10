@@ -106,6 +106,7 @@ integration with Weaverse Studio's customization features.
 - Theme customization components
 - Studio preview capabilities
 - Hydrogen-specific renderers and utilities
+- Entry points: themes import from `@weaverse/hydrogen/react-router`; `@weaverse/hydrogen/react` has the framework-free hooks
 
 **Installation:**
 ```bash
@@ -115,7 +116,7 @@ npm install @weaverse/hydrogen
 **Basic Usage:**
 ```tsx
 // app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen/react-router';
 import { GenericError } from '~/components/root/generic-error';
 import { components } from './components';
 
@@ -134,7 +135,7 @@ for the current React Router route. Its props are:
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `components` | `HydrogenComponent[]` | Yes | Theme components available to the page renderer |
+| `components` | `WeaverseComponent[]` | Yes | Theme components available to the page renderer |
 | `data` | `WeaverseLoaderData \| Promise<WeaverseLoaderData \| null> \| null` | No | Explicit `weaverseData` payload that bypasses automatic route-scoped resolution. Pass `null` to suppress rendering |
 | `errorComponent` | `React.FC<{ error: Error \| unknown }>` | No | Component rendered when page data cannot be resolved |
 
@@ -220,7 +221,7 @@ The Weaverse SDK packages are designed to work together seamlessly, but each can
 |---------|----------------|---------|----------------------|
 | `@weaverse/core` | Any JavaScript project | `>=18` | None |
 | `@weaverse/react` | React applications | `>=18` | `@weaverse/core`, `react` `>=19`, `react-dom` `>=19`, `clsx` |
-| `@weaverse/hydrogen` | Shopify Hydrogen storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `@shopify/hydrogen` `>=2025.5`, `@shopify/remix-oxygen` `3`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` |
+| `@weaverse/hydrogen` | Shopify Hydrogen storefronts | `>=20` | `@weaverse/react`, `@weaverse/next`, `@weaverse/schema`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` (peer: `@shopify/hydrogen` `>=2026.10.0`) |
 | `@weaverse/next` | Next.js App Router storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `next` `>=14`, `react`/`react-dom` `>=19` |
 | `@weaverse/schema` | Any JavaScript/TypeScript project | - | `zod` `^4` |
 | `@weaverse/cli` | Node.js environment | `>=18` | None (run via `npx`) |
@@ -234,12 +235,12 @@ install. For the `@weaverse/hydrogen` package:
 - **Node.js**: v20.0.0 or higher
 - **React / React DOM**: v19.0.0 or higher
 - **React Router**: v7 (not React Router DOM)
-- **Shopify Hydrogen**: 2025.5 or higher
+- **Shopify Hydrogen**: 2026.10 or higher (`@weaverse/hydrogen` 6). Classic Hydrogen 2026.4 and earlier stays on `@weaverse/hydrogen` 5.x; see the [v6 migration guide](/migration-advanced/v6-migration)
 - **npm**: v7.0.0 or higher (or equivalent package manager)
 
 <Note>
   A generated theme may require a newer Node.js version than the SDK package.
-  The current Pilot template declares Node.js `>=22.12.0`.
+  The current Pilot template declares Node.js `^22.18.0 || ^24.11.0`.
 </Note>
 
 ## Getting Started

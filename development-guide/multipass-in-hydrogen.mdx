@@ -74,12 +74,15 @@ Generate a fresh token on demand when a customer logs in. Do not pre-generate to
 
 Create a server-side route that receives the Multipass token and exchanges it with Shopify.
 
+The samples target Hydrogen 2026.10: Storefront API documents are `gql()` documents run with `context.storefront.graphql()`, and the session is Pilot's `AppSession` (`getSessionItem`, `setSessionItem`, `removeSessionItem`), which `server.ts` commits on every response. See the [v6 migration guide](/migration-advanced/v6-migration#step-4-build-the-app-context-yourself) for both.
+
 Example route: `app/routes/account/multipass.tsx`
 
 ```ts
+import {gql} from '@shopify/hydrogen';
 import {redirect, type ActionFunctionArgs} from 'react-router';
 
-const CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS = `#graphql
+const CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS = gql(`
   mutation customerAccessTokenCreateWithMultipass($multipassToken: String!) {
     customerAccessTokenCreateWithMultipass(multipassToken: $multipassToken) {
       customerAccessToken {
@@ -93,7 +96,7 @@ const CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS = `#graphql
       }
     }
   }
-`;
+`);
 
 export async function action({request, context}: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -103,14 +106,17 @@ export async function action({request, context}: ActionFunctionArgs) {
     throw new Response('Missing Multipass token', {status: 400});
   }
 
-  const {customerAccessTokenCreateWithMultipass} =
-    await context.storefront.mutate(
-      CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS,
-      {
-        variables: {multipassToken},
-      },
-    );
+  const {data, errors: graphqlErrors} = await context.storefront.graphql(
+    CUSTOMER_ACCESS_TOKEN_CREATE_WITH_MULTIPASS,
+    {variables: {multipassToken}},
+  );
 
+  if (graphqlErrors?.length) {
+    throw new Response('Unable to exchange Multipass token', {status: 502});
+  }
+
+  const customerAccessTokenCreateWithMultipass =
+    data?.customerAccessTokenCreateWithMultipass;
   const errors =
     customerAccessTokenCreateWithMultipass?.customerUserErrors || [];
 
@@ -127,16 +133,13 @@ export async function action({request, context}: ActionFunctionArgs) {
     });
   }
 
-  context.session.set('customerAccessToken', {
+  // `server.ts` commits the session, so the redirect carries the cookie
+  context.session.setSessionItem('customerAccessToken', {
     accessToken: customerAccessToken.accessToken,
     expiresAt: customerAccessToken.expiresAt,
   });
 
-  return redirect('/account', {
-    headers: {
-      'Set-Cookie': await context.session.commit(),
-    },
-  });
+  return redirect('/account');
 }
 ```
 
@@ -149,10 +152,10 @@ export async function action({request, context}: ActionFunctionArgs) {
 In legacy customer account routes, read the stored token from `context.session`.
 
 ```ts
-import {CacheNone} from '@shopify/hydrogen';
+import {Cache, gql} from '@shopify/hydrogen';
 import {redirect, type LoaderFunctionArgs} from 'react-router';
 
-const CUSTOMER_QUERY = `#graphql
+const CUSTOMER_QUERY = gql(`
   query Customer($customerAccessToken: String!) {
     customer(customerAccessToken: $customerAccessToken) {
       id
@@ -173,29 +176,26 @@ const CUSTOMER_QUERY = `#graphql
       }
     }
   }
-`;
+`);
 
 export async function loader({context}: LoaderFunctionArgs) {
-  const token = context.session.get('customerAccessToken');
+  const token = context.session.getSessionItem('customerAccessToken');
 
   if (!token?.accessToken) {
     return redirect('/account/login');
   }
 
-  const {customer} = await context.storefront.query(CUSTOMER_QUERY, {
+  const {data, errors} = await context.storefront.graphql(CUSTOMER_QUERY, {
     variables: {
       customerAccessToken: token.accessToken,
     },
-    cache: CacheNone(),
+    cache: Cache.none(),
   });
+  const customer = data?.customer;
 
-  if (!customer) {
-    context.session.unset('customerAccessToken');
-    return redirect('/account/login', {
-      headers: {
-        'Set-Cookie': await context.session.commit(),
-      },
-    });
+  if (errors?.length || !customer) {
+    context.session.removeSessionItem('customerAccessToken');
+    return redirect('/account/login');
   }
 
   return {customer};
@@ -204,16 +204,13 @@ export async function loader({context}: LoaderFunctionArgs) {
 
 ## Step 3 — Associate the customer with the cart
 
-After login, update the cart buyer identity with the Storefront API customer token.
+After login, the cart's buyer identity needs the Storefront API customer token. Hydrogen 2026.10 has no `context.cart`: the cart is served by Hydrogen's cart handlers at `/api/cart`. Pilot's own `POST /api/cart` handler (`createPilotCartHandlers` in `app/.server/cart.ts`) already runs `cartBuyerIdentityUpdate` with a customer access token before every cart change. Point its `getCustomerAccessToken` at the session's Multipass-derived token in `server.ts`:
 
 ```ts
-const token = context.session.get('customerAccessToken');
-
-if (token?.accessToken) {
-  await context.cart.updateBuyerIdentity({
-    customerAccessToken: token.accessToken,
-  });
-}
+createPilotCartHandlers({
+  getCustomerAccessToken: async () =>
+    session.getSessionItem('customerAccessToken')?.accessToken,
+}),
 ```
 
 This helps Shopify associate the cart and checkout with the authenticated customer.
@@ -226,13 +223,9 @@ Unset the customer access token from the Hydrogen session. If your merchant iden
 import {redirect, type ActionFunctionArgs} from 'react-router';
 
 export async function action({context}: ActionFunctionArgs) {
-  context.session.unset('customerAccessToken');
+  context.session.removeSessionItem('customerAccessToken');
 
-  return redirect('/', {
-    headers: {
-      'Set-Cookie': await context.session.commit(),
-    },
-  });
+  return redirect('/');
 }
 ```
 
@@ -240,19 +233,19 @@ export async function action({context}: ActionFunctionArgs) {
 
 The Pilot theme ships with Customer Account API routes by default:
 
-- `/account/login` starts Shopify's Customer Account API OAuth flow
+- `/account/login` starts Shopify's Customer Account API OAuth flow (Hydrogen's Customer Account handlers, registered in `server.ts`)
 - `/account/authorize` completes the OAuth callback
 - Account pages query `context.customerAccount`
 
 For Multipass, this is a different auth model. You need to replace or fork the account routes so they use:
 
-- `context.storefront.mutate(customerAccessTokenCreateWithMultipass)` for login
-- `context.session.get('customerAccessToken')` for session state
+- `context.storefront.graphql()` with `customerAccessTokenCreateWithMultipass` for login
+- `context.session.getSessionItem('customerAccessToken')` for session state
 - Storefront API `customer(customerAccessToken: ...)` queries for profile, orders, and addresses
-- `context.cart.updateBuyerIdentity({customerAccessToken})` for cart association
+- The session's token in Pilot's `POST /api/cart` handler for cart association
 
 <Warning>
-  Do not try to pass a Multipass token to `/account/authorize`. That route is only the OAuth callback for Shopify's Customer Account API and is not a token-ingestion endpoint.
+  Do not try to pass a Multipass token to `/account/authorize`. That path is only the OAuth callback for Shopify's Customer Account API and is not a token-ingestion endpoint.
 </Warning>
 
 ## Domain setup
@@ -291,7 +284,7 @@ Hydrogen exchanges the token with `customerAccessTokenCreateWithMultipass` and s
 - Never store the Multipass token in the session
 - Store only the returned `customerAccessToken`
 - Use `httpOnly`, `sameSite: 'lax'`, and secure session cookies in production
-- Use `CacheNone()` for authenticated customer/account queries
+- Use `Cache.none()` for authenticated customer/account queries
 - Clear the session when the token is expired or customer lookup fails
 - Avoid logging tokens, request bodies, query strings, or GraphQL variables that contain credentials
 
@@ -308,7 +301,7 @@ Hydrogen exchanges the token with `customerAccessTokenCreateWithMultipass` and s
     Check that you are querying Storefront API customer fields with `customer(customerAccessToken: ...)`, not Customer Account API fields. Also verify the Multipass token uses the same email address as the Shopify customer record.
   </Accordion>
   <Accordion title="Checkout is not associated with the logged-in customer">
-    Call `context.cart.updateBuyerIdentity({customerAccessToken})` after login or before checkout. Use the returned Storefront API customer access token, not the Multipass token.
+    Run `cartBuyerIdentityUpdate` with the customer access token after login or before checkout, for example through Pilot's `POST /api/cart` handler as in Step 3. Use the returned Storefront API customer access token, not the Multipass token.
   </Accordion>
   <Accordion title="Customer Account API and Multipass both need to work">
     Treat this as a custom dual-auth project. The two systems use different session models and account APIs. In most cases, the cleaner approach is to move existing customers into one IdP path using the same email address, or use a pure legacy customer-token flow if Multipass is mandatory.

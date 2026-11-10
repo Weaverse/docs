@@ -31,10 +31,10 @@ For other self-hosting targets, see the [Shopify documentation on self-hosting H
 
 ## How it works
 
-The container runs `npm run start`, which is `shopify hydrogen preview` — a Node-based simulation of the Oxygen Workers runtime. Two consequences matter:
+The container serves the production build with `vite preview`, as the theme's `npm run start` script does (`vite preview --port 3456` on Hydrogen 2026.10). The `oxygen()` Vite plugin from `@shopify/mini-oxygen` runs the built worker in a local `workerd` runtime behind Vite's preview server. Two consequences matter:
 
 1. **Runtime differences.** Worker-specific behavior, caching, and performance characteristics are simulated, not identical to Oxygen. Validate anything runtime-sensitive before relying on it.
-2. **Network binding.** The preview server binds to `localhost` by default, which is unreachable from outside the container. It has to listen on `0.0.0.0` for the container to serve traffic.
+2. **Network binding.** The preview server binds to `localhost` by default, which is unreachable from outside the container. Pass Vite's `--host 0.0.0.0` so the container can serve traffic.
 
 ## Security rules
 
@@ -52,7 +52,7 @@ Concretely:
 ## Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) (latest stable version)
-- [Node.js](https://nodejs.org/) — the Pilot theme requires `>=22.12.0`
+- [Node.js](https://nodejs.org/) — the Pilot theme requires `^22.18.0 || ^24.11.0`
 - [Fly.io CLI](https://fly.io/docs/hands-on/install-flyctl/) if you are following the Fly example
 - A Weaverse theme project that builds locally (`npm run build` succeeds)
 
@@ -97,7 +97,7 @@ playwright-report
 ### 2. `Dockerfile`
 
 ```dockerfile Dockerfile
-# Pilot requires Node >=22.12.0
+# Pilot requires Node ^22.18.0 || ^24.11.0
 FROM node:22-bookworm-slim AS base
 
 # SSL and CA certificates for outbound Shopify/Weaverse API calls
@@ -115,22 +115,6 @@ RUN npm ci
 
 COPY . .
 
-# Bind the preview server to 0.0.0.0 so the container is reachable.
-# This patches CLI internals, so the file paths shift between versions —
-# the step warns rather than fails if a path is gone, but re-check it
-# after upgrading @shopify/cli or @shopify/mini-oxygen.
-RUN set -eu; \
-    patched=0; \
-    for f in \
-      $(find node_modules/@shopify -type f -name "workerd*.js" 2>/dev/null); do \
-        if grep -q 'host: "localhost"' "$f"; then \
-            sed -i -e 's|host: "localhost"|host: "0.0.0.0"|' "$f"; \
-            echo "patched host binding in $f"; \
-            patched=1; \
-        fi; \
-    done; \
-    [ "$patched" = "1" ] || echo "WARNING: no workerd host binding patched — verify the container is reachable"
-
 RUN npm run build
 
 # ---- Production stage ----
@@ -140,18 +124,20 @@ WORKDIR /myapp
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy build output only. No .env, no credentials — configuration is
-# injected at run time.
-COPY --from=build /myapp/dist /myapp/dist
-COPY --from=build /myapp/node_modules /myapp/node_modules
-COPY --from=build /myapp/package.json /myapp/package.json
+# Copy the built project. `vite preview` loads `vite.config.ts`, whose
+# React Router plugin reads `react-router.config.ts` and `app/`, so the
+# source tree is needed next to `dist/`. No .env, no credentials:
+# `.dockerignore` keeps them out of the build context, and configuration
+# is injected at run time.
+COPY --from=build /myapp /myapp
 
 EXPOSE 3000
-CMD ["npm", "run", "start"]
+# Bind to 0.0.0.0 so the container is reachable
+CMD ["npx", "vite", "preview", "--host", "0.0.0.0", "--port", "3000"]
 ```
 
 <Note>
-`npm run start` runs `shopify hydrogen preview`, which lives in `@shopify/cli` — a dev dependency. That is why the production stage copies the full `node_modules` from the build stage rather than running `npm ci --omit=dev`.
+`vite` and `@shopify/mini-oxygen` are dev dependencies, and `vite preview` runs the same Vite config as the build, including the React Router plugin. That is why the production stage copies the whole project from the build stage (full `node_modules`, `app/`, `react-router.config.ts` and any local files the config imports) rather than only `dist/` with `npm ci --omit=dev`. Copying only `dist/` fails at startup with `Could not find a root route module`.
 </Note>
 
 ### 3. Environment variables
@@ -167,7 +153,7 @@ SHOP_ID=your-shop-id
 WEAVERSE_PROJECT_ID=your-weaverse-project-id
 ```
 
-Run the container with those values injected at start time. Before deploying, verify that the installed Shopify CLI version exposes the process environment as Hydrogen worker bindings:
+Run the container with those values injected at start time. The Oxygen Vite plugin passes the process environment (plus any `.env` file) to the worker as bindings; before deploying, verify that your `@shopify/mini-oxygen` version still does:
 
 ```bash
 docker build -t my-storefront .
@@ -184,7 +170,7 @@ docker run --rm -p 3000:3000 \
 ```
 
 <Tip>
-Exercise a route that reads the required bindings after the container starts. If your CLI version does not forward the process environment, write a `.env` file at container **start** from the injected values via an entrypoint script — never at build time. The file then exists only in the running container's writable layer, not in the distributable image.
+Exercise a route that reads the required bindings after the container starts. If your Mini Oxygen version does not forward the process environment, write a `.env` file at container **start** from the injected values via an entrypoint script — never at build time. The file then exists only in the running container's writable layer, not in the distributable image.
 </Tip>
 
 ## Cloud Deployment (Fly.io)
@@ -249,10 +235,10 @@ The same pattern applies elsewhere: ECS task definition secrets, Cloud Run `--se
 ## Troubleshooting
 
 **Container starts but nothing responds on the mapped port**
-The host binding patch did not apply. Check the build log for the `WARNING: no workerd host binding patched` line and re-check the CLI file layout for your `@shopify/cli` version.
+The preview server is listening on `localhost`. Check that the container command passes `--host 0.0.0.0`, and that `--port` matches the port you publish (`-p 3000:3000`) and Fly's `internal_port`.
 
 **Build failures**
-Confirm the Node version in the base image satisfies the theme's `engines.node` (`>=22.12.0`), that `npm run build` succeeds locally, and that Docker has enough memory allocated.
+Confirm the Node version in the base image satisfies the theme's `engines.node` (`^22.18.0 || ^24.11.0`), that `npm run build` succeeds locally, and that Docker has enough memory allocated.
 
 **Missing configuration at run time**
 Check the values actually reached the container: `docker exec <container> printenv | sort`, or `fly ssh console -C printenv`. Variable names are case-sensitive.
@@ -262,8 +248,8 @@ Verify `WEAVERSE_PROJECT_ID` is set in the running environment and that the depl
 
 ## Limitations and Considerations
 
-1. **Runtime simulation** — `shopify hydrogen preview` approximates the Workers runtime in Node. Not every Worker API or performance characteristic matches Oxygen.
-2. **Image size** — the production stage ships the full `node_modules` because the preview server is part of the Shopify CLI.
+1. **Runtime simulation** — `vite preview` with Mini Oxygen runs the worker in a local `workerd`. Not every Worker API or performance characteristic matches Oxygen.
+2. **Image size** — the production stage ships the full project and `node_modules` because the preview server comes from dev dependencies (`vite`, `@shopify/mini-oxygen`) and loads the project's Vite config.
 3. **Operational ownership** — scaling, TLS, log retention, and monitoring are yours to configure. [Oxygen](/guides/deployment/oxygen) handles these for you.
 
 ## Related

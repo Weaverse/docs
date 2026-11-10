@@ -20,7 +20,7 @@ import {
   createSchema,
   IMAGES_PLACEHOLDERS,
   useThemeSettings,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import type { VariantProps } from "class-variance-authority";
 import { cva } from "class-variance-authority";
 import { backgroundInputs } from "~/components/background-image";
@@ -194,15 +194,17 @@ A component that displays a featured product with its details and purchase optio
 
 ```tsx
 // app/sections/featured-product/index.tsx
-import type { ComponentLoaderArgs, HydrogenComponentProps } from '@weaverse/hydrogen';
-import { createSchema } from '@weaverse/hydrogen';
+import { Cache } from '@shopify/hydrogen';
+import type { WeaverseComponentLoaderArgs, WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 import { PRODUCT_QUERY } from '~/graphql/queries';
+import { unwrapStorefront } from '~/utils/storefront';
 
 interface FeaturedProductData {
   productHandle: string;
 }
 
-export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
+export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
@@ -210,16 +212,17 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: {
-      handle: data.productHandle,
-    },
-  });
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.productHandle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
 
-type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
+type FeaturedProductProps = WeaverseComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
 
 function FeaturedProduct(props: FeaturedProductProps) {
   const { loaderData, productHandle, ...rest } = props;
@@ -286,13 +289,13 @@ A component that displays team members with their profiles and social links.
 import { GithubLogo, LinkedinLogo, XLogo } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import {
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
   type WeaverseImage,
   useParentInstance,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
-import type { OurTeamQuery } from "storefront-api.generated";
+import type { OurTeamQuery } from "."; // `StorefrontApi.ResultOf<typeof OUR_TEAM_QUERY>`, exported by the section
 import { Image } from "~/components/image";
 
 type MemberType = {
@@ -305,7 +308,7 @@ type MemberType = {
   x_url: string;
 };
 
-function TeamMembers(props: HydrogenComponentProps) {
+function TeamMembers(props: WeaverseComponentProps) {
   const parent = useParentInstance();
   const { metaobjects }: OurTeamQuery = parent.data.loaderData || {};
   
@@ -442,10 +445,10 @@ A component that displays product reviews with ratings and filtering options.
 ```tsx
 // app/sections/ali-reviews/review-list.tsx
 import {
-  type HydrogenComponentProps,
-  type HydrogenComponentSchema,
+  type WeaverseComponentProps,
+  type WeaverseComponentSchema,
   useParentInstance,
-} from "@weaverse/hydrogen";
+} from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
 import { StarRating } from "~/components/star-rating";
 import type { AliReviewsLoaderData } from ".";
@@ -461,7 +464,7 @@ type AliReviewsProps = ReviewItemData & {
   showReviewWithMediaOnly: boolean;
 };
 
-function ReviewList(props: AliReviewsProps & HydrogenComponentProps) {
+function ReviewList(props: AliReviewsProps & WeaverseComponentProps) {
   const {
     children,
     showAvgRating,
@@ -617,11 +620,11 @@ A versatile component that combines images with text content in various layouts.
 
 ```tsx
 // app/sections/image-with-text/index.tsx
-import type { HydrogenComponentProps, HydrogenComponentSchema } from '@weaverse/hydrogen';
+import type { WeaverseComponentProps, WeaverseComponentSchema } from '@weaverse/hydrogen/react-router';
 import { ImageWithTextContent } from './content';
 import { ImageWithTextImage } from './image';
 
-interface ImageWithTextProps extends HydrogenComponentProps {
+interface ImageWithTextProps extends WeaverseComponentProps {
   imagePosition: 'left' | 'right';
   imageWidth: 'small' | 'medium' | 'large';
 }

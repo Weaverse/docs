@@ -10,12 +10,12 @@ published: true
   **Hydrogen only.** `@weaverse/next` has no equivalent; a Next.js storefront reads product options from its own route search params.
 </Note>
 
-`getSelectedProductOptions` delegates to Shopify Hydrogen's utility and removes Weaverse-only query parameters before returning product options.
+`getSelectedProductOptions` delegates to Shopify Hydrogen 2026.10's utility and removes Weaverse-only query parameters before returning product options.
 
 ## Import
 
 ```tsx
-import { getSelectedProductOptions } from '@weaverse/hydrogen'
+import { getSelectedProductOptions } from '@weaverse/hydrogen/react-router'
 ```
 
 ## Type
@@ -72,7 +72,8 @@ If the URL uses bracketed parameter names, those names remain bracketed:
 ## Loader Usage
 
 ```tsx
-import { getSelectedProductOptions } from '@weaverse/hydrogen'
+import { Cache } from '@shopify/hydrogen'
+import { getSelectedProductOptions } from '@weaverse/hydrogen/react-router'
 import type { LoaderFunctionArgs } from 'react-router'
 
 export async function loader({
@@ -82,14 +83,16 @@ export async function loader({
 }: LoaderFunctionArgs) {
   const selectedOptions = getSelectedProductOptions(request)
 
-  const { product } = await context.storefront.query(PRODUCT_QUERY, {
+  const { data, errors } = await context.storefront.graphql(PRODUCT_QUERY, {
     variables: {
       handle: params.handle,
       selectedOptions,
     },
+    cache: Cache.short(),
   })
+  if (errors?.length) throw new Error(errors[0].message)
 
-  return { product }
+  return { product: data?.product }
 }
 ```
 

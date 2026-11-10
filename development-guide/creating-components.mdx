@@ -47,10 +47,10 @@ Here's a simple component following modern React 19 patterns:
 
 ```tsx
 // app/sections/hero-banner/index.tsx
-import { createSchema } from "@weaverse/hydrogen";
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
 
-interface HeroBannerProps extends HydrogenComponentProps {
+interface HeroBannerProps extends WeaverseComponentProps {
   heading: string;
   description: string;
   buttonText: string;
@@ -167,14 +167,14 @@ export const schema = createSchema({
 
 ```tsx
 // app/weaverse/components.ts (or templates/pilot/app/weaverse/components.ts)
-import type { HydrogenComponent } from "@weaverse/hydrogen";
+import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 
 // Import your new component
 import * as HeroBanner from "~/sections/hero-banner";
 import * as ExistingComponent from "~/sections/existing-component";
 // ... other imports
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   // Add your component to the array
   HeroBanner,
   ExistingComponent,
@@ -199,7 +199,7 @@ import * as FeaturedProducts from "~/sections/featured-products";
 import * as ImageWithText from "~/sections/image-with-text";
 // ... many more imports
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   HeroImage,
   FeaturedProducts,
   ImageWithText,
@@ -219,7 +219,7 @@ export const components: HydrogenComponent[] = [
 // ✅ Add to components.ts and restart dev server
 import * as MyNewComponent from "~/sections/my-new-component";
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   MyNewComponent, // Add this line
   // ... existing components
 ];
@@ -310,9 +310,9 @@ settings: [
 Always define proper TypeScript interfaces:
 
 ```tsx
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
 
-interface MyComponentProps extends HydrogenComponentProps {
+interface MyComponentProps extends WeaverseComponentProps {
   // Define your component-specific props
   title: string;
   description?: string;
@@ -333,15 +333,15 @@ type helper that infers props from a schema. Declare an interface for the values
 your inputs produce and keep it in sync with the schema's `name` fields:
 
 ```tsx
-import { createSchema } from "@weaverse/hydrogen";
-import type { HydrogenComponentProps } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
+import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
 
 interface MyComponentData {
   heading: string;
   layout: "grid" | "list";
 }
 
-interface MyComponentProps extends HydrogenComponentProps, MyComponentData {}
+interface MyComponentProps extends WeaverseComponentProps, MyComponentData {}
 
 function MyComponent(props: MyComponentProps) {
   // Fully typed component
@@ -385,13 +385,15 @@ export const schema = createSchema({
 For components that need server-side data, export a loader function:
 
 ```tsx
-import type { ComponentLoaderArgs } from "@weaverse/hydrogen";
+import { Cache } from "@shopify/hydrogen";
+import type { WeaverseComponentLoaderArgs } from "@weaverse/hydrogen/react-router";
+import { unwrapStorefront } from "~/utils/storefront";
 
 interface FeaturedProductData {
   productHandle: string;
 }
 
-export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
+export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
@@ -399,14 +401,18 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: { handle: data.productHandle },
-  });
+  // `graphql()` returns `{ data, errors }` and has no default cache
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.productHandle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
 
-type FeaturedProductProps = HydrogenComponentProps<
+type FeaturedProductProps = WeaverseComponentProps<
   Awaited<ReturnType<typeof loader>>
 > & FeaturedProductData;
 
