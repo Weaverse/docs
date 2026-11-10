@@ -284,7 +284,7 @@ export const components: WeaverseComponent[] = [
 Add the new variables to the `Env` interface in `env.d.ts` so `context.env.*` is typed:
 
 ```ts {4-5}
-interface Env extends HydrogenEnv {
+interface Env extends WeaverseEnv { // inside `declare global` in Pilot
   // ...existing vars
   KLAVIYO_PRIVATE_API_TOKEN: string;
   CONTACT_FORM_RECIPIENT_EMAIL: string;

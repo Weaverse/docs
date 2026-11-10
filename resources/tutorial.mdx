@@ -19,7 +19,7 @@ This tutorial walks through building a modern Shopify Hydrogen storefront with v
 
 Before starting, ensure you have:
 
-- **Node.js 22.12 or newer** (required by the current Pilot project; check with `node --version`)
+- **Node.js 22.18+ or 24.11+** (required by the current Pilot project; check with `node --version`)
 - **Shopify store** (any plan, development store works fine)
 - **Basic knowledge** of React, TypeScript, and Shopify concepts
 - Time to configure your Shopify credentials, customize the theme, and deploy it
@@ -90,7 +90,7 @@ Before starting, ensure you have:
    
    # Optional - For customer accounts
    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-client-id"
-   PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://your-store.myshopify.com/api/2023-04/graphql"
+   SHOP_ID="your-numeric-shop-id"
    ```
 
    **Where to find these values:**
@@ -162,8 +162,9 @@ Let's create a customizable Hero Banner that showcases your products.
 2. **Add the Hero Banner component**:
    ```typescript
    // app/sections/hero-banner/index.tsx
-   import { Image } from '@shopify/hydrogen';
    import { createSchema } from '@weaverse/hydrogen/react-router';
+   // Hydrogen 2026.10 removed `Image`; Pilot ships a port of it
+   import { Image } from '~/components/image';
    import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 
    interface HeroBannerProps extends WeaverseComponentProps {
@@ -324,7 +325,8 @@ Let's enhance our Hero Banner to feature a specific product.
        return null;
      }
 
-     const { product } = await storefront.query(`
+     // `gql` and `Cache` come from `@shopify/hydrogen`
+     const { data } = await storefront.graphql(gql(`
        query GetProduct($handle: String!) {
          product(handle: $handle) {
            id
@@ -345,11 +347,12 @@ Let's enhance our Hero Banner to feature a specific product.
            }
          }
        }
-     `, {
-       variables: { handle }
+     `), {
+       variables: { handle },
+       cache: Cache.long(),
      });
 
-     return { product };
+     return { product: data?.product };
    }
    ```
 
@@ -431,15 +434,13 @@ Let's enhance our Hero Banner to feature a specific product.
        return null;
      }
 
-     const { product } = await storefront.query(
-       PRODUCT_QUERY,
-       {
-         variables: { handle },
-         cache: storefront.CacheLong(),
-       }
-     );
+     // `graphql()` returns `{ data, errors }` and has no default cache
+     const { data } = await storefront.graphql(PRODUCT_QUERY, {
+       variables: { handle },
+       cache: Cache.long(),
+     });
 
-     return { product };
+     return { product: data?.product };
    }
    ```
 

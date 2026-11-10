@@ -176,7 +176,7 @@ Instagram media URLs are signed CDN URLs that expire. A cache lifetime that work
 Use a short public cache with stale-while-revalidate, for example:
 
 ```ts
-const instagramCache = CacheCustom({
+const instagramCache = Cache({ // `Cache` from `@shopify/hydrogen`
   mode: "public",
   maxAge: 3600,
   staleWhileRevalidate: 43_200,

@@ -194,9 +194,11 @@ A component that displays a featured product with its details and purchase optio
 
 ```tsx
 // app/sections/featured-product/index.tsx
+import { Cache } from '@shopify/hydrogen';
 import type { WeaverseComponentLoaderArgs, WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 import { createSchema } from '@weaverse/hydrogen/react-router';
 import { PRODUCT_QUERY } from '~/graphql/queries';
+import { unwrapStorefront } from '~/utils/storefront';
 
 interface FeaturedProductData {
   productHandle: string;
@@ -210,11 +212,12 @@ export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductDa
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: {
-      handle: data.productHandle,
-    },
-  });
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.productHandle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
@@ -292,7 +295,7 @@ import {
   useParentInstance,
 } from "@weaverse/hydrogen/react-router";
 import { forwardRef } from "react";
-import type { OurTeamQuery } from "storefront-api.generated";
+import type { OurTeamQuery } from "."; // `StorefrontApi.ResultOf<typeof OUR_TEAM_QUERY>`, exported by the section
 import { Image } from "~/components/image";
 
 type MemberType = {
