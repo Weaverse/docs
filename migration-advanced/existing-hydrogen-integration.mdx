@@ -6,10 +6,15 @@ published: true
 
 This guide details how to integrate the Weaverse SDK into your **existing** Shopify Hydrogen project. By adding Weaverse, you empower your storefront with visual page building, theme customization through the Weaverse Studio, and access to a growing library of components, significantly speeding up development and content management.
 
+<Warning>
+  **This guide targets classic Hydrogen (2026.4 and earlier) with `@weaverse/hydrogen` 5.x.** Its samples use classic APIs such as `createHydrogenContext()` and `storefront.query()`, which Hydrogen 2026.10 removes. For a project on Hydrogen 2026.10, install `@weaverse/hydrogen` 6, create the `WeaverseClient` from the request's Storefront client, and import Weaverse from `@weaverse/hydrogen/react-router`: follow Steps 2 to 6 of the [v6 migration guide](/migration-advanced/v6-migration) and use [Pilot](https://github.com/Weaverse/pilot) as the reference.
+</Warning>
+
 <Note>
   **Weaverse v5 runs on React Router v7**, aligning with Shopify Hydrogen's React Router migration. See the current [Hydrogen updates](https://hydrogen.shopify.dev/updates), then pick the version that matches your Hydrogen setup:
 
-  - **Hydrogen on React Router v7** (2025.5.0 and newer): use `@weaverse/hydrogen@5` (latest)
+  - **Hydrogen 2026.10 and newer**: use `@weaverse/hydrogen@6` (latest), see the warning above
+  - **Hydrogen on React Router v7** (2025.5.0 to 2026.4): use `@weaverse/hydrogen@5`
   - **Hydrogen on Remix** (older releases): use `@weaverse/hydrogen@4` (legacy)
 
   Not sure which you have? Check `package.json` for `react-router` vs `@remix-run/react`.
@@ -37,12 +42,12 @@ If you're currently on Hydrogen with Remix and want to move to React Router v7, 
 
 Navigate to your Hydrogen project directory in your terminal and add the Weaverse Hydrogen SDK.
 
-### For Hydrogen with React Router v7 (Recommended)
+### For Classic Hydrogen on React Router v7 (2025.5 to 2026.4)
 
 ```bash
-npm install @weaverse/hydrogen@latest
+npm install @weaverse/hydrogen@5
 # or
-yarn add @weaverse/hydrogen@latest
+yarn add @weaverse/hydrogen@5
 ```
 
 ### For Hydrogen with Remix (Legacy — v4)
