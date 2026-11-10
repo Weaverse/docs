@@ -611,6 +611,10 @@ Need a specific audience instead of a random split? Pass your own `seed` (e.g. a
 
 #### Tracking exposure and segmenting downstream events
 
+<Warning>
+The sample below uses classic Hydrogen's `Analytics.Provider` and `useAnalytics` (Hydrogen 2026.4 and earlier). Hydrogen 2026.10 removes them: `ShopifyScripts` loads the analytics bus at `window.Shopify.analytics` instead (see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration)). On 2026.10, keep `<WeaverseExperiments>` around `<Outlet />` as shown, and publish exposure and variant data through that bus.
+</Warning>
+
 Integrate with Hydrogen's [`Analytics.Provider`](https://shopify.dev/docs/api/hydrogen/hooks/useanalytics) at two points. Passing assignments to `customData` makes the variant ride along on **every** event (`page_viewed`, `product_added_to_cart`, `purchase`, …) — that's how you measure conversion impact, not just impressions. `onExpose` adds a one-time impression event.
 
 ```tsx
