@@ -160,31 +160,37 @@ This approach allows you to create visually customizable pages using Weaverse's 
 
 ### Real-World Example: Pilot Template Pattern
 
-Pilot registers application and custom-page routes under an optional first segment, but that route parameter is not the market authority:
+Pilot registers application and custom-page routes under an optional first segment, but that route parameter is not the market authority. The page routes are wrapped in a `market-guard` layout route:
 
 ```ts
 // app/routes.ts (excerpt)
-...prefix(":locale?", [
-  index("routes/home.tsx"),
-  // …all concrete routes…
-  route("*", "routes/catch-all.tsx"),
+layout("routes/market-guard.ts", [
+  ...prefix(":locale?", [
+    index("routes/home.tsx"),
+    // …all concrete routes…
+    route("*", "routes/catch-all.tsx"),
+  ]),
 ]),
 ```
 
-Before React Router handles the request, the server rejects an exact locale-shaped prefix that is not in the canonical market table:
+Before any page loader serves content, the layout's loader rejects an exact locale-shaped prefix that is not in the canonical market table:
 
 ```typescript
-if (isUnsupportedMarketPath(new URL(request.url).pathname)) {
-  return new Response("Not Found", { status: 404 });
+// app/routes/market-guard.ts
+export function loader({ request }: LoaderFunctionArgs) {
+  if (isUnsupportedMarketPath(new URL(request.url).pathname)) {
+    throw new Response("page", { status: 404 });
+  }
+  return null;
 }
-
-return handleRequest(request);
 ```
+
+Because the guard sits below the root route, the root `ErrorBoundary` renders the regular 404 page with the header and footer. Resource routes get the same check from a second layout's middleware; see [Markets in the v6 migration guide](/migration-advanced/v6-migration#markets).
 
 This boundary makes the optional route safe:
 
 1. A configured prefix selects its exact Shopify and Weaverse market context.
-2. An invented prefix such as `/en-xx` returns 404 before any route can serve default-market content there.
+2. An invented prefix such as `/en-xx` returns 404 before any page route can serve default-market content there.
 3. Ordinary root-level handles such as `/about-us` or `/hi-india` continue to the Weaverse custom-page path.
 4. The catch-all loads custom pages with `loadPage({type: "CUSTOM"})`; it does not reinterpret arbitrary text as a locale.
 
@@ -193,6 +199,9 @@ Keep this request boundary and the canonical market table together. A regex alon
 ```typescript
 // Search page without Weaverse (from Pilot template)
 // app/routes/search/index.tsx — registered as route("search", "routes/search/index.tsx")
+// Hydrogen 2026.10 removed `Pagination`; Pilot ships a port
+import { Pagination } from "~/components/pagination";
+
 export default function Search() {
   const { searchTerm, products } = useLoaderData<typeof loader>();
   
@@ -229,7 +238,11 @@ export default function Account() {
 
 ## Basic Implementation
 
-Here's the standard pattern for implementing Weaverse page rendering in a React Router v7 route:
+Here's the standard pattern for implementing Weaverse page rendering in a React Router v7 route on Hydrogen 2026.10:
+
+<Note>
+Shopify data in these samples comes from Hydrogen 2026.10's `storefront.graphql()`, which takes a `gql()` document, fills `$country` and `$language` from the request, returns `{ data, errors }`, and has no default cache. `CACHE_DEFAULT`/`CACHE_LONG` (`~/utils/cache`) and `unwrapStorefront` (`~/utils/storefront`, throws on `errors`) are small Pilot helpers; see [Step 6 of the v6 migration guide](/migration-advanced/v6-migration#step-6-move-queries-to-the-new-graphql-client).
+</Note>
 
 ### 1. Route Loader
 
@@ -237,6 +250,8 @@ Here's the standard pattern for implementing Weaverse page rendering in a React 
 // app/routes/products/product.tsx
 // Registered in app/routes.ts — see the note in Supported Page Types above.
 import type { LoaderFunctionArgs } from "react-router";
+import { CACHE_DEFAULT } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 import { validateWeaverseData } from "~/weaverse";
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
@@ -245,9 +260,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   // Load both Shopify data and Weaverse page data in parallel
   const [productData, weaverseData] = await Promise.all([
-    storefront.query(PRODUCT_QUERY, {
-      variables: { handle: productHandle }
-    }),
+    storefront
+      .graphql(PRODUCT_QUERY, { variables: { handle: productHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "PRODUCT",
       handle: productHandle,
@@ -295,9 +310,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   
   const [{ product }, weaverseData] = await Promise.all([
-    storefront.query(PRODUCT_QUERY, {
-      variables: { handle: productHandle }
-    }),
+    storefront
+      .graphql(PRODUCT_QUERY, { variables: { handle: productHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "PRODUCT",
       handle: productHandle,
@@ -318,9 +333,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   
   const [{ collection }, weaverseData] = await Promise.all([
-    storefront.query(COLLECTION_QUERY, {
-      variables: { handle: collectionHandle }
-    }),
+    storefront
+      .graphql(COLLECTION_QUERY, { variables: { handle: collectionHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "COLLECTION",
       handle: collectionHandle,
@@ -341,9 +356,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   
   const [{ page }, weaverseData] = await Promise.all([
-    storefront.query(PAGE_QUERY, {
-      variables: { handle: pageHandle }
-    }),
+    storefront
+      .graphql(PAGE_QUERY, { variables: { handle: pageHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "PAGE",
       handle: pageHandle,
@@ -364,9 +379,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
   
   const [{ blog }, weaverseData] = await Promise.all([
-    storefront.query(BLOG_QUERY, {
-      variables: { handle: blogHandle }
-    }),
+    storefront
+      .graphql(BLOG_QUERY, { variables: { handle: blogHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "BLOG",
       handle: blogHandle,
@@ -395,7 +410,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   }
   
   const [{ shop }, weaverseData] = await Promise.all([
-    storefront.query(SHOP_QUERY),
+    storefront.graphql(SHOP_QUERY, { cache: CACHE_LONG }).then(unwrapStorefront),
     weaverse.loadPage({ type }),
   ]);
   
@@ -448,9 +463,9 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   // Load both Shopify page data and Weaverse page data in parallel
   const [{ page }, weaverseData] = await Promise.all([
-    storefront.query(PAGE_QUERY, {
-      variables: { handle: pageHandle }
-    }),
+    storefront
+      .graphql(PAGE_QUERY, { variables: { handle: pageHandle }, cache: CACHE_DEFAULT })
+      .then(unwrapStorefront),
     weaverse.loadPage({
       type: "PAGE",
       handle: pageHandle,
@@ -540,13 +555,13 @@ Always load Weaverse data in parallel with other API calls:
 ```typescript
 // ✅ Good: Parallel loading
 const [shopifyData, weaverseData, reviewsData] = await Promise.all([
-  storefront.query(PRODUCT_QUERY, { variables }),
+  storefront.graphql(PRODUCT_QUERY, { variables, cache: CACHE_DEFAULT }),
   weaverse.loadPage({ type: "PRODUCT", handle }),
   getProductReviews(handle),
 ]);
 
 // ❌ Bad: Sequential loading
-const shopifyData = await storefront.query(PRODUCT_QUERY, { variables });
+const shopifyData = await storefront.graphql(PRODUCT_QUERY, { variables, cache: CACHE_DEFAULT });
 const weaverseData = await weaverse.loadPage({ type: "PRODUCT", handle });
 const reviewsData = await getProductReviews(handle);
 ```

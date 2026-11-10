@@ -33,22 +33,25 @@ The exact allowlist also handles React Router single-fetch paths. An invented ma
 
 ### Resolve Context Once
 
-After selecting the market, create the Hydrogen Storefront context from that entry. Every Storefront API query then receives the active country and language through Shopify's context instead of repeating variables in each loader.
+After selecting the market, create the request's Hydrogen 2026.10 Storefront client from that entry: its `i18n` goes into `createShopifyRequestContext()`. Every `storefront.graphql()` query then receives the active country and language from the request context instead of repeating variables in each loader.
 
-Use the public market identity for Weaverse localized content and Translation Manager. Shopify and Weaverse can require different language identities for the same market—for example, Shopify may require a script-specific enum while the public locale remains `zh-tw`. Store provider-specific values on the market entry and derive both contexts from it:
+Use the public market identity for Weaverse localized content and Translation Manager. Shopify and Weaverse can require different language identities for the same market—for example, Shopify may require a script-specific enum while the public locale remains `zh-tw`. Store provider-specific values on the market entry and derive both from it. Since `@weaverse/hydrogen` 6.1.0, pass the public identity to `WeaverseClient` as `locale`:
 
 ```typescript
-const market = resolveLocaleFromRequest(request);
+const market = resolveRequestLocale(request); // the configured market entry
 
-const hydrogenContext = createHydrogenContext({
-  // ...request, env, cache, session
-  i18n: providerContextForRequest(request), // Shopify provider identity
-});
+// Shopify provider identity (`ZH_TW`), via createShopifyRequestContext({ i18n })
+const storefront = createRequestStorefront({ request, env, cache, waitUntil });
 
 const weaverse = new WeaverseClient({
-  ...hydrogenContext,
-  storefront: weaverseStorefront(hydrogenContext.storefront, market),
-  // Weaverse receives the public market identity
+  storefront,
+  env,
+  cache,
+  waitUntil,
+  request,
+  themeSchema,
+  components,
+  locale: market, // Weaverse receives the public market identity (`zh-tw`)
 });
 ```
 

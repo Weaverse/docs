@@ -67,9 +67,9 @@ Pilot uses React Router 7's manual route registry. Adding a file under `app/rout
 
 In multilingual storefronts, the first segment of the URL may be a locale (e.g., `/en-us`) or a custom page handle. For a one-segment URL such as `/about`, React Router matches Pilot's index route inside the optional `:locale?` prefix. `routes/home.tsx` checks whether that segment is a supported locale; when it is not, the loader requests a `CUSTOM` page instead of the homepage.
 
-Pilot handles this in `app/.server/context.ts`: `getLocaleFromRequest()` only treats the first path segment as a locale when it matches an entry in `COUNTRIES`; otherwise the default locale is used and the segment stays part of the custom page path.
+Pilot handles this in `app/utils/locale.ts`: `resolveLocale()` only treats the first path segment as a locale when it matches an entry in `SUPPORTED_LOCALES`; otherwise the default locale is used and the segment stays part of the custom page path. `app/.server/storefront.ts` uses it to build the Storefront client's `i18n` for each request.
 
-> **Best Practice:** Keep your supported-locale list (`COUNTRIES`) as the single source of truth. Anything not in it is a custom page handle — you don't need per-route locale sniffing.
+> **Best Practice:** Keep your supported-locale list (`SUPPORTED_LOCALES`) as the single source of truth. Anything not in it is a custom page handle — you don't need per-route locale sniffing.
 
 ### The Home and Catch-All Routes
 
