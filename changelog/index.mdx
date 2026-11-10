@@ -16,6 +16,27 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Agent index**: [weaverse.io/llms.txt](https://weaverse.io/llms.txt) now covers SDK v6, Next.js and the Forward theme, and agents that request Markdown from the homepage now receive the full index.
 </Update>
 
+<Update label="Pilot v2026.11.10" description="November 10, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Collection filters on Hydrogen's collection store**: Collection and all-products filters and sort run on Hydrogen 2026.10's collection store, so checked filters update instantly and follow back and forward navigation. URLs use Liquid-compatible params (`filter.p.*`, `filter.v.*`, `sort_by`), and older filter links redirect to them.
+  - **Prices in each market's format**: Prices, including compare-at prices, follow each market's locale, such as `1.234,50 €` in Germany. English-language markets abroad, such as `/en-de`, format prices like their country, and the collection price filter shows the market's currency.
+  - **Market translations**: Markets whose Shopify language differs from their public locale, such as Traditional Chinese in Hong Kong, get their Weaverse translations.
+
+  #### Fixes
+
+  - **Search**: Pressing Enter in the header search opens the results page without a full reload, and the search page has a submit button.
+  - **Account icon**: The header account icon no longer flickers or shifts the header while the page loads.
+
+  #### Upgrade
+
+  Breaking for themes built on Pilot: forks that build collection filter URLs or parse rendered price strings should check them. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.10)
+</Update>
+
 <Update label="SDK v6.1.1" description="November 10, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
