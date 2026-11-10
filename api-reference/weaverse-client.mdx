@@ -10,42 +10,46 @@ published: true
 
 ## Initialization
 
-Create the client in your app load context:
+Create the client once per request in your app context, from the request's Hydrogen 2026.10 Storefront API client. Pilot does this in `app/.server/context.ts`:
 
 ```tsx
 import { WeaverseClient } from '@weaverse/hydrogen/react-router'
 
-export async function createAppLoadContext(
+export async function createAppContext(
   request: Request,
   env: Env,
   executionContext: ExecutionContext
 ) {
-  const hydrogenContext = createHydrogenContext({
+  const waitUntil = executionContext.waitUntil.bind(executionContext)
+  const [cache, session] = await Promise.all([
+    caches.open('hydrogen'),
+    AppSession.init(request, [env.SESSION_SECRET]),
+  ])
+  const storefront = createRequestStorefront({ request, env, cache, waitUntil })
+  const customerAccount = createCustomerAccount({ env, request, session, storefront })
+
+  const weaverse = new WeaverseClient({
+    storefront,
     env,
-    request,
     cache,
     waitUntil,
-    session,
-    i18n: getLocaleFromRequest(request),
-    cart: { queryFragment: CART_QUERY_FRAGMENT },
+    request,
+    customerAccount, // Optional: passed through to section loaders
+    themeSchema,
+    components,
+    // Optional: the market's public locale, when it differs from `storefront.i18n`
+    locale: resolveRequestLocale(request),
+    // Optional: override env-based project resolution
+    projectId: env.WEAVERSE_PROJECT_ID,
+    // Optional: request timeout in milliseconds
+    fetchTimeoutMs: 10_000,
   })
 
-  return {
-    ...hydrogenContext,
-    weaverse: new WeaverseClient({
-      ...hydrogenContext,
-      request,
-      cache,
-      themeSchema,
-      components,
-      // Optional: override env-based project resolution
-      projectId: env.WEAVERSE_PROJECT_ID,
-      // Optional: request timeout in milliseconds
-      fetchTimeoutMs: 10_000,
-    }),
-  }
+  return { env, cache, waitUntil, session, storefront, customerAccount, weaverse }
 }
 ```
+
+`createRequestStorefront`, `createCustomerAccount`, `AppSession` and `resolveRequestLocale` are app code; see [Step 4 of the v6 migration guide](/migration-advanced/v6-migration#step-4-build-the-app-context-yourself). `server.ts` copies the returned object onto React Router's context, so loaders read `context.weaverse`.
 
 See the [Project Structure guide](/core-concepts/project-structure#base-files-explained) for the complete setup.
 
@@ -67,7 +71,6 @@ class WeaverseClient {
   request: WeaverseClientArgs['request']
   components: WeaverseClientArgs['components']
   themeSchema: WeaverseClientArgs['themeSchema']
-  withCache: ReturnType<typeof createWithCache>
 
   fetchWithCache<T>(
     url: string,
@@ -80,15 +83,24 @@ class WeaverseClient {
   generateFallbackPage(message: string): WeaversePageData
 }
 
-type WeaverseClientArgs = HydrogenContext & {
+type WeaverseClientArgs = {
+  storefront: WeaverseStorefront // Hydrogen 2026.10 Storefront API client
+  locale?: WeaverseI18n // defaults to `storefront.i18n`
+  env: WeaverseEnv
+  waitUntil?: (promise: Promise<unknown>) => void
+  customerAccount?: unknown
   components: WeaverseComponent[]
   themeSchema: WeaverseThemeSchema
   request: Request
   cache: Cache
   projectId?: string | (() => string) | (() => Promise<string>)
   fetchTimeoutMs?: number
+  throwPageLoadFailures?: boolean
 }
 ```
+
+- `locale` selects the content locale, the Translation Manager overrides (`${language}-${country}`, lowercased) and the locale Studio reads, so include `pathPrefix`. Pass it when the Storefront client's `i18n.language` is a Shopify `LanguageCode` that differs from the market's public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market. Added in `@weaverse/hydrogen` 6.1.0.
+- `throwPageLoadFailures: true` makes `loadPage()` reject with a `WeaverseLoadError` when the content API is unavailable, instead of resolving to `null`, so a route can answer an outage differently from a missing page.
 
 `API` is the current API version segment (`'v1'`), not a complete endpoint URL.
 
@@ -191,7 +203,7 @@ When omitted, the content service resolves the page from the request URL and pro
 
 #### `locale`
 
-An optional BCP 47 locale override such as `en-US`, `sv-SE`, or `fr-CA`. The value is forwarded unchanged. When omitted, the request uses `context.storefront.i18n`; `loadPage()` does not implement its own URL-prefix detection or `en-us` fallback.
+An optional BCP 47 locale override such as `en-US`, `sv-SE`, or `fr-CA`. The value is forwarded unchanged. When omitted, the request uses the client's `locale` argument, or `storefront.i18n` when that isn't set; `loadPage()` does not implement its own URL-prefix detection or `en-us` fallback.
 
 #### `handle`
 
@@ -203,7 +215,7 @@ Overrides the client's resolved project ID for this request. Constructor-level `
 
 #### `strategy`
 
-A Hydrogen `CachingStrategy`, for example:
+A Hydrogen `CachingStrategy` (create one with `Cache` from `@shopify/hydrogen`), for example:
 
 ```typescript
 strategy: {

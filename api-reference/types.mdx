@@ -10,7 +10,7 @@ published: true
 > **Agent note:** On `SchemaType` (alias `WeaverseComponentSchema`), `inspector` and `enabledOn` are deprecated. Generate `settings` instead of `inspector`. Do not add `enabledOn` to new components, except `enabledOn.groups` with `'body'` or `'*'` on a component that is used both as a top-level section and as a child.
 </Visibility>
 
-This page summarizes the primary public types exported by `@weaverse/hydrogen` and `@weaverse/schema`.
+This page summarizes the primary public types exported by `@weaverse/hydrogen` (import them from `@weaverse/hydrogen/react-router`) and `@weaverse/schema`.
 
 ## Component Types
 
@@ -226,7 +226,7 @@ its own picker — see [Filtering the Media Manager gallery](/development-guide/
 
 ### `ThemeRoutes` and `ThemeRoutePageType`
 
-Exported by `@weaverse/schema` 0.18.0+ and re-exported by `@weaverse/hydrogen` and `@weaverse/next`:
+Exported by `@weaverse/schema` 0.18.0+ and re-exported by `@weaverse/next`. `@weaverse/hydrogen` 6 doesn't re-export them; import them from `@weaverse/schema`:
 
 ```typescript
 type ThemeRoutePageType = Exclude<PageType, '*' | 'CUSTOM'>
@@ -253,7 +253,7 @@ type PageType =
 
 ## Component Availability
 
-The canonical types are exported by `@weaverse/schema` and re-exported by `@weaverse/hydrogen`:
+The canonical types are exported by `@weaverse/schema`. `@weaverse/hydrogen` 6 re-exports only `createSchema`, `SchemaType`, `BasicInput`, `InspectorGroup` and `PageType` from it:
 
 ```typescript
 interface ComponentAvailabilityContext {
@@ -291,7 +291,7 @@ const schema = createSchema({
 ## Internationalization
 
 ```typescript
-type WeaverseI18n = I18nBase & {
+type WeaverseI18n = I18nConfig & { // `I18nConfig` from `@shopify/hydrogen`
   label?: string
   pathPrefix?: string
   [key: string]: any
@@ -302,6 +302,7 @@ type WeaverseI18n = I18nBase & {
 
 ```tsx
 import type { Ref } from 'react'
+import { Cache, gql } from '@shopify/hydrogen'
 import {
   createSchema,
   type WeaverseComponentLoaderArgs,
@@ -359,15 +360,22 @@ const schema = createSchema({
   ],
 })
 
+const FEATURED_PRODUCTS_QUERY = gql(`
+  query featuredProducts($country: CountryCode, $language: LanguageCode)
+  @inContext(country: $country, language: $language) {
+    products(first: 4) { nodes { id title } }
+  }
+`)
+
 async function loader({
   weaverse,
 }: WeaverseComponentLoaderArgs): Promise<HeroLoaderData> {
-  const { products } = await weaverse.storefront.query(
-    'FEATURED_PRODUCTS_QUERY'
-  )
+  const { data } = await weaverse.storefront.graphql(FEATURED_PRODUCTS_QUERY, {
+    cache: Cache.short(),
+  })
 
   return {
-    featuredProducts: products.nodes,
+    featuredProducts: data?.products.nodes ?? [],
   }
 }
 
@@ -377,25 +385,24 @@ export { loader, schema }
 
 ## Type Extensions
 
-A Hydrogen app can augment its load context and environment:
+A Hydrogen app augments its load context and environment in `env.d.ts`. Hydrogen 2026.10 has no `HydrogenEnv`, so `Env` extends the SDK's `WeaverseEnv`, and the context type comes from the app's own `createAppContext()` (see the [v6 migration guide](/migration-advanced/v6-migration#step-4-build-the-app-context-yourself)):
 
 ```typescript
-import type { HydrogenEnv } from '@shopify/hydrogen'
-import type { WeaverseClient } from '@weaverse/hydrogen/react-router'
-import type { createHydrogenRouterContext } from './app/.server/context'
+import type { WeaverseEnv } from '@weaverse/hydrogen/react-router'
+import type { AppContext } from './app/.server/context' // includes `weaverse: WeaverseClient`
 
 declare module 'react-router' {
-  interface AppLoadContext
-    extends Awaited<ReturnType<typeof createHydrogenRouterContext>> {
-    weaverse: WeaverseClient
-  }
+  interface AppLoadContext extends AppContext {}
+  interface RouterContextProvider extends AppContext {}
 }
 
 declare global {
-  interface Env extends HydrogenEnv {
+  interface Env extends WeaverseEnv {
+    SESSION_SECRET: string
+    PUBLIC_STORE_DOMAIN: string
     WEAVERSE_PROJECT_ID: string
     WEAVERSE_HOST?: string
-    WEAVERSE_API_KEY: string
+    WEAVERSE_API_KEY?: string
   }
 }
 ```
