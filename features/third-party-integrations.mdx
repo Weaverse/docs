@@ -130,6 +130,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
 
    ```tsx
    // app/sections/api-widget/index.tsx
+   import { Cache } from '@shopify/hydrogen'
    import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
    import { createSchema } from '@weaverse/hydrogen/react-router'
    import { forwardRef } from 'react'
@@ -141,7 +142,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
    }
 
    export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ApiWidgetData>) => {
-     const { fetchWithCache, env, storefront } = weaverse
+     const { fetchWithCache, env } = weaverse
      const { resourceId, itemsToShow = 5 } = data
 
      if (!resourceId) return { items: [] }
@@ -154,8 +155,8 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
              'Authorization': ['Bearer', env.THIRD_PARTY_API_KEY].join(' '),
              'Content-Type': 'application/json'
            },
-           // Use Hydrogen's caching to optimize performance
-           strategy: storefront.CacheShort()
+           // Use Hydrogen's caching (`Cache` from `@shopify/hydrogen`)
+           strategy: Cache.short()
          }
        )
      } catch (error) {
@@ -397,11 +398,11 @@ Prevent rate limit issues by implementing proper caching:
 
 ```tsx
 export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
-  const { fetchWithCache, storefront } = weaverse
+  const { fetchWithCache } = weaverse
   
   return await fetchWithCache('https://rate-limited-api.example.com/data', {
     // Use longer cache times for rate-limited APIs
-    strategy: storefront.CacheCustom({
+    strategy: Cache({
       maxAge: 600, // 10 minutes
       staleWhileRevalidate: 3600, // 1 hour
       staleIfError: 86400 // 1 day - use stale data on errors
@@ -454,18 +455,13 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Widge
   const { storefront, fetchWithCache } = weaverse
   const { productId } = data
   
-  // First get the product data from Shopify
-  const { product } = await storefront.query(`
-    query Product($id: ID!) {
-      product(id: $id) {
-        id
-        title
-        updatedAt
-      }
-    }
-  `, {
-    variables: { id: productId }
+  // First get the product data from Shopify (PRODUCT_QUERY is a `gql()` document)
+  const { data: productData } = await storefront.graphql(PRODUCT_QUERY, {
+    variables: { id: productId },
+    cache: Cache.short(),
   })
+  const product = productData?.product
+  if (!product) return { product: null, externalData: null }
   
   // Then get related data from third-party
   const externalData = await fetchWithCache(
@@ -492,17 +488,19 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Widge
 The choice of caching strategy depends on how frequently your third-party data changes:
 
 ```tsx
+import { Cache } from '@shopify/hydrogen'
+
 // For rarely changing data (e.g., product descriptions)
-strategy: storefront.CacheLong()
+strategy: Cache.long()
 
 // For frequently changing data (e.g., inventory, prices)
-strategy: storefront.CacheShort()
+strategy: Cache.short()
 
 // For personalized or dynamic content
-strategy: storefront.CacheNone()
+strategy: Cache.none()
 
 // For custom requirements
-strategy: storefront.CacheCustom({
+strategy: Cache({
   maxAge: 300, // 5 minutes
   staleWhileRevalidate: 1800, // 30 minutes
   staleIfError: 86400, // 1 day

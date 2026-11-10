@@ -445,7 +445,7 @@ query Product(
 }
 ```
 
-When executing queries in your route loaders (`context.storefront.query(...)`), Hydrogen passes the correct language prefix automatically (e.g., `/fr/products/hoodie`), so Shopify returns translated strings natively and your Weaverse sections simply render `product.title`.
+When executing queries in your route loaders (`context.storefront.graphql(...)`), Hydrogen fills `$language` and `$country` from the request's market automatically (e.g., for `/fr/products/hoodie`), so Shopify returns translated strings natively and your Weaverse sections simply render `product.title`.
 
 ## Programmatic access (coming)
 

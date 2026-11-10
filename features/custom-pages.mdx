@@ -284,18 +284,20 @@ For complex multi-market scenarios, use the multi-project approach:
 
 ```tsx
 // app/.server/context.ts
-export async function createHydrogenRouterContext(
+export async function createAppContext(
   request: Request,
   env: Env,
   executionContext: ExecutionContext,
 ) {
-  // …cache/session setup…
-  const hydrogenContext = createHydrogenContext({ /* … */ }, additionalContext);
+  // …cache, session, storefront and customerAccount setup…
 
   const weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
+    storefront,
+    env,
     cache,
+    waitUntil,
+    request,
+    customerAccount,
     themeSchema,
     components,
     projectId: () => {
@@ -312,12 +314,8 @@ export async function createHydrogenRouterContext(
     },
   });
 
-  // Attach `weaverse` to the existing context instance instead of spreading it
-  // into a new object — spreading would discard the RouterContextProvider
-  // class instance React Router 7 expects.
-  Object.assign(hydrogenContext, { weaverse });
-
-  return hydrogenContext;
+  // `server.ts` copies this plain object onto React Router's context
+  return { env, cache, waitUntil, session, storefront, customerAccount, weaverse };
 }
 
 // app/routes/pages/about.tsx

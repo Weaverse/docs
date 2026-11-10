@@ -17,7 +17,7 @@ Shopify's cookie consent system consists of two parts:
 1. **Customer Privacy API** (`consent-tracking-api.js`) — Manages visitor consent state and cookies
 2. **Privacy Banner** (`storefront-banner.js`) — The visible UI that collects consent from visitors
 
-In a Hydrogen storefront, these scripts are loaded by the `<Analytics.Provider>` component. The banner's appearance and behavior (text, regions, position) are configured in **Shopify Admin** under **Settings → Customer privacy**.
+In a Hydrogen 2026.10 storefront, these scripts are loaded by the `<ShopifyScripts>` component from `@shopify/hydrogen/react`, which replaces classic Hydrogen's `<Analytics.Provider>`. The banner's appearance and behavior (text, regions, position) are configured in **Shopify Admin** under **Settings → Customer privacy**.
 
 <Note>
   The banner configuration (text, regions, theme) is managed entirely in Shopify Admin — not in your Hydrogen code. Your code only needs to pass the correct credentials.
@@ -27,101 +27,111 @@ In a Hydrogen storefront, these scripts are loaded by the `<Analytics.Provider>`
 
 ### Step 1: Configure the Consent Object in Your Root Loader
 
-In your root loader's critical data function (typically `app/.server/root.ts`), include a `consent` object with the required fields:
+In your root loader's critical data function (typically `app/.server/root.ts`), return the consent mode, the public Storefront API token, and the `shop` and `i18n` props for `ShopifyScripts`. Keep them per market, never per shopper, so the document stays cacheable:
 
 ```typescript
-import { getShopAnalytics } from "@shopify/hydrogen";
-
-export async function loadCriticalData({ request, context }: LoaderFunctionArgs) {
+export async function loadCriticalData({ context }: LoaderFunctionArgs) {
   const { storefront, env } = context;
+  const storefrontId = env.PUBLIC_STOREFRONT_ID || "";
 
   return {
     // ... other data
-    shop: getShopAnalytics({
-      storefront,
-      publicStorefrontId: env.PUBLIC_STOREFRONT_ID,
-    }),
+    shopifyScripts: {
+      shop: {
+        shopId: env.SHOP_ID, // or the Shop GID from a Storefront API query
+        storefrontId,
+        myshopifyDomain: env.PUBLIC_STORE_DOMAIN,
+      },
+      // Localizes the banner based on the visitor's market
+      i18n: {
+        country: storefront.i18n.country,
+        language: storefront.i18n.language,
+        pathPrefix: storefront.i18n.pathPrefix,
+        currency: storefront.i18n.currency,
+      },
+      channel: storefrontId ? "hydrogen" : "headless",
+      shopifyAnalytics: storefrontId !== "",
+    },
     consent: {
-      checkoutDomain: env.PUBLIC_CHECKOUT_DOMAIN,
+      // Shopify's hosted privacy banner (classic `withPrivacyBanner: true`)
+      mode: "default-banner",
       storefrontAccessToken: env.PUBLIC_STOREFRONT_API_TOKEN,
-      withPrivacyBanner: true,
-      // Localize the banner based on the visitor's market
-      country: storefront.i18n.country,
-      language: storefront.i18n.language,
     },
   };
 }
 ```
 
+`storefront.i18n.currency` is set by your Storefront client's request context; see Pilot's [`app/.server/root.ts`](https://github.com/Weaverse/pilot/blob/main/app/.server/root.ts) for the full version.
+
 <Warning>
   The `storefrontAccessToken` must be your **public** Storefront API token (32 characters). Never use a private/admin API token (starts with `shpat_`).
 </Warning>
 
-### Step 2: Pass Consent to Analytics.Provider
+### Step 2: Render ShopifyScripts With the Consent Mode
 
-In your root layout (`app/root.tsx`), pass the `consent` object to Shopify's `<Analytics.Provider>`:
-
-```tsx
-import { Analytics } from "@shopify/hydrogen";
-
-export function RootLayout({ children }: { children: React.ReactNode }) {
-  const data = useRouteLoaderData<RootLoader>("root");
-
-  return (
-    <html>
-      <body>
-        {data ? (
-          <Analytics.Provider
-            cart={data.cart}
-            shop={data.shop}
-            consent={data.consent}
-          >
-            {/* Your app content */}
-          </Analytics.Provider>
-        ) : (
-          children
-        )}
-      </body>
-    </html>
-  );
-}
-```
-
-### Step 3: Pre-initialize the Storefront Access Token
-
-This is the **critical step** that most setups miss. The banner script (`storefront-banner.js`) loads and self-initializes before React hydrates. It looks for `window.Shopify.storefrontAccessToken` to authenticate with the Storefront API — but in Hydrogen, this value is normally only available after hydration.
-
-**You must inject the token in an inline script** so it's available before the banner script executes:
+In your root layout (`app/root.tsx`), render `<ShopifyScripts>` first in `<head>` and pass the consent mode:
 
 ```tsx
-export function RootLayout({ children }: { children: React.ReactNode }) {
+import { ShopifyScripts } from "@shopify/hydrogen/react";
+import { useNavigate, useRouteLoaderData } from "react-router";
+import { useNonce } from "~/utils/csp";
+import { routeTemplates } from "~/utils/route-templates";
+
+export function Layout({ children }: { children: React.ReactNode }) {
   const nonce = useNonce();
+  const navigate = useNavigate();
   const data = useRouteLoaderData<RootLoader>("root");
 
   return (
     <html>
       <head>
-        {/* Pre-initialize Shopify object with access token */}
-        <script
-          nonce={nonce}
-          suppressHydrationWarning
-          dangerouslySetInnerHTML={{
-            __html: `window.Shopify = window.Shopify || {};${
-              data?.consent?.storefrontAccessToken
-                ? ` window.Shopify.storefrontAccessToken = "${data.consent.storefrontAccessToken}";`
-                : ""
-            }`,
-          }}
-        />
+        {/* Step 3 */}
+        {data ? (
+          <ShopifyScripts
+            nonce={nonce}
+            shop={data.shopifyScripts.shop}
+            i18n={data.shopifyScripts.i18n}
+            analytics={{ channel: data.shopifyScripts.channel }}
+            shopifyAnalytics={data.shopifyScripts.shopifyAnalytics}
+            consent={{ mode: data.consent.mode }}
+            routes={routeTemplates}
+            navigate={navigate}
+          />
+        ) : null}
       </head>
-      <body>{/* ... */}</body>
+      <body>{children}</body>
     </html>
   );
 }
 ```
 
+`useNonce` comes from your theme's CSP helpers (see [Content Security Policy](/features/content-security)), and `routeTemplates` from `createShopifyRouteTemplates()`; see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration).
+
+### Step 3: Expose the Storefront Access Token to the Banner
+
+This is the **critical step** that most setups miss. The banner script (`storefront-banner.js`) loads and self-initializes before React hydrates, and needs your public Storefront API token to authenticate with the Storefront API.
+
+**Render the token in a `#shopify-features` JSON script in `<head>`**, before `<ShopifyScripts>`, so it's available before the banner script executes:
+
+```tsx
+<head>
+  {/* storefront-banner.js reads the public token from this tag */}
+  <script
+    id="shopify-features"
+    type="application/json"
+    suppressHydrationWarning
+    dangerouslySetInnerHTML={{
+      __html: JSON.stringify({
+        accessToken: data?.consent?.storefrontAccessToken ?? "",
+      }),
+    }}
+  />
+  {/* <ShopifyScripts ... /> from Step 2 */}
+</head>
+```
+
 <Tip>
-  The `suppressHydrationWarning` attribute is needed because this script's output differs between server and client renders, which is expected and harmless.
+  The `suppressHydrationWarning` attribute is needed because this script's output can differ between server and client renders, which is expected and harmless.
 </Tip>
 
 ### Step 4: Configure the Banner in Shopify Admin
@@ -166,10 +176,9 @@ This is useful for testing during development. Without this parameter, the banne
 
 Use this checklist to verify your setup:
 
-- `consent.withPrivacyBanner` is set to `true` in the root loader
+- `consent.mode` is `"default-banner"` in the root loader and reaches `<ShopifyScripts consent={{ mode }}>`
 - `storefrontAccessToken` is a valid 32-character public token
-- `checkoutDomain` is correctly set
-- `window.Shopify.storefrontAccessToken` is injected via inline `<script>` in `<head>`
+- The `#shopify-features` script with the token is rendered in `<head>` before `<ShopifyScripts>`
 - Banner appears with `?preview_privacy_banner=1`
 - Banner appears for visitors in configured regions (without preview param)
 - Accepting/declining sets the `_tracking_consent` cookie
@@ -194,9 +203,9 @@ window.Shopify.customerPrivacy.currentVisitorConsent()
 
 ### "Error initializing banner: Missing access token"
 
-**Cause:** The banner script loaded before `window.Shopify.storefrontAccessToken` was set.
+**Cause:** The banner script loaded without finding the public Storefront API token.
 
-**Fix:** Add the inline `<script>` in Step 3 to pre-initialize the token in `<head>` before the banner script loads.
+**Fix:** Add the `#shopify-features` script in Step 3 to `<head>`, before `<ShopifyScripts>`.
 
 ### "Could not find liquid access token"
 
@@ -208,13 +217,13 @@ window.Shopify.customerPrivacy.currentVisitorConsent()
 
 **Cause:** The banner's `init()` function failed silently because it couldn't find the access token during initial load. With `?preview_privacy_banner=1`, the script forces initialization and bypasses this check.
 
-**Fix:** Ensure Step 3 is implemented — the inline script must inject `window.Shopify.storefrontAccessToken` before React hydrates.
+**Fix:** Ensure Step 3 is implemented — the `#shopify-features` script must carry the token in the server-rendered HTML, before React hydrates.
 
 ### `window.Shopify.customerPrivacy` is null
 
 **Cause:** The banner script failed to initialize, which means it never set up the Customer Privacy API. This prevents the banner from showing and analytics consent from working.
 
-**Fix:** This is almost always caused by the missing access token. Follow Step 3.
+**Fix:** This is almost always caused by the missing access token (follow Step 3), or by a CSP nonce that doesn't reach `<ShopifyScripts>`. Check the console for CSP violations.
 
 ### Banner Doesn't Show for Specific Regions
 
@@ -233,21 +242,20 @@ window.Shopify.customerPrivacy.currentVisitorConsent()
 Understanding the initialization sequence helps with debugging:
 
 ```
-1. Server renders HTML with inline <script>:
-   window.Shopify = {}
-   window.Shopify.storefrontAccessToken = "abc123..."
+1. Server renders HTML with:
+   <script id="shopify-features">{"accessToken":"abc123..."}</script>
+   <ShopifyScripts consent={{ mode: "default-banner" }} ... />
 
 2. Browser loads storefront-banner.js (from Shopify CDN)
-   → Finds window.Shopify.storefrontAccessToken ✓
+   → Finds the public access token ✓
    → Calls Storefront API to get consent cookies
    → Calls Storefront API to get banner configuration
    → Sets window.Shopify.customerPrivacy
    → Sets window.privacyBanner
 
-3. React hydrates → Analytics.Provider mounts
-   → useCustomerPrivacy hook detects both APIs loaded
-   → Calls privacyBanner.loadBanner(config)
+3. ShopifyScripts loads the banner for the market in its i18n prop
    → Banner renders with correct localization
+   → The analytics bus (window.Shopify.analytics) follows consent
 
 4. Visitor interacts with banner
    → Consent collected → _tracking_consent cookie set

@@ -100,6 +100,8 @@ Many themes serve both the real homepage (`type: "INDEX"`) **and** root-level CU
 
 ```tsx
 import type { PageType } from "@weaverse/hydrogen/react-router";
+import { CACHE_LONG } from "~/utils/cache";
+import { unwrapStorefront } from "~/utils/storefront";
 
 export async function loader(args: LoaderFunctionArgs) {
   const { params, context } = args;
@@ -117,7 +119,9 @@ export async function loader(args: LoaderFunctionArgs) {
 
   const [weaverseData, { shop }] = await Promise.all([
     context.weaverse.loadPage({ type }),
-    context.storefront.query(SHOP_QUERY),
+    context.storefront
+      .graphql(SHOP_QUERY, { cache: CACHE_LONG })
+      .then(unwrapStorefront),
   ]);
 
   // INDEX uses the code-defined homepage SEO; CUSTOM pages (root-level
@@ -133,7 +137,8 @@ export async function loader(args: LoaderFunctionArgs) {
 
 ```tsx
 import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
-import { getSeoMeta, type SeoConfig } from "@shopify/hydrogen";
+// Hydrogen 2026.10 removed `getSeoMeta`; Pilot ships a port with the same output
+import { getSeoMeta, type SeoConfig } from "~/utils/seo-meta";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   // INDEX (the real homepage) keeps the code-defined SEO — no Weaverse
