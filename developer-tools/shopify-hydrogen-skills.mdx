@@ -34,16 +34,16 @@ For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/sho
     The front door — take a project from nothing to a running, connected storefront. Scaffolds with the Weaverse CLI, generates `SESSION_SECRET`, boots a live demo-store preview before credentials, then makes it yours: env, GitHub repo, dev server, preview connection. Load when starting a brand-new project or running a theme locally for the first time.
   </Card>
   <Card title="shopify-hydrogen" icon="store">
-    Core Hydrogen APIs — `createHydrogenContext`, cart handler, caching, pagination, SEO, CSP. Load when working with `@shopify/hydrogen` APIs.
+    Core Hydrogen 2026.10 APIs — the `server.ts` request lifecycle, the Storefront client with explicit caching, the `/api/cart` handlers and cart store, and the classic helpers themes now keep locally. Load when working with `@shopify/hydrogen` APIs.
   </Card>
   <Card title="weaverse-hydrogen" icon="cube">
-    Weaverse components, schemas, loaders, theming, deployment. Load for any Hydrogen + Weaverse project.
+    Weaverse components, schemas, loaders, theming, deployment on `@weaverse/hydrogen` 6, including the v6 migration. Load for any Hydrogen + Weaverse project.
   </Card>
   <Card title="hydrogen-cookbooks" icon="book-open">
     Step-by-step guides — bundles, combined listings, 3D models, customer accounts, performance. Load when building specific features.
   </Card>
   <Card title="hydrogen-upgrades" icon="arrow-up">
-    Breaking changes and migration steps for Hydrogen framework versions. Load when upgrading Hydrogen.
+    Breaking changes and migration steps for Hydrogen framework versions, up to the 2026.10 upgrade. Load when upgrading Hydrogen.
   </Card>
   <Card title="theme-update" icon="paintbrush">
     Safe Pilot theme updates — detect version, plan changes, preserve customizations, verify build. Load when updating a customer's Pilot theme.
@@ -59,8 +59,8 @@ Instead of baking static API docs into skill files (which go stale), this repo s
 
 ```bash
 # Search Shopify Hydrogen docs (shopify.dev)
-node scripts/search_shopify_docs.mjs "createHydrogenContext"
-node scripts/search_shopify_docs.mjs "CartForm actions"
+node scripts/search_shopify_docs.mjs "handleShopifyRoutes"
+node scripts/search_shopify_docs.mjs "createCartServerHandlers"
 
 # Search Weaverse docs (docs.weaverse.io)
 node scripts/search_weaverse_docs.mjs "component schema"
