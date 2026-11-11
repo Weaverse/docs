@@ -425,7 +425,7 @@ Changes deploy automatically:
 ## Package Versions
 
 Documentation covers:
-- **@weaverse/hydrogen**, **@weaverse/react**, **@weaverse/core**: v6.x for Shopify Hydrogen 2026.10 and later. Classic Hydrogen projects (2026.4 and earlier) stay on v5.x; the v6 migration guide covers the move. Some examples still use 5.x imports and type names (`HydrogenComponentProps` is `WeaverseComponentProps` in v6); convert them when you edit those pages.
+- **@weaverse/hydrogen**, **@weaverse/react**, **@weaverse/core**: v6.x for Shopify Hydrogen 2026.10 and later. Classic Hydrogen projects (2026.4 and earlier) stay on v5.x; the v6 migration guide covers the move. Code samples use 6.x imports (`@weaverse/hydrogen/react-router`) and `Weaverse*` type names; only the migration guides and the changelog show 5.x code. Write new samples for 6.x.
 - **@weaverse/next**: v1.x
 - **@weaverse/shopify**: v5.8.4
 - **@weaverse/schema**: v0.20.x
