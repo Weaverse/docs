@@ -531,7 +531,7 @@
       "Before using any code sample, read `@weaverse/hydrogen` in the project's `package.json`: 6.x and 5.x import from different entries and use different type names, so code for one does not build on the other.",
       "`@weaverse/hydrogen` 6 (Shopify Hydrogen 2026.10 and later, the version these docs show) imports from `@weaverse/hydrogen/react-router` and uses `Weaverse*` types such as `WeaverseComponentProps`, `WeaverseComponentLoaderArgs` and `WeaverseComponentSchema`; the root `@weaverse/hydrogen` entry only exports `createSchema()`, data helpers and types.",
       "`@weaverse/hydrogen` 5.x (Hydrogen 2026.4 and earlier) imports everything from `@weaverse/hydrogen` and uses `HydrogenComponentProps`, `ComponentLoaderArgs` and `HydrogenComponentSchema`. On a 5.x project, convert samples to these names. Upgrade to 6 only when asked (`npx @weaverse/cli@latest migrate v6`, plus the Hydrogen 2026.10 upgrade). Do not mix major versions.",
-      "Next.js themes use `@weaverse/next` 1.x.",
+      "Next.js themes use `@weaverse/hydrogen` 6: import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/next` is deprecated; never install or import it.",
       "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://weaverse.io/docs/developer-tools/weaverse-mcp"
     ]
   },
