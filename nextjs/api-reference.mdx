@@ -93,7 +93,8 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `WeaverseNextClient`, `WeaverseNextClientConfig` | The client returned by `createWeaverseNextClient` and its config. |
 | `WeaverseNextLoadPageInput`, `WeaverseNextPageData`, `WeaverseNextPageAssignment` | Page loading input and page data. |
 | `WeaverseNextProviderProps`, `WeaverseNextRendererProps`, `WeaverseNextRootProviderProps`, `WeaverseNextStudioConnectProps` | Component props. |
-| `TranslationProviderProps`, `TranslationValue`, `TranslateFunction` | Translation types. |
+| `TranslationProviderProps`, `TranslationValue`, `TranslateFunction`, `CreateTranslateSources` | Translation types. |
+| `WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter` | SEO helper input and output types. |
 | `StudioSelection` | What `useStudioSelection()` returns. |
 | `BasicInput`, `InspectorGroup`, `PageType`, `SchemaType` | Schema types. |
 | `WeaverseProduct`, `WeaverseCollection`, `WeaverseBlog`, `WeaverseMetaObject` | Resource picker values. |
@@ -106,7 +107,7 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `createWeaverseNextRevalidateHandler({ getClient })` | Creates the `POST` handler for per-item revalidation. `getClient(request, requestContext)` receives the validated route context. See [Studio integration](/nextjs/studio#per-item-revalidation). |
 | `getWeaverseNextSeoMetadata()`, `formatWeaverseNextSeoMetadata()` | SEO helpers, as above. |
 
-Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, plus the shared types above.
+Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
 
 ### Server client config
 

@@ -260,12 +260,12 @@ export function useStorefrontData() {
 
 ## SEO metadata
 
-Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/next/server`:
+Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/hydrogen/next/server`:
 
 ```ts
 // app/pages/[handle]/page.tsx
 import type { Metadata } from 'next'
-import { getWeaverseNextSeoMetadata } from '@weaverse/next/server'
+import { getWeaverseNextSeoMetadata } from '@weaverse/hydrogen/next/server'
 
 export async function generateMetadata(props: {
   params: Promise<{ handle: string }>
