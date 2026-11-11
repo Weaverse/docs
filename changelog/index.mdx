@@ -24,6 +24,29 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Understand your page views.** See which storefronts and pages drive your usage, with a daily trend and Content API requests listed separately. Page views include content loads by crawlers and bots, not just visitors.
 </Update>
 
+<Update label="SDK v6.2.0" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **One package for Next.js**: the Next.js adapter now ships inside `@weaverse/hydrogen` (`@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`), so Next.js storefronts install one Weaverse package and no longer get a second copy of the React bindings.
+  - **Translation and SEO helpers for Next.js**: `createTranslate`, `interpolate` and `getNestedKey`, and the SEO helpers `getWeaverseNextSeoMetadata` and `formatWeaverseNextSeoMetadata`, are now exported from `@weaverse/hydrogen/next` (the SEO helpers from `/next/server` too), so themes can use them instead of their own copies.
+
+  #### Upgrade
+
+  `@weaverse/next` is deprecated. Remove it from your dependencies, upgrade `@weaverse/hydrogen`, and let the codemod rewrite the imports:
+
+  ```bash
+  npm uninstall @weaverse/next
+  npm install @weaverse/hydrogen@^6.2.0
+  npx @weaverse/cli@latest migrate v6
+  ```
+
+  Already-published `@weaverse/next` versions keep installing.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.2.0)
+</Update>
+
 <Update label="2026.11.22" description="November 10, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
