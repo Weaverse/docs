@@ -29,6 +29,40 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Projects created from a theme preset**: The home page keeps its content when a store uses market-based locales.
 </Update>
 
+<Update label="SDK v6.1.2" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **Next.js entry in Server Components**: `@weaverse/hydrogen/next` no longer crashes `next build` with `createContext is not a function` when a Server Component imports it, such as a root layout or a section schema. Next.js storefronts can import from `@weaverse/hydrogen/next` instead of `@weaverse/next`.
+
+  #### New Features
+
+  - **Studio selection store**: `useStudioSelection()` from `@weaverse/hydrogen/react-router` reads what is selected in Weaverse Studio from anywhere under the root layout, including UI rendered outside the page, such as popups. It returns empty values until Studio starts sending selections.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.2
+  ```
+
+  Released with `@weaverse/next` 1.1.3.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.2)
+</Update>
+
+<Update label="@weaverse/next 1.1.3" description="November 11, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### New Features
+
+  - **Studio selection store**: `useStudioSelection()` reads what is selected in Weaverse Studio under `WeaverseNextRootProvider` or `WeaverseNextProvider`. It returns empty values until Studio starts sending selections.
+
+  Pins `@weaverse/react` 6.1.2, the version `@weaverse/hydrogen` 6.1.2 uses.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse%2Fnext%401.1.3)
+</Update>
+
 <Update label="2026.11.19" description="November 9, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
