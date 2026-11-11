@@ -55,7 +55,7 @@ The theme schema's `i18n` is what Studio's market selector and Translation Manag
 
 ```ts
 // app/weaverse/schema.ts
-import type { WeaverseNextI18n, WeaverseNextThemeSchema } from '@weaverse/next'
+import type { WeaverseNextI18n, WeaverseNextThemeSchema } from '@weaverse/hydrogen/next'
 import { DEFAULT_LOCALE, LOCALE_IDS, LOCALES, type LocaleId, localePathPrefix, localeTag } from '@/i18n/locales'
 import { STATIC_CONTENT } from '@/i18n/static-content'
 
@@ -205,7 +205,7 @@ Load it once in the `[locale]` layout and pass it to the root provider. Extend t
 // weaverse/root.tsx
 'use client'
 
-import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/next'
+import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/hydrogen/next'
 import type { ReactNode } from 'react'
 import { STATIC_CONTENT } from '@/i18n/static-content'
 import { themeSchema } from './theme-schema'
@@ -276,7 +276,7 @@ export default async function LocaleLayout({
 ```tsx
 'use client'
 
-import { useTranslation } from '@weaverse/next'
+import { useTranslation } from '@weaverse/hydrogen/next'
 
 export function CartTitle() {
   let { t } = useTranslation()

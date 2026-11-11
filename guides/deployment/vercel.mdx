@@ -1,17 +1,17 @@
 ---
 title: "Deploy to Vercel"
-description: "Deploy a Next.js storefront built with @weaverse/next to Vercel and connect it to Weaverse Studio."
+description: "Deploy a Next.js storefront built with @weaverse/hydrogen/next to Vercel and connect it to Weaverse Studio."
 published: true
 ---
 
 # Deploying a Weaverse Next.js Storefront to Vercel
 
-Vercel builds and hosts Next.js apps with no extra configuration, which makes it the natural home for a storefront built with [`@weaverse/next`](/nextjs/overview). [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs on Vercel in production.
+Vercel builds and hosts Next.js apps with no extra configuration, which makes it the natural home for a storefront built with [`@weaverse/hydrogen/next`](/nextjs/overview). [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs on Vercel in production.
 
 ## Prerequisites
 
 - **Vercel account** connected to your Git provider (GitHub, GitLab or Bitbucket)
-- **Next.js storefront** using `@weaverse/next`, pushed to a Git repository
+- **Next.js storefront** using `@weaverse/hydrogen/next`, pushed to a Git repository
 - **Weaverse Project ID** (from Weaverse Studio's Project Settings or the project URL)
 - **Shopify Storefront API credentials** for your store
 - A local production build that succeeds (`next build`) with the same environment variables you plan to use on Vercel
@@ -44,7 +44,7 @@ Vercel installs dependencies with the package manager matching your lockfile (`b
 
 ## 2. Add Environment Variables
 
-Open **Settings → Environment Variables** and add the variables your storefront reads. A typical `@weaverse/next` storefront needs:
+Open **Settings → Environment Variables** and add the variables your storefront reads. A typical `@weaverse/hydrogen/next` storefront needs:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
@@ -97,7 +97,7 @@ The SDK and Next.js handle most caching for you. Keep these rules in mind on Ver
 - **The per-item revalidation route must stay dynamic.** Studio posts to it (by default `/api/weaverse/revalidate`) to re-run a section's loader after an edit. Mark it `dynamic = 'force-dynamic'` so Vercel never caches its responses.
 
 ```ts app/api/weaverse/revalidate/route.ts
-import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import { createWeaverseNextRevalidateHandler } from '@weaverse/hydrogen/next/server'
 import { createWeaverseServerClientFromContext } from '@/weaverse/server'
 
 export const dynamic = 'force-dynamic'
@@ -129,12 +129,12 @@ Add your domain under **Settings → Domains** in the Vercel project, then updat
 - **Keep secrets out of Git**: Set them in Vercel, not in committed `.env` files.
 - **Test with Preview deployments**: Open a pull request, check the preview deployment, then merge.
 - **Match local and Vercel settings**: Use `vercel env pull` to run locally with the same variables.
-- **Pin exact package versions**: Install an exact `@weaverse/next` version so every deployment builds the same code.
+- **Pin exact package versions**: Install an exact `@weaverse/hydrogen` version so every deployment builds the same code.
 
 ## Additional Resources
 
 - [Vercel documentation for Next.js](https://vercel.com/docs/frameworks/nextjs)
 - [Vercel environment variables](https://vercel.com/docs/projects/environment-variables)
 - [Vercel Deployment Protection](https://vercel.com/docs/deployment-protection)
-- [`@weaverse/next` overview](/nextjs/overview)
+- [`@weaverse/hydrogen/next` overview](/nextjs/overview)
 - [Next.js Quickstart](/nextjs/quickstart)

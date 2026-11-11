@@ -222,11 +222,11 @@ type WeaverseThemeSchema = {
 these rules are meant to be fixed by the theme author. An `image` or `video` input can override them for
 its own picker — see [Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
 
-`routes` declares URL patterns that Studio uses for page navigation and URL picking. It is available as a typed field in `@weaverse/hydrogen` 5.23.0+ and on `WeaverseNextThemeSchema` in stable `@weaverse/next` 1.0.0+. See [Declare Theme Routes for Studio](/features/custom-routing#declare-theme-routes-for-studio) for configuration, the Forward example, and fallback behavior.
+`routes` declares URL patterns that Studio uses for page navigation and URL picking. It is available as a typed field in `@weaverse/hydrogen` 5.23.0+ and on `WeaverseNextThemeSchema` in `@weaverse/hydrogen/next` (`@weaverse/hydrogen` 6.0.0+). See [Declare Theme Routes for Studio](/features/custom-routing#declare-theme-routes-for-studio) for configuration, the Forward example, and fallback behavior.
 
 ### `ThemeRoutes` and `ThemeRoutePageType`
 
-Exported by `@weaverse/schema` 0.18.0+ and re-exported by `@weaverse/next`. `@weaverse/hydrogen` 6 doesn't re-export them; import them from `@weaverse/schema`:
+Exported by `@weaverse/schema` 0.18.0+. `@weaverse/hydrogen` 6 doesn't re-export them from any entry, including `@weaverse/hydrogen/next`; import them from `@weaverse/schema`:
 
 ```typescript
 type ThemeRoutePageType = Exclude<PageType, '*' | 'CUSTOM'>

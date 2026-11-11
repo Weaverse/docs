@@ -17,7 +17,7 @@ Mount `WeaverseNextStudioConnect` in the root layout. It loads the bridge script
 
 ```tsx
 // app/layout.tsx
-import { WeaverseNextStudioConnect } from '@weaverse/next'
+import { WeaverseNextStudioConnect } from '@weaverse/hydrogen/next'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -58,7 +58,7 @@ Studio attaches to the route the page says it is. The server client's request co
 
 ```ts
 // app/weaverse/request-context.ts
-import type { PageType, WeaverseNextRequestContext } from '@weaverse/next'
+import type { PageType, WeaverseNextRequestContext } from '@weaverse/hydrogen/next'
 
 export function buildRequestContext({
   headers,
@@ -120,8 +120,8 @@ Mount the handler at `app/api/weaverse/revalidate/route.ts`:
 
 ```ts
 // app/api/weaverse/revalidate/route.ts
-import type { WeaverseNextRequestContext } from '@weaverse/next'
-import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import type { WeaverseNextRequestContext } from '@weaverse/hydrogen/next'
+import { createWeaverseNextRevalidateHandler } from '@weaverse/hydrogen/next/server'
 import { createWeaverseServerClientFromContext } from '@/weaverse/server'
 
 export const dynamic = 'force-dynamic'
@@ -174,7 +174,7 @@ Studio's page selector and URL picker build Shopify-style paths by default: `/co
 
 ```ts
 // app/weaverse/schema.ts
-import type { WeaverseNextThemeSchema } from '@weaverse/next'
+import type { WeaverseNextThemeSchema } from '@weaverse/hydrogen/next'
 
 export let themeSchema: WeaverseNextThemeSchema = {
   info: { name: 'My Theme', version: '1.0.0' },
@@ -234,7 +234,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
 ## Usage tracking
 
-There is nothing to wire. `@weaverse/next` sends no browser pixel; Weaverse counts published (non-design) page responses on the server.
+There is nothing to wire. `@weaverse/hydrogen/next` sends no browser pixel; Weaverse counts published (non-design) page responses on the server.
 
 ## Troubleshooting
 

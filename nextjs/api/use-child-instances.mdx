@@ -11,7 +11,7 @@ The `useChildInstances` hook returns the direct child item stores of a Weaverse 
 ## Import
 
 ```tsx
-import { useChildInstances } from '@weaverse/next'
+import { useChildInstances } from '@weaverse/hydrogen/next'
 ```
 
 ## Type
@@ -42,7 +42,7 @@ function useChildInstances(id?: string): WeaverseItemStore[]
 import {
   useChildInstances,
   useThemeSettings,
-} from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
 import { useEffect } from 'react'
 
 export function ProductGrid() {
@@ -71,7 +71,7 @@ export function ProductGrid() {
 ```tsx
 'use client'
 
-import { useChildInstances } from '@weaverse/next'
+import { useChildInstances } from '@weaverse/hydrogen/next'
 import { useEffect, useState } from 'react'
 
 export function Carousel() {
@@ -113,7 +113,7 @@ export function Carousel() {
 ```tsx
 'use client'
 
-import { useChildInstances } from '@weaverse/next'
+import { useChildInstances } from '@weaverse/hydrogen/next'
 import { useMemo } from 'react'
 
 export function ReviewsSection() {

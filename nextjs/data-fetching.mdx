@@ -1,6 +1,6 @@
 ---
 title: "Data Fetching in Next.js"
-description: "Fetch section data on the server with @weaverse/next component loaders: loader arguments, the commerce context, market-scoped reads, caching and per-item revalidation."
+description: "Fetch section data on the server with @weaverse/hydrogen/next component loaders: loader arguments, the commerce context, market-scoped reads, caching and per-item revalidation."
 published: true
 ---
 
@@ -25,7 +25,7 @@ The client registry goes to `createWeaverseNextClient`; the server registry goes
 // weaverse/server-components.ts
 import 'server-only'
 
-import type { WeaverseNextComponent } from '@weaverse/next'
+import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
 import { loader as featuredProductsLoader } from '@/sections/featured-products/loader'
 import { SECTION_SCHEMAS } from './section-schemas'
 
@@ -65,7 +65,7 @@ This is Forward's `featured-products` loader. The merchant picks products in Stu
 
 ```ts
 // sections/featured-products/loader.ts
-import type { WeaverseNextComponent } from '@weaverse/next'
+import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
 import type { Product } from '@/storefront/types'
 import { loaderLocale } from '@/weaverse/request-info'
 import { resolveProducts } from '@/weaverse/resource'
@@ -117,8 +117,8 @@ Weaverse never owns your Shopify client. Pass one to the server client as `comme
 
 ```ts
 // weaverse/server.ts
-import type { WeaverseNextRequestContext } from '@weaverse/next'
-import { createWeaverseNextServerClient } from '@weaverse/next/server'
+import type { WeaverseNextRequestContext } from '@weaverse/hydrogen/next'
+import { createWeaverseNextServerClient } from '@weaverse/hydrogen/next/server'
 
 export function createWeaverseServerClientFromContext(
   requestContext: WeaverseNextRequestContext
@@ -199,7 +199,7 @@ Use `tags` with Next's `revalidateTag` to purge Weaverse data on demand.
 
 ## Differences from React Router loaders
 
-| | React Router (`@weaverse/hydrogen`) | Next.js (`@weaverse/next`) |
+| | React Router (`@weaverse/hydrogen/react-router`) | Next.js (`@weaverse/hydrogen/next`) |
 | --- | --- | --- |
 | Where the loader is declared | Exported next to the component | On the server registry entry, in a `server-only` module |
 | Weaverse client | Injected as `context.weaverse` | Created per request by your app helper |
