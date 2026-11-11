@@ -40,7 +40,7 @@ What changes is how the framework hands Weaverse a request and renders the page:
 
 - A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels): a private token for server reads, and the public token Studio uses to open default templates (see [Studio integration](/nextjs/studio)).
 - A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
-- `@weaverse/hydrogen` 6.0.0 or later, which needs `@shopify/hydrogen` 2026.10.0 or later as a peer dependency.
+- `@weaverse/hydrogen` 6.2.0 or later, which needs `@shopify/hydrogen` 2026.10.0 or later as a peer dependency. 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
 - A Weaverse project.
 
 <Note>
