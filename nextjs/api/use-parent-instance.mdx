@@ -11,7 +11,7 @@ The `useParentInstance` hook looks up the current component's parent item store 
 ## Import
 
 ```tsx
-import { useParentInstance } from '@weaverse/next'
+import { useParentInstance } from '@weaverse/hydrogen/next'
 ```
 
 ## Type
@@ -35,7 +35,7 @@ function useParentInstance(): WeaverseItemStore | null
 ```tsx
 'use client'
 
-import { useParentInstance } from '@weaverse/next'
+import { useParentInstance } from '@weaverse/hydrogen/next'
 
 export function ProductItems() {
   const parent = useParentInstance()
@@ -58,7 +58,7 @@ export function ProductItems() {
 ```tsx
 'use client'
 
-import { useParentInstance } from '@weaverse/next'
+import { useParentInstance } from '@weaverse/hydrogen/next'
 
 export function ReviewItem() {
   const parent = useParentInstance()

@@ -15,7 +15,7 @@ Weaverse is a visual page builder for Shopify Hydrogen and other supported Shopi
 ## Supported Storefronts
 
 - **Shopify Hydrogen:** a Hydrogen storefront with the Weaverse integration, such as a project based on Pilot.
-- **Next.js App Router:** a Shopify headless storefront using the supported `@weaverse/next` integration. See the [Next.js integration guide](/nextjs/overview).
+- **Next.js App Router:** a Shopify headless storefront using the supported `@weaverse/hydrogen/next` integration. See the [Next.js integration guide](/nextjs/overview).
 
 A Shopify store is still required for commerce data. The storefront being edited must run the relevant Weaverse integration. A Shopify store with only a Liquid theme is not a supported editing environment.
 
@@ -43,7 +43,7 @@ The Shopify app connects your store to the Weaverse project workflow. Creating a
 **If the preview still fails:** an incorrect storefront URL is one possible cause, not the only one. A stopped application, an incomplete integration, or embedding restrictions can also prevent Studio from connecting. Follow [Preview Connection Errors](/troubleshooting/preview-errors) rather than treating every connection error as proof of a Liquid-theme setup.
 
 <Note>
-  This page uses the React Router adapter, `@weaverse/hydrogen`, in its examples. Weaverse also supports Hydrogen storefronts on the Next.js App Router through `@weaverse/next`: the Studio workflow and component schemas are the same, while routes load pages through a request-scoped server client. See [how the Next.js integration differs](/nextjs/overview).
+  This page uses the React Router adapter, `@weaverse/hydrogen`, in its examples. Weaverse also supports Hydrogen storefronts on the Next.js App Router through `@weaverse/hydrogen/next`: the Studio workflow and component schemas are the same, while routes load pages through a request-scoped server client. See [how the Next.js integration differs](/nextjs/overview).
 </Note>
 
 ## Architecture Overview

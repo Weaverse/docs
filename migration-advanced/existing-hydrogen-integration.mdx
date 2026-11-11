@@ -37,7 +37,7 @@ Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pi
 npm install @weaverse/hydrogen@^6.1.0
 ```
 
-`@weaverse/hydrogen` 6 has `@shopify/hydrogen` `>=2026.10.0` as a peer dependency, and depends on exactly `@weaverse/react` 6.1.0 and `@weaverse/next` 1.1.1. You don't need to install those yourself. If your `package.json` already lists `@weaverse/react` or `@weaverse/next`, align them to those versions: two copies of `@weaverse/react` have separate React contexts, and components stop finding their data.
+`@weaverse/hydrogen` 6 has `@shopify/hydrogen` `>=2026.10.0` as a peer dependency, and depends on exactly `@weaverse/react` 6.1.0 and `@weaverse/next` 1.1.1. You don't need to install those yourself. If your `package.json` already lists `@weaverse/react` or `@weaverse/next`, align them to those versions: two copies of `@weaverse/react` have separate React contexts, and components stop finding their data. From 6.2.0, `@weaverse/hydrogen` no longer depends on `@weaverse/next`, which is deprecated; remove it if your `package.json` lists it.
 
 Hydrogen themes import everything from one entry point:
 

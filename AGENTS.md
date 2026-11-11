@@ -426,7 +426,7 @@ Changes deploy automatically:
 
 Documentation covers:
 - **@weaverse/hydrogen**, **@weaverse/react**, **@weaverse/core**: v6.x for Shopify Hydrogen 2026.10 and later. Classic Hydrogen projects (2026.4 and earlier) stay on v5.x; the v6 migration guide covers the move. Code samples use 6.x imports (`@weaverse/hydrogen/react-router`) and `Weaverse*` type names; only the migration guides and the changelog show 5.x code. Write new samples for 6.x.
-- **@weaverse/next**: v1.x
+- **@weaverse/hydrogen/next**: the Next.js adapter, shipped in `@weaverse/hydrogen` 6.2.0 and later. Samples install `@weaverse/hydrogen` and import from `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`. `@weaverse/next` is deprecated; only the migration guides and the changelog mention it.
 - **@weaverse/shopify**: v5.8.4
 - **@weaverse/schema**: v0.20.x
 - **@weaverse/cli**: Latest

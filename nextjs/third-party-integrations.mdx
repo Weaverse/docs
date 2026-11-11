@@ -6,7 +6,7 @@ published: true
 
 # Third-party Integrations in Next.js
 
-Third-party apps add product reviews, marketing tools, forms and other services to your storefront. In a `@weaverse/next` theme you integrate them as Weaverse sections, so merchants can place and configure them in Studio.
+Third-party apps add product reviews, marketing tools, forms and other services to your storefront. In a Next.js theme on `@weaverse/hydrogen/next` you integrate them as Weaverse sections, so merchants can place and configure them in Studio.
 
 There are two approaches: render the app's React components in a section, or call the app's API from a section loader on the server.
 
@@ -26,7 +26,7 @@ Many third-party applications provide React components that you can incorporate 
 
    ```ts
    // sections/third-party-widget/schema.ts
-   import { createSchema } from '@weaverse/next'
+   import { createSchema } from '@weaverse/hydrogen/next'
 
    export let schema = createSchema({
      type: 'third-party-widget',
@@ -90,7 +90,7 @@ Many third-party applications provide React components that you can incorporate 
    // weaverse/components.ts
    'use client'
 
-   import type { WeaverseNextComponent } from '@weaverse/next'
+   import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
    import * as ThirdPartyWidget from '../sections/third-party-widget'
 
    export let components: WeaverseNextComponent[] = [
@@ -103,7 +103,7 @@ Many third-party applications provide React components that you can incorporate 
    // weaverse/server-components.ts
    import 'server-only'
 
-   import type { WeaverseNextComponent } from '@weaverse/next'
+   import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
    import { schema as thirdPartyWidgetSchema } from '../sections/third-party-widget/schema'
 
    let NO_RENDER = (() => null) as WeaverseNextComponent['default']
@@ -133,7 +133,7 @@ For third-party services that offer a REST or GraphQL API, fetch the data in a s
    // sections/api-widget/loader.ts
    import 'server-only'
 
-   import type { WeaverseNextComponent } from '@weaverse/next'
+   import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
 
    type LoaderArgs = Parameters<NonNullable<WeaverseNextComponent['loader']>>[0]
 
@@ -168,7 +168,7 @@ For third-party services that offer a REST or GraphQL API, fetch the data in a s
 
    ```ts
    // sections/api-widget/schema.ts
-   import { createSchema } from '@weaverse/next'
+   import { createSchema } from '@weaverse/hydrogen/next'
 
    export let schema = createSchema({
      type: 'api-widget',
@@ -251,7 +251,7 @@ For third-party services that offer a REST or GraphQL API, fetch the data in a s
    // weaverse/components.ts
    'use client'
 
-   import type { WeaverseNextComponent } from '@weaverse/next'
+   import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
    import * as ApiWidget from '../sections/api-widget'
 
    export let components: WeaverseNextComponent[] = [
@@ -264,7 +264,7 @@ For third-party services that offer a REST or GraphQL API, fetch the data in a s
    // weaverse/server-components.ts
    import 'server-only'
 
-   import type { WeaverseNextComponent } from '@weaverse/next'
+   import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
    import { loader as apiWidgetLoader } from '../sections/api-widget/loader'
    import { schema as apiWidgetSchema } from '../sections/api-widget/schema'
 

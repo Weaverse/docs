@@ -11,7 +11,7 @@ The `useItemInstance` hook returns a component item store. Pass an instance ID t
 ## Import
 
 ```tsx
-import { useItemInstance } from '@weaverse/next'
+import { useItemInstance } from '@weaverse/hydrogen/next'
 ```
 
 ## Type
@@ -37,7 +37,7 @@ Call the hook without an ID inside a rendered Weaverse component:
 ```tsx
 'use client'
 
-import { useItemInstance } from '@weaverse/next'
+import { useItemInstance } from '@weaverse/hydrogen/next'
 
 export function ProductDetails() {
   const item = useItemInstance()
@@ -62,7 +62,7 @@ export function ProductDetails() {
 ```tsx
 'use client'
 
-import { useItemInstance } from '@weaverse/next'
+import { useItemInstance } from '@weaverse/hydrogen/next'
 
 export function ProductFilterControls() {
   const productGrid = useItemInstance('product-grid-main')
@@ -100,7 +100,7 @@ export function ProductFilterControls() {
 ```tsx
 'use client'
 
-import { useItemInstance } from '@weaverse/next'
+import { useItemInstance } from '@weaverse/hydrogen/next'
 import { useEffect, useState, type RefObject } from 'react'
 
 export function useClosestWeaverseItem(

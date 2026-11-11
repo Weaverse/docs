@@ -6,12 +6,12 @@ published: true
 
 # useWeaverse
 
-The `useWeaverse` hook returns the active Weaverse runtime. Use the `WeaverseNextRuntime` generic when you need the Next.js page data and runtime properties. A component that calls it is a Client Component.
+The `useWeaverse` hook returns the active Weaverse runtime. Type the generic with what you read, for example `useWeaverse<{ data: WeaverseNextPageData }>()` for the Next.js page data. A component that calls it is a Client Component.
 
 ## Import
 
 ```tsx
-import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+import { useWeaverse, type WeaverseNextPageData } from '@weaverse/hydrogen/next'
 ```
 
 ## Type
@@ -33,10 +33,10 @@ The `itemInstances` registry maps component instance IDs to their item stores:
 ```tsx
 'use client'
 
-import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+import { useWeaverse } from '@weaverse/hydrogen/next'
 
 export function NavigationControls() {
-  const { itemInstances } = useWeaverse<WeaverseNextRuntime>()
+  const { itemInstances } = useWeaverse()
 
   const header = itemInstances.get('site-header')
   const announcementBar = itemInstances.get('announcement-bar')
@@ -72,15 +72,15 @@ export function NavigationControls() {
 
 ### Accessing Page Data
 
-Specify `WeaverseNextRuntime` to get the Next.js page data type:
+Type `data` as `WeaverseNextPageData` to get the Next.js page data type:
 
 ```tsx
 'use client'
 
-import { useWeaverse, type WeaverseNextRuntime } from '@weaverse/next'
+import { useWeaverse, type WeaverseNextPageData } from '@weaverse/hydrogen/next'
 
 export function PageInfo() {
-  const { data } = useWeaverse<WeaverseNextRuntime>()
+  const { data } = useWeaverse<{ data: WeaverseNextPageData }>()
   const { id, name, items } = data
 
   return (

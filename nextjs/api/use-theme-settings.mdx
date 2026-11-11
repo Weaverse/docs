@@ -11,7 +11,7 @@ The `useThemeSettings` hook provides access to the global theme settings within 
 ## Import
 
 ```tsx
-import { useThemeSettings } from '@weaverse/next'
+import { useThemeSettings } from '@weaverse/hydrogen/next'
 ```
 
 ## Type
@@ -31,7 +31,7 @@ Call the hook within a React component to get an object containing the current g
 ```tsx
 'use client'
 
-import { useThemeSettings } from '@weaverse/next'
+import { useThemeSettings } from '@weaverse/hydrogen/next'
 
 export function GlobalStyle() {
   const settings = useThemeSettings()
@@ -67,7 +67,7 @@ export function GlobalStyle() {
 ```tsx
 'use client'
 
-import { useThemeSettings } from '@weaverse/next'
+import { useThemeSettings } from '@weaverse/hydrogen/next'
 
 type MyThemeSettings = {
   colorPrimary: string;
@@ -98,7 +98,7 @@ export function Header() {
 ```tsx
 'use client'
 
-import { useThemeSettings } from '@weaverse/next'
+import { useThemeSettings } from '@weaverse/hydrogen/next'
 
 export function ProductCard() {
   const { showPrices, enableQuickView, productCardStyle } = useThemeSettings()

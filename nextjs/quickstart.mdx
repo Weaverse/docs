@@ -1,6 +1,6 @@
 ---
 title: "Next.js Quickstart"
-description: "Start a Weaverse storefront on Next.js from the Forward theme, or add @weaverse/next to an existing App Router app."
+description: "Start a Weaverse storefront on Next.js from the Forward theme, or add @weaverse/hydrogen/next to an existing App Router app."
 published: true
 ---
 
@@ -15,7 +15,7 @@ Both need a Weaverse project. Create one from the Weaverse app in your Shopify a
 
 ## Option A: Start from Forward
 
-[Forward](/hydrogen-themes/forward) is an open-source Next.js storefront on `@weaverse/next`. It uses [Bun](https://bun.sh) as package manager and Node.js 22.18 or later.
+[Forward](/hydrogen-themes/forward) is an open-source Next.js storefront on `@weaverse/hydrogen/next`. It uses [Bun](https://bun.sh) as package manager and Node.js 22.18 or later.
 
 <Steps>
   <Step title="Create the project">
@@ -60,8 +60,10 @@ This path assumes an App Router app that already reads from your Shopify store, 
 ### 1. Install
 
 ```bash
-npm install @weaverse/next
+npm install @weaverse/hydrogen
 ```
+
+The Next.js adapter ships in `@weaverse/hydrogen` 6.2.0 and later: import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/hydrogen` needs `@shopify/hydrogen` 2026.10.0 or later as a peer dependency; install it too if your app doesn't have it yet.
 
 ### 2. Environment variables
 
@@ -82,7 +84,7 @@ A component is a schema plus a React component. Schemas are written exactly as f
 
 ```ts
 // sections/hero/schema.ts
-import { createSchema } from '@weaverse/next'
+import { createSchema } from '@weaverse/hydrogen/next'
 
 export let schema = createSchema({
   type: 'hero',
@@ -123,7 +125,7 @@ Next splits the registry in two. The renderer is a Client Component, so the comp
 // weaverse/components.ts — what the renderer renders
 'use client'
 
-import type { WeaverseNextComponent } from '@weaverse/next'
+import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
 import * as Hero from '../sections/hero'
 
 export let components: WeaverseNextComponent[] = [Hero]
@@ -133,7 +135,7 @@ export let components: WeaverseNextComponent[] = [Hero]
 // weaverse/server-components.ts — schemas and loaders, never rendered
 import 'server-only'
 
-import type { WeaverseNextComponent } from '@weaverse/next'
+import type { WeaverseNextComponent } from '@weaverse/hydrogen/next'
 import { schema as heroSchema } from '../sections/hero/schema'
 
 let NO_RENDER = (() => null) as WeaverseNextComponent['default']
@@ -149,7 +151,7 @@ Declare the theme schema once. It holds your [theme settings](/api-reference/use
 
 ```ts
 // weaverse/theme-schema.ts
-import type { WeaverseNextThemeSchema } from '@weaverse/next'
+import type { WeaverseNextThemeSchema } from '@weaverse/hydrogen/next'
 
 export let themeSchema: WeaverseNextThemeSchema = {
   info: { name: 'My Storefront', version: '1.0.0' },
@@ -177,8 +179,8 @@ On React Router, `@weaverse/hydrogen` injects `context.weaverse` into every load
 // weaverse/server.ts
 import 'server-only'
 
-import type { PageType, WeaverseNextRequestContext } from '@weaverse/next'
-import { createWeaverseNextServerClient } from '@weaverse/next/server'
+import type { PageType, WeaverseNextRequestContext } from '@weaverse/hydrogen/next'
+import { createWeaverseNextServerClient } from '@weaverse/hydrogen/next/server'
 import { headers } from 'next/headers'
 import { serverComponents } from './server-components'
 import { themeSchema } from './theme-schema'
@@ -247,7 +249,7 @@ Mount the Studio script connector and the root theme provider once, in the root 
 // weaverse/root.tsx
 'use client'
 
-import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/next'
+import { WeaverseNextRootProvider, WeaverseNextStudioConnect } from '@weaverse/hydrogen/next'
 import type { ReactNode } from 'react'
 import { themeSchema } from './theme-schema'
 
@@ -296,7 +298,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 }
 ```
 
-`@weaverse/next` components are Client Components that Server Components can render directly, and its server-safe exports (`createSchema`, `generateDataFromSchema`, the SEO helpers) work in server code. `WeaverseRoot` is a client module for a different reason: it imports the theme schema on the client, because a schema can hold functions that cannot cross from server to client. `publicEnv` is passed explicitly because a layout receives no search params; see [Known limitations](/nextjs/overview#known-limitations).
+`@weaverse/hydrogen/next` components are Client Components that Server Components can render directly, and its server-safe exports (`createSchema`, `generateDataFromSchema`, the SEO helpers) work in server code. `WeaverseRoot` is a client module for a different reason: it imports the theme schema on the client, because a schema can hold functions that cannot cross from server to client. `publicEnv` is passed explicitly because a layout receives no search params; see [Known limitations](/nextjs/overview#known-limitations).
 
 ### 6. Render a page
 
@@ -310,8 +312,8 @@ import {
   createWeaverseNextClient,
   WeaverseNextProvider,
   WeaverseNextRenderer,
-} from '@weaverse/next'
-import type { WeaverseNextLoaderData, WeaverseNextRequestInfo } from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
+import type { WeaverseNextLoaderData, WeaverseNextRequestInfo } from '@weaverse/hydrogen/next'
 import { components } from './components'
 
 export function WeaversePage({ data }: { data: WeaverseNextLoaderData }) {
@@ -366,7 +368,7 @@ Studio posts here when a merchant changes a resource picker, to re-run only that
 
 ```ts
 // app/api/weaverse/revalidate/route.ts
-import { createWeaverseNextRevalidateHandler } from '@weaverse/next/server'
+import { createWeaverseNextRevalidateHandler } from '@weaverse/hydrogen/next/server'
 import { createWeaverseServerClientFromContext } from '../../../../weaverse/server'
 
 export const dynamic = 'force-dynamic'

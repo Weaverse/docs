@@ -1,6 +1,6 @@
 ---
 title: "Rendering Pages in Next.js"
-description: "Load and render Weaverse pages in Next.js App Router routes with @weaverse/next: route identity, page types, custom pages, 404s, SEO metadata and sitemaps."
+description: "Load and render Weaverse pages in Next.js App Router routes with @weaverse/hydrogen/next: route identity, page types, custom pages, 404s, SEO metadata and sitemaps."
 published: true
 ---
 
@@ -163,12 +163,12 @@ The server payload carries the route identity in `data.configs.requestInfo`. Res
 import type {
   WeaverseNextLoaderData,
   WeaverseNextRequestInfo,
-} from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
 import {
   createWeaverseNextClient,
   WeaverseNextProvider,
   WeaverseNextRenderer,
-} from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
 import { components } from './components'
 import { StorefrontDataProvider, type StorefrontData } from './data-context'
 
@@ -260,12 +260,12 @@ export function useStorefrontData() {
 
 ## SEO metadata
 
-Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/next/server`:
+Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/hydrogen/next/server`:
 
 ```ts
 // app/pages/[handle]/page.tsx
 import type { Metadata } from 'next'
-import { getWeaverseNextSeoMetadata } from '@weaverse/next/server'
+import { getWeaverseNextSeoMetadata } from '@weaverse/hydrogen/next/server'
 
 export async function generateMetadata(props: {
   params: Promise<{ handle: string }>
@@ -329,6 +329,6 @@ If a later page of results fails, it returns the pages already fetched instead o
     Localized routes and Translation Manager
   </Card>
   <Card title="API Reference" icon="code" href="/nextjs/api-reference">
-    Every export of `@weaverse/next`
+    Every export of `@weaverse/hydrogen/next`
   </Card>
 </CardGroup>
