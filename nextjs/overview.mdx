@@ -8,6 +8,10 @@ published: true
 
 `@weaverse/hydrogen/next` is the Weaverse adapter for the Next.js App Router, an entry point of the `@weaverse/hydrogen` package. It renders Weaverse pages in a Next storefront, connects them to Weaverse Studio for visual editing, and runs your section loaders on the server.
 
+<Note>
+  `@weaverse/next` is deprecated in favour of `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`. From `@weaverse/hydrogen` 6.2.0 the Next.js adapter ships inside `@weaverse/hydrogen`, which no longer depends on `@weaverse/next`. To move a storefront off it, remove `@weaverse/next` from `package.json`, install `@weaverse/hydrogen`, and run `npx @weaverse/cli@latest migrate v6` to rewrite the imports. See the [v6 migration guide](/migration-advanced/v6-migration#step-2-run-the-weaverse-codemod).
+</Note>
+
 A Next.js storefront is still a Shopify Hydrogen storefront. [Hydrogen](https://github.com/Shopify/hydrogen) is Shopify's framework-agnostic toolkit for headless commerce, and the React Router template is only one way to use it: the Hydrogen README lists [Vercel Shop](https://github.com/vercel/shop), a Next.js storefront built on Hydrogen and maintained by Vercel, alongside it. Each layer owns one job:
 
 - **Shopify owns commerce.** Products, collections, cart, checkout, customer accounts and markets come from your store through the Hydrogen SDK (`@shopify/hydrogen`) and the Storefront API.
