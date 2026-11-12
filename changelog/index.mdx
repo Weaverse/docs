@@ -17,6 +17,38 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **AI agent code for SDK 6 themes**: Components the AI agent generates now use the imports and types that match your theme's Weaverse SDK version.
 </Update>
 
+<Update label="SDK v6.3.1" description="November 12, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **No more `unsafe-eval` CSP reports**: storefronts with a Content Security Policy no longer log an `'unsafe-eval'` violation on every page load. The schema validator used by the SDK probed whether it could compile code at runtime; it now skips that probe. Nothing else changes, and you don't need to add `'unsafe-eval'` to your policy. This release ships with `@weaverse/schema` 0.20.1.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.3.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.3.1)
+</Update>
+
+<Update label="@weaverse/schema 0.20.1" description="November 12, 2026" tags={["SDK"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **No runtime code compilation**: the package now turns off Zod's JIT mode, so Zod never probes `new Function()` and storefronts with a Content Security Policy without `'unsafe-eval'` no longer log a violation. It requires Zod 4.4 or later. JIT mode is a global Zod setting, so other code sharing the same Zod instance also runs without it.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/schema@0.20.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/schema%400.20.1)
+</Update>
+
 <Update label="2026.11.27" description="November 11, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
