@@ -16,6 +16,28 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **One year of usage history, a rolling free allowance.** Usage history is kept for one year and older usage data is automatically removed. Free evaluation includes 10,000 view credits in any 30-day period. Billing records, charges and invoices are unchanged.
 </Update>
 
+<Update label="SDK v6.3.0" description="November 12, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Content Security Policy for Weaverse Studio**: `getWeaverseStudioCspDirectives(request)` returns the CSP sources Weaverse Studio needs for the current request, ready to pass to Hydrogen's `createContentSecurityPolicy`. Normal visitors get no extra sources, and only trusted Weaverse Studio origins are allowed to embed and edit the page. Import it from `@weaverse/hydrogen/react-router` or `@weaverse/hydrogen/next/server`.
+
+  #### Improvements
+
+  - **Hydrogen 2026.10.3 locale APIs**: the SDK now reads the storefront's `locale` instead of the deprecated `i18n`, so storefronts using `defineShopifyI18n` get no deprecation warnings from Weaverse.
+
+  #### Upgrade
+
+  This release requires `@shopify/hydrogen` 2026.10.3 or later:
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.3.0 @shopify/hydrogen@^2026.10.3
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.3.0)
+</Update>
+
 <Update label="2026.11.25" description="November 11, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
