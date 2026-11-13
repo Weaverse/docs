@@ -26,7 +26,11 @@ Start with a small canonical table. The unprefixed entry is the default market; 
 
 ```typescript
 // app/utils/locale.ts
-export const SUPPORTED_LOCALES = [
+import type { WeaverseI18n } from "@weaverse/hydrogen/react-router";
+
+// Typed as a mutable array: the theme schema's `shopLocales` is `WeaverseI18n[]`,
+// so an `as const` (readonly) table does not type-check there.
+export const SUPPORTED_LOCALES: WeaverseI18n[] = [
   {
     pathPrefix: "",
     label: "United States (USD $)",
@@ -54,7 +58,7 @@ export const SUPPORTED_LOCALES = [
     hreflang: "ar-AE",
     direction: "rtl",
   },
-] as const;
+];
 
 export const DEFAULT_LOCALE = SUPPORTED_LOCALES[0];
 ```

@@ -109,10 +109,12 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     handle: productHandle,
   });
 
-  // 3. `loadPage()` returns `WeaverseLoaderData | null` — on failure it
-  //    resolves to `null` rather than throwing, so a try/catch around it
-  //    would never fire. Check the result instead; Pilot's
-  //    `validateWeaverseData` helper throws a 404 for a missing page.
+  // 3. `loadPage()` returns `WeaverseLoaderData | null`. A product with no
+  //    assigned template gets a fallback page (`page.id` starts with
+  //    `fallback_page_`), not `null`. Pilot's `validateWeaverseData` helper
+  //    throws a 404 for `null` and for the fallback page outside design mode.
+  //    Load failures resolve to `null`, or reject with `WeaverseLoadError`
+  //    when the client sets `throwPageLoadFailures: true` (Pilot does).
   validateWeaverseData(weaverseData);
 
   // 4. Return all necessary data (a plain object — no `json()`)

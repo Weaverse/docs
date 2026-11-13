@@ -35,7 +35,6 @@ Many third-party applications provide React components that you can incorporate 
    import { ThirdPartyComponent } from '@third-party-app/react'
    import type { SectionProps } from '~/components/section'
    import { Section } from '~/components/section'
-   import { forwardRef } from 'react'
    
    export type ThirdPartyWidgetProps = {
      // Public, non-secret identifier only. Never put private API keys or tokens
@@ -44,19 +43,20 @@ Many third-party applications provide React components that you can incorporate 
      widgetId: string
    }
    
-   const ThirdPartyWidget = forwardRef<HTMLElement, SectionProps & ThirdPartyWidgetProps>(
-     (props, ref) => {
-       const { widgetId, ...rest } = props
-       
-       return (
-         <Section ref={ref} {...rest}>
-           <ThirdPartyComponent widgetId={widgetId} />
-         </Section>
-       )
-     }
-   )
-   
+   function ThirdPartyWidget({ ref, ...props }: SectionProps & ThirdPartyWidgetProps & { ref?: React.Ref<HTMLElement> }) {
+     const { widgetId, ...rest } = props
+
+     return (
+       <Section ref={ref} {...rest}>
+         <ThirdPartyComponent widgetId={widgetId} />
+       </Section>
+     )
+   }
+
    export default ThirdPartyWidget
+
+   // Weaverse reads the default export and `schema` from the same module
+   export { schema } from './schema'
    ```
 
    <Warning>
@@ -97,20 +97,17 @@ Many third-party applications provide React components that you can incorporate 
 
 4. **Register the Section in Weaverse**
 
-   Ensure your component is registered in your Weaverse configuration file:
+   Import the section module as a namespace and add it to the `components` array in `app/weaverse/components.ts`:
 
    ```tsx
-   // app/weaverse/sections.ts
-   import ThirdPartyWidget from '~/sections/third-party-widget'
-   import { schema as thirdPartyWidgetSchema } from '~/sections/third-party-widget/schema'
-   
-   export const sections = {
-     // Other sections
-     'third-party-widget': {
-       Component: ThirdPartyWidget,
-       schema: thirdPartyWidgetSchema
-     }
-   }
+   // app/weaverse/components.ts
+   import type { WeaverseComponent } from '@weaverse/hydrogen/react-router'
+   import * as ThirdPartyWidget from '~/sections/third-party-widget'
+
+   export const components: WeaverseComponent[] = [
+     // Other components
+     ThirdPartyWidget,
+   ]
    ```
 
 ### Querying App Data from App's API
@@ -133,13 +130,14 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
    import { Cache } from '@shopify/hydrogen'
    import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
    import { createSchema } from '@weaverse/hydrogen/react-router'
-   import { forwardRef } from 'react'
    import { Section, type SectionProps } from '~/components/section'
 
    type ApiWidgetData = {
      resourceId: string
      itemsToShow: number
    }
+
+   type ApiWidgetItem = { id: string; title: string; description: string }
 
    export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ApiWidgetData>) => {
      const { fetchWithCache, env } = weaverse
@@ -148,7 +146,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
      if (!resourceId) return { items: [] }
      
      try {
-       return await fetchWithCache(
+       return await fetchWithCache<{ items: ApiWidgetItem[]; error?: boolean }>(
          `https://api.third-party.com/resources/${resourceId}?limit=${itemsToShow}`,
          {
            headers: {
@@ -167,7 +165,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
 
    type ApiWidgetProps = SectionProps<Awaited<ReturnType<typeof loader>>> & ApiWidgetData
 
-   const ApiWidget = forwardRef<HTMLElement, ApiWidgetProps>((props, ref) => {
+   function ApiWidget({ ref, ...props }: ApiWidgetProps & { ref?: React.Ref<HTMLElement> }) {
      const { loaderData, resourceId, itemsToShow, ...rest } = props
      const { items, error } = loaderData || { items: [] }
 
@@ -193,7 +191,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
          </div>
        </Section>
      )
-   })
+   }
 
    export default ApiWidget
 
@@ -263,8 +261,7 @@ Some third-party widgets require client-side initialization:
 
 ```tsx
 // app/sections/analytics-widget/client.tsx
-'use client'
-
+// useEffect runs only in the browser, after hydration
 import { useEffect } from 'react'
 
 export function AnalyticsClient({ trackingId }) {
@@ -306,7 +303,7 @@ export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Wid
 }
 
 // Main component
-const HybridWidget = forwardRef((props, ref) => {
+function HybridWidget({ ref, ...props }: { ref?: React.Ref<HTMLElement>; [key: string]: any }) {
   const { loaderData, settings } = props
   
   return (
@@ -318,10 +315,9 @@ const HybridWidget = forwardRef((props, ref) => {
       <ClientInteractivity initialData={loaderData} settings={settings} />
     </div>
   )
-})
+}
 
-// Client component for interactive features
-'use client'
+// Interactive part: rendered on the server, then hydrated in the browser
 function ClientInteractivity({ initialData, settings }) {
   const [data, setData] = useState(initialData)
   
@@ -464,14 +460,10 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Widge
   if (!product) return { product: null, externalData: null }
   
   // Then get related data from third-party
+  // A GET request can't carry a body: pass the product's updated timestamp in
+  // the query string, which also makes it part of the cache key
   const externalData = await fetchWithCache(
-    `https://api.third-party.com/products/${productId}`,
-    {
-      // Include product updated timestamp to maintain consistency
-      body: JSON.stringify({ 
-        productUpdatedAt: product.updatedAt
-      })
-    }
+    `https://api.third-party.com/products/${encodeURIComponent(productId)}?updatedAt=${encodeURIComponent(product.updatedAt)}`
   )
   
   return {
@@ -534,10 +526,9 @@ export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<Widge
 
 ### Lazy Loading
 
-Use client components to defer loading of non-critical third-party widgets:
+Defer non-critical third-party widgets until they scroll into view:
 
 ```tsx
-'use client'
 import { useEffect, useState } from 'react'
 
 export function LazyThirdPartyWidget({ config }) {
@@ -642,7 +633,7 @@ Common issues and their solutions:
    Solution:
 
    ```tsx
-   const Widget = forwardRef((props, ref) => {
+   function Widget({ ref, ...props }: { ref?: React.Ref<HTMLElement>; [key: string]: any }) {
      const { loaderData } = props
      
      // Always check if data exists before rendering
@@ -655,18 +646,17 @@ Common issues and their solutions:
      }
      
      // Proceed with normal rendering
-   })
+   }
    ```
 
 3. **Hydration Mismatch Errors**
    - Ensure server and client rendering produce the same output
    - Defer client-specific code to useEffect hooks
-   - Use client components with careful boundaries
+   - Render browser-only widgets after mount (see below)
 
    Solution:
 
    ```tsx
-   'use client'
    import { useEffect, useState } from 'react'
    
    export function ClientWidget({ initialData }) {

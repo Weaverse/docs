@@ -60,11 +60,11 @@ You have two primary migration paths:
 
 ### Option 1: Start with a New Weaverse Theme (Recommended)
 
-The easiest approach is to create a new project with the latest Weaverse CLI and migrate your customizations:
+The easiest approach is to create a new project with the Weaverse CLI and migrate your customizations. The CLI's `main` Pilot is now a v6 project (Hydrogen 2026.10, `@weaverse/hydrogen` 6), so pin it to [Pilot v2026.10.4](https://github.com/Weaverse/pilot/releases/tag/v2026.10.4), the last release on Hydrogen 2026.4 and `@weaverse/hydrogen` 5, with `--commit`. To go straight to v6, drop `--commit` and follow the [v6 guide](/migration-advanced/v6-migration) instead.
 
 ```bash
-# Create a new React Router v7 project
-npx @weaverse/cli@latest create --template=pilot --project-id="your-project-id" --project-name=my-hydrogen-storefront
+# Create a new React Router v7 project on Pilot's last v5 release (v2026.10.4)
+npx @weaverse/cli@latest create --template=pilot --project-id="your-project-id" --project-name=my-hydrogen-storefront --commit=8567c8f99b880aa441584e54a36e4ac1e862c907
 
 # Copy your custom components and configurations
 # from your old project to the new one
@@ -104,14 +104,15 @@ Follow the manual migration steps to upgrade your current project in place.
 npx @weaverse/cli@latest create \
   --template=pilot \
   --project-id="your-project-id" \
-  --project-name=my-upgraded-project
+  --project-name=my-upgraded-project \
+  --commit=8567c8f99b880aa441584e54a36e4ac1e862c907 # Pilot v2026.10.4, the last v5 release
 
 # Navigate to the new project
 cd my-upgraded-project
 ```
 
 <Note>
-  The CLI takes named flags — there is no positional project-name argument and no `--theme` flag. Use `--template` (`pilot`, `naturelle`, `aspen`, or `maison`), `--project-id`, and `--project-name`. Run `npx @weaverse/cli@latest` with no arguments to list the available templates.
+  The CLI takes named flags — there is no positional project-name argument and no `--theme` flag. Use `--template` (`pilot`, `naturelle`, `aspen`, or `maison`), `--project-id`, `--project-name`, and `--commit` to pin a template commit. Without `--commit`, Pilot is the current v6 project. Run `npx @weaverse/cli@latest` with no arguments to list the available templates.
 </Note>
 
 ### Step 2: Migrate Your Customizations
@@ -218,8 +219,8 @@ export default defineConfig({
 
 ```bash
 npm install --force \
-  @weaverse/hydrogen@latest \
-  @shopify/hydrogen@latest \
+  @weaverse/hydrogen@^5 \
+  @shopify/hydrogen@~2026.4 \
   react-router@^7 \
   @react-router/dev@^7
 ```
@@ -486,7 +487,7 @@ export default async function handleRequest(
 ```
 
 <Note>
-  This step uses Hydrogen's `createContentSecurityPolicy`, `NonceProvider` and `useNonce`, which Hydrogen 2026.10 removes. Current Pilot builds the header with its own `app/utils/csp.ts` instead. See [Content Security Policy](/features/content-security).
+  This step uses Hydrogen 2026.4's `createContentSecurityPolicy`, `NonceProvider` and `useNonce`. Hydrogen 2026.10 has no `NonceProvider` or `useNonce`, and 2026.10.3 brings back `createContentSecurityPolicy` with an options object; current Pilot pairs it with `getWeaverseStudioCspDirectives` from `@weaverse/hydrogen` 6.3.0+. See [Content Security Policy](/features/content-security) when you move to v6.
 </Note>
 
 Update `app/weaverse/csp.ts` to match:
@@ -876,10 +877,10 @@ export const themeSchema: HydrogenThemeSchema = {
 
 #### Step 1: Update Dependencies
 
-Update your Weaverse dependencies to v5:
+Update your Weaverse dependencies to v5 (`@latest` now installs v6, which needs Hydrogen 2026.10):
 
 ```bash
-npm install @weaverse/hydrogen@latest
+npm install @weaverse/hydrogen@^5
 ```
 
 #### Step 2: Migrate Component Schemas

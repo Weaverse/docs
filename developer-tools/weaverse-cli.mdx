@@ -4,8 +4,7 @@ description: "The Weaverse CLI facilitates tasks such as project setup, theme sc
 published: true
 ---
 
-For developers crafting Weaverse Hydrogen themes, the Weaverse CLI is a simple yet powerful aid, streamlining project
-setup and management tasks directly from the command line.
+The Weaverse CLI creates new Weaverse storefronts from a template (Shopify Hydrogen or Next.js) and migrates existing themes to a new major SDK version. It has two commands: `create` and `migrate`.
 
 ## Installation & Usage
 
@@ -25,11 +24,11 @@ npx @weaverse/cli@latest --help
 
 ### `create`
 
-The `create` command is essential for starting new Weaverse Hydrogen projects. It:
+The `create` command starts a new Weaverse storefront. It:
 
 - Creates a new project directory
 - Downloads and extracts the selected template
-- Sets up environment variables, including your `WEAVERSE_PROJECT_ID` and a generated `SESSION_SECRET`
+- Sets up environment variables, including your `WEAVERSE_PROJECT_ID` and, for Hydrogen templates, a generated `SESSION_SECRET`
 - Installs necessary dependencies (optional)
 - Starts the development server (optional — prompted interactively, opt-in with `--dev` in non-interactive runs)
 
@@ -37,19 +36,23 @@ The `create` command is essential for starting new Weaverse Hydrogen projects. I
 
 Weaverse CLI currently supports the following templates:
 
-| Template | Description |
-| --- | --- |
-| **pilot** | A fully-featured Shopify Hydrogen theme for modern headless storefronts |
-| **naturelle** | A beauty and lifestyle-focused Shopify Hydrogen theme |
-| **aspen** | A sophisticated theme for home furniture and interior design stores |
-| **maison** | A modern B2B theme for furniture wholesalers, distributors, and interior design brands |
+| Template | Framework | Package manager | Dev port | Description |
+| --- | --- | --- | --- | --- |
+| **pilot** | Shopify Hydrogen | npm | 3456 | A fully-featured Shopify Hydrogen theme for modern headless storefronts |
+| **naturelle** | Shopify Hydrogen | npm | 3456 | A beauty and lifestyle-focused Shopify Hydrogen theme |
+| **aspen** | Shopify Hydrogen | npm | 3456 | A sophisticated theme for home furniture and interior design stores |
+| **maison** | Shopify Hydrogen | npm | 3456 | A modern B2B theme for furniture wholesalers, distributors, and interior design brands |
+| **forward** | Next.js | Bun | 3333 | A Next.js App Router storefront theme for Shopify (see the [Next.js quickstart](/nextjs/quickstart)) |
+
+The `forward` template needs [Bun](https://bun.sh). When Bun is missing, an interactive run offers to install it with `npm install -g bun`; a non-interactive run stops with install instructions instead. Pass `--no-install` to download the template without installing dependencies.
 
 #### Options
 
 | Option | Description | Required | Default |
 | --- | --- | --- | --- |
-| **`--template`** | Template name (`pilot`, `naturelle`, `aspen`, or `maison`). Prompted in interactive mode; must be passed in non-interactive mode | Yes | - |
-| **`--project-id`** | Your Weaverse project ID. Prompted in interactive mode; must be passed in non-interactive mode | Yes | - |
+| **`--template`** | Template name (`pilot`, `naturelle`, `aspen`, `maison`, or `forward`). Prompted in interactive mode; must be passed in non-interactive mode unless you use `--pass` | Yes, unless `--pass` | - |
+| **`--pass`** | One-time install pass for a licensed partner theme, from the install command in your Weaverse dashboard. Replaces `--template` and can't be combined with `--template` or `--commit`. A pass works once and expires after 10 minutes | No | - |
+| **`--project-id`** | Your Weaverse project ID. Prompted in interactive mode; must be passed in non-interactive mode. With `--pass` it is optional: leave it out to set `WEAVERSE_PROJECT_ID` in `.env` later | Yes, unless `--pass` | - |
 | **`--project-name`** | Name for your project directory. Prompted in interactive mode; defaulted when omitted in non-interactive mode | No | Prompted / defaulted |
 | **`--commit`** | Specific Git commit hash to use | No | Latest from main branch |
 | **`--no-install`** | Skip dependency installation and dev server start | No | false |
@@ -90,6 +93,20 @@ npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3
 npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3c44uhjh --no-install
 ```
 
+**Using the Forward (Next.js) template:**
+
+```txt data-line-numbers=false
+npx @weaverse/cli@latest create --template=forward --project-id=clocwvm3y08j2r79n3c44uhjh --project-name=forward-store
+```
+
+**Installing a licensed partner theme:**
+
+```txt data-line-numbers=false
+npx @weaverse/cli@latest create --pass=<one-time-pass> --project-id=clocwvm3y08j2r79n3c44uhjh
+```
+
+Copy the full command from your Weaverse dashboard. Without `--project-name`, the folder is named after the theme.
+
 **Agent/CI-friendly setup:**
 
 ```txt data-line-numbers=false
@@ -102,6 +119,21 @@ npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3
 npx @weaverse/cli@latest create --template=pilot --project-id=clocwvm3y08j2r79n3c44uhjh --project-name=my-store --dev -y
 ```
 
+### `migrate`
+
+`migrate v6` rewrites an existing theme's source for `@weaverse/hydrogen` 6. It moves imports from `@weaverse/hydrogen` to `@weaverse/hydrogen/react-router` (and from `@weaverse/next` to `@weaverse/hydrogen/next`), and renames the public `Hydrogen*` types to their `Weaverse*` names, such as `HydrogenComponentProps` to `WeaverseComponentProps`. Only files that import Weaverse are changed; `node_modules`, `dist`, `build`, `.git`, `.react-router`, `.next` and `.cache` are skipped.
+
+```txt data-line-numbers=false
+npx @weaverse/cli@latest migrate v6
+```
+
+| Option | Description | Default |
+| --- | --- | --- |
+| **`--dir`** | Project directory to rewrite | Current directory |
+| **`--dry-run`** | List the files that would change without writing them | false |
+
+It doesn't upgrade packages: afterwards, upgrade `@shopify/hydrogen` to 2026.10 or later and `@weaverse/hydrogen` to 6, then run your typecheck. See the [v6 migration guide](/migration-advanced/v6-migration).
+
 ## Workflow
 
 When you run the `create` command, the CLI will:
@@ -109,15 +141,16 @@ When you run the `create` command, the CLI will:
 1. Download the selected template from GitHub
 2. Extract the template to your specified project directory
 3. Configure environment variables (including your Weaverse project ID)
-4. Generate a secure local `SESSION_SECRET`
-5. Install dependencies using npm (unless `--no-install` is specified)
+4. Generate a secure local `SESSION_SECRET` (Hydrogen templates)
+5. Install dependencies with the template's package manager, npm or Bun (unless `--no-install` is specified)
 6. Start the development server — in interactive mode the CLI asks first; in
    non-interactive mode it only starts when `--dev` is passed, so agent and CI
    runs return instead of hanging on a blocking server
 
 <Warning>
-  `npm run dev` is a long-running, blocking process. Leave `--dev` off in CI and
-  agent-driven runs, then start the server yourself with `cd my-store && npm run dev`.
+  The dev server is a long-running, blocking process. Leave `--dev` off in CI and
+  agent-driven runs, then start the server yourself with `cd my-store && npm run dev`
+  (`bun run dev` for the `forward` template).
 </Warning>
 
 After completion, you'll see instructions for the next steps to take.
@@ -139,7 +172,7 @@ full command, complete with the project ID and project name, ensuring accuracy.
 - Try again with the default template without specifying a commit
 
 **Dependency Installation Fails**
-- Try running `npm install --legacy-peer-deps` manually in the project directory
+- Try running `npm install --legacy-peer-deps` (Hydrogen templates) or `bun install` (`forward`) manually in the project directory
 - Ensure you have a supported version of Node.js installed. The current Pilot template declares Node.js `^22.18.0 || ^24.11.0`; the `@weaverse/hydrogen` package itself declares Node.js `>=20`
 - Check for errors in your project's package.json
 
@@ -147,4 +180,4 @@ full command, complete with the project ID and project name, ensuring accuracy.
 - Make sure all required environment variables are set
 - Stores on a Shopify plan: install the Hydrogen sales channel (https://apps.shopify.com/hydrogen), create one Hydrogen storefront project, then run `npx shopify hydrogen env pull`. If needed, copy values from **Hydrogen sales channel → Storefront Settings → Environments and variables**.
 - Development stores or stores without a Shopify plan: install the Headless sales channel (https://apps.shopify.com/headless), then copy the Storefront API values into `.env`.
-- Verify port 3456 is available on your system
+- Verify the dev port is available on your system: 3456 for Hydrogen templates, 3333 for `forward`

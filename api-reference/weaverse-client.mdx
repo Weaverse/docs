@@ -37,12 +37,14 @@ export async function createAppContext(
     customerAccount, // Optional: passed through to section loaders
     themeSchema,
     components,
-    // Optional: the market's public locale, when it differs from `storefront.i18n`
+    // Optional: the market's public locale, when it differs from `storefront.locale`
     locale: resolveRequestLocale(request),
     // Optional: override env-based project resolution
     projectId: env.WEAVERSE_PROJECT_ID,
     // Optional: request timeout in milliseconds
     fetchTimeoutMs: 10_000,
+    // Reject with WeaverseLoadError on a failed load instead of resolving to null
+    throwPageLoadFailures: true,
   })
 
   return { env, cache, waitUntil, session, storefront, customerAccount, weaverse }
@@ -51,7 +53,7 @@ export async function createAppContext(
 
 `createRequestStorefront`, `createCustomerAccount`, `AppSession` and `resolveRequestLocale` are app code; see [Step 4 of the v6 migration guide](/migration-advanced/v6-migration#step-4-build-the-app-context-yourself). `server.ts` copies the returned object onto React Router's context, so loaders read `context.weaverse`.
 
-See the [Project Structure guide](/core-concepts/project-structure#base-files-explained) for the complete setup.
+See the [Project Structure guide](/intro/project-structure#essential-files) for the complete setup.
 
 ## Public API
 
@@ -85,22 +87,24 @@ class WeaverseClient {
 
 type WeaverseClientArgs = {
   storefront: WeaverseStorefront // Hydrogen 2026.10 Storefront API client
-  locale?: WeaverseI18n // defaults to `storefront.i18n`
+  locale?: WeaverseI18n // defaults to `storefront.locale`
   env: WeaverseEnv
   waitUntil?: (promise: Promise<unknown>) => void
   customerAccount?: unknown
   components: WeaverseComponent[]
   themeSchema: WeaverseThemeSchema
   request: Request
-  cache: Cache
+  cache: CacheInstance
   projectId?: string | (() => string) | (() => Promise<string>)
   fetchTimeoutMs?: number
   throwPageLoadFailures?: boolean
 }
 ```
 
-- `locale` selects the content locale, the Translation Manager overrides (`${language}-${country}`, lowercased) and the locale Studio reads, so include `pathPrefix`. Pass it when the Storefront client's `i18n.language` is a Shopify `LanguageCode` that differs from the market's public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market. Added in `@weaverse/hydrogen` 6.1.0.
-- `throwPageLoadFailures: true` makes `loadPage()` reject with a `WeaverseLoadError` when the content API is unavailable, instead of resolving to `null`, so a route can answer an outage differently from a missing page.
+- `locale` selects the content locale, the Translation Manager overrides (`${language}-${country}`, lowercased) and the locale Studio reads, so include `pathPrefix`. Pass it when the Storefront client's `locale.language` is a Shopify `LanguageCode` that differs from the market's public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market. Added in `@weaverse/hydrogen` 6.1.0.
+- `throwPageLoadFailures: true` makes `loadPage()` reject with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) when a load fails (API unavailable, invalid response, a 400/401/403 refusal, or an invalid per-call `projectId`), instead of resolving to `null` or a placeholder page, so a route can answer an outage differently from a missing page. A 404 from the Weaverse API, such as a nonexistent project, still resolves to `null`.
+- The project ID is checked when the client is created, whatever `throwPageLoadFailures` is set to. If none resolves (no `weaverseProjectId` query, `projectId` argument or `WEAVERSE_PROJECT_ID`), the constructor throws a `WeaverseError` with code `MISSING_PROJECT_ID`; a malformed `projectId` argument throws `INVALID_PROJECT_ID`. These surface where the client is created, not from `loadPage()`.
+- `projectId` overrides the env-based project. A function must be synchronous: an `async` function, or one that returns a promise, throws a `WeaverseError` with code `ASYNC_PROJECT_ID` when the client is created. Resolve the ID first and pass the result, for example `projectId: await resolveProjectId(request)`. The published type still lists `() => Promise<string>`, but the runtime rejects it. (The Next.js server client does await an async resolver; see the [Next.js SDK reference](/nextjs/api-reference).)
 
 `API` is the current API version segment (`'v1'`), not a complete endpoint URL.
 
@@ -137,6 +141,8 @@ export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
 ```
 
 Use `strategy`, not the Fetch API `cache` property, for Hydrogen cache-control options.
+
+`fetchWithCache` skips Hydrogen's cache in design mode, in revision preview, and for requests to the Weaverse public API proxy (`https://api.weaverse.io/api/public/...` by default). The proxy owns the freshness of Weaverse data, so `strategy` applies to third-party URLs and to a self-hosted `WEAVERSE_HOST` that serves the API itself.
 
 ### `loadThemeSettings`
 
@@ -203,7 +209,7 @@ When omitted, the content service resolves the page from the request URL and pro
 
 #### `locale`
 
-An optional BCP 47 locale override such as `en-US`, `sv-SE`, or `fr-CA`. The value is forwarded unchanged. When omitted, the request uses the client's `locale` argument, or `storefront.i18n` when that isn't set; `loadPage()` does not implement its own URL-prefix detection or `en-us` fallback.
+An optional BCP 47 locale override such as `en-US`, `sv-SE`, or `fr-CA`. The value is forwarded unchanged. When omitted, the request uses the client's `locale` argument, or `storefront.locale` when that isn't set; `loadPage()` does not implement its own URL-prefix detection or `en-us` fallback.
 
 #### `handle`
 
@@ -211,11 +217,11 @@ The resource or custom-page handle used with page types such as `PRODUCT`, `COLL
 
 #### `projectId`
 
-Overrides the client's resolved project ID for this request. Constructor-level `projectId` can also be a synchronous or asynchronous function for multi-project storefronts.
+Overrides the client's resolved project ID for this request. An invalid value (not a string, or containing characters other than letters, digits, hyphens and underscores) is logged and resolves to `null`, or rejects with a `configuration` [`WeaverseLoadError`](/api-reference/weaverse-load-error) when the client sets `throwPageLoadFailures: true`. Constructor-level `projectId` can also be a synchronous function for multi-project storefronts; an async resolver must be awaited before you create the client (see [Initialization](#initialization)).
 
 #### `strategy`
 
-A Hydrogen `CachingStrategy` (create one with `Cache` from `@shopify/hydrogen`), for example:
+A Hydrogen `CachingStrategy` (create one with `Cache` from `@shopify/hydrogen`). It takes effect only when the page request goes through Hydrogen's cache: requests to the default Weaverse public API proxy skip it (see [`fetchWithCache`](#fetchwithcache)). For example:
 
 ```typescript
 strategy: {
@@ -237,15 +243,26 @@ export async function loader({ context, params }: Route.LoaderArgs) {
     locale: 'en-US',
   })
 
-  if (!weaverseData) {
-    throw new Response('Weaverse page load failed', { status: 500 })
+  // `null`, or the fallback page outside design mode, means no page
+  if (
+    !weaverseData ||
+    (weaverseData.page.id.startsWith('fallback_page_') &&
+      !weaverseData.configs.isDesignMode)
+  ) {
+    throw new Response(null, { status: 404 })
   }
 
   return { weaverseData }
 }
 ```
 
-A missing page payload is normalized into a fallback page. `null` indicates that loading or validation failed; do not treat it as a reliable page-not-found signal.
+What `loadPage()` resolves to:
+
+- **A page** when one is assigned to the route.
+- **A fallback page** when the project loads but no page is assigned to the route. Its `page.id` starts with `fallback_page_` and it renders "Please add new section to start." It is not `null`. Answer it with a 404 on the live storefront, but keep it in design mode, where the merchant builds on it in Studio (Pilot's `validateWeaverseData` does both). An explicit "no page" signal is tracked in [Weaverse/weaverse#597](https://github.com/Weaverse/weaverse/issues/597).
+- **`null`** when the Weaverse API answers 404 (for example, the project doesn't exist), and, by default, when the load fails (invalid per-call `projectId`, network error, timeout, error status or error body). The failure is logged.
+- **The fallback page**, by default, when the API answers 200 with a body that isn't a page envelope (for example `{}`). The warning is logged, but the result looks like an unassigned route. Set `throwPageLoadFailures: true` if you need to tell an invalid response from an absent page.
+- **A rejection with [`WeaverseLoadError`](/api-reference/weaverse-load-error)** instead of `null` for a failed load when the client sets `throwPageLoadFailures: true`. Its `kind` tells an outage (`unavailable`, `invalid-response`) from a `configuration` error.
 
 ### `fetchCustomPages`
 
@@ -256,7 +273,11 @@ fetchCustomPages(options?: {
 }): Promise<CustomPageEntry[]>
 ```
 
-Fetches published custom-page entries for sitemap and route-generation workflows.
+Fetches the route metadata of every custom page assigned in the project (`path`, `lastModified`, `changeFrequency`, `priority`), for sitemap and route-generation workflows. It paginates automatically and never throws: on a failed page of results it returns the entries fetched so far.
+
+<Warning>
+  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages).
+</Warning>
 
 ```typescript
 const pages = await context.weaverse.fetchCustomPages({

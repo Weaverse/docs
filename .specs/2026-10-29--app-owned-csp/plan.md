@@ -15,3 +15,7 @@
 - `.specs/2026-10-29--app-owned-csp/`
 
 Not changed: `features/analytics-tracking.mdx`, `features/cookie-consent-banner.mdx` (call `useNonce()` without showing an import), `development-guide/design-mode.mdx` (generic `frameAncestors` snippet), changelog entries.
+
+## 2026-11-13 Follow-up
+
+Superseded by the Hydrogen 2026.10.3 setup (`createContentSecurityPolicy({ nonce: false, shop, directives })` plus `getWeaverseStudioCspDirectives`). The rewrite and the pages it touches are listed in `.specs/2026-11-13--sdk-6-3-audit-fixes/plan.md`.

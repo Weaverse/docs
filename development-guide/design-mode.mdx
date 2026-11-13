@@ -31,15 +31,13 @@ export async function loader({ request, context }: LoaderFunctionArgs) {
 
 ### CSP Configuration
 
-A common server-side use case is opening `frame-ancestors` in your Content Security Policy so Studio can embed your storefront in its iframe:
+Don't build Studio's CSP sources from the query string yourself: `weaverseHost` and `isDesignMode` are in the URL, so anyone can set them. Merge `getWeaverseStudioCspDirectives(request)` from `@weaverse/hydrogen/react-router` (6.3.0+) into your directives instead. It allows only a trusted Studio origin to frame the storefront and load the bridge, and adds `'unsafe-eval'` only in design mode:
 
 ```ts
-// app/entry.server.tsx or csp.ts
-let url = new URL(request.url);
-let isDesignMode = url.searchParams.get("isDesignMode") === "true";
-
-if (isDesignMode) {
-  updatedCsp.frameAncestors = ["*"];
+// app/weaverse/csp.ts
+const studio = getWeaverseStudioCspDirectives(request);
+for (const key of Object.keys(studio) as (keyof typeof studio)[]) {
+  directives[key] = [...(directives[key] ?? []), ...(studio[key] ?? [])];
 }
 ```
 

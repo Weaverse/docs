@@ -41,7 +41,7 @@
   "navigation": {
     "versions": [
       {
-        "version": "v5.x",
+        "version": "v6.x",
         "tag": "Latest",
         "default": true,
         "tabs": [
@@ -211,7 +211,9 @@
                       "api-reference/use-item-instance",
                       "api-reference/use-parent-instance",
                       "api-reference/use-child-instances",
-                      "api-reference/use-theme-settings"
+                      "api-reference/use-theme-settings",
+                      "api-reference/use-studio-selection",
+                      "api-reference/use-translation"
                     ]
                   },
                   {
@@ -227,7 +229,9 @@
                     "pages": [
                       "api-reference/get-selected-product-options",
                       "api-reference/images-placeholders",
-                      "api-reference/types"
+                      "api-reference/types",
+                      "api-reference/get-weaverse-studio-csp-directives",
+                      "api-reference/weaverse-load-error"
                     ]
                   }
                 ]
@@ -515,6 +519,66 @@
     {
       "source": "/content-api/list-languages",
       "destination": "/content-api/languages-and-localization/list-project-languages"
+    },
+    {
+      "source": "/development",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/getting-started",
+      "destination": "/intro/quickstart"
+    },
+    {
+      "source": "/getting-started/index",
+      "destination": "/intro/quickstart"
+    },
+    {
+      "source": "/core-concepts",
+      "destination": "/intro/how-it-works"
+    },
+    {
+      "source": "/core-concepts/index",
+      "destination": "/intro/how-it-works"
+    },
+    {
+      "source": "/development-guide",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/development-guide/index",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/features",
+      "destination": "/features/global-sections"
+    },
+    {
+      "source": "/features/index",
+      "destination": "/features/global-sections"
+    },
+    {
+      "source": "/api-reference",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/index",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/developer-tools",
+      "destination": "/developer-tools/weaverse-cli"
+    },
+    {
+      "source": "/developer-tools/index",
+      "destination": "/developer-tools/weaverse-cli"
+    },
+    {
+      "source": "/community",
+      "destination": "/community/community"
+    },
+    {
+      "source": "/community/index",
+      "destination": "/community/community"
     }
   ],
   "footer": {

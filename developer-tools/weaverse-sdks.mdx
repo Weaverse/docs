@@ -44,7 +44,6 @@ npm install @weaverse/react
 **Core Components:**
 - `WeaverseRoot`: The main component that renders your Weaverse content tree
 - `WeaverseContextProvider`: Provides the Weaverse context to all child components
-- `ItemComponent`: Renders individual Weaverse items based on their type and properties
 
 **Essential Hooks:**
 - `useWeaverse()`: Access the Weaverse instance from any component
@@ -185,8 +184,10 @@ A package that provides standardized [Biome](https://biomejs.dev/) configuration
 
 **Installation:**
 ```bash
-npm install @weaverse/biome --save-dev
+npm install --save-dev @weaverse/biome @biomejs/biome ultracite
 ```
+
+The config extends `ultracite`'s Biome presets, and the package declares no dependencies, so install `@biomejs/biome` and `ultracite` next to it.
 
 **Usage:**
 In your project's root directory, create or update your `biome.json` file to extend the Weaverse configuration:
@@ -223,10 +224,10 @@ The Weaverse SDK packages are designed to work together seamlessly, but each can
 |---------|----------------|---------|----------------------|
 | `@weaverse/core` | Any JavaScript project | `>=18` | None |
 | `@weaverse/react` | React applications | `>=18` | `@weaverse/core`, `react` `>=19`, `react-dom` `>=19`, `clsx` |
-| `@weaverse/hydrogen` | Shopify Hydrogen storefronts on React Router or the Next.js App Router | `>=20` | `@weaverse/react`, `@weaverse/schema`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` (peer: `@shopify/hydrogen` `>=2026.10.0`; optional peer: `next` `>=14`) |
+| `@weaverse/hydrogen` | Shopify Hydrogen storefronts on React Router or the Next.js App Router | `>=20` | `@weaverse/react`, `@weaverse/schema`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` (peer: `@shopify/hydrogen` `>=2026.10.3` from 6.3.0, `>=2026.10.0` before; optional peer: `next` `>=14`) |
 | `@weaverse/schema` | Any JavaScript/TypeScript project | - | `zod` `^4` |
 | `@weaverse/cli` | Node.js environment | `>=18` | None (run via `npx`) |
-| `@weaverse/biome` | Any JavaScript/TypeScript project | - | None (peer: `@biomejs/biome`) |
+| `@weaverse/biome` | Any JavaScript/TypeScript project | - | None; install `@biomejs/biome` and `ultracite` yourself |
 
 ## System Requirements
 
@@ -236,7 +237,7 @@ install. For the `@weaverse/hydrogen` package:
 - **Node.js**: v20.0.0 or higher
 - **React / React DOM**: v19.0.0 or higher
 - **React Router**: v7 (not React Router DOM)
-- **Shopify Hydrogen**: 2026.10 or higher (`@weaverse/hydrogen` 6). Classic Hydrogen 2026.4 and earlier stays on `@weaverse/hydrogen` 5.x; see the [v6 migration guide](/migration-advanced/v6-migration)
+- **Shopify Hydrogen**: 2026.10.3 or higher for `@weaverse/hydrogen` 6.3 (latest 6.3.1); 6.0 to 6.2 accept 2026.10.0. Classic Hydrogen 2026.4 and earlier stays on `@weaverse/hydrogen` 5.x; see the [v6 migration guide](/migration-advanced/v6-migration)
 - **npm**: v7.0.0 or higher (or equivalent package manager)
 
 <Note>

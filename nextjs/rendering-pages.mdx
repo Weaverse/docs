@@ -48,6 +48,8 @@ Each Weaverse page type maps to a route your app owns. The paths are yours; Weav
 | `PRODUCT` | `{ type: 'PRODUCT', handle }` | `app/products/[handle]/page.tsx` |
 | `COLLECTION` | `{ type: 'COLLECTION', handle }` | `app/collections/[handle]/page.tsx` |
 | `ALL_PRODUCTS` | `{ type: 'ALL_PRODUCTS' }` | `app/products/page.tsx` |
+| `COLLECTION_LIST` | `{ type: 'COLLECTION_LIST' }` | `app/collections/page.tsx` |
+| `BLOG` | `{ type: 'BLOG', handle }` | `app/blogs/[blog]/page.tsx` |
 | `ARTICLE` | `{ type: 'ARTICLE', handle }` | `app/blogs/[blog]/[handle]/page.tsx` |
 | `PAGE` | `{ type: 'PAGE', handle }` | `app/pages/[handle]/page.tsx` |
 | `CUSTOM` | `{ type: 'CUSTOM' }`, resolved by `pathname` | `app/[...slug]/page.tsx` |
@@ -85,7 +87,7 @@ export default async function ProductPage(props: {
 }
 ```
 
-`loadWeaversePage` is an app helper that builds the server client and calls `loadPage`, returning `null` when the project is not configured, the request fails, or no page exists.
+`loadWeaversePage` is an app helper that builds the server client and calls `loadPage`, returning `null` when the project is not configured, the request fails, or Weaverse has no page for the route.
 
 It wraps the `getWeaverseServerClient` helper from the [Quickstart](/nextjs/quickstart#4-create-the-server-client-helper):
 
@@ -103,7 +105,14 @@ export async function loadWeaversePage(options: {
       options.searchParams,
       { pageType: options.type, handle: options.handle }
     )
-    return (await weaverse.loadPage({ type: options.type, handle: options.handle })) ?? null
+    let page = await weaverse.loadPage({ type: options.type, handle: options.handle })
+    // An unassigned route resolves to a placeholder page, not null. Treat it
+    // as "no page", except in Studio's design mode, where the merchant adds
+    // sections to it.
+    if (page?.page.id.startsWith('fallback_page_') && !page.configs?.isDesignMode) {
+      return null
+    }
+    return page
   } catch {
     return null
   }
@@ -112,7 +121,12 @@ export async function loadWeaversePage(options: {
 
 ### No page means 404
 
-`loadPage` resolves to `null` when Weaverse holds no page for the route. Answer that with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+The server client's `loadPage` never throws. It resolves to:
+
+- **A placeholder page** when the project loads but no page is assigned to the route. Its `page.id` starts with `fallback_page_` and it renders "Please add new section to start." It is not `null`, so check for it, as `loadWeaversePage` above does. Keep it in design mode: it is the page Studio lets the merchant build on.
+- **`null`** when no project ID resolves or the request fails (network error, timeout, error status or error body). The failure is logged on the server.
+
+The `fallback_page_` check is a stopgap until the SDK exposes an explicit "no page" signal ([Weaverse/weaverse#597](https://github.com/Weaverse/weaverse/issues/597)). Answer "no page" with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
 
 <Warning>
   `notFound()` returns a real 404 only while no `loading.tsx` wraps the route. A `loading.tsx` adds a Suspense boundary, and once the streamed shell is sent the response is committed to `200` before your check runs.
@@ -183,7 +197,8 @@ export function WeaversePage({
     | WeaverseNextRequestInfo
     | undefined
   let projectId =
-    (data.configs?.projectId as string | undefined) ?? data.project?.id
+    (data.configs?.projectId as string | undefined) ??
+    (data.project?.id as string | undefined)
   if (!projectId) throw new Error('Missing Weaverse project id')
 
   let client = createWeaverseNextClient({
@@ -291,7 +306,7 @@ The helper accepts the loader data, a page, or `null` (which returns indexable d
 
 ## Custom pages in the sitemap
 
-`fetchCustomPages` returns every published custom page, paginating for you. It accepts Next cache options:
+`fetchCustomPages` returns the route metadata of every custom page assigned in the project, paginating for you. It accepts Next cache options:
 
 ```ts
 // app/sitemap.ts
@@ -315,6 +330,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 ```
 
 If a later page of results fails, it returns the pages already fetched instead of throwing, so one API error does not break the sitemap.
+
+<Warning>
+  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages).
+</Warning>
 
 ## Next steps
 
