@@ -12,7 +12,7 @@
 - `migration-advanced/existing-hydrogen-integration.mdx` (old `scriptSrc` bug from pilot#170, Hydrogen helpers)
 - `migration-advanced/v5-migration.mdx` (note only; the step documents the Hydrogen 2026.4-era API)
 - `development-guide/customer-account-local-dev.mdx` (tunnel domain goes in `getWeaverseCsp`)
-- `.specs/2026-11-13--app-owned-csp/`
+- `.specs/2026-10-29--app-owned-csp/`
 
 Not changed: `features/analytics-tracking.mdx`, `features/cookie-consent-banner.mdx` (call `useNonce()` without showing an import), `development-guide/design-mode.mdx` (generic `frameAncestors` snippet), changelog entries.
 

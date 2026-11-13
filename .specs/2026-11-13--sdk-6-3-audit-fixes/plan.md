@@ -41,7 +41,7 @@ The #151 audit found the docs behind the shipped SDK: CSP guidance for Pilot's r
 - `migration-advanced/`: `existing-hydrogen-integration.mdx`, `index.mdx`, `v5-migration.mdx`, `v6-migration.mdx`.
 - `nextjs/`: `api-reference.mdx`, `api/use-parent-instance.mdx`, `data-fetching.mdx`, `overview.mdx`, `quickstart.mdx`, `rendering-pages.mdx`, `studio.mdx`.
 - `resources/`: `example-components.mdx`, `faq.mdx`; `troubleshooting/preview-errors.mdx`.
-- Specs: this folder, and `.specs/2026-11-13--app-owned-csp/` (renamed from `2026-10-29--app-owned-csp`, marked completed).
+- Specs: this folder, and `.specs/2026-10-29--app-owned-csp/` (marked completed).
 
 ## Validation
 
