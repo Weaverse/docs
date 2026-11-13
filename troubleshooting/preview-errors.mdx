@@ -80,7 +80,7 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 3. **Verify the route renders Weaverse content**
    - The route loader should call `weaverse.loadPage()` and the route should render `<WeaverseHydrogenRoot />`
-   - Ensure components are registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in the Pilot template)
+   - Ensure components are registered in `app/weaverse/components.ts` (imported as `~/weaverse/components` in Pilot)
    - Restart the dev server after adding new components
 
 4. **Confirm the page type is supported**
@@ -89,8 +89,8 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 5. **Update Weaverse if needed**
    ```bash
-   # Hydrogen 2026.10 and later
-   npm install @weaverse/hydrogen@^6
+   # Hydrogen 2026.10.3 and later (latest: @weaverse/hydrogen 6.3.1)
+   npm install @weaverse/hydrogen@^6.3.1 @shopify/hydrogen@^2026.10.3
    # Classic Hydrogen (2026.4 and earlier)
    npm install @weaverse/hydrogen@^5
    ```

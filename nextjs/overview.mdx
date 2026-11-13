@@ -39,15 +39,15 @@ What changes is how the framework hands Weaverse a request and renders the page:
 ## Requirements
 
 - A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels): a private token for server reads, and the public token Studio uses to open default templates (see [Studio integration](/nextjs/studio)).
-- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Peer dependencies: `next >= 14`, `react >= 19`, `react-dom >= 19`.
-- `@weaverse/hydrogen` 6.2.0 or later, which needs `@shopify/hydrogen` 2026.10.0 or later as a peer dependency. 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
+- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). `@weaverse/hydrogen` lists `next >= 14` as an optional peer dependency and installs `react >= 19` and `react-dom >= 19` as regular dependencies, so use React 19.
+- `@weaverse/hydrogen` 6.2.0 or later (latest 6.3.1, which Forward uses). 6.3.0 and later need `@shopify/hydrogen` 2026.10.3 or later as a peer dependency (6.2.x needs 2026.10.0). 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
 - A Weaverse project.
 
 <Note>
   [Forward](/hydrogen-themes/forward), the Weaverse Next.js starter theme, runs in production on `@weaverse/hydrogen/next` with Next.js 16, React 19 and the Hydrogen SDK (preview).
 </Note>
 
-## What 1.0 supports
+## What the Next.js Adapter Supports
 
 - **Page rendering**: home, product, collection, all products, page, article and custom pages, with section loaders on the server.
 - **Studio editing**: connect, select, edit and reorder sections in Weaverse Studio, with live theme settings.
