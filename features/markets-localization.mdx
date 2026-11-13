@@ -156,5 +156,5 @@ Before launch:
 - Confirm cart buyer identity and checkout remain in the selected country and currency.
 - Render the selected market's `hreflang` as `<html lang>` and set `dir="rtl"` for RTL markets.
 - Emit a self-canonical URL and only the `hreflang` alternates whose equivalent routes are known to exist. Omit uncertain alternates.
-- Register the storefront origin and every served market home URI as allowed Customer Account post-logout URIs. Keep the authentication callback unlocalized.
+- Register `<origin>/account/signed-out` as the Customer Account post-logout URI. Every sign-out returns there, and it redirects the shopper to their market's home page, so one URI covers every market. Keep the authentication callback unlocalized.
 - After deploying the corrected theme, sync and publish the intended keys and overrides in Translation Manager.

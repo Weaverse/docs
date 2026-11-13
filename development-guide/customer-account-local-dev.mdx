@@ -115,7 +115,7 @@ plugins: [
 The plugin does two things:
 
 1. **Serves HTTPS locally** — at `https://local.tryhydrogen.dev:3456`, a Shopify-owned name that resolves to `127.0.0.1`, with a locally trusted certificate. On the first run it installs a local certificate authority, which may prompt for your password. To do that ahead of time, run `npx hydrogen certs install`.
-2. **Syncs OAuth credentials** — uses Shopify CLI to add the Callback URI, JavaScript Origin, and Logout URI to your storefront's Customer Account API settings
+2. **Syncs OAuth credentials** — uses Shopify CLI to add the Callback URI, JavaScript Origin, and Logout URI to your storefront's Customer Account API settings. The Logout URI it adds is the origin only: add `https://local.tryhydrogen.dev:3456/account/signed-out` yourself, as in the table below
 
 ### Open the HTTPS URL
 
@@ -127,7 +127,9 @@ If Shopify CLI is missing, outdated or the push fails, the dev server keeps runn
 |---|---|
 | **Callback URI(s)** | `https://local.tryhydrogen.dev:3456/account/authorize` |
 | **JavaScript origin(s)** | `https://local.tryhydrogen.dev` (no port: Shopify rejects origins with a port) |
-| **Logout URI(s)** | `https://local.tryhydrogen.dev:3456`, plus every market's home page you sign out from (`https://local.tryhydrogen.dev:3456/de-de`, ...) |
+| **Logout URI(s)** | `https://local.tryhydrogen.dev:3456/account/signed-out` |
+
+Every sign-out returns through `/account/signed-out`, which redirects the shopper to the home page of the market they were browsing, so this one Logout URI covers every market.
 
 <Warning>
   Do **not** use `http://localhost:3456` for customer account testing — OAuth redirects will fail on non-HTTPS origins.
@@ -183,7 +185,7 @@ For development stores, configure this in the **Headless** sales channel app:
 |---|---|
 | **Callback URI(s)** | `https://your-tunnel-domain/account/authorize` |
 | **JavaScript origin(s)** | `https://your-tunnel-domain` |
-| **Logout URI** | `https://your-tunnel-domain`, plus each market's home page (`https://your-tunnel-domain/de-de`, ...) |
+| **Logout URI** | `https://your-tunnel-domain/account/signed-out` |
 
 ### Update Content Security Policy
 

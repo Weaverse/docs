@@ -1086,7 +1086,7 @@ Pilot wraps this in `context.customerAccount` (`graphql`, `isLoggedIn`, `getAcce
 - Link to the handler paths with a plain `<a>` or `<form>`, never React Router's `<Link>` or `<Form>`: the handlers answer with a raw redirect that client-side routing cannot follow.
 - Customer Account OAuth needs HTTPS locally: run `npm run dev:https`.
 - `createCustomerSession()` throws when `SHOP_ID` or the client ID is missing or invalid. Pilot only creates it when both are set, so a store without accounts keeps serving pages.
-- Register every market's home URL as an allowed logout URI in the Customer Account API settings.
+- Register `<origin>/account/signed-out` as the logout URI in the Customer Account API settings. Pilot sends every sign-out there, and it redirects the shopper to the home page of the market they were browsing.
 - Addresses use `countryCode`.
 
 ## Step 12: Port Removed Classic Helpers

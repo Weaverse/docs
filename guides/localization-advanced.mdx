@@ -105,7 +105,7 @@ Market selection affects more than translated text:
 - keep checkout continuity in the selected Shopify market and currency;
 - use localized Customer Account login, return, and logout destinations.
 
-Register the storefront origin and every served `origin/<prefix>` home URI as an allowed Customer Account post-logout URI. The authentication callback itself remains unlocalized.
+Register `<origin>/account/signed-out` as the Customer Account post-logout URI. Every sign-out returns there, and it redirects the shopper to the home page of the market they were browsing, so one URI covers every market. The authentication callback itself remains unlocalized.
 
 ## Render the Document Identity
 
@@ -181,7 +181,7 @@ For every configured market:
 3. Verify a representative document and `.data` request, localized link, redirect, cart update, and checkout transition.
 4. Verify `<html lang>` and `dir`, canonical URL, and only proven `hreflang` alternates.
 5. Verify unsupported exact locale-shaped prefixes return 404 and ordinary slugs still resolve.
-6. Verify all Customer Account post-logout URIs are registered.
+6. Verify `<origin>/account/signed-out` is registered as a Customer Account post-logout URI, and that signing out from a market returns to that market's home page.
 7. After deployment, sync and publish the intended theme keys and merchant overrides in Translation Manager.
 
 ## Related Documentation
