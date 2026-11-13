@@ -486,7 +486,7 @@ export default async function handleRequest(
 ```
 
 <Note>
-  This step uses Hydrogen's `createContentSecurityPolicy`, `NonceProvider` and `useNonce`, which Hydrogen 2026.10 removes. Current Pilot builds the header with its own `app/utils/csp.ts` instead. See [Content Security Policy](/features/content-security).
+  This step uses Hydrogen 2026.4's `createContentSecurityPolicy`, `NonceProvider` and `useNonce`. Hydrogen 2026.10 has no `NonceProvider` or `useNonce`, and 2026.10.3 brings back `createContentSecurityPolicy` with an options object; current Pilot pairs it with `getWeaverseStudioCspDirectives` from `@weaverse/hydrogen` 6.3.0+. See [Content Security Policy](/features/content-security) when you move to v6.
 </Note>
 
 Update `app/weaverse/csp.ts` to match:

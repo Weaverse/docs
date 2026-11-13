@@ -30,7 +30,8 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 | Product form | `useOptimisticVariant`, `getAdjacentAndFirstAvailableVariants` | `createProductComponents()`: `ProductProvider`, `useProductForm` |
 | Analytics | `Analytics.Provider`, `Analytics.ProductView`, ... | `ShopifyScripts` and the `window.Shopify.analytics` bus |
 | Customer Account | `context.customerAccount.login()` in your routes | `createCustomerAccountServerHandlers()` at fixed `/account/*` paths |
-| UI helpers | `Image`, `Money`, `Pagination`, `getSeoMeta`, sitemaps, CSP | Removed: port them into your theme |
+| UI helpers | `Image`, `Money`, `Pagination`, `getSeoMeta`, sitemaps | Removed: port them into your theme |
+| CSP | `createContentSecurityPolicy()` returning `NonceProvider`, `useNonce` | `createContentSecurityPolicy({ shop, directives, nonce })` (2026.10.3+), no `NonceProvider` or `useNonce` |
 
 `@weaverse/hydrogen` 6 follows: `WeaverseClient` takes the 2026.10 Storefront client instead of a classic Hydrogen context, and the SDK ships one entry point per framework.
 
@@ -1003,7 +1004,6 @@ function AddToCartButton({ product }: { product: ProductFormData }) {
 ```tsx
 // app/root.tsx, first in <head>
 <ShopifyScripts
-  nonce={nonce}
   shop={data.shopifyScripts.shop} // { shopId, storefrontId, myshopifyDomain }
   i18n={data.shopifyScripts.i18n} // { country, language, pathPrefix, currency }
   analytics={{ channel: data.shopifyScripts.channel }}
@@ -1102,7 +1102,7 @@ These classic exports are gone. Pilot ports them as local files with unchanged o
 | `Pagination`, `getPaginationVariables` | `app/components/pagination.tsx`, `app/utils/pagination.ts` |
 | `ExternalVideo`, `ModelViewer` | `app/components/product-media/` |
 | `parseGid` | `app/utils/shopify.ts` |
-| `createContentSecurityPolicy`, `NonceProvider`, `useNonce` | `app/utils/csp.ts`, see [Content Security Policy](/features/content-security) |
+| `NonceProvider`, `useNonce` | None: Pilot builds the policy with `nonce: false` through Hydrogen 2026.10.3's `createContentSecurityPolicy` and `getWeaverseStudioCspDirectives` (`@weaverse/hydrogen` 6.3.0+), see [Content Security Policy](/features/content-security) |
 | `ShopPayButton` | Import it from `@shopify/hydrogen/react` |
 | `CacheLong`, `CacheShort`, `CacheNone`, `generateCacheControlHeader` | `app/utils/cache.ts` ([Step 6](#step-6-move-queries-to-the-new-graphql-client)) |
 
@@ -1252,7 +1252,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
     If a script loads your component registry or manifest through Vite's `ssrLoadModule`, packages that publish ESM with extensionless relative imports (such as `react-use/esm/*`) fail under Node's ESM resolver. Add them to `ssr.noExternal` in that Vite server config, as Pilot's `other/weaverse-manifest.mjs` does with `noExternal: [/^@weaverse\//, "react-use"]`.
   </Accordion>
   <Accordion title="Hydration is silently dead (cart, variant picker, analytics)">
-    The nonce was dropped while porting CSP. Pass the nonce to `ShopifyScripts`, `Scripts` and `ScrollRestoration`, and check the console for CSP violations. See [Content Security Policy](/features/content-security).
+    The CSP blocks React Router's inline hydration scripts. With `createContentSecurityPolicy({ nonce: false })`, add `'unsafe-inline'` to `scriptSrc`; with a nonce, pass `csp.nonce` to `renderToReadableStream`, `ServerRouter` and your inline scripts. Check the console for CSP violations. See [Content Security Policy](/features/content-security).
   </Accordion>
   <Accordion title="Anonymous pages are no longer cached">
     Something personalized reached the document: a cart passed as `CartProvider` `initialData`, a customer token in a loader, or a session committed on every response. Load the cart after hydration and commit the session only when it changed.

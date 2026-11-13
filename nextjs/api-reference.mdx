@@ -106,8 +106,9 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `createWeaverseNextServerClient(config)` | The request-scoped Weaverse API client. Create it per request; see below. |
 | `createWeaverseNextRevalidateHandler({ getClient })` | Creates the `POST` handler for per-item revalidation. `getClient(request, requestContext)` receives the validated route context. See [Studio integration](/nextjs/studio#per-item-revalidation). |
 | `getWeaverseNextSeoMetadata()`, `formatWeaverseNextSeoMetadata()` | SEO helpers, as above. |
+| `getWeaverseStudioCspDirectives(request)` | CSP sources Weaverse Studio needs for this request (6.3.0+); see below. |
 
-Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
+Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseStudioCspDirectives`, the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
 
 ### Server client config
 
@@ -143,3 +144,21 @@ Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNe
 - **Studio host**: trusted `?weaverseHost=` (`https://*.weaverse.io`, `https://*.weaverse.dev`) → `WEAVERSE_HOST` → `https://studio.weaverse.io`.
 - **API base**: trusted request host → `WEAVERSE_PUBLIC_API_BASE` → non-production `WEAVERSE_HOST` → `https://api.weaverse.io`.
 - **Public env**: `PUBLIC_STORE_DOMAIN`, `PUBLIC_STOREFRONT_API_TOKEN`.
+
+### `getWeaverseStudioCspDirectives`
+
+```ts
+import { getWeaverseStudioCspDirectives } from '@weaverse/hydrogen/next/server'
+
+function getWeaverseStudioCspDirectives(
+  request: Request | URL | string,
+): WeaverseStudioCspDirectives
+```
+
+Available in `@weaverse/hydrogen` 6.3.0 and later. Returns the CSP sources Weaverse Studio needs for this request, shaped like Hydrogen's `ContentSecurityPolicyDirectives` so you can append them to your directives before calling `createContentSecurityPolicy` (`@shopify/hydrogen` 2026.10.3+):
+
+- `{}` for normal visitors, and for a relative or malformed URL.
+- On Studio requests (design mode, section preview or revision preview) with a trusted `weaverseHost` (`https://` on `weaverse.io` or `weaverse.dev`): the Studio origin in `frameAncestors`, `scriptSrc`, `connectSrc`, `styleSrc`, `fontSrc` and `imgSrc`. Design mode adds `'unsafe-eval'` to `scriptSrc`.
+- `{}` for an untrusted `weaverseHost`, so a crafted URL can't widen the policy.
+
+The same function is exported from `@weaverse/hydrogen/react-router`; see [`getWeaverseStudioCspDirectives`](/api-reference/get-weaverse-studio-csp-directives). For a full setup, see [Studio integration](/nextjs/studio#content-security-policy).
