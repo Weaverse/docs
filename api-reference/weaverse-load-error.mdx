@@ -1,0 +1,123 @@
+---
+title: WeaverseError and WeaverseLoadError
+description: Error classes thrown by the Weaverse SDK, and how to tell a Weaverse outage from a missing page with WeaverseLoadError's kind.
+published: true
+---
+
+# WeaverseError and WeaverseLoadError
+
+`WeaverseError` is the base class for errors the SDK throws. `WeaverseLoadError` extends it for page loads that failed, as opposed to pages that don't exist. Its `kind` tells a route whether to answer with a retryable error or a configuration error.
+
+## Import
+
+```tsx
+import {
+  WeaverseError,
+  WeaverseLoadError,
+  type WeaverseLoadFailureKind,
+} from '@weaverse/hydrogen/react-router'
+```
+
+## Types
+
+```typescript
+class WeaverseError extends Error {
+  /** Machine-readable error code, e.g. `ASYNC_PROJECT_ID`. Default `WEAVERSE_ERROR`. */
+  readonly code: string
+  /** HTTP status associated with the failure, when available. */
+  readonly statusCode?: number
+  /** Structured diagnostic details for logging. */
+  readonly context?: Record<string, unknown>
+}
+
+class WeaverseLoadError extends WeaverseError {
+  /** Always `LOAD_FAILURE`. */
+  readonly code: string
+  readonly kind: WeaverseLoadFailureKind
+}
+
+type WeaverseLoadFailureKind = 'unavailable' | 'invalid-response' | 'configuration'
+```
+
+## `kind` Values
+
+| `kind` | Meaning | Suggested response |
+| --- | --- | --- |
+| `unavailable` | The Weaverse API timed out, couldn't be reached, or answered with a transient status (408, 425, 429 or 5xx) after the built-in retry. | `503`, not cached. Retrying later can succeed. |
+| `invalid-response` | The API answered successfully, but the body isn't a page/project envelope. | `503`, not cached. |
+| `configuration` | The request was refused or couldn't be built: a missing or invalid project ID, or a 400/401/403 from the API. | `500`. Retrying won't help. |
+
+## When It's Thrown
+
+`WeaverseClient.loadPage()` throws `WeaverseLoadError` only when the client is created with `throwPageLoadFailures: true`. With the default (`false`), every failure resolves to `null`, the same value a missing project produces, so a route can't tell an outage from a 404.
+
+A missing page is never an error. With or without the option:
+
+- a missing project resolves to `null`
+- a route with no page assigned in Studio resolves to a fallback placeholder page
+
+See [`loadPage()`](/api-reference/weaverse-client#loadpage) for the full contract.
+
+```ts app/.server/context.ts
+const weaverse = new WeaverseClient({
+  storefront,
+  env,
+  cache,
+  waitUntil,
+  request,
+  themeSchema,
+  components,
+  throwPageLoadFailures: true,
+});
+```
+
+## Example
+
+Pilot turns a `WeaverseLoadError` into a route response, so a Weaverse outage answers `503` instead of a `404` that crawlers treat as a deleted page. It wraps `loadPage` once where the client is created (`app/weaverse/load-failure.ts`), so every route gets the behavior:
+
+```ts app/weaverse/load-failure.ts
+import { type WeaverseClient, WeaverseLoadError } from '@weaverse/hydrogen/react-router'
+import { data } from 'react-router'
+
+const NO_STORE = { 'Cache-Control': 'no-store' }
+
+export function weaverseRouteFailure(error: unknown): unknown {
+  if (!(error instanceof WeaverseLoadError)) {
+    return error
+  }
+  const retryable = error.kind !== 'configuration'
+  return data(
+    { weaverseFailure: retryable ? 'unavailable' : 'error' },
+    { status: retryable ? 503 : 500, headers: NO_STORE },
+  )
+}
+
+export function throwRouteFailures(client: WeaverseClient): WeaverseClient {
+  const loadPage = client.loadPage
+  client.loadPage = async (params) => {
+    try {
+      return await loadPage(params)
+    } catch (error) {
+      throw weaverseRouteFailure(error)
+    }
+  }
+  return client
+}
+```
+
+```ts app/.server/context.ts
+const weaverse = throwRouteFailures(
+  new WeaverseClient({ /* ... */ throwPageLoadFailures: true }),
+)
+```
+
+`throwRouteFailures` is Pilot's helper, not an SDK export. The root `ErrorBoundary` reads `weaverseFailure` from the thrown response to render a "try again" page.
+
+<Note>
+  `WeaverseError` and `WeaverseLoadError` are also exported from `@weaverse/hydrogen/next`. The Next.js server client catches page-load failures and resolves `loadPage()` to `null`; it has no `throwPageLoadFailures` option.
+</Note>
+
+## Related
+
+- [WeaverseClient](/api-reference/weaverse-client)
+- [Rendering a Weaverse Page](/guides/rendering-page)
