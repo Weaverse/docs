@@ -41,7 +41,7 @@ The root entry is safe in Server Components: its components, hooks and runtime a
 | `useItemInstance()` | The current item instance. See [useItemInstance](/nextjs/api/use-item-instance). |
 | `useParentInstance()` | The parent item instance. See [useParentInstance](/nextjs/api/use-parent-instance). |
 | `useChildInstances()` | The child item instances. See [useChildInstances](/nextjs/api/use-child-instances). |
-| `useStudioSelection()` | The current Studio selection, for example `selectedThemeGroup`. |
+| `useStudioSelection()` | The current Studio selection, for example `selectedThemeGroup`. `WeaverseNextRootProvider` (or `WeaverseNextProvider`) mounts its store. See [useStudioSelection](/api-reference/use-studio-selection). |
 | `isBrowser`, `isIframe` | Environment checks. |
 
 ### Studio
@@ -55,8 +55,8 @@ The root entry is safe in Server Components: its components, hooks and runtime a
 
 | Export | Description |
 | --- | --- |
-| `useTranslation()` | Returns `t(key, variables?)` for theme copy, resolving external `t`, then Studio's live edits, then the market's overrides, then `staticContent`, then the key. |
-| `TranslationProvider` | Provides translation sources below the root. |
+| `useTranslation()` | Returns `t(key, variables?)` for theme copy, resolving external `t`, then Studio's live edits, then the market's overrides, then `staticContent`, then the key. See [useTranslation](/api-reference/use-translation). |
+| `TranslationProvider` | Provides translation sources below the root. `WeaverseNextRootProvider` renders one for you. |
 | `TranslationStore` | The live design-mode translation store. |
 | `createTranslate()`, `getNestedKey()`, `interpolate()` | The translation helpers behind `t`. |
 
@@ -78,7 +78,7 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `createSchema()` | Defines a component schema. |
 | `IMAGES_PLACEHOLDERS` | Placeholder images for schema defaults. |
 | `generateDataFromSchema(schema)` | Extracts the default settings of a component or theme schema. |
-| `WeaverseError`, `WeaverseLoadError` | Error classes thrown by the SDK. |
+| `WeaverseError`, `WeaverseLoadError` | Error classes thrown by the SDK. The server client's `loadPage()` never throws `WeaverseLoadError`: it resolves to `null` on a failed load. See [WeaverseLoadError](/api-reference/weaverse-load-error). |
 
 ### Types
 
@@ -115,22 +115,25 @@ Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNe
 | Option | Description |
 | --- | --- |
 | `components` | Required. The server registry: schemas and loaders. |
-| `projectId` | Project id, or a function returning it. Falls back to `WEAVERSE_PROJECT_ID`. |
+| `projectId` | Project id, or a function returning it. The function receives the `requestContext` and may be `async`; the client awaits it. Falls back to `WEAVERSE_PROJECT_ID`. |
 | `weaverseHost` | Studio host. Falls back to `WEAVERSE_HOST`, then `https://studio.weaverse.io`. |
-| `env` | Environment object the SDK reads its keys from. |
+| `weaverseApiBase` | Base URL for public page and settings reads. Overrides `WEAVERSE_PUBLIC_API_BASE`; a trusted Studio host on the request still wins. |
+| `weaverseVersion` | Studio asset version. A `?weaverseVersion=` query on the request wins. |
+| `env` | Environment object the SDK reads its keys from. A missing key falls back to `process.env`, so `env: process.env` is redundant. |
 | `requestContext` | The route identity of this request. |
 | `themeSchema` | Your theme schema, for theme settings defaults and Studio. |
+| `themeSettings` | Theme settings merged over the schema defaults on the client's `themeSettings`. |
 | `commerce` | Commerce context passed to loaders (for example a Storefront client). |
 | `cache` | `{ revalidate, tags }` for published reads. |
-| `fetch`, `fetchTimeoutMs` | Custom fetch and timeout. |
+| `fetch`, `fetchTimeoutMs` | Custom fetch and timeout (default 10 seconds). |
 
 ### Server client members
 
 | Member | Description |
 | --- | --- |
-| `loadPage({ type, handle? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. |
+| `loadPage({ type, handle?, locale?, projectId?, cache? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. `locale` selects the assigned page's locale, `projectId` overrides the project for this call, and `cache` (`{ revalidate, tags }`) is merged over the client-level `cache`. Never throws: an unassigned route resolves to a placeholder page whose `page.id` starts with `fallback_page_`, and a missing project ID or failed request resolves to `null`. See [Rendering pages](/nextjs/rendering-pages#no-page-means-404). |
 | `loadThemeSettings()` | Fetches theme settings merged over schema defaults. Returns `theme`, `schema`, `staticContent`, `publicEnv` in design mode, and `merchantOverrides` when the theme declares `i18n` and the request carries a language and country. |
-| `fetchCustomPages(options?)` | Lists published custom pages for a sitemap, paginating automatically. |
+| `fetchCustomPages(options?)` | Lists the custom pages assigned in the project for a sitemap, paginating automatically. Not filtered by publication state; see [Custom pages in the sitemap](/nextjs/rendering-pages#custom-pages-in-the-sitemap). |
 | `fetchWithCache(url, options?)` | Next-aware fetch: `no-store` in design and revision preview, `next: { revalidate, tags }` in published mode. |
 | `projectId`, `resolveProjectId()` | The project id; `resolveProjectId()` resolves it asynchronously (query, function, string, env). |
 | `components` | The server registry. |

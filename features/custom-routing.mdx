@@ -174,8 +174,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
 
   // 2. Fetch Weaverse page data AND necessary Shopify data in parallel.
-  //    `unwrapStorefront` throws when `storefront.graphql` returns errors;
-  //    `loadPage` does not — it resolves to `null` instead (see step 4 below).
+  //    `unwrapStorefront` throws when `storefront.graphql` returns errors.
+  //    `loadPage` throws only with `throwPageLoadFailures: true` (see step 4).
   const [weaverseData, shopifyProductData] = await Promise.all([
     // Call loadPage with EXPLICIT type 'PRODUCT' and the extracted handle
     weaverse.loadPage({
@@ -201,10 +201,10 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
     throw new Response("Product data not found", { status: 404 });
   }
 
-  // 4. `loadPage()` returns `WeaverseLoaderData | null` — it resolves to `null`
-  //    on failure rather than throwing, so check the result explicitly.
-  //    Pilot's `validateWeaverseData` helper throws a 404 for a missing page
-  //    (and for the fallback page outside design mode).
+  // 4. `loadPage()` returns `WeaverseLoaderData | null`. A route with no
+  //    assigned page gets a fallback page (`page.id` starts with
+  //    `fallback_page_`), not `null`. Pilot's `validateWeaverseData` helper
+  //    throws a 404 for `null` and for the fallback page outside design mode.
   validateWeaverseData(weaverseData);
 
   // 5. Prepare SEO data using the fetched Shopify product
@@ -231,10 +231,10 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 -   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/shop/...`.
 -   **Extract `productHandle`:** Get the handle from `params`.
 -   **Fetch Shopify Data:** You still need to fetch the corresponding Shopify product data for SEO, potentially for component data binding (though Weaverse handles much of this), and analytics. Use `Promise.all` for efficiency.
--   **Nullable Weaverse data:** `loadPage()` never rejects on a load failure — it logs and resolves to `null`. A `try/catch` around it catches nothing, so branch on the result (or hand it to `validateWeaverseData`). Keep `try/catch` for the operations that really do throw, such as a Storefront API query passed through `unwrapStorefront`.
+-   **Missing page vs. failed load:** a route with no assigned page resolves to a fallback page, not `null`. By default a load failure (missing project ID, network error, error response) is logged and resolves to `null`, so branch on the result or hand it to `validateWeaverseData`. With `throwPageLoadFailures: true` on the `WeaverseClient` (Pilot sets it), a failure rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) instead, so the route can answer 503 rather than 404. A 404 from the Weaverse API still resolves to `null`.
 
 <Warning>
-If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null`. Passing a missing page straight to `<WeaverseContent />` renders the error component.
+If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null` and for the `fallback_page_` id. Passing a missing page straight to `<WeaverseContent />` renders the error component.
 </Warning>
 
 ### Step 4: Render the Weaverse Content
@@ -329,10 +329,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
     locale, // Explicitly specify locale for custom route
   });
 
-  // `loadPage()` resolves to `null` on failure — it does not throw.
-  if (!weaverseData) {
-    throw new Response("Product not found", { status: 404 });
-  }
+  // `null` (or the fallback page outside design mode) means no page.
+  validateWeaverseData(weaverseData);
 
   return { weaverseData, locale };
 }
@@ -397,9 +395,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
     locale, // Use dynamically determined locale
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // Pilot's helper: 404 for `null` and for the fallback page outside design mode.
+  validateWeaverseData(weaverseData);
 
   return { weaverseData, locale };
 }

@@ -318,7 +318,7 @@ Use `--dir` to run it on another project folder. The codemod only touches files 
 - `Env` extends the SDK's `WeaverseEnv` instead of Hydrogen's removed `HydrogenEnv`.
 - `getSelectedProductOptions(request)` keeps its signature and still drops Weaverse's Studio query params.
 - `@shopify/hydrogen` is now a peer dependency: `>=2026.10.0` up to 6.2.x, `>=2026.10.3` from 6.3.0.
-- Weaverse content keeps its caching: 60 seconds fresh, then up to a day stale while it revalidates or when the API fails.
+- Weaverse content is cached as before: by default the public API proxy (`https://api.weaverse.io`) caches pages and theme settings at the edge, so those reads skip the local `cache`. A custom `WEAVERSE_HOST` without `WEAVERSE_PUBLIC_API_BASE`, and `fetchWithCache()` calls to other URLs, use the local `cache` (60 seconds fresh, then up to a day stale). See [Caching](/migration-advanced/existing-hydrogen-integration#step-6-cache-explicitly).
 
 ## Step 3: Own the Request Lifecycle in the Server Entry
 

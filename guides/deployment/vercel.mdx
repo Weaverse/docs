@@ -93,7 +93,7 @@ For Studio wiring inside the app itself (the Studio connector, the revalidation 
 The SDK and Next.js handle most caching for you. Keep these rules in mind on Vercel:
 
 - **Published pages** can use Next's `revalidate` (ISR) and the server client's `cache` option (`revalidate` and `tags`), so storefront pages are served from cache and refreshed in the background.
-- **Studio requests are never cached.** In design, preview and revision-preview mode the SDK fetches with `no-store`, so merchants always see their latest edits, even on a route that is otherwise static.
+- **Design mode and revision preview are never cached.** In those modes the SDK fetches with `no-store`, so merchants always see their latest edits, even on a route that is otherwise static. Section preview (`isPreviewMode`) is different: `loadPage()` builds a synthetic page for the previewed section without calling the API, while theme settings and your own `fetchWithCache` calls keep the normal cache options.
 - **The per-item revalidation route must stay dynamic.** Studio posts to it (by default `/api/weaverse/revalidate`) to re-run a section's loader after an edit. Mark it `dynamic = 'force-dynamic'` so Vercel never caches its responses.
 
 ```ts app/api/weaverse/revalidate/route.ts

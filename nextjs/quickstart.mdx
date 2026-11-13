@@ -60,10 +60,10 @@ This path assumes an App Router app that already reads from your Shopify store, 
 ### 1. Install
 
 ```bash
-npm install @weaverse/hydrogen
+npm install @weaverse/hydrogen@^6.3.1
 ```
 
-The Next.js adapter ships in `@weaverse/hydrogen` 6.2.0 and later: import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/hydrogen` needs `@shopify/hydrogen` 2026.10.0 or later as a peer dependency; install it too if your app doesn't have it yet.
+The Next.js adapter ships in `@weaverse/hydrogen` 6.2.0 and later (Forward uses 6.3.1): import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/hydrogen` 6.3 needs `@shopify/hydrogen` 2026.10.3 or later as a peer dependency; install it too if your app doesn't have it yet.
 
 ### 2. Environment variables
 
@@ -147,7 +147,7 @@ export let serverComponents: WeaverseNextComponent[] = [
 
 The server registry imports the schema file, never the component, so the server graph never pulls in a Client Component. Add a `loader` to a server entry to fetch data; see [Data fetching](/nextjs/data-fetching).
 
-Declare the theme schema once. It holds your [theme settings](/api-reference/use-theme-settings), and later your markets and routes:
+Declare the theme schema once. It holds your [theme settings](/nextjs/api/use-theme-settings), and later your markets and routes:
 
 ```ts
 // weaverse/theme-schema.ts
@@ -318,9 +318,14 @@ import { components } from './components'
 
 export function WeaversePage({ data }: { data: WeaverseNextLoaderData }) {
   let requestInfo = data.configs?.requestInfo as WeaverseNextRequestInfo | undefined
+  let projectId =
+    (data.configs?.projectId as string | undefined) ??
+    (data.project?.id as string | undefined)
+  if (!projectId) throw new Error('Missing Weaverse project id')
+
   let client = createWeaverseNextClient({
     components,
-    projectId: (data.configs?.projectId as string | undefined) ?? data.project?.id,
+    projectId,
     requestContext: {
       pathname: requestInfo?.pathname ?? '/',
       searchParams: new URLSearchParams(requestInfo?.search ?? ''),
@@ -356,7 +361,14 @@ export default async function Home(props: {
     pageType: 'INDEX',
   })
   let data = await weaverse.loadPage({ type: 'INDEX' })
-  if (!data) notFound()
+  // `null` is a failed load; a `fallback_page_` id means no page is assigned
+  // (keep it in design mode so the merchant can build it in Studio).
+  if (
+    !data ||
+    (data.page.id.startsWith('fallback_page_') && !data.configs?.isDesignMode)
+  ) {
+    notFound()
+  }
 
   return <WeaversePage data={data} />
 }
