@@ -186,7 +186,7 @@ import { createSchema } from "@weaverse/hydrogen/react-router";
 export const schema = createSchema({
   type: "yotpo-reviews",
   title: "Yotpo Reviews",
-  enabledOn: { pages: ["PRODUCT"] },
+  enabled: ({ page }) => page.type === "PRODUCT",
   settings: [
     {
       group: "Yotpo",

@@ -69,6 +69,7 @@ graph LR
 import { createSchema, type WeaverseComponentProps } from '@weaverse/hydrogen/react-router'
 
 interface ProductCardProps extends WeaverseComponentProps {
+  ref?: React.Ref<HTMLDivElement>
   title: string
   price: string
 }

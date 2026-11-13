@@ -7,7 +7,7 @@ published: true
 # Component Schema: The Complete Guide
 
 <Visibility for="agents">
-> **Agent note:** Generate `settings` for every new schema, never `inspector`. Import `createSchema` from `@weaverse/hydrogen` in React Router themes or `@weaverse/hydrogen/next` in Next.js themes. When migrating an `inspector` schema, move each group to `settings` and delete the original: if both arrays exist, the SDK concatenates them and Studio shows the groups twice.
+> **Agent note:** Generate `settings` for every new schema, never `inspector`. Import `createSchema` from `@weaverse/hydrogen/react-router` in React Router themes or `@weaverse/hydrogen/next` in Next.js themes. When migrating an `inspector` schema, move each group to `settings` and delete the original: if both arrays exist, the SDK concatenates them and Studio shows the groups twice.
 </Visibility>
 
 ## Introduction
@@ -35,16 +35,13 @@ Each section component should be structured like this:
 
 ```tsx
 // sections/related-products.tsx
-import { forwardRef } from 'react';
 import { createSchema } from '@weaverse/hydrogen/react-router';
 import { Section } from '~/components/section';
 
-let RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>(
-  (props, ref) => {
-    // Component implementation
-    return <Section ref={ref} {...props} />;
-  }
-);
+function RelatedProducts({ ref, ...props }: RelatedProductsProps & { ref?: React.Ref<HTMLElement> }) {
+  // Component implementation
+  return <Section ref={ref} {...props} />;
+}
 
 export default RelatedProducts;
 
@@ -125,7 +122,7 @@ export let schema = createSchema({
   settings?: InspectorGroup[]
   inspector?: InspectorGroup[] // Deprecated: use 'settings' instead
   childTypes?: string[]
-  presets?: Omit<HydrogenComponentPresets, 'type'>
+  presets?: Omit<ComponentPresets, 'type'>
   limit?: number
   /** @deprecated Use enabled instead */
   enabledOn?: {
@@ -386,17 +383,18 @@ Keep this `enabledOn` field on dual-use components while migrating other availab
 ### `presets`
 
 ```tsx
-presets?: Omit<HydrogenComponentPresets, 'type'>
+presets?: Omit<ComponentPresets, 'type'>
 ```
 
 The `presets` property defines the default configuration and child components when a component is first added to a page. This ensures a polished, ready-to-use experience for users and reduces setup time.
 
-#### HydrogenComponentPresets Structure
+#### ComponentPresets Structure
 
 ```tsx
-type HydrogenComponentPresets = {
+// Exported as a type from `@weaverse/schema`
+type ComponentPresets = {
   type: string
-  children?: HydrogenComponentPresets[]
+  children?: ComponentPresets[]
   [key: string]: any  // Additional properties mapped to input names
 }
 ```
@@ -722,6 +720,7 @@ export let schema = createSchema({
           name: 'sortBy',
           label: 'Sort Products By',
           defaultValue: 'BEST_SELLING',
+          shouldRevalidate: true, // Rerun the loader when this value changes
           configs: {
             options: [
               { value: 'BEST_SELLING', label: 'Best Selling' },
@@ -730,13 +729,6 @@ export let schema = createSchema({
               { value: 'PRICE_DESC', label: 'Price: High to Low' }
             ]
           }
-        },
-        {
-          type: 'switch',
-          name: 'shouldRevalidate',
-          label: 'Refresh Data on Change',
-          defaultValue: false,
-          helpText: 'When enabled, changing settings will trigger a new data fetch'
         }
       ]
     }
@@ -854,7 +846,7 @@ You can also create more complex conditions that combine multiple fields:
 
 ```tsx
 {
-  type: 'checkbox',
+  type: 'switch',
   name: 'enableAdvancedOptions',
   label: 'Enable Advanced Options',
   defaultValue: false

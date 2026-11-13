@@ -202,9 +202,7 @@ import { createSchema } from "@weaverse/hydrogen/react-router";
 export const schema = createSchema({
   type: "judgeme-reviews",
   title: "Judge.me Reviews",
-  enabledOn: {
-    pages: ["PRODUCT"],
-  },
+  enabled: ({ page }) => page.type === "PRODUCT",
   settings: [
     {
       group: "Content",

@@ -76,12 +76,12 @@ Data connectors pull information from your Hydrogen/React Router **loader functi
 Want to connect to third-party APIs? Just add the data to your route loader:
 
 ```tsx
-// app/routes/product.$handle.tsx
+// app/routes/products/product.tsx (route id "routes/products/product")
 export async function loader({ params }: LoaderFunctionArgs) {
-  let product = await getProduct(params.handle)
+  let product = await getProduct(params.productHandle)
 
   // Add custom data from any API
-  let reviews = await fetch(`https://reviews-api.com/product/${params.handle}`)
+  let reviews = await fetch(`https://reviews-api.com/product/${params.productHandle}`)
     .then(res => res.json())
 
   let customData = await fetch('https://your-api.com/data')
@@ -95,15 +95,15 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 ```
 
-Once you add data to your loader, **it automatically appears in Weaverse Studio's data selector** - no extra configuration needed. Users can then visually bind to `{{routes/product.reviews.rating}}` or `{{routes/product.customData.value}}` without writing code.
+Once you add data to your loader, **it automatically appears in Weaverse Studio's data selector** - no extra configuration needed. Users can then visually bind to `{{routes/products/product.reviews.rating}}` or `{{routes/products/product.customData.value}}` without writing code.
 
 ### Where Data Comes From
 
 | Loader Type | Studio Path | Example |
 |-------------|-------------|---------|
-| Root loader | `root.*` | `{{root.shop.name}}` |
-| Route loader | `routes/[route].*` | `{{routes/product.product.title}}` |
-| Custom loader data | `routes/[route].*` | `{{routes/product.yourCustomData}}` |
+| Root loader | `root.*` | `{{root.layout.shop.name}}` |
+| Route loader | `routes/[route].*` | `{{routes/products/product.product.title}}` |
+| Custom loader data | `routes/[route].*` | `{{routes/products/product.yourCustomData}}` |
 
 <Tip>
 Any data returned from your loader functions is automatically available in the visual data selector. Add third-party integrations, custom APIs, or computed data - users can bind to it instantly.
@@ -119,41 +119,40 @@ Data connectors use `{{path}}` syntax to reference data:
 
 ```html
 <!-- Shop info -->
-{{root.shop.name}}
+{{root.layout.shop.name}}
 
 <!-- Product data -->
-{{routes/product.product.title}}
-{{routes/product.product.price}}
+{{routes/products/product.product.title}}
+{{routes/products/product.product.price}}
 
 <!-- Images -->
-{{routes/product.product.images[0].url}}
+{{routes/products/product.product.images[0].url}}
 
 <!-- Collection -->
-{{routes/collection.collection.title}}
+{{routes/collections/collection.collection.title}}
 ```
 
 ### Data Source Patterns
 
 | Pattern | Use For | Example |
 |---------|---------|---------|
-| `root.*` | Global shop data | `{{root.shop.currency}}` |
-| `routes/product.*` | Product pages | `{{routes/product.product.title}}` |
-| `routes/collection.*` | Collection pages | `{{routes/collection.collection.title}}` |
-| `current.*` | Current page | `{{current.product.price}}` |
+| `root.*` | Global shop data | `{{root.layout.shop.currency}}` |
+| `routes/products/product.*` | Product pages | `{{routes/products/product.product.title}}` |
+| `routes/collections/collection.*` | Collection pages | `{{routes/collections/collection.collection.title}}` |
 
-### Complex Routes
+### Route IDs
 
-For routes with parameters:
+A `routes/...` path starts with the React Router route id: the route module's path under `app/`, without the extension, as registered in `app/routes.ts`. URL params and the `:locale?` prefix don't appear in it. In Pilot:
 
 ```html
-<!-- Localized homepage -->
-{{routes/($locale)._index.weaverseData.page.title}}
+<!-- Homepage -->
+{{routes/home.weaverseData.page.title}}
 
 <!-- Blog article -->
-{{routes/($locale).blogs.$blogHandle.$articleHandle.article.title}}
+{{routes/blogs/article.article.title}}
 
-<!-- Product with locale -->
-{{routes/($locale).products.$handle.product.price}}
+<!-- Product -->
+{{routes/products/product.product.price}}
 ```
 
 ## Using in Component Code
@@ -168,22 +167,27 @@ export let schema = createSchema({
   title: 'Product Card',
   settings: [
     {
-      type: 'text',
-      name: 'title',
-      label: 'Product Title',
-      defaultValue: '{{routes/product.product.title}}'
-    },
-    {
-      type: 'text',
-      name: 'price',
-      label: 'Price',
-      defaultValue: '${{routes/product.product.price}}'
-    },
-    {
-      type: 'richtext',
-      name: 'description',
-      label: 'Description',
-      defaultValue: '{{routes/product.product.description}}'
+      group: 'Content',
+      inputs: [
+        {
+          type: 'text',
+          name: 'title',
+          label: 'Product Title',
+          defaultValue: '{{routes/products/product.product.title}}'
+        },
+        {
+          type: 'text',
+          name: 'price',
+          label: 'Price',
+          defaultValue: '${{routes/products/product.product.price}}'
+        },
+        {
+          type: 'richtext',
+          name: 'description',
+          label: 'Description',
+          defaultValue: '{{routes/products/product.product.description}}'
+        }
+      ]
     }
   ]
 })
@@ -192,9 +196,10 @@ export let schema = createSchema({
 Then use in your component:
 
 ```tsx
-function ProductCard({ title, price, description }: ProductCardProps) {
+function ProductCard({ ref, title, price, description, ...rest }: ProductCardProps) {
   return (
-    <div className="product-card">
+    // Spread the remaining props so Studio can select the section
+    <div ref={ref} {...rest} className="product-card">
       <h3>{title}</h3>
       <p className="price">{price}</p>
       <div dangerouslySetInnerHTML={{ __html: description }} />
@@ -208,12 +213,12 @@ function ProductCard({ title, price, description }: ProductCardProps) {
 ### Example: Adding Product Reviews
 
 ```tsx
-// app/routes/product.$handle.tsx
+// app/routes/products/product.tsx (route id "routes/products/product")
 import { getProduct } from '~/lib/shopify'
 import { getProductReviews } from '~/lib/reviews.server'
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  let product = await getProduct(params.handle)
+  let product = await getProduct(params.productHandle)
 
   // Fetch reviews through a server-only integration adapter.
   // The adapter owns vendor authentication and response mapping.
@@ -231,9 +236,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
 ```
 
 Now in Studio, users can visually select:
-- `{{routes/product.reviews.average}}` → Shows "4.5"
-- `{{routes/product.reviews.count}}` → Shows "127 reviews"
-- `{{routes/product.reviews.items[0].text}}` → First review text
+- `{{routes/products/product.reviews.average}}` → Shows "4.5"
+- `{{routes/products/product.reviews.count}}` → Shows "127 reviews"
+- `{{routes/products/product.reviews.items[0].text}}` → First review text
 
 No code required for users - they just click and select from the visual interface.
 
@@ -242,7 +247,7 @@ For a complete server-side implementation, see [Integrate Judge.me Reviews with 
 ### Example: Adding Custom API Data
 
 ```tsx
-// app/routes/home.tsx (registered with index("routes/home.tsx"))
+// app/routes/home.tsx (route id "routes/home")
 export async function loader() {
   // Fetch from your backend, CMS, or any API
   let announcement = await fetch('https://your-cms.com/announcement')
@@ -253,8 +258,8 @@ export async function loader() {
 
   return {
     weaverseData: await getWeaverseData(),
-    announcement,      // Available as {{routes/_index.announcement.text}}
-    featuredContent    // Available as {{routes/_index.featuredContent.title}}
+    announcement,      // Available as {{routes/home.announcement.text}}
+    featuredContent    // Available as {{routes/home.featuredContent.title}}
   }
 }
 ```
@@ -265,7 +270,7 @@ export async function loader() {
 
 ```html
 <!-- Use specific paths -->
-{{routes/product.product.title}}
+{{routes/products/product.product.title}}
 
 <!-- Not generic ones -->
 {{product.title}}

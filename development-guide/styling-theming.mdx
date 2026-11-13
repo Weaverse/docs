@@ -59,6 +59,7 @@ export const themeSchema: WeaverseThemeSchema = {
     version: "1.0.0",
     author: "Your Name",
     name: "Your Theme",
+    authorProfilePhoto: "https://your-site.com/avatar.png",
     documentationUrl: "https://your-docs.com",
     supportUrl: "https://your-support.com",
   },
@@ -157,6 +158,8 @@ export const themeSchema: WeaverseThemeSchema = {
 `media` is optional and, unlike `settings`, never reaches the merchant: it filters what the Media Manager
 gallery offers in this theme. An `image` or `video` input can override it for its own picker — see
 [Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
+
+Every `info` field, including `authorProfilePhoto`, is required. To list theme settings groups in Studio's Page Outline, add `outline`; see [`WeaverseThemeSchema`](/api-reference/types#weaversethemeschema).
 
 ### 3. Global Style Component
 
@@ -986,7 +989,7 @@ export const schema = createSchema({
           },
         },
         {
-          type: "toggle",
+          type: "switch",
           name: "interactive",
           label: "Interactive Hover Effects",
           defaultValue: false,
