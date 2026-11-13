@@ -17,6 +17,62 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **AI agent code for SDK 6 themes**: Components the AI agent generates now use the imports and types that match your theme's Weaverse SDK version.
 </Update>
 
+<Update label="Pilot v2026.11.13" description="November 13, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Content Security Policy on Hydrogen's helpers**: The report-only policy is built with Hydrogen's `createContentSecurityPolicy` and the Weaverse SDK's Studio sources, so normal visitors get no Weaverse or Shopify wildcards, and pages stay cacheable on Oxygen. Set `PUBLIC_CHECKOUT_DOMAIN` to allow Shopify videos served from your store's own domain.
+  - **Markets with `defineShopifyI18n`**: Markets are defined with Hydrogen 2026.10.3's locale APIs, and every market keeps its URL.
+
+  #### Fixes
+
+  - **Sign-out**: Signing out returns shoppers to the home page of the market they were browsing, such as `/de-de`, instead of `/`.
+  - **Related products**: Opening a related product on a product page no longer logs a duplicate view-transition error, and its image still expands into the next page.
+  - **Account page**: The account page keeps its spacing on desktop, and "Add an Address" opens the address form.
+  - **CSP reports**: Upgrading to Weaverse SDK v6.3.1 stops a CSP `unsafe-eval` report on every page.
+
+  #### Upgrade
+
+  Register `<your-origin>/account/signed-out` as a Logout URI in the Customer Account API settings. Until then, sign-out still works and returns to `/`.
+
+  Breaking for themes built on Pilot: forks that import `app/utils/csp.ts`, `useNonce`, `I18nConfig` or `storefront.i18n` need to update. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.13)
+</Update>
+
+<Update label="Forward v2026.11.13" description="November 13, 2026" tags={["Theme", "Forward", "Next.js"]}>
+  ### Weaverse Forward Theme
+
+  #### New Features
+
+  - **Date-based versions**: Forward now uses date-based versions (`YYYY.M.D`) like Pilot, and ships a `CHANGELOG.md`. This release follows `1.0.0`.
+  - **Opt-in Content Security Policy**: Set `CSP_MODE` to `report-only` (the default), `enforce` or `off`. Weaverse Studio's sources are added in design mode, and `PUBLIC_CHECKOUT_DOMAIN` allows Shopify videos served from your store's own domain.
+
+  #### Improvements
+
+  - **Weaverse SDK v6**: Forward imports Weaverse from `@weaverse/hydrogen/next` (v6.3.1), defines markets with `defineShopifyI18n`, resolves theme copy with `createTranslate` and maps page SEO with `getWeaverseNextSeoMetadata`.
+  - **Hydrogen 2026.10.3**: Forward runs on `@shopify/hydrogen` 2026.10.3 and Next 16.4.6.
+
+  #### Fixes
+
+  - **Sign-out**: Signing out returns shoppers to the home page of the market they were browsing, instead of `/`.
+  - **Cart market**: The cart stays in the market of the current page, and switching market reloads its totals in the new currency.
+  - **Sitemap and robots.txt**: Both advertise your site's origin (`PUBLIC_SITE_URL`, or the Vercel production domain) instead of a placeholder.
+
+  #### Upgrade
+
+  Register `https://<your-domain>/account/signed-out` as a Logout URI in the Customer Account API settings. Until then, sign-out still works and returns to `/`.
+
+  Breaking for themes built on Forward: forks that import from `@weaverse/next` can run the codemod below. Lint, format and tests now run on Vite+ (`vp`) instead of Biome and `bun test`. Merchants using Forward as-is need no changes.
+
+  ```bash
+  npx @weaverse/cli@latest migrate v6
+  ```
+
+  [GitHub release](https://github.com/Weaverse/forward/releases/tag/v2026.11.13)
+</Update>
+
 <Update label="SDK v6.3.1" description="November 12, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
