@@ -102,7 +102,8 @@ type WeaverseClientArgs = {
 ```
 
 - `locale` selects the content locale, the Translation Manager overrides (`${language}-${country}`, lowercased) and the locale Studio reads, so include `pathPrefix`. Pass it when the Storefront client's `locale.language` is a Shopify `LanguageCode` that differs from the market's public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market. Added in `@weaverse/hydrogen` 6.1.0.
-- `throwPageLoadFailures: true` makes `loadPage()` reject with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) when a load fails (API unavailable, invalid response, or a configuration error such as a missing project ID), instead of resolving to `null`, so a route can answer an outage differently from a missing page. A 404 from the Weaverse API still resolves to `null`.
+- `throwPageLoadFailures: true` makes `loadPage()` reject with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) when a load fails (API unavailable, invalid response, a 400/401/403 refusal, or an invalid per-call `projectId`), instead of resolving to `null` or a placeholder page, so a route can answer an outage differently from a missing page. A 404 from the Weaverse API, such as a nonexistent project, still resolves to `null`.
+- The project ID is checked when the client is created, whatever `throwPageLoadFailures` is set to. If none resolves (no `weaverseProjectId` query, `projectId` argument or `WEAVERSE_PROJECT_ID`), the constructor throws a `WeaverseError` with code `MISSING_PROJECT_ID`; a malformed `projectId` argument throws `INVALID_PROJECT_ID`. These surface where the client is created, not from `loadPage()`.
 - `projectId` overrides the env-based project. A function must be synchronous: an `async` function, or one that returns a promise, throws a `WeaverseError` with code `ASYNC_PROJECT_ID` when the client is created. Resolve the ID first and pass the result, for example `projectId: await resolveProjectId(request)`. The published type still lists `() => Promise<string>`, but the runtime rejects it. (The Next.js server client does await an async resolver; see the [Next.js SDK reference](/nextjs/api-reference).)
 
 `API` is the current API version segment (`'v1'`), not a complete endpoint URL.
@@ -216,7 +217,7 @@ The resource or custom-page handle used with page types such as `PRODUCT`, `COLL
 
 #### `projectId`
 
-Overrides the client's resolved project ID for this request. Constructor-level `projectId` can also be a synchronous function for multi-project storefronts; an async resolver must be awaited before you create the client (see [Initialization](#initialization)).
+Overrides the client's resolved project ID for this request. An invalid value (not a string, or containing characters other than letters, digits, hyphens and underscores) is logged and resolves to `null`, or rejects with a `configuration` [`WeaverseLoadError`](/api-reference/weaverse-load-error) when the client sets `throwPageLoadFailures: true`. Constructor-level `projectId` can also be a synchronous function for multi-project storefronts; an async resolver must be awaited before you create the client (see [Initialization](#initialization)).
 
 #### `strategy`
 
@@ -259,7 +260,8 @@ What `loadPage()` resolves to:
 
 - **A page** when one is assigned to the route.
 - **A fallback page** when the project loads but no page is assigned to the route. Its `page.id` starts with `fallback_page_` and it renders "Please add new section to start." It is not `null`. Answer it with a 404 on the live storefront, but keep it in design mode, where the merchant builds on it in Studio (Pilot's `validateWeaverseData` does both). An explicit "no page" signal is tracked in [Weaverse/weaverse#597](https://github.com/Weaverse/weaverse/issues/597).
-- **`null`** when the Weaverse API answers 404, and, by default, when the load fails (missing or invalid project ID, network error, timeout, error status or error body). The failure is logged.
+- **`null`** when the Weaverse API answers 404 (for example, the project doesn't exist), and, by default, when the load fails (invalid per-call `projectId`, network error, timeout, error status or error body). The failure is logged.
+- **The fallback page**, by default, when the API answers 200 with a body that isn't a page envelope (for example `{}`). The warning is logged, but the result looks like an unassigned route. Set `throwPageLoadFailures: true` if you need to tell an invalid response from an absent page.
 - **A rejection with [`WeaverseLoadError`](/api-reference/weaverse-load-error)** instead of `null` for a failed load when the client sets `throwPageLoadFailures: true`. Its `kind` tells an outage (`unavailable`, `invalid-response`) from a `configuration` error.
 
 ### `fetchCustomPages`

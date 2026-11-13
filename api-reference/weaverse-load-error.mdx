@@ -45,16 +45,18 @@ type WeaverseLoadFailureKind = 'unavailable' | 'invalid-response' | 'configurati
 | --- | --- | --- |
 | `unavailable` | The Weaverse API timed out, couldn't be reached, or answered with a transient status (408, 425, 429 or 5xx) after the built-in retry. | `503`, not cached. Retrying later can succeed. |
 | `invalid-response` | The API answered successfully, but the body isn't a page/project envelope. | `503`, not cached. |
-| `configuration` | The request was refused or couldn't be built: a missing or invalid project ID, or a 400/401/403 from the API. | `500`. Retrying won't help. |
+| `configuration` | The request was refused or couldn't be built: an invalid per-call `projectId` passed to `loadPage()`, or a 400/401/403 from the API. | `500`. Retrying won't help. |
 
 ## When It's Thrown
 
-`WeaverseClient.loadPage()` throws `WeaverseLoadError` only when the client is created with `throwPageLoadFailures: true`. With the default (`false`), every failure resolves to `null`, the same value a missing project produces, so a route can't tell an outage from a 404.
+`WeaverseClient.loadPage()` throws `WeaverseLoadError` only when the client is created with `throwPageLoadFailures: true`. With the default (`false`), a failed load resolves to `null`, the same value a nonexistent project produces, so a route can't tell an outage from a 404. One exception: an HTTP 200 whose body isn't a page envelope (for example `{}`) resolves to the fallback placeholder page, which looks like a route with nothing assigned. Turn the option on when you need to tell an invalid response from an absent page.
 
 A missing page is never an error. With or without the option:
 
-- a missing project resolves to `null`
+- a nonexistent project (a 404 from the Weaverse API) resolves to `null`
 - a route with no page assigned in Studio resolves to a fallback placeholder page
+
+A client that can't resolve a project ID at all is a setup error, not a load failure: the `WeaverseClient` constructor throws a plain `WeaverseError` with code `MISSING_PROJECT_ID` (or `INVALID_PROJECT_ID` for a malformed `projectId` argument), whatever `throwPageLoadFailures` is set to.
 
 See [`loadPage()`](/api-reference/weaverse-client#loadpage) for the full contract.
 
