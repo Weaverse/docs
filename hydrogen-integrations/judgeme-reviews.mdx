@@ -196,6 +196,8 @@ For localized storefronts, generate the resource-route URL with the same locale 
 
 Wrap the review UI in a Weaverse section when merchants should control its heading, description, spacing, colors, or page placement from Studio. Keep API credentials in the server environment; expose only presentation settings in the schema.
 
+Using `enabled` instead of `enabledOn.pages` changes only how Studio groups the section in the Add Section menu; see [the note on migrating to `enabled`](/development-guide/component-schema#page-types).
+
 ```tsx
 import { createSchema } from "@weaverse/hydrogen/react-router";
 

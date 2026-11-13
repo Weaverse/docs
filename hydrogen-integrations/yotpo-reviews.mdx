@@ -180,6 +180,8 @@ Yotpo widgets can request additional API, image, font, or frame hosts depending 
 
 The app key and instance ID are public widget configuration, so they can be Studio settings when merchants need to switch widgets without a deployment.
 
+Using `enabled` instead of `enabledOn.pages` changes only how Studio groups the section in the Add Section menu; see [the note on migrating to `enabled`](/development-guide/component-schema#page-types).
+
 ```tsx
 import { createSchema } from "@weaverse/hydrogen/react-router";
 

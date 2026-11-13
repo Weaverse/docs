@@ -501,6 +501,10 @@ export let schema = createSchema({
 });
 ```
 
+<Note>
+  Availability works the same either way. Until [Weaverse/builder#3454](https://github.com/Weaverse/builder/issues/3454) ships, though, Studio's **Page sections** grouping in the Add Section menu still reads `enabledOn.pages`, so a page-specific section that only uses `enabled` is listed with the general sections.
+</Note>
+
 ```tsx
 type PageType =
   | 'INDEX'
