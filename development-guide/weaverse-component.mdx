@@ -1000,7 +1000,7 @@ export interface HeroImageProps extends VariantProps<typeof variants> {}
 // Use variants in component
 function HeroImage({ ref, ...props }: HeroImageProps & SectionProps & { ref?: React.Ref<HTMLElement> }) {
   const { children, height, contentPosition, ...rest } = props;
-  
+
   return (
     <Section
       ref={ref}
