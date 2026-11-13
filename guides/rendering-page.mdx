@@ -674,7 +674,8 @@ export const components: WeaverseComponent[] = [
 import type { WeaverseLoaderData } from "@weaverse/hydrogen/react-router";
 
 export async function loader({ context }: LoaderFunctionArgs) {
-  // `null` when no Weaverse project is configured
+  // `null` when the load fails or the project does not exist (API 404).
+  // A missing project ID throws earlier, when `WeaverseClient` is created.
   const weaverseData: WeaverseLoaderData | null = await context.weaverse.loadPage({
     type: "PRODUCT",
     handle,

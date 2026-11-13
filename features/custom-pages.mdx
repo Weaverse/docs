@@ -238,9 +238,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     locale: "sv-se", // Load Swedish version
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // 404 for `null` and for the fallback page outside design mode
+  validateWeaverseData(weaverseData);
 
   return { weaverseData };
 }
@@ -259,9 +258,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     locale: "fr-ca", // Load French Canadian version
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // 404 for `null` and for the fallback page outside design mode
+  validateWeaverseData(weaverseData);
 
   return { weaverseData };
 }
