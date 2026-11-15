@@ -8,6 +8,99 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.11.39" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Latest release on partner theme pages**: The Overview of a partner theme in the [Themes](https://weaverse.io/themes) gallery now shows the theme's latest release version.
+  - **Hydrogen version on partner theme pages**: The Overview also shows the Hydrogen version the theme is built on, instead of "N/A".
+  - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
+</Update>
+
+<Update label="2026.11.38" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Theme demos**: Trying a theme from the [Themes](https://weaverse.io/themes) gallery now connects to that theme's demo storefront for every theme, including newer partner themes that previously could not connect.
+</Update>
+
+<Update label="2026.11.37" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Partner themes first**: Partner themes are now listed first in the [Themes](https://weaverse.io/themes) gallery. Theme cards no longer show **Buy theme** or **Coming soon**: open a theme to get or buy it.
+  - **Theme page actions**: A theme's page has one main button with the price, **Get theme** for free themes or **Buy theme** for paid ones. A **Preview** menu beside it opens the **Live storefront** or **Try in Studio** in a new tab.
+  - **Theme descriptions**: The theme page header shows the description in up to three lines. Long partner descriptions open in full with **Read More**.
+  - **Book a Demo page**: The [Book a Demo](https://weaverse.io/book-a-demo) page now matches the rest of the site and keeps the calendar steady while it loads. If you dismissed the cookie banner, you can reopen your privacy preferences from the calendar. Demo buttons across the site now read "Book a Demo".
+</Update>
+
+<Update label="2026.11.36" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **README and Changelog on partner theme pages**: Partner theme pages in the [Themes](https://weaverse.io/themes) gallery now have **README** and **Changelog** tabs, read from the theme's source package. Long changelogs are collapsed.
+
+  #### Improvements
+
+  - **Shorter theme preview links**: Partner theme preview links are shorter, named after the theme, and always show the latest saved draft.
+</Update>
+
+<Update label="2026.11.35" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **No reload after saving**: Studio no longer shows "Reloading window to apply changes..." and reloads the window after every save or publish.
+</Update>
+
+<Update label="2026.11.34" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Book a Demo page**: A new [Book a Demo](https://weaverse.io/book-a-demo) page lets you schedule a demo with the Weaverse team. The calendar loads once you allow functional cookies, and a direct scheduling link is always available.
+</Update>
+
+<Update label="2026.11.33" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Theme purchases on the Billing page**: The Billing page in your dashboard now lists the themes your store has bought, with the price paid, purchase date and license status, plus a **Create project** button while the license is active. The list appears once your store has bought a theme.
+</Update>
+
+<Update label="2026.11.32" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Open in Studio from usage breakdown**: Each project and top page in your billing usage breakdown has an **Open in Studio** button, so you can go from a usage number straight to that project or page.
+
+  #### Fixes
+
+  - **Uninstalling Weaverse**: Uninstalling the app from a store with a long usage history now reliably ends the store's Weaverse billing.
+</Update>
+
+<Update label="2026.11.31" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Sandbox setup asks for what it needs**: When a Sandbox sets up a linked repository, Weaverse now provides the values it already knows, such as `WEAVERSE_PROJECT_ID` and `SESSION_SECRET`. Any other value appears as a field in the Sandbox card with a **Save and continue** button, instead of setup stopping at "Waiting for your input".
+</Update>
+
+<Update label="2026.11.30" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Partner theme descriptions**: Partner theme descriptions in the [Themes](https://weaverse.io/themes) gallery now show Markdown formatting, such as headings, lists, links and images hosted on Shopify. Theme cards show the description as plain text.
+</Update>
+
 <Update label="2026.11.28" description="November 11, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
@@ -205,6 +298,22 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.3)
 </Update>
 
+<Update label="@weaverse/next 1.1.4" description="November 11, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.3**: Pins the same `@weaverse/react` as `@weaverse/hydrogen` 6.1.3, which now also exports `useStudioSelection()` from `@weaverse/hydrogen/next`. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.4
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.4)
+</Update>
+
 <Update label="SDK v6.1.2" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
@@ -268,6 +377,31 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.10)
 </Update>
 
+<Update label="Maison v2026.11.10" description="November 10, 2026" tags={["Theme", "Maison"]}>
+  ### Maison Theme
+
+  #### New Features
+
+  - **Refreshed storefront**: The visual system, home page sections and page layout are refreshed, with a rebuilt footer, announcement bar and product gallery.
+  - **New sections**: **Highlights**, **Instagram**, **Image with product** and **Rich text**. Testimonials now run as a carousel, and featured collections add an editorial layout alongside the grid and carousel.
+  - **B2B through B2Bridge**: B2B pricing, checkout and settlement run through B2Bridge. Each buyer sees the prices for their company location, and a cart can't be checked out twice.
+  - **Judge.me and Klaviyo**: Reviews and email signup are ready to connect. Each stays hidden until its token is added, so the storefront never shows an empty reviews widget or a signup form that can't submit.
+
+  #### Improvements
+
+  - **Collection, product, cart and search**: The cart order summary shows the subtotal before discounts, the variant table has its own tablet and desktop layouts inside quick shop, collection cards show the correct product count, and the search bar and popular keywords stay inside the viewport on mobile.
+  - **New projects start clean**: Section presets and defaults ship placeholder images and copy only, so there is no demo content to remove before adding your own.
+  - **Selling in more than one language**: Newsletter and free-shipping messages follow the shopper's language, cart and quick shop work under a locale prefix, footer and quick shop labels are editable from theme settings, and sitemap URLs point at the right blog.
+  - **Documentation**: New guides cover setup, the section library and third-party integrations.
+
+  #### Fixes
+
+  - **Carts stay with their shopper**: Signing in as a second account on the same browser no longer shows the previous shopper's cart, checkout details or company pricing. A guest cart carries over when that shopper signs in, and signing out leaves the cart behind.
+  - **Removing cart lines**: Removing several cart lines in quick succession no longer brings a deleted line back on screen.
+
+  [GitHub release](https://github.com/Weaverse/maison/releases/tag/v2026.11.10)
+</Update>
+
 <Update label="SDK v6.1.1" description="November 10, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
@@ -284,6 +418,22 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   Released with `@weaverse/next` 1.1.2, which pins the same `@weaverse/react`.
 
   [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.1)
+</Update>
+
+<Update label="@weaverse/next 1.1.2" description="November 10, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.1**: Pins the same `@weaverse/react` as `@weaverse/hydrogen` 6.1.1, which fixes `fetchWithCache` sharing one cache entry between requests with different `FormData` or other non-string bodies. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.2
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.2)
 </Update>
 
 <Update label="2026.11.9" description="November 3, 2026" tags={["Studio"]}>
@@ -318,6 +468,22 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   Released with `@weaverse/next` 1.1.1, which pins the same `@weaverse/react`.
 
   [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.0)
+</Update>
+
+<Update label="@weaverse/next 1.1.1" description="November 9, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.0**: Pins `@weaverse/react` 6.1.0, the version `@weaverse/hydrogen` 6.1.0 uses, so both packages share one copy of `@weaverse/react`. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.1)
 </Update>
 
 <Update label="Pilot v2026.11.7" description="November 7, 2026" tags={["Theme", "Pilot"]}>
@@ -428,6 +594,26 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.25.0.
 
   [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.25.0)
+</Update>
+
+<Update label="CLI v5.8.0" description="November 6, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### New Features
+
+  - **Install a licensed partner theme**: `weaverse create --pass=<pass>` downloads the source of a partner theme your store has a license for, verifies it, and sets it up as a new project. The folder is named after the theme unless you pass `--project-name`, and `--project-id` writes the `.env` file as for templates. A used or expired pass asks you to get a new install command from your Weaverse dashboard. `--pass` can't be combined with `--template` or `--commit`.
+
+  #### Fixes
+
+  - **Aspen demo link**: The Aspen template now points to its current live demo.
+
+  #### Upgrade
+
+  ```bash
+  npx @weaverse/cli@latest create --pass=<pass>
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.8.0)
 </Update>
 
 <Update label="2026.11.8" description="November 3, 2026" tags={["Studio"]}>
