@@ -20,16 +20,96 @@ the hosted connector requires sign-in for every tool, including docs search.
 The account tools only ever see the one store you connected, whether through
 sign-in (hosted connector) or an API key (local server).
 
-## Ways to connect
+## Connect Your Agent
+
+Choose your agent in **Dashboard → Agent Skills**, or follow the matching path
+below. Installing skills does not approve store access.
+
+<Tabs>
+  <Tab title="Claude Code">
+    With [Claude Code 2.1.292 or later](https://code.claude.com/docs/en/plugins/install#add-and-install-from-your-shell),
+    install the skills and hosted MCP server together from your terminal:
+
+    ```bash
+    claude plugin install weaverse --marketplace Weaverse/shopify-hydrogen-skills
+    ```
+
+    This adds Weaverse's repository-hosted marketplace and installs the
+    `weaverse` plugin at user scope. Start a new Claude Code session, open
+    `/mcp` and authenticate Weaverse. Sign in with your Shopify store and review
+    the requested access. Leave optional permissions unchecked for read-only
+    use. Plugin skills use names such as `/weaverse:setup-weaverse-project`.
+
+    Already installed the skills? Keep them and add only the hosted server in
+    your current project:
+
+    ```bash
+    claude mcp add --transport http weaverse https://mcp.weaverse.io/mcp
+    ```
+
+    Then authenticate through `/mcp`. No Content API key is needed. For older
+    Claude Code versions that support plugins, use the
+    [two-command install](https://github.com/Weaverse/shopify-hydrogen-skills/blob/main/INSTALL.md#claude-code-skills-and-mcp-together).
+  </Tab>
+  <Tab title="Codex">
+    Keep the skills install:
+
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills --skill '*' --agent codex
+    ```
+
+    Then create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
+    and use the [local Codex configuration](#client-configuration)
+    below. Codex uses `@weaverse/mcp` locally, not the hosted sign-in URL.
+  </Tab>
+  <Tab title="Cursor">
+    Keep the skills install:
+
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills --skill '*' --agent cursor
+    ```
+
+    Then create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
+    and use the [local Cursor configuration](#client-configuration)
+    below. Cursor uses `@weaverse/mcp` locally, not the hosted sign-in URL.
+  </Tab>
+  <Tab title="Other Agents">
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills
+    ```
+
+    Choose your agent and installation scope when prompted. For store access,
+    create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
+    and [configure the local server](#client-configuration)
+    with command `npx`, arguments `["-y", "@weaverse/mcp"]`, and
+    `WEAVERSE_API_KEY` in its environment.
+  </Tab>
+  <Tab title="Claude and ChatGPT Apps">
+    Add `https://mcp.weaverse.io/mcp` as a custom connector with sign-in in
+    Claude, or a custom MCP server with OAuth in ChatGPT. No CLI install or API
+    key is needed. Follow the [app connection steps](#hosted-connector-for-claude-and-chatgpt)
+    below; workspace policies may require an owner to add it first.
+  </Tab>
+</Tabs>
+
+After connecting, ask the agent to call `list_projects` and check that only your
+store's projects appear. Review or disconnect hosted access in
+[Dashboard → Account → Connected AI apps](https://studio.weaverse.io/dashboard/account).
+Revoke local-server keys under **API Keys** on the same page.
+
+### Connection Options
 
 <CardGroup cols={3}>
-  <Card title="Hosted connector (Claude, ChatGPT)" icon="plug">
-    `https://mcp.weaverse.io/mcp`. Nothing to install: add it as a connector and
-    sign in with your Shopify store. Each store approves its own access.
+  <Card title="Hosted Sign-In" icon="plug">
+    Claude Code, Claude and ChatGPT use `https://mcp.weaverse.io/mcp`. Each store
+    signs in and approves its own access.
   </Card>
   <Card title="@weaverse/mcp (local)" icon="terminal">
-    Runs on your machine via `npx` with a Content API key. For Cursor, Claude
-    Code, Codex, VS Code and other local MCP clients.
+    Runs on your machine via `npx` with a Content API key. For Codex, Cursor,
+    VS Code and other local MCP clients.
   </Card>
   <Card title="Docs-only MCP" icon="globe">
     `https://docs.weaverse.io/mcp`. Documentation search only, with no store
@@ -57,13 +137,17 @@ docs-only MCP if you want docs without connecting a store.
 
 <Steps>
   <Step title="Add the connector">
-    - **Claude**: open **Customize → Connectors**, add a custom connector, and
-      enter `https://mcp.weaverse.io/mcp`.
+    - **Claude**: open **Customize → Connectors → Add custom connector** and
+      enter `https://mcp.weaverse.io/mcp`. Choose sign-in and **Use Claude's
+      published identity**. Team and Enterprise users may need an owner to add
+      the connector first. See Claude's
+      [custom connector guide](https://support.claude.com/en/articles/11175166-getting-started-with-custom-connectors-using-remote-mcp).
     - **ChatGPT**: open **Plugins**, select **+ → Add custom MCP server**, enter
       a name and `https://mcp.weaverse.io/mcp`, choose OAuth authentication,
       accept the risk warning, and select **Create as a plugin** (per OpenAI's
       [Connect and test your plugin](https://developers.openai.com/plugins/deploy/connect-chatgpt)
-      guide). Workspace policies may restrict custom MCP servers.
+      guide). Install the resulting plugin, then select it with **@** in a new
+      conversation. Workspace policies may restrict custom MCP servers.
   </Step>
   <Step title="Sign in with your store">
     You are sent to Weaverse. Sign in with the Shopify account that owns the
@@ -113,8 +197,16 @@ immediately.
 
 ## Install & configure `@weaverse/mcp` (local)
 
-Add the server to your MCP client. Pass your API key (optional — omit it for
-docs-only use) via the `env` block.
+For Codex, Cursor and other local MCP clients, create a Content API key in
+[Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account).
+Merge the matching configuration below into your existing file; replace
+`your-key` with that key. Keep it private and out of version control. Requires
+Node.js and npm; restart your agent after saving.
+
+The key is optional only for docs-only use. These clients use the local server
+rather than Weaverse's hosted sign-in. Claude Code can use the plugin above.
+
+### Client Configuration
 
 <Tabs>
   <Tab title="Cursor">
@@ -124,6 +216,7 @@ docs-only use) via the `env` block.
     {
       "mcpServers": {
         "weaverse": {
+          "type": "stdio",
           "command": "npx",
           "args": ["-y", "@weaverse/mcp"],
           "env": { "WEAVERSE_API_KEY": "your-key" }
@@ -151,14 +244,6 @@ docs-only use) via the `env` block.
     ```
 
     Restart Claude Desktop.
-  </Tab>
-
-  <Tab title="Claude Code">
-    ```bash
-    claude mcp add weaverse \
-      --env WEAVERSE_API_KEY=your-key \
-      -- npx -y @weaverse/mcp
-    ```
   </Tab>
 
   <Tab title="opencode">
@@ -207,6 +292,11 @@ docs-only use) via the `env` block.
     ```
   </Tab>
 </Tabs>
+
+The formats follow the current
+[Codex MCP configuration](https://developers.openai.com/codex/mcp#configure-with-configtoml)
+and [Cursor MCP configuration](https://cursor.com/docs/context/mcp#using-mcpjson)
+guides.
 
 <Note>
   Leave `WEAVERSE_API_KEY` out to run docs-only — `search_weaverse_docs` still
