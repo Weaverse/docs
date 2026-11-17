@@ -1,31 +1,132 @@
 ---
 title: "Shopify Hydrogen Skills"
-description: "Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse — works with Claude Code, Cursor, Copilot, and more"
+description: "Install Weaverse skills and connect your store in Claude Code, Codex, Cursor, or another AI agent."
 ---
 
 # Shopify Hydrogen Skills
 
-Agent skills for building, maintaining, and upgrading Shopify Hydrogen storefronts with Weaverse. Works with **Claude Code**, **Cursor**, **GitHub Copilot**, **Windsurf**, **OpenCode**, **OpenClaw**, **Gemini CLI**, and any agent that supports markdown skill files.
+Install the Weaverse skills and connect your agent to your store. Claude Code
+can install both through one plugin command. Codex, Cursor and other agents keep
+the skills installer and use a local MCP server with a Content API key.
 
 <Note>
   **Why skills, not docs?** Skills are concise, agent-optimized knowledge that your coding agent loads before working on a task — structured for LLMs, not humans. Pair them with [Weaverse MCP](/developer-tools/weaverse-mcp) for live doc search and the best results.
 </Note>
 
-## Quick Install
+## Connect Your Agent
 
-```bash
-npx skills add Weaverse/shopify-hydrogen-skills
-```
+<Tabs>
+  <Tab title="Claude Code">
+    Run this in your terminal with
+    [Claude Code 2.1.292 or later](https://code.claude.com/docs/en/plugins/install#add-and-install-from-your-shell):
 
-Auto-detects your coding agents and installs to all of them. Powered by [skills.sh](https://skills.sh).
+    ```bash
+    claude plugin install weaverse --marketplace Weaverse/shopify-hydrogen-skills
+    ```
 
-Or ask your coding agent to start a project with the skills:
+    The repository-hosted marketplace installs the `weaverse` plugin at user
+    scope: every skill plus the hosted `weaverse` MCP server. Start a new
+    Claude Code session, open `/mcp` and authenticate Weaverse. Sign in with your
+    Shopify store and review access; leave optional permissions unchecked for
+    read-only use. Plugin skills use names such as
+    `/weaverse:setup-weaverse-project`.
 
-<Prompt description="Install the Weaverse Shopify Hydrogen agent skills with `npx skills add Weaverse/shopify-hydrogen-skills`. Then load the `setup-weaverse-project` skill and use it to create a new Weaverse Hydrogen storefront from the Pilot theme, run it locally, and connect it to Weaverse Studio. Ask me for my Weaverse project ID and Shopify store credentials when you need them." actions={["copy", "cursor"]}>
-Install the Weaverse Shopify Hydrogen agent skills with `npx skills add Weaverse/shopify-hydrogen-skills`. Then load the `setup-weaverse-project` skill and use it to create a new Weaverse Hydrogen storefront from the Pilot theme, run it locally, and connect it to Weaverse Studio. Ask me for my Weaverse project ID and Shopify store credentials when you need them.
-</Prompt>
+    Already installed the skills? Keep them and add just the store connection
+    for your current project:
 
-For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/shopify-hydrogen-skills/blob/main/INSTALL.md).
+    ```bash
+    claude mcp add --transport http weaverse https://mcp.weaverse.io/mcp
+    ```
+
+    Then authenticate through `/mcp`. No Content API key is needed.
+  </Tab>
+  <Tab title="Codex">
+    Run in your project folder and choose **Project** when asked:
+
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills --skill '*' --agent codex
+    ```
+
+    Create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account).
+    Merge this into `~/.codex/config.toml`, replacing `your-key` with your key:
+
+    ```toml
+    [mcp_servers.weaverse]
+    command = "npx"
+    args = ["-y", "@weaverse/mcp"]
+    env = { WEAVERSE_API_KEY = "your-key" }
+    ```
+
+    See the [Codex MCP guide](https://developers.openai.com/codex/mcp#configure-with-configtoml).
+  </Tab>
+  <Tab title="Cursor">
+    Run in your project folder and choose **Project** when asked:
+
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills --skill '*' --agent cursor
+    ```
+
+    Create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account).
+    Merge this into `~/.cursor/mcp.json`, replacing `your-key` with your key:
+
+    ```json
+    {
+      "mcpServers": {
+        "weaverse": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "@weaverse/mcp"],
+          "env": { "WEAVERSE_API_KEY": "your-key" }
+        }
+      }
+    }
+    ```
+
+    See the [Cursor MCP guide](https://cursor.com/docs/context/mcp#using-mcpjson).
+  </Tab>
+  <Tab title="Other Agents">
+    The skills installer is unchanged:
+
+    ```bash
+    npx skills add Weaverse/shopify-hydrogen-skills
+    ```
+
+    Choose your agent and installation scope when prompted. For store access,
+    create a Content API key in
+    [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account).
+    Configure a local stdio server with command `npx`, arguments
+    `["-y", "@weaverse/mcp"]` and `WEAVERSE_API_KEY` in its environment.
+    See [MCP setup for other clients](/developer-tools/weaverse-mcp#install--configure-weaversemcp-local)
+    for your client's schema.
+  </Tab>
+  <Tab title="Claude and ChatGPT Apps">
+    No CLI install is needed. In Claude, open **Customize → Connectors → Add
+    custom connector**, enter `https://mcp.weaverse.io/mcp`, and choose sign-in
+    with Claude's published identity. In ChatGPT, open **Plugins → + → Add
+    custom MCP server**, enter the same URL, choose OAuth, review the warning
+    and select **Create as a plugin**. Install it and select it with **@** in a
+    new conversation.
+
+    Sign in with your Shopify store and review its requested access. Workspace
+    policies may require an owner to add it first. See the
+    [hosted connector steps](/developer-tools/weaverse-mcp#hosted-connector-for-claude-and-chatgpt).
+    This connects MCP; it does not install coding skills in the apps.
+  </Tab>
+</Tabs>
+
+For local MCP, Node.js and npm are required. Keep your Content API key private
+and out of version control, and restart the agent after saving its configuration.
+Codex, Cursor and other agents use the local server, not the hosted sign-in URL.
+
+After connecting, ask the agent to call `list_projects` and check that only your
+store's projects appear. Review or disconnect hosted access in
+[Dashboard → Account → Connected AI apps](https://studio.weaverse.io/dashboard/account).
+Revoke local-server keys under **API Keys** on the same page.
+
+For older Claude Code versions and manual per-agent installation, see
+[INSTALL.md](https://github.com/Weaverse/shopify-hydrogen-skills/blob/main/INSTALL.md).
 
 ## Available Skills
 
@@ -55,18 +156,19 @@ For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/sho
 
 ## Live Doc Fetching
 
-Instead of baking static API docs into skill files (which go stale), this repo ships **live doc fetching scripts** that query official sources at runtime:
+The skills ship scripts that query official docs at runtime. From a clone of
+the skills repository:
 
 ```bash
 # Search Shopify Hydrogen docs (shopify.dev)
-node scripts/search_shopify_docs.mjs "handleShopifyRoutes"
-node scripts/search_shopify_docs.mjs "createCartServerHandlers"
+node skills/shopify-hydrogen/scripts/search_shopify_docs.mjs "handleShopifyRoutes"
+node skills/shopify-hydrogen/scripts/search_shopify_docs.mjs "createCartServerHandlers"
 
 # Search Weaverse docs (docs.weaverse.io)
-node scripts/search_weaverse_docs.mjs "component schema"
+node skills/shopify-hydrogen/scripts/search_weaverse_docs.mjs "component schema"
 
 # Fetch a specific Weaverse doc page
-node scripts/get_weaverse_page.mjs "development-guide/component-schema"
+node skills/shopify-hydrogen/scripts/get_weaverse_page.mjs "development-guide/component-schema"
 
 # Check for Pilot theme updates
 node skills/theme-update/scripts/check_pilot_updates.mjs
@@ -91,6 +193,7 @@ The `references/` folders in each skill serve as **offline fallback** — cached
   - shopify-hydrogen/
     - SKILL.md
     - references/
+    - scripts/
   - weaverse-hydrogen/
     - references/
     - examples/
@@ -103,14 +206,19 @@ The `references/` folders in each skill serve as **offline fallback** — cached
     - scripts/
   - weaverse-integration/
     - SKILL.md
-- scripts/
+- .claude-plugin/
+  - plugin.json
+  - marketplace.json
+- .mcp.json
 - .cursorrules
 - AGENTS.md
 - INSTALL.md
 
 </FileTree>
 
-Each skill keeps its deep-dive guides in `references/`. `scripts/` holds the shared live doc fetching scripts, and `INSTALL.md` covers manual per-agent setup.
+Each skill keeps its deep-dive guides in `references/`. Shared doc helpers live
+inside `shopify-hydrogen/scripts/` so they are installed with the skills.
+`INSTALL.md` covers plugin and manual per-agent setup.
 
 ## Using with Weaverse MCP
 
