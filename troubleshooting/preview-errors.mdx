@@ -15,41 +15,59 @@ When working with Weaverse Studio, you may encounter preview connection errors t
 
 ### CONNECTION_TIMEOUT
 
-**Symptom**: Preview shows "Unable to connect to preview server" after waiting 5+ seconds.
+**Symptom**: Studio shows **"Your preview isn’t ready yet"** or **"Studio can't open this Oxygen preview"**. Studio has not received a response from the preview bridge. A timeout does not prove the site is offline.
 
-**Common Causes**:
-- Development server not running
-- Server running on wrong port
-- Firewall blocking connection
-- Network connectivity issues
+**For a hosted preview**:
 
-**Quick Fixes**:
+1. Open the preview URL in a private window.
+2. If an Oxygen URL ending in `.myshopify.dev` asks you to log in to Shopify, follow [Private Oxygen Environment](#private-oxygen-environment) below.
+3. Otherwise, confirm the deployment has finished and the URL works without a login, VPN, or IP allowlist.
+4. In Studio, open **Manage previews** to select or update the URL, then click **Check again**.
 
-1. **Start your development server**
-   ```bash
-   npm run dev
-   # or
-   pnpm dev
-   # or
-   yarn dev
-   ```
+**For a local preview**:
 
-2. **Check the server is running on the correct port**
-   - Default port: `3456`
-   - Verify in your terminal output: `Server running on http://localhost:3456`
-   - Check project settings in Weaverse Studio for configured preview URL
+1. Run `npm run dev` in your theme project and keep it running.
+2. Check the URL and port in the terminal. Pilot uses `http://localhost:3456` by default. Select that URL in **Manage previews**.
+3. If Chrome asks to let Studio access other apps and services on this device, choose **Allow**, then click **Check again**.
+4. Safari blocks HTTP previews inside Studio. Use Chrome or Firefox, or an HTTPS preview URL. For an HTTP preview on a local network address, try `localhost` if the server runs on this computer, or use an HTTPS URL.
 
-3. **Verify network connectivity**
-   - Try opening the preview URL directly in your browser
-   - Check if localhost resolves: `ping localhost`
-   - Ensure no VPN/proxy interfering with local connections
+If a developer is setting up your storefront, ask them to finish the preview setup.
 
-4. **Check firewall settings**
-   - Allow Node.js through your firewall
-   - Temporarily disable firewall to test (macOS: System Settings → Network → Firewall)
-   - Whitelist port 3456 in your security software
+---
 
-<Tip>**Quick Test**: Open `http://localhost:3456` in your browser. If it loads, the server is running correctly and the issue is with Studio configuration.</Tip>
+### Private Oxygen Environment
+
+**Symptom**: Your preview URL ends in `.myshopify.dev`, Studio cannot open it, and opening it in a private window shows the Shopify login page.
+
+**Cause**: Oxygen environments are private by default. They send visitors who are not logged in to Shopify's login page. That page blocks iframe embedding, so it cannot open inside Studio. Logging in in another tab is not a public-preview fix.
+
+Studio's Oxygen message is a hint based on the hostname, not a confirmed authentication error. Check the URL in a private window before changing settings.
+
+**Fix A: Make the Oxygen environment public**
+
+1. In Shopify admin, open your **Hydrogen storefront**.
+2. Open **Storefront settings** → **Environments and variables**.
+3. Click the environment used by your preview URL.
+4. Under **URL privacy**, select **Public**, then click **Save**.
+5. Confirm the URL opens in a private window without asking you to log in. In Studio, select it in **Manage previews** and click **Check again**.
+
+A public environment is visible to anyone with its URL. Only make it public if its content is ready to share.
+
+[Shopify's public environment limits](https://shopify.dev/docs/storefronts/hydrogen/deploy/oxygen/environments#public-environment-limits) apply per store:
+
+| Store plan | Public environments |
+| --- | --- |
+| Shopify Plus | 25 |
+| Most other plans | 1, usually already used by production |
+| Development stores and trial plans | 0 |
+
+For the full deployment steps, see [Publish Your Storefront & Update Weaverse Preview URL](/guides/deployment/oxygen#7-publish-your-storefront-&-update-weaverse-preview-url).
+
+**Fix B: Use a public URL on another host**
+
+If your store cannot make this environment public, deploy to another host, such as [Cloudflare Workers](/guides/deployment/workers). The Workers guide is a migration path, not a one-click theme preset. Follow it and verify the deployed storefront before using its URL.
+
+Open **Manage previews** in Studio, add and select the new public URL, then click **Check again**.
 
 ---
 
@@ -147,10 +165,9 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
    - Check for `.htaccess` or auth middleware
    - Ensure dev server allows unauthenticated requests
 
-2. **Configure Shopify authentication**
-   - Ensure valid session tokens
-   - Check Shopify app credentials
-   - Verify OAuth flow is working
+2. **Check for a private Oxygen environment**
+   - If an Oxygen URL shows the Shopify login page in a private window, follow [Private Oxygen Environment](#private-oxygen-environment).
+   - Make that environment public, or use a public URL on another host. Changing session tokens or Shopify app OAuth settings will not make a private Oxygen URL embeddable.
 
 3. **Bypass network restrictions**
    - Test on different network (mobile hotspot)
