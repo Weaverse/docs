@@ -30,7 +30,8 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 | Product form | `useOptimisticVariant`, `getAdjacentAndFirstAvailableVariants` | `createProductComponents()`: `ProductProvider`, `useProductForm` |
 | Analytics | `Analytics.Provider`, `Analytics.ProductView`, ... | `ShopifyScripts` and the `window.Shopify.analytics` bus |
 | Customer Account | `context.customerAccount.login()` in your routes | `createCustomerAccountServerHandlers()` at fixed `/account/*` paths |
-| UI helpers | `Image`, `Money`, `Pagination`, `getSeoMeta`, sitemaps, CSP | Removed: port them into your theme |
+| UI helpers | `Image`, `Money`, `Pagination`, `getSeoMeta`, sitemaps | Removed: port them into your theme |
+| CSP | `createContentSecurityPolicy()` returning `NonceProvider`, `useNonce` | `createContentSecurityPolicy({ shop, directives, nonce })` (2026.10.3+), no `NonceProvider` or `useNonce` |
 
 `@weaverse/hydrogen` 6 follows: `WeaverseClient` takes the 2026.10 Storefront client instead of a classic Hydrogen context, and the SDK ships one entry point per framework.
 
@@ -38,9 +39,9 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 
 | Package | Version |
 | --- | --- |
-| `@shopify/hydrogen` | `2026.10.x` (Pilot uses `^2026.10.2`) |
-| `@weaverse/hydrogen` | `6.x` (Pilot uses `^6.1.0`; the `locale` option needs 6.1.0) |
-| `@weaverse/react` / `@weaverse/next` | Pinned by `@weaverse/hydrogen`: `6.1.0` / `1.1.1` for 6.1.0, `6.0.0` / `1.1.0` for 6.0.0 |
+| `@shopify/hydrogen` | `2026.10.3` or later (Pilot uses `^2026.10.3`; `@weaverse/hydrogen` 6.3.0+ requires `>=2026.10.3`) |
+| `@weaverse/hydrogen` | `6.x`, latest `6.3.1` (Pilot uses `^6.3.1`; the `locale` option needs 6.1.0, `getWeaverseStudioCspDirectives` needs 6.3.0) |
+| `@weaverse/react`, `@weaverse/core`, `@weaverse/schema` | Installed by `@weaverse/hydrogen` at exact versions (6.3.1 pins `@weaverse/react` 6.3.1, `@weaverse/core` 6.3.1 and `@weaverse/schema` 0.20.1). Don't list them yourself |
 | `@shopify/cli` (dev) | `4.4.0` or later, for `shopify hydrogen deploy` (Pilot uses `^4.9.4`) |
 | `react-router`, `@react-router/dev` | `7.18` or later 7.x, both on the same version (Pilot uses `7.18.5`) |
 | `vite` | `8` |
@@ -50,7 +51,7 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 Themes on Hydrogen 2026.4 or earlier stay on `@weaverse/hydrogen` 5.x. React Router 8 is not supported yet.
 
 <Warning>
-  `@weaverse/hydrogen`, `@weaverse/react` and `@weaverse/next` are released together as one version group: `@weaverse/hydrogen` 6.1.0 depends on exactly `@weaverse/react` 6.1.0 and `@weaverse/next` 1.1.1 (6.0.0 on `@weaverse/react` 6.0.0 and `@weaverse/next` 1.1.0). If your `package.json` also lists `@weaverse/react` or `@weaverse/next`, align them to the versions your `@weaverse/hydrogen` pins. Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
+  `@weaverse/hydrogen` depends on exact versions of `@weaverse/react` and `@weaverse/core` (6.3.1 on 6.3.1), and themes import everything through `@weaverse/hydrogen/react-router`. Remove `@weaverse/react`, `@weaverse/core` and `@weaverse/next` from your `package.json`. If you must keep a direct `@weaverse/react` dependency, pin it to the exact version your `@weaverse/hydrogen` depends on (`npm view @weaverse/hydrogen@<version> dependencies`). Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
 </Warning>
 
 <Note>
@@ -94,7 +95,7 @@ Follow the steps below. They follow the order Pilot used, so the project builds 
 ### Dependencies
 
 ```bash
-npm install @shopify/hydrogen@^2026.10.2 @weaverse/hydrogen@^6.1.0 \
+npm install @shopify/hydrogen@^2026.10.3 @weaverse/hydrogen@^6.3.1 \
   react-router@7.18.5 @react-router/dev@7.18.5
 npm install -D gql.tada @types/node @shopify/mini-oxygen@^4.2.3 @shopify/cli@^4.9.4
 npm uninstall @shopify/hydrogen-codegen @graphql-codegen/cli
@@ -261,9 +262,9 @@ Use `--dir` to run it on another project folder. The codemod only touches files 
 
 | Entry | Contents |
 | --- | --- |
-| `@weaverse/hydrogen/react-router` | Everything a Hydrogen theme uses: `WeaverseClient`, `withWeaverse`, `WeaverseHydrogenRoot`, `useThemeSettings`, `useTranslation`, `TranslationProvider`, `getSelectedProductOptions`, `getWeaverseSeoMeta`, `createSchema`, the hooks and the types |
-| `@weaverse/hydrogen` | Schemas, data helpers and types, without React or a router |
-| `@weaverse/hydrogen/react` | Framework-free React hooks: `useWeaverse`, `useItemInstance`, `useParentInstance`, `useChildInstances` |
+| `@weaverse/hydrogen/react-router` | Everything a Hydrogen theme uses: `WeaverseClient`, `withWeaverse`, `WeaverseHydrogenRoot`, `useThemeSettings`, [`useTranslation`, `TranslationProvider`](/api-reference/use-translation), `getSelectedProductOptions`, `getWeaverseSeoMeta`, `createSchema`, the hooks and the types |
+| `@weaverse/hydrogen` | Schemas, data helpers and types, without React or a router, including [`getWeaverseStudioCspDirectives`](/api-reference/get-weaverse-studio-csp-directives) (6.3.0+), [`WeaverseError` and `WeaverseLoadError`](/api-reference/weaverse-load-error) and `getNestedKey` |
+| `@weaverse/hydrogen/react` | Framework-free React hooks: `useWeaverse`, `useItemInstance`, `useParentInstance`, `useChildInstances`, [`useStudioSelection`](/api-reference/use-studio-selection) |
 | `@weaverse/hydrogen/next`, `@weaverse/hydrogen/next/server` | The Next.js SDK. Up to 6.1 also published as `@weaverse/next` 1.1.x, now deprecated |
 
 **Renamed types** (applied by the codemod):
@@ -316,8 +317,8 @@ Use `--dir` to run it on another project folder. The codemod only touches files 
 - Section loaders query Shopify with `weaverse.storefront.graphql()`; there is no `query()` shim.
 - `Env` extends the SDK's `WeaverseEnv` instead of Hydrogen's removed `HydrogenEnv`.
 - `getSelectedProductOptions(request)` keeps its signature and still drops Weaverse's Studio query params.
-- `@shopify/hydrogen` `>=2026.10.0` is now a peer dependency.
-- Weaverse content keeps its caching: 60 seconds fresh, then up to a day stale while it revalidates or when the API fails.
+- `@shopify/hydrogen` is now a peer dependency: `>=2026.10.0` up to 6.2.x, `>=2026.10.3` from 6.3.0.
+- Weaverse content is cached as before: by default the public API proxy (`https://api.weaverse.io`) caches pages and theme settings at the edge, so those reads skip the local `cache`. A custom `WEAVERSE_HOST` without `WEAVERSE_PUBLIC_API_BASE`, and `fetchWithCache()` calls to other URLs, use the local `cache` (60 seconds fresh, then up to a day stale). See [Caching](/migration-advanced/existing-hydrogen-integration#step-6-cache-explicitly).
 
 ## Step 3: Own the Request Lifecycle in the Server Entry
 
@@ -436,7 +437,7 @@ Notes:
 
 - `handleShopifyRoutes` decides synchronously: it returns a `Promise<Response>` for a path a handler owns, otherwise `null`. Check it without `await`.
 - Handlers are matched in order, so app handlers that wrap a library handler (Pilot's `POST /api/cart` syncs the cart's market, then calls `cartHandlers.post`) go first.
-- `routeTemplates` comes from `createShopifyRouteTemplates()` and maps Shopify resources to your routes, for `?variant=` links, URL redirects and `ShopifyScripts`. Omitting it, or `applyResponseHeaders`, fails silently.
+- `routeTemplates` comes from `defineShopifyRouteTemplates()` (Hydrogen 2026.10.3 keeps `createShopifyRouteTemplates()`, which Pilot still calls, as a deprecated alias) and maps Shopify resources to your routes, for `?variant=` links, URL redirects and `ShopifyScripts`. Omitting it, or `applyResponseHeaders`, fails silently.
 - Pilot's real `server.ts` also skips the redirect lookup for unsupported markets, makes the lookup market-aware ([Markets](#markets)), and leaves cart permalinks without a `payment` param to its own `/cart/:lines` route.
 
 ## Step 4: Build the App Context Yourself
@@ -612,11 +613,11 @@ There is no `Object.assign(hydrogenContext, { weaverse })`: return `weaverse` fr
 
 ### The `locale` Option
 
-Weaverse needs the request's market for three things: the locale it sends with page requests, the Translation Manager overrides it loads (keyed by `${language}-${country}`, lowercased) and the `requestInfo.i18n` Studio reads. By default it takes them from `storefront.i18n`. From `@weaverse/hydrogen` 6.1.0, `locale` overrides that without touching the Storefront client:
+Weaverse needs the request's market for three things: the locale it sends with page requests, the Translation Manager overrides it loads (keyed by `${language}-${country}`, lowercased) and the `requestInfo.i18n` Studio reads. By default it takes them from `storefront.locale`. From `@weaverse/hydrogen` 6.1.0, `locale` overrides that without touching the Storefront client:
 
 - **Pass it** when the Storefront client's `i18n.language` is a Shopify `LanguageCode` that differs from the market's public language. Shopify wants `ZH_TW` for a Traditional Chinese Hong Kong market; handed to Weaverse, that asks for `zh_tw-hk` translations, which match nothing and silently fall back to the theme defaults.
 - **Include `pathPrefix`**, which Weaverse passes to Studio. The value is a `WeaverseI18n`: Hydrogen's `I18nConfig` (`language`, `country`) plus optional `pathPrefix`, `label` and any other market fields.
-- **Leave it out** when `storefront.i18n` already carries the public language and `pathPrefix`. Nothing changes from 6.0.
+- **Leave it out** when `storefront.locale` already carries the public language and `pathPrefix`. Nothing changes from 6.0.
 
 Pilot passes its canonical market for the request, `resolveRequestLocale(request)` from `app/.server/storefront.ts`, which reads the URL prefix (or the `Referer` for unprefixed handler paths) and returns an entry of `SUPPORTED_LOCALES`. The same function, with the language swapped for the Shopify code, builds the Storefront client's `i18n`. `weaverse.storefront` stays the same client as `context.storefront`, so section loaders still query Shopify in its `LanguageCode`.
 
@@ -1003,7 +1004,6 @@ function AddToCartButton({ product }: { product: ProductFormData }) {
 ```tsx
 // app/root.tsx, first in <head>
 <ShopifyScripts
-  nonce={nonce}
   shop={data.shopifyScripts.shop} // { shopId, storefrontId, myshopifyDomain }
   i18n={data.shopifyScripts.i18n} // { country, language, pathPrefix, currency }
   analytics={{ channel: data.shopifyScripts.channel }}
@@ -1019,7 +1019,7 @@ function AddToCartButton({ product }: { product: ProductFormData }) {
 <CartAnalytics />
 ```
 
-- Build `shop` and `i18n` in the root loader from `env` and `storefront.i18n`. Keep them per market, never per shopper, so the document stays cacheable.
+- Build `shop` and `i18n` in the root loader from `env` and `storefront.locale`. Keep them per market, never per shopper, so the document stays cacheable.
 - Route events are published to the bus. Pilot's `app/components/root/analytics-views.tsx` has small trackers (`PageView`, `ProductView`, `CollectionView`, `SearchView`, `CartView`) that call `window.Shopify.analytics.publish(AnalyticsEvent.PRODUCT_VIEWED, { products })` once per URL.
 - `useCartAnalytics()` from `@shopify/hydrogen/react` publishes `cart_updated`, `product_added_to_cart` and `product_removed_from_cart` from the cart store. Render it inside `CartProvider`, after `ShopifyScripts`.
 - Third-party tags subscribe through a destination instead of `useAnalytics().subscribe`, so they follow Customer Privacy consent:
@@ -1102,7 +1102,7 @@ These classic exports are gone. Pilot ports them as local files with unchanged o
 | `Pagination`, `getPaginationVariables` | `app/components/pagination.tsx`, `app/utils/pagination.ts` |
 | `ExternalVideo`, `ModelViewer` | `app/components/product-media/` |
 | `parseGid` | `app/utils/shopify.ts` |
-| `createContentSecurityPolicy`, `NonceProvider`, `useNonce` | `app/utils/csp.ts`, see [Content Security Policy](/features/content-security) |
+| `NonceProvider`, `useNonce` | None: Pilot builds the policy with `nonce: false` through Hydrogen 2026.10.3's `createContentSecurityPolicy` and `getWeaverseStudioCspDirectives` (`@weaverse/hydrogen` 6.3.0+), see [Content Security Policy](/features/content-security) |
 | `ShopPayButton` | Import it from `@shopify/hydrogen/react` |
 | `CacheLong`, `CacheShort`, `CacheNone`, `generateCacheControlHeader` | `app/utils/cache.ts` ([Step 6](#step-6-move-queries-to-the-new-graphql-client)) |
 
@@ -1213,7 +1213,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
     The renames match whole words in every file that imports Weaverse. A local `ThemeSettingsResponse` becomes `WeaverseThemeSettingsResponse` too. Run with `--dry-run` first and review `git diff` after applying.
   </Accordion>
   <Accordion title="Weaverse components lose their data after the upgrade">
-    Two copies of `@weaverse/react` are installed. Keep `@weaverse/react` and `@weaverse/next` on the versions your `@weaverse/hydrogen` pins (6.1.0 pins `@weaverse/react` 6.1.0 and `@weaverse/next` 1.1.1), and check with `npm ls @weaverse/react`. From 6.2.0, remove `@weaverse/next` instead.
+    Two copies of `@weaverse/react` are installed. Remove direct `@weaverse/react`, `@weaverse/core` and `@weaverse/next` dependencies (or pin `@weaverse/react` to the exact version your `@weaverse/hydrogen` depends on, 6.3.1 for 6.3.1), and check with `npm ls @weaverse/react`.
   </Accordion>
   <Accordion title="Translations show the theme defaults in one market">
     Weaverse asked for the wrong locale key. If the Storefront client's `i18n.language` is a Shopify code such as `ZH_TW`, pass the market's public locale to `WeaverseClient` as `locale` (`@weaverse/hydrogen` 6.1.0 or later). See [The `locale` option](#the-locale-option).
@@ -1252,7 +1252,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
     If a script loads your component registry or manifest through Vite's `ssrLoadModule`, packages that publish ESM with extensionless relative imports (such as `react-use/esm/*`) fail under Node's ESM resolver. Add them to `ssr.noExternal` in that Vite server config, as Pilot's `other/weaverse-manifest.mjs` does with `noExternal: [/^@weaverse\//, "react-use"]`.
   </Accordion>
   <Accordion title="Hydration is silently dead (cart, variant picker, analytics)">
-    The nonce was dropped while porting CSP. Pass the nonce to `ShopifyScripts`, `Scripts` and `ScrollRestoration`, and check the console for CSP violations. See [Content Security Policy](/features/content-security).
+    The CSP blocks React Router's inline hydration scripts. With `createContentSecurityPolicy({ nonce: false })`, add `'unsafe-inline'` to `scriptSrc`; with a nonce, pass `csp.nonce` to `renderToReadableStream`, `ServerRouter` and your inline scripts. Check the console for CSP violations. See [Content Security Policy](/features/content-security).
   </Accordion>
   <Accordion title="Anonymous pages are no longer cached">
     Something personalized reached the document: a cart passed as `CartProvider` `initialData`, a customer token in a loader, or a session committed on every response. Load the cart after hydration and commit the session only when it changed.
@@ -1261,7 +1261,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
 
 ## Migration Checklist
 
-- `@shopify/hydrogen` `^2026.10`, `@weaverse/hydrogen` `^6.1`, React Router 7.18+ on one version, Vite 8
+- `@shopify/hydrogen` `^2026.10.3`, `@weaverse/hydrogen` `^6.3.1`, React Router 7.18+ on one version, Vite 8
 - Scripts: `vite dev`, `dev:https`, `react-router build`, `vite preview`, `shopify hydrogen deploy --assets-dir dist/client --worker-dir dist/server`; `@shopify/cli` 4.4.0 or later
 - `vite.config.ts` without `hydrogen()`; `react-router.config.ts` with `buildDirectory: "dist"` and `v8_middleware`
 - GraphQL codegen removed; `@shopify/hydrogen/ts-plugin` and `hydrogen gql check` in place

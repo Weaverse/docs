@@ -49,13 +49,12 @@ The widget's business unit and template IDs are visible in browser markup. Keep 
 
 ## Load the TrustBox script once
 
-Add the bootstrap script to the document head using Hydrogen's CSP nonce:
+Add the bootstrap script to the document head, and allow its host in your CSP (see [Configure CSP](#configure-csp)):
 
 ```tsx
 <script
   src="https://widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
   async
-  nonce={nonce}
 />
 ```
 
@@ -228,11 +227,12 @@ The widget can continue rendering even when the optional server summary fails.
 
 ## Configure CSP
 
-Allow the TrustBox bootstrap host in `script-src`:
+Allow the TrustBox bootstrap host in `scriptSrc` of your theme's directives (`app/weaverse/csp.ts` in Pilot), which `createContentSecurityPolicy` merges into Hydrogen's defaults:
 
 ```ts
-const csp = {
-  scriptSrc: ["https://widget.trustpilot.com"],
+const THEME_DIRECTIVES = {
+  // ...
+  scriptSrc: [/* ...existing sources */ "https://widget.trustpilot.com"],
 };
 ```
 

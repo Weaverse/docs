@@ -80,7 +80,7 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 3. **Verify the route renders Weaverse content**
    - The route loader should call `weaverse.loadPage()` and the route should render `<WeaverseHydrogenRoot />`
-   - Ensure components are registered in `~/weaverse/components.ts` (or `~/app/weaverse/components.ts` in the Pilot template)
+   - Ensure components are registered in `app/weaverse/components.ts` (imported as `~/weaverse/components` in Pilot)
    - Restart the dev server after adding new components
 
 4. **Confirm the page type is supported**
@@ -89,8 +89,8 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 5. **Update Weaverse if needed**
    ```bash
-   # Hydrogen 2026.10 and later
-   npm install @weaverse/hydrogen@^6
+   # Hydrogen 2026.10.3 and later (latest: @weaverse/hydrogen 6.3.1)
+   npm install @weaverse/hydrogen@^6.3.1 @shopify/hydrogen@^2026.10.3
    # Classic Hydrogen (2026.4 and earlier)
    npm install @weaverse/hydrogen@^5
    ```
@@ -173,35 +173,21 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 1. **Check the CSP for Studio's sources**
 
-   Studio embeds your storefront in an iframe and injects its bridge script from the `weaverseHost` URL without a nonce. In design mode (the URL has a `weaverseHost` query parameter), your CSP must include:
-
-   - `frame-ancestors *`
-   - The Weaverse hosts (`*.weaverse.io` and the `weaverseHost` value) in `script-src`, `connect-src`, and `style-src`
-   - `'unsafe-eval'` in `script-src`, so the bridge can rebuild schema `condition` functions
-
-   Pilot's `getWeaverseCsp` (`app/weaverse/csp.ts`) sets all of these:
+   Studio embeds your storefront in an iframe and loads its bridge script from the Studio origin. Merge `getWeaverseStudioCspDirectives(request)` (`@weaverse/hydrogen` 6.3.0+) into the directives you pass to Hydrogen's `createContentSecurityPolicy`. On Studio requests it adds the Studio origin to `frame-ancestors`, `script-src`, `connect-src`, `style-src`, `font-src` and `img-src`, plus `'unsafe-eval'` in design mode; for normal visitors it returns `{}`:
 
    ```typescript
    // app/weaverse/csp.ts (excerpt)
-   const weaverseHost =
-     url.searchParams.get("weaverseHost") || env.WEAVERSE_HOST;
-   const isDesignMode = url.searchParams.get("weaverseHost");
-   const weaverseHosts = ["*.weaverse.io", "*.shopify.com", "*.myshopify.com"];
-   if (weaverseHost) {
-     weaverseHosts.push(weaverseHost);
-   }
-   // ...connectSrc, styleSrc and scriptSrc all spread ...weaverseHosts
-   if (isDesignMode) {
-     updatedCsp.frameAncestors = ["*"];
-     (updatedCsp.scriptSrc as string[]).push("'unsafe-eval'");
+   const studio = getWeaverseStudioCspDirectives(request);
+   for (const key of Object.keys(studio) as (keyof typeof studio)[]) {
+     directives[key] = [...(directives[key] ?? []), ...(studio[key] ?? [])];
    }
    ```
 
-2. **Make sure `script-src` lists every script origin**
+   The helper trusts only `https://` hosts on `weaverse.io` or `weaverse.dev`. A self-hosted Studio on another domain gets `{}`, so add its origin to your own directives.
 
-   Once `script-src` is set, it replaces `default-src` for scripts. A `scriptSrc` that lists only `https://cdn.shopify.com` blocks the Studio bridge as soon as the header is enforced, even if the Weaverse hosts are in `defaultSrc`. Look for `violates the following Content Security Policy directive` in the console and add the blocked origin to the directive it names.
+2. **Append Studio's sources, don't replace yours**
 
-   On Hydrogen 2026.10 the theme builds the CSP header itself, since Hydrogen no longer ships `createContentSecurityPolicy`. See the [Content Security Policy guide](/features/content-security) for the setup and a rollout checklist.
+   Overwriting a directive with Studio's array drops your own sources, such as `'unsafe-inline'` in `script-src`, which React Router's hydration scripts need when the policy has no nonce. Look for `violates the following Content Security Policy directive` in the console and add the blocked origin to the directive it names. See the [Content Security Policy guide](/features/content-security) for the setup and a rollout checklist.
 
 3. **Enable CORS for local development**
    ```typescript

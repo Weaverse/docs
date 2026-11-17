@@ -27,8 +27,13 @@ Environment variables connect your Hydrogen storefront to Shopify, Weaverse Stud
 
 ### Weaverse Variables
 1. **`WEAVERSE_PROJECT_ID`**: Unique ID for your Weaverse project. Find it in Weaverse Studio under **Project Settings**.
-2. **`WEAVERSE_API_KEY`**: Optional API key from your Weaverse account or project settings. Only include it when your theme or automation needs direct API access.
+2. **`WEAVERSE_API_KEY`**: Optional API key from your Weaverse account or project settings. Rendering pages doesn't need it; only include it when your own code or automation calls the Content API.
 3. **`WEAVERSE_HOST`**: Optional Weaverse service host. Default: `https://studio.weaverse.io`.
+4. **`WEAVERSE_PUBLIC_API_BASE`**: Optional base URL for public page and theme-settings reads. Default: `https://api.weaverse.io`, or `WEAVERSE_HOST` when you set a custom host.
+
+<Warning>
+  `WeaverseClient` copies `WEAVERSE_API_KEY` from the `env` you pass it into the page configs it returns from `loadPage()`, and those are serialized into public loader data (`weaverseData.configs.weaverseApiKey`). It also falls back to `process.env.WEAVERSE_API_KEY`. Until [Weaverse/weaverse#517](https://github.com/Weaverse/weaverse/issues/517) is fixed, keep Content API keys out of the env handed to `WeaverseClient` and out of `process.env` in that runtime; a server-only variable name alone doesn't protect the value. Give the key to the code that calls the Content API through a separate env object or secret.
+</Warning>
 
 ### Optional Theme Variables
 1. **`PUBLIC_STOREFRONT_API_VERSION`**: Storefront API version. If omitted, Hydrogen uses its configured default.
@@ -79,7 +84,7 @@ SHOP_ID="your-shop-id"
 
 # Weaverse
 WEAVERSE_PROJECT_ID="YOUR_PROJECT_ID"
-WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional
+# WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional; see the warning above
 WEAVERSE_HOST="https://studio.weaverse.io"  # Optional
 
 # Optional integrations
@@ -198,13 +203,15 @@ Access environment variables in your code:
 
 ```tsx
 // In route loaders
-export async function loader({ context }: LoaderArgs) {
+import type { LoaderFunctionArgs } from "react-router";
+
+export async function loader({ context }: LoaderFunctionArgs) {
   const { env } = context;
-  return json({ storeDomain: env.PUBLIC_STORE_DOMAIN });
+  return { storeDomain: env.PUBLIC_STORE_DOMAIN };
 }
 
 // In Weaverse components
-export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs<{}, Env>) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
   const { env } = weaverse;
   return { projectId: env.WEAVERSE_PROJECT_ID };
 }

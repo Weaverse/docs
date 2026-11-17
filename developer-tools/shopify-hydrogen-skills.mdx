@@ -51,6 +51,24 @@ For manual per-agent setup, see the [INSTALL.md](https://github.com/Weaverse/sho
   <Card title="weaverse-integration" icon="plug">
     Integrate Weaverse into an existing Hydrogen project — analyze codebase, convert components, set up SDK, configure routes. Load when adding Weaverse to a project that doesn't use it yet.
   </Card>
+  <Card title="cloning-websites-to-weaverse" icon="clone">
+    Recreate reference websites as Hydrogen + Weaverse pages, with preview checkpoints and section mapping. Load when cloning a site or brand hub into Weaverse.
+  </Card>
+  <Card title="figma-to-weaverse" icon="figma">
+    Turn a Figma design into Weaverse sections through the Figma MCP — token mapping, component-state interactions, a content manifest, and a visual check against Figma. Load when building a storefront from a Figma file.
+  </Card>
+  <Card title="generating-weaverse-project-json" icon="file-code">
+    Generate import-ready Weaverse project export JSON from section plans, specs, or existing exports. Load when building Weaverse import files.
+  </Card>
+  <Card title="weaverse-content-api" icon="database">
+    Read and update Weaverse content over the REST [Content API](/content-api/overview) — live item edits, drafts and explicit publish, schedule and restore, translations, project lifecycle, Shopify resource upload. Load when changing a project's content through the API.
+  </Card>
+  <Card title="hydrogen-analytics-tracking" icon="chart-line">
+    End-to-end tracking on Hydrogen — GTM, GA4, Meta Pixel and CAPI, Google Ads, Consent Mode v2, CSP, Oxygen full-page cache, Weaverse webhook forwarding. Load when implementing analytics or conversion tracking.
+  </Card>
+  <Card title="hydrogen-markets-localization" icon="globe">
+    End-to-end Shopify Markets localization — market config, locale routing, Weaverse translations, RTL, cart, account and checkout continuity, SEO. Load when adding or reviewing markets, locales, or translations.
+  </Card>
 </CardGroup>
 
 ## Live Doc Fetching
@@ -59,14 +77,14 @@ Instead of baking static API docs into skill files (which go stale), this repo s
 
 ```bash
 # Search Shopify Hydrogen docs (shopify.dev)
-node scripts/search_shopify_docs.mjs "handleShopifyRoutes"
-node scripts/search_shopify_docs.mjs "createCartServerHandlers"
+node skills/shopify-hydrogen/scripts/search_shopify_docs.mjs "handleShopifyRoutes"
+node skills/shopify-hydrogen/scripts/search_shopify_docs.mjs "createCartServerHandlers"
 
-# Search Weaverse docs (docs.weaverse.io)
-node scripts/search_weaverse_docs.mjs "component schema"
+# Search Weaverse docs (weaverse.io/docs)
+node skills/shopify-hydrogen/scripts/search_weaverse_docs.mjs "component schema"
 
 # Fetch a specific Weaverse doc page
-node scripts/get_weaverse_page.mjs "development-guide/component-schema"
+node skills/shopify-hydrogen/scripts/get_weaverse_page.mjs "development-guide/component-schema"
 
 # Check for Pilot theme updates
 node skills/theme-update/scripts/check_pilot_updates.mjs
@@ -74,10 +92,13 @@ node skills/theme-update/scripts/check_pilot_updates.mjs
 
 | Script | Source | What it does |
 |--------|--------|-------------|
-| `search_shopify_docs.mjs` | shopify.dev | Search Hydrogen API docs |
-| `search_weaverse_docs.mjs` | docs.weaverse.io | Search Weaverse docs via Mintlify MCP |
-| `get_weaverse_page.mjs` | docs.weaverse.io | Fetch full page content by path |
-| `check_pilot_updates.mjs` | github.com | Check for Pilot theme release updates |
+| `shopify-hydrogen/scripts/search_shopify_docs.mjs` | shopify.dev | Search Hydrogen API docs |
+| `shopify-hydrogen/scripts/search_weaverse_docs.mjs` | weaverse.io/docs | Search Weaverse docs via Mintlify MCP |
+| `shopify-hydrogen/scripts/get_weaverse_page.mjs` | weaverse.io/docs | Fetch full page content by path |
+| `shopify-hydrogen/scripts/check_docs_helpers.mjs` | none | Check helper boundaries offline |
+| `theme-update/scripts/check_pilot_updates.mjs` | github.com | Check for Pilot theme release updates |
+
+Script paths are relative to the repo's `skills/` folder.
 
 All scripts are **zero-dependency** — Node.js 18+ built-ins only.
 
@@ -88,29 +109,35 @@ The `references/` folders in each skill serve as **offline fallback** — cached
 <FileTree>
 
 - skills/
+  - setup-weaverse-project/
+    - SKILL.md
   - shopify-hydrogen/
     - SKILL.md
     - references/
+    - scripts/
   - weaverse-hydrogen/
+    - SKILL.md
     - references/
     - examples/
   - hydrogen-cookbooks/
-    - references/
   - hydrogen-upgrades/
-    - references/
   - theme-update/
     - SKILL.md
     - scripts/
   - weaverse-integration/
-    - SKILL.md
-- scripts/
+  - cloning-websites-to-weaverse/
+  - figma-to-weaverse/
+  - generating-weaverse-project-json/
+  - weaverse-content-api/
+  - hydrogen-analytics-tracking/
+  - hydrogen-markets-localization/
 - .cursorrules
 - AGENTS.md
 - INSTALL.md
 
 </FileTree>
 
-Each skill keeps its deep-dive guides in `references/`. `scripts/` holds the shared live doc fetching scripts, and `INSTALL.md` covers manual per-agent setup.
+Each skill has a `SKILL.md`, and most keep deep-dive guides in `references/`. The live doc fetching scripts live in `skills/shopify-hydrogen/scripts/`, some other skills ship their own `scripts/`, and `INSTALL.md` covers manual per-agent setup.
 
 ## Using with Weaverse MCP
 

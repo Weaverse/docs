@@ -207,6 +207,7 @@ type WeaverseThemeSchema = {
   }
   settings?: InspectorGroup[]
   routes?: ThemeRoutes
+  outline?: ThemeOutline
   i18n?: {
     urlStructure: 'url-path' | 'subdomain' | 'top-level-domain'
     defaultLocale: WeaverseI18n
@@ -223,6 +224,25 @@ these rules are meant to be fixed by the theme author. An `image` or `video` inp
 its own picker — see [Filtering the Media Manager gallery](/development-guide/input-settings#filtering-the-media-manager-gallery).
 
 `routes` declares URL patterns that Studio uses for page navigation and URL picking. It is available as a typed field in `@weaverse/hydrogen` 5.23.0+ and on `WeaverseNextThemeSchema` in `@weaverse/hydrogen/next` (`@weaverse/hydrogen` 6.0.0+). See [Declare Theme Routes for Studio](/features/custom-routing#declare-theme-routes-for-studio) for configuration, the Forward example, and fallback behavior.
+
+`outline` lists theme settings groups in Studio's Page Outline, keyed by area. Values are settings `group` names, matched case-insensitively. `header` and `aside` render above the page sections, in that order; every other key, `footer` included, renders below them in declaration order:
+
+```typescript
+type ThemeOutline = {
+  header?: string[]
+  aside?: string[]
+  footer?: string[]
+} & Record<string, string[]>
+
+// Example
+outline: {
+  header: ['Scrolling announcements', 'Header'],
+  footer: ['Footer'],
+  'popups-and-newsletter': ['Newsletter Popup'],
+}
+```
+
+`ThemeOutline` is exported by `@weaverse/schema` 0.20.0+; `outline` is typed on `WeaverseThemeSchema` and `WeaverseNextThemeSchema`. To let Studio highlight and select a group's DOM, spread `getThemeElementProps('Header')` on the element that renders it (it adds a `data-wv-theme-id` attribute). `@weaverse/hydrogen` exposes `getThemeElementProps`, `getThemeElementId` and `THEME_ELEMENT_ATTRIBUTE` only from `@weaverse/hydrogen/internal`, which isn't a stable API; import them from `@weaverse/schema` instead. Read the current selection with [`useStudioSelection`](/api-reference/use-studio-selection).
 
 ### `ThemeRoutes` and `ThemeRoutePageType`
 

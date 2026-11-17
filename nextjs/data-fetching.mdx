@@ -132,7 +132,7 @@ export function createWeaverseServerClientFromContext(
     requestContext,
     commerce: {
       storefront: {
-        i18n: requestContext.i18n,
+        locale: requestContext.i18n,
         query: async (query, options) => {
           let response = await storefront.graphql(query, options as never)
           return response.data

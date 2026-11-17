@@ -398,7 +398,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 // app/routes/home.tsx — registered as index("routes/home.tsx")
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { storefront, weaverse } = context;
-  const { pathPrefix } = context.storefront.i18n;
+  const { pathPrefix } = context.storefront.locale;
   const locale = pathPrefix?.slice(1) || "";
   
   let type: PageType = "INDEX";
@@ -532,17 +532,15 @@ export default function ProductPage() {
 
 ### Error Boundaries
 
-Use error boundaries for graceful error handling:
+Export a route `ErrorBoundary` for graceful error handling. React Router renders it when the route's loader or component throws:
 
 ```tsx
-import { ErrorBoundary } from "~/components/ErrorBoundary";
+import { useRouteError } from "react-router";
+import { GenericError } from "~/components/root/generic-error";
 
-export default function ProductPage() {
-  return (
-    <ErrorBoundary>
-      <WeaverseContent />
-    </ErrorBoundary>
-  );
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <GenericError error={error} />;
 }
 ```
 
@@ -577,17 +575,6 @@ export const headers = routeHeaders;
 
 export async function loader({ context }: LoaderFunctionArgs) {
   // Your loader implementation
-}
-```
-
-### Preloading
-
-Consider preloading critical page data:
-
-```typescript
-// Preload homepage data
-export function preload({ context }: LoaderFunctionArgs) {
-  return context.weaverse.loadPage({ type: "INDEX" });
 }
 ```
 
@@ -687,7 +674,9 @@ export const components: WeaverseComponent[] = [
 import type { WeaverseLoaderData } from "@weaverse/hydrogen/react-router";
 
 export async function loader({ context }: LoaderFunctionArgs) {
-  const weaverseData: WeaverseLoaderData = await context.weaverse.loadPage({
+  // `null` when the load fails or the project does not exist (API 404).
+  // A missing project ID throws earlier, when `WeaverseClient` is created.
+  const weaverseData: WeaverseLoaderData | null = await context.weaverse.loadPage({
     type: "PRODUCT",
     handle,
   });

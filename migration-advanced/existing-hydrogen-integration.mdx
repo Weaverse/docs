@@ -7,7 +7,7 @@ published: true
 This guide adds Weaverse to an **existing** Shopify Hydrogen storefront on **Hydrogen 2026.10** with **`@weaverse/hydrogen` 6**. Once it's in, merchants build pages visually in Weaverse Studio, edit theme settings, and use the sections you register.
 
 <Visibility for="agents">
-> **Agent note:** This page targets Hydrogen 2026.10 with `@weaverse/hydrogen` 6.1. Import Weaverse from `@weaverse/hydrogen/react-router`. Build `WeaverseClient` in the app context from the request's Storefront client (`storefront`, `env`, `cache`, `waitUntil`, `request`, `themeSchema`, `components`, optional `locale`), return it from `createAppContext()`, and let `server.ts` copy the context onto React Router's `RouterContextProvider`. The root loader must return `weaverseTheme: await context.weaverse.loadThemeSettings()`. Pass `cache` to every `storefront.graphql()` call. Build the CSP with the theme's own `app/utils/csp.ts`. Never use `createHydrogenContext`, `storefront.query()`, `hydrogenRoutes()`, `weaverse.withCache`, or CSP helpers from `@shopify/hydrogen`. Pilot `main` is the reference implementation.
+> **Agent note:** This page targets Hydrogen 2026.10.3 or later with `@weaverse/hydrogen` 6.3.1. Import Weaverse from `@weaverse/hydrogen/react-router`. Build `WeaverseClient` in the app context from the request's Storefront client (`storefront`, `env`, `cache`, `waitUntil`, `request`, `themeSchema`, `components`, optional `locale`), return it from `createAppContext()`, and let `server.ts` copy the context onto React Router's `RouterContextProvider`. The root loader must return `weaverseTheme: await context.weaverse.loadThemeSettings()`. Pass `cache` to every `storefront.graphql()` call. Build the CSP in `entry.server.tsx` with `createContentSecurityPolicy({ nonce: false, shop, directives })` from `@shopify/hydrogen` 2026.10.3+, merging `getWeaverseStudioCspDirectives(request)` (`@weaverse/hydrogen` 6.3.0+) into the theme's directives. Never use `createHydrogenContext`, `storefront.query()`, `hydrogenRoutes()`, `weaverse.withCache`, `useNonce`, or a copied `app/utils/csp.ts`. Pilot `main` is the reference implementation.
 </Visibility>
 
 <Note>
@@ -22,11 +22,11 @@ This guide adds Weaverse to an **existing** Shopify Hydrogen storefront on **Hyd
   A 2026.10 project has a `server.ts` that composes the request lifecycle with `handleShopifyRoutes()`, and queries Shopify with `storefront.graphql()`. If yours still calls `createHydrogenContext()` or `storefront.query()`, it is classic Hydrogen.
 </Note>
 
-Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pilot), Weaverse's reference theme on Hydrogen 2026.10 and `@weaverse/hydrogen` 6.1. `// ...` marks omitted code. When a sample and Pilot disagree, Pilot `main` wins.
+Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pilot), Weaverse's reference theme on Hydrogen 2026.10.3 and `@weaverse/hydrogen` 6.3.1. `// ...` marks omitted code. When a sample and Pilot disagree, Pilot `main` wins.
 
 ## Prerequisites
 
-- A Hydrogen 2026.10 storefront that runs locally (`@shopify/hydrogen` `^2026.10`, React Router 7.18 or later 7.x, Vite 8).
+- A Hydrogen 2026.10 storefront that runs locally (`@shopify/hydrogen` `^2026.10.3`, React Router 7.18 or later 7.x, Vite 8).
 - Node.js `^22.18.0 || ^24.11.0`, the range Pilot's `engines` field allows.
 - A Weaverse account and a Weaverse project for the storefront.
 - `@shopify/cli` 4.4.0 or later as a dev dependency if you deploy to Oxygen ([Step 10](#step-10-run-connect-and-deploy)).
@@ -34,10 +34,10 @@ Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pi
 ## Step 1: Install the SDK
 
 ```bash
-npm install @weaverse/hydrogen@^6.1.0
+npm install @weaverse/hydrogen@^6.3.1
 ```
 
-`@weaverse/hydrogen` 6 has `@shopify/hydrogen` `>=2026.10.0` as a peer dependency, and depends on exactly `@weaverse/react` 6.1.0 and `@weaverse/next` 1.1.1. You don't need to install those yourself. If your `package.json` already lists `@weaverse/react` or `@weaverse/next`, align them to those versions: two copies of `@weaverse/react` have separate React contexts, and components stop finding their data. From 6.2.0, `@weaverse/hydrogen` no longer depends on `@weaverse/next`, which is deprecated; remove it if your `package.json` lists it.
+`@weaverse/hydrogen` 6.3.1 has `@shopify/hydrogen` `>=2026.10.3` as a peer dependency, and depends on exactly `@weaverse/react` 6.3.1 (which pins `@weaverse/core` 6.3.1) and `@weaverse/schema` 0.20.1. You don't need to install those yourself: a theme imports everything through the `@weaverse/hydrogen` entries. Remove `@weaverse/react` and `@weaverse/core` from your `package.json` if it lists them; if you really need one directly, pin it to the exact version your `@weaverse/hydrogen` depends on. Two copies of `@weaverse/react` have separate React contexts, and components stop finding their data. `@weaverse/next` is deprecated and no longer a dependency; remove it.
 
 Hydrogen themes import everything from one entry point:
 
@@ -257,7 +257,7 @@ export type AppContext = Awaited<ReturnType<typeof createAppContext>>;
 | Argument | Required | Notes |
 | --- | --- | --- |
 | `storefront` | Yes | The request's Storefront API client. Section loaders reach it as `weaverse.storefront`. |
-| `env` | Yes | The worker `env`. Weaverse reads `WEAVERSE_PROJECT_ID`, `WEAVERSE_API_KEY`, `WEAVERSE_HOST`, `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`. |
+| `env` | Yes | The worker `env`. Weaverse reads `WEAVERSE_PROJECT_ID`, `WEAVERSE_API_KEY`, `WEAVERSE_HOST`, `WEAVERSE_PUBLIC_API_BASE`, `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`, falling back to `process.env` for a missing key. `WEAVERSE_API_KEY` ends up in public loader data, so keep it out of this env; see [Environment Setup](/development-guide/environment-setup#weaverse-variables). |
 | `cache` | Yes | The worker cache (`caches.open(...)`). Weaverse content is cached in it ([Step 6](#step-6-cache-explicitly)). |
 | `request` | Yes | The incoming request. |
 | `themeSchema`, `components` | Yes | From Step 3. |
@@ -270,11 +270,11 @@ export type AppContext = Awaited<ReturnType<typeof createAppContext>>;
 
 ### The `locale` Option
 
-Weaverse uses the request's market for the locale it sends with page requests, the Translation Manager overrides it loads (keyed by `${language}-${country}`, lowercased), and the `requestInfo.i18n` Studio reads. Without `locale`, it takes all three from `storefront.i18n`.
+Weaverse uses the request's market for the locale it sends with page requests, the Translation Manager overrides it loads (keyed by `${language}-${country}`, lowercased), and the `requestInfo.i18n` Studio reads. Without `locale`, it takes all three from `storefront.locale`.
 
-Pass `locale` when the Storefront client's `i18n.language` is a Shopify `LanguageCode` that differs from the market's public language. A Traditional Chinese Hong Kong market sends `ZH_TW` to Shopify; given to Weaverse, it asks for `zh_tw-hk` translations, which match nothing and silently fall back to the theme defaults. The value is a `WeaverseI18n` (`language`, `country`, and optional `pathPrefix`, `label` and other market fields); include `pathPrefix`, which Weaverse passes to Studio. Pilot passes `resolveRequestLocale(request)`, the request's entry from its market list. `weaverse.storefront` stays the request's own client, so Shopify keeps receiving `ZH_TW`.
+Pass `locale` when the Storefront client's `locale.language` is a Shopify `LanguageCode` that differs from the market's public language. A Traditional Chinese Hong Kong market sends `ZH_TW` to Shopify; given to Weaverse, it asks for `zh_tw-hk` translations, which match nothing and silently fall back to the theme defaults. The value is a `WeaverseI18n` (`language`, `country`, and optional `pathPrefix`, `label` and other market fields); include `pathPrefix`, which Weaverse passes to Studio. Pilot passes `resolveRequestLocale(request)`, the request's entry from its market list. `weaverse.storefront` stays the request's own client, so Shopify keeps receiving `ZH_TW`.
 
-If `storefront.i18n` already carries the public language and the `pathPrefix`, leave `locale` out.
+If `storefront.locale` already carries the public language and the `pathPrefix`, leave `locale` out.
 
 ## Step 5: Wire the Request Lifecycle in `server.ts`
 
@@ -352,7 +352,7 @@ async function commitSession(
 
 - `Object.assign(new RouterContextProvider(), appContext)` keeps React Router's context instance and adds your values to it. Don't spread it into a plain object.
 - `handleShopifyRoutes` decides synchronously: it returns a `Promise<Response>` for a path one of its handlers owns, and `null` otherwise.
-- `routeTemplates` comes from `createShopifyRouteTemplates()` (`app/utils/route-templates.ts` in Pilot). Both it and `applyResponseHeaders()` fail silently when missing.
+- `routeTemplates` comes from `defineShopifyRouteTemplates()` (`app/utils/route-templates.ts` in Pilot, which still calls it by its deprecated alias `createShopifyRouteTemplates`). Both it and `applyResponseHeaders()` fail silently when missing.
 - Pilot's full `server.ts` adds its own cart, predictive search and Customer Account handlers, market-aware redirects and an HTTPS fix for tunnels. See [Step 3 of the v6 migration guide](/migration-advanced/v6-migration#step-3-own-the-request-lifecycle-in-the-server-entry).
 
 ## Step 6: Cache Explicitly
@@ -404,27 +404,48 @@ export const loader = async ({ data, weaverse }: WeaverseComponentLoaderArgs<Fea
 
 `graphql()` returns `{ data, errors }` and doesn't throw on GraphQL errors; Pilot's `unwrapStorefront()` (`app/utils/storefront.ts`) throws instead, so a failed query reaches the route's error boundary. See [Data Fetching](/development-guide/data-fetching) for query patterns.
 
-Weaverse caches its own content in the `cache` you gave `WeaverseClient`: fresh for 60 seconds, then served stale for up to a day while it revalidates or when the Weaverse API fails. Studio's design and preview modes skip the cache. To change it for one call, pass a strategy: `context.weaverse.loadPage({ type, handle, strategy: CACHE_LONG })` or `context.weaverse.loadThemeSettings(CACHE_LONG)`. For a third-party API in a section loader, `weaverse.fetchWithCache(url, { ...init, strategy })` goes through the same cache; it replaces v5's `weaverse.withCache`.
+By default Weaverse reads pages and theme settings from its public API proxy (`https://api.weaverse.io`), which caches them at the edge and owns their freshness. `WeaverseClient` sends those requests straight to the proxy, without the `cache` you gave it, so a `strategy` on `loadPage()` or `loadThemeSettings()` has no effect on them. Studio's design mode and revision preview also skip the local cache.
+
+The `cache` you gave `WeaverseClient` is used for everything else that goes through `weaverse.fetchWithCache()`: third-party APIs in section loaders (`weaverse.fetchWithCache(url, { ...init, strategy })`, which replaces v5's `weaverse.withCache`), and Weaverse reads when a self-hosted `WEAVERSE_HOST` serves the API itself. There a response is fresh for 60 seconds, then served stale for up to a day while it revalidates, unless you pass a strategy such as `CACHE_LONG`.
 
 Pilot also sets `Cache-Control` per route with `export const headers = routeHeaders` from the same file, and keeps loaders free of per-shopper data so Oxygen can cache whole documents.
 
 ## Step 7: Own the Content Security Policy
 
-Hydrogen 2026.10 removes `createContentSecurityPolicy`, `NonceProvider` and `useNonce`. The theme builds the header and the nonce itself, with two files from Pilot:
+Hydrogen 2026.10.3 and later export `createContentSecurityPolicy({ shop, directives, nonce })`; `@weaverse/hydrogen` 6.3.0 and later export `getWeaverseStudioCspDirectives(request)`, which returns the sources Weaverse Studio needs on Studio requests and `{}` for everyone else. Hydrogen 2026.10 has no `NonceProvider` or `useNonce`, so drop them along with any copied `app/utils/csp.ts`.
 
-- [`app/utils/csp.ts`](https://github.com/Weaverse/pilot/blob/main/app/utils/csp.ts): `generateNonce`, `createContentSecurityPolicy(nonce, directives, shop)`, `NonceProvider` and `useNonce`, with the same header semantics as Hydrogen 2026.4's helper. Copy it as is.
-- [`app/weaverse/csp.ts`](https://github.com/Weaverse/pilot/blob/main/app/weaverse/csp.ts): `getWeaverseCsp(request, env)`, the directives Weaverse Studio and your third-party services need. In design mode it allows Studio to frame the storefront (`frame-ancestors *`) and adds `'unsafe-eval'` for the Studio bridge. Copy it and add your own sources.
+Keep your theme's sources in [`app/weaverse/csp.ts`](https://github.com/Weaverse/pilot/blob/main/app/weaverse/csp.ts) and append Studio's to them:
 
-Build the header in `app/entry.server.tsx`, and pass the same nonce to the renderer, `ServerRouter` and `NonceProvider`:
+```ts
+// app/weaverse/csp.ts
+import type { ContentSecurityPolicyDirectives } from "@shopify/hydrogen";
+import { getWeaverseStudioCspDirectives } from "@weaverse/hydrogen/react-router";
+
+const THEME_DIRECTIVES = {
+  // React Router's streamed hydration scripts need this without a nonce
+  scriptSrc: ["'unsafe-inline'" /* , your third-party script origins */],
+} satisfies ContentSecurityPolicyDirectives;
+
+export function getCspDirectives(request: Request): ContentSecurityPolicyDirectives {
+  const directives: ContentSecurityPolicyDirectives = { ...THEME_DIRECTIVES };
+  const studio = getWeaverseStudioCspDirectives(request);
+  for (const key of Object.keys(studio) as (keyof typeof studio)[]) {
+    directives[key] = [...(directives[key] ?? []), ...(studio[key] ?? [])];
+  }
+  return directives;
+}
+```
+
+Build the header in `app/entry.server.tsx`. Pilot passes `nonce: false` so Oxygen's full-page cache can store the HTML:
 
 ```tsx
 // app/entry.server.tsx
+import { createContentSecurityPolicy } from "@shopify/hydrogen";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 import type { EntryContext, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
-import { createContentSecurityPolicy, generateNonce, NonceProvider } from "~/utils/csp";
-import { getWeaverseCsp } from "~/weaverse/csp";
+import { getCspDirectives } from "~/weaverse/csp";
 
 export default async function handleRequest(
   request: Request,
@@ -433,18 +454,18 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: RouterContextProvider,
 ) {
-  const nonce = generateNonce();
-  const header = createContentSecurityPolicy(nonce, getWeaverseCsp(request, context.env), {
-    checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
-    storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
+  const csp = createContentSecurityPolicy({
+    nonce: false,
+    shop: {
+      checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || undefined,
+      storeDomain: context.env?.PUBLIC_STORE_DOMAIN || undefined,
+    },
+    directives: getCspDirectives(request),
   });
 
   const body = await renderToReadableStream(
-    <NonceProvider value={nonce}>
-      <ServerRouter context={reactRouterContext} url={request.url} nonce={nonce} />
-    </NonceProvider>,
+    <ServerRouter context={reactRouterContext} url={request.url} />,
     {
-      nonce,
       signal: request.signal,
       onError(error) {
         console.error(error);
@@ -458,14 +479,14 @@ export default async function handleRequest(
   }
 
   responseHeaders.set("Content-Type", "text/html");
-  // Pilot ships report-only. Switch to "Content-Security-Policy" once your directives are complete.
-  responseHeaders.set("Content-Security-Policy-Report-Only", header);
+  // Pilot ships report-only. Call csp.applyResponseHeaders(responseHeaders) to enforce.
+  responseHeaders.set("Content-Security-Policy-Report-Only", csp.header);
 
   return new Response(body, { headers: responseHeaders, status: responseStatusCode });
 }
 ```
 
-`context.env` is typed because `RouterContextProvider` extends `AppContext` (Step 2). In `app/entry.client.tsx`, wrap `<HydratedRouter />` in `<NonceProvider value={existingNonce}>`, reading the nonce from `document.querySelector<HTMLScriptElement>("script[nonce]")?.nonce`. Then pass `useNonce()` to `<Scripts>`, `<ScrollRestoration>` and `<ShopifyScripts>` in the root route. A dropped nonce leaves hydration silently dead. See [Content Security Policy](/features/content-security) for each source and for rolling out an enforced policy.
+`context.env` is typed because `RouterContextProvider` extends `AppContext` (Step 2). `entry.client.tsx` needs no CSP code, and the root route renders `<Scripts />`, `<ScrollRestoration />` and `<ShopifyScripts>` without a `nonce`. See [Content Security Policy](/features/content-security) for each source and for rolling out an enforced policy.
 
 ## Step 8: Wrap the Root Layout and Load Theme Settings
 
@@ -476,7 +497,6 @@ Weaverse wraps the component that renders the HTML document, which is the `Layou
 import { withWeaverse } from "@weaverse/hydrogen/react-router";
 import type { LoaderFunctionArgs } from "react-router";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration, useRouteLoaderData } from "react-router";
-import { useNonce } from "~/utils/csp";
 import { GlobalStyle } from "~/weaverse/style";
 
 export type RootLoader = typeof loader;
@@ -485,7 +505,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
   const weaverseTheme = await context.weaverse.loadThemeSettings();
   return {
     weaverseTheme,
-    selectedLocale: context.storefront.i18n,
+    selectedLocale: context.storefront.locale,
     // ... layout data, ShopifyScripts config, consent
   };
 }
@@ -495,14 +515,13 @@ function App() {
 }
 
 export const Layout = withWeaverse(function RootLayout({ children }: { children: React.ReactNode }) {
-  const nonce = useNonce();
   const data = useRouteLoaderData<RootLoader>("root");
 
   return (
     // Pilot sets `lang` from its market list (`locale.hreflang`)
     <html lang="en">
       <head>
-        {/* ... meta, <ShopifyScripts nonce={nonce} ... /> */}
+        {/* ... meta, <ShopifyScripts ... /> */}
         <Meta />
         <Links />
         <GlobalStyle />
@@ -511,8 +530,8 @@ export const Layout = withWeaverse(function RootLayout({ children }: { children:
         {/* ... CartProvider, header */}
         <main>{children}</main>
         {/* ... footer */}
-        <ScrollRestoration nonce={nonce} />
-        <Scripts nonce={nonce} />
+        <ScrollRestoration />
+        <Scripts />
       </body>
     </html>
   );
@@ -560,7 +579,7 @@ import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 export const headers = routeHeaders;
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const { pathPrefix } = context.storefront.i18n;
+  const { pathPrefix } = context.storefront.locale;
   const locale = pathPrefix?.slice(1) || "";
   let type: PageType = "INDEX";
 

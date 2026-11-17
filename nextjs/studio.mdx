@@ -232,6 +232,51 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 `loadThemeSettings()` returns `publicEnv` only in design mode, which it detects from `?isDesignMode=true`. A Next.js layout receives no search params, so the root layout's response never carries it; pass `publicEnv` explicitly as above. Only pass the public token: the private Storefront token must never reach the browser.
 </Note>
 
+## Content Security Policy
+
+Studio embeds the storefront in an iframe and loads its bridge script from the Studio origin, so a storefront that sends a CSP has to allow that origin on Studio requests. `getWeaverseStudioCspDirectives(request)` from `@weaverse/hydrogen/next/server` (6.3.0+) returns those sources: the Studio origin in `frameAncestors`, `scriptSrc`, `connectSrc`, `styleSrc`, `fontSrc` and `imgSrc`, plus `'unsafe-eval'` in design mode. For normal visitors, and for any `weaverseHost` that isn't an `https://` host on `weaverse.io` or `weaverse.dev`, it returns `{}`. See the [reference](/nextjs/api-reference#getweaversestudiocspdirectives).
+
+Forward builds the policy in `src/proxy.ts` with `createContentSecurityPolicy` from `@shopify/hydrogen` (2026.10.3+), appending Studio's directives to its own:
+
+```ts
+// Simplified from Forward's src/lib/security/content-security-policy.ts
+import {
+  type ContentSecurityPolicyDirectives,
+  createContentSecurityPolicy,
+} from '@shopify/hydrogen'
+import { getWeaverseStudioCspDirectives } from '@weaverse/hydrogen/next/server'
+
+const THEME_DIRECTIVES = {
+  scriptSrc: [
+    "'unsafe-inline'",
+    // Next's development runtime evaluates code; production never does
+    ...(process.env.NODE_ENV === 'development' ? ["'unsafe-eval'"] : []),
+  ],
+} satisfies ContentSecurityPolicyDirectives
+
+export function applyContentSecurityPolicy(request: Request, headers: Headers) {
+  let directives: ContentSecurityPolicyDirectives = { ...THEME_DIRECTIVES }
+  let studio = getWeaverseStudioCspDirectives(request)
+  for (let key of Object.keys(studio) as (keyof typeof studio)[]) {
+    directives[key] = [...(directives[key] ?? []), ...(studio[key] ?? [])]
+  }
+  let csp = createContentSecurityPolicy({
+    nonce: false,
+    shop: {
+      storeDomain: process.env.PUBLIC_STORE_DOMAIN,
+      checkoutDomain: process.env.PUBLIC_CHECKOUT_DOMAIN || undefined,
+    },
+    directives,
+  })
+  // Report-only by default; csp.applyResponseHeaders(headers) enforces
+  headers.set('Content-Security-Policy-Report-Only', csp.header)
+}
+```
+
+- **`nonce: false`**: Forward prerenders its pages, and Next can't put a per-request nonce into a prerendered shell, so the policy allows inline scripts with `'unsafe-inline'` instead.
+- **`CSP_MODE`**: Forward reads `report-only` (the default), `enforce` or `off` from this env variable, so each store chooses when to enforce.
+- Add the origins of your own third-party scripts, embeds and fonts to `THEME_DIRECTIVES`. The [Content Security Policy guide](/features/content-security) covers the rollout checklist; it's written for React Router, but the directives are the same.
+
 ## Usage tracking
 
 There is nothing to wire. `@weaverse/hydrogen/next` sends no browser pixel; Weaverse counts published (non-design) page responses on the server.

@@ -497,30 +497,28 @@ Here's a simple example:
 ```tsx
 import { Image } from '~/components/image'
 import type { WeaverseComponentProps, WeaverseImage } from '@weaverse/hydrogen/react-router'
-import { forwardRef } from 'react'
 
 interface ImageGalleryItemProps extends WeaverseComponentProps {
+  ref?: React.Ref<HTMLImageElement>
   source: WeaverseImage
 }
 
-let ImageGalleryItem = forwardRef<HTMLImageElement, ImageGalleryItemProps>(
-  (props, ref) => {
-    let { source, ...rest } = props
-    /*
-      Pass the object returned from the `image` input (name it as you like, e.g., `source`)
-      directly to the `data` prop of the `Image` component.
-      This will automatically generate all the necessary attributes for the image element.
-    */
-    return (
-      <Image
-        ref={ref}
-        {...rest}
-        data={source}
-        sizes={`(min-width: 45em) 50vw, 100vw`}
-      />
-    )
-  },
-)
+function ImageGalleryItem(props: ImageGalleryItemProps) {
+  let { ref, source, ...rest } = props
+  /*
+    Pass the object returned from the `image` input (name it as you like, e.g., `source`)
+    directly to the `data` prop of the `Image` component.
+    This will automatically generate all the necessary attributes for the image element.
+  */
+  return (
+    <Image
+      ref={ref}
+      {...rest}
+      data={source}
+      sizes={`(min-width: 45em) 50vw, 100vw`}
+    />
+  )
+}
 
 export default ImageGalleryItem
 ```

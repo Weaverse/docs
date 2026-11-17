@@ -128,7 +128,7 @@ Yes. `@weaverse/hydrogen/next` is the Weaverse integration for Next.js App Route
 
 ### Which Next.js versions are supported?
 
-`@weaverse/hydrogen/next` supports the App Router (not the Pages Router). `@weaverse/hydrogen` declares `next >=14` as an optional peer dependency and `@shopify/hydrogen >=2026.10.0` as a peer dependency, and needs Node.js 20 or newer. The [Forward](/hydrogen-themes/forward) starter runs on Next.js 16.
+`@weaverse/hydrogen/next` supports the App Router (not the Pages Router). `@weaverse/hydrogen` (6.3.1 at the time of writing) declares `next >=14` as an optional peer dependency and `@shopify/hydrogen >=2026.10.3` as a peer dependency, and needs Node.js 20 or newer. The [Forward](/hydrogen-themes/forward) starter runs on Next.js 16.
 
 ### Is there a Next.js starter theme?
 
@@ -142,7 +142,7 @@ Both are first-class. Choose **Hydrogen** if you want Shopify's own framework, O
 
 ### How does Weaverse work with React Router v7 (formerly Remix)?
 
-Weaverse v5 fully supports React Router v7:
+Weaverse v6 (and v5 before it) fully supports React Router v7:
 - **Route Loaders**: Standard React Router data loading patterns
 - **Component Loaders**: Weaverse-specific data loading at the component level
 - **Type Generation**: `npx react-router typegen` for type safety
@@ -1263,7 +1263,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          npx shopify hydrogen deploy --environment staging
+          npx shopify hydrogen deploy --env-branch staging
         env:
           SHOPIFY_HYDROGEN_DEPLOYMENT_TOKEN: ${{ secrets.STAGING_SHOPIFY_TOKEN }}
 ```
@@ -1298,7 +1298,7 @@ jobs:
       
       - run: npm ci
       - run: npm run typecheck
-      - run: npm run test:run
+      - run: npm run test
       - run: npm run build
 
   deploy:
@@ -1363,9 +1363,10 @@ For stores on a Shopify plan, install the Hydrogen sales channel, create one Hyd
 - Monitor for leaks
 
 **Shopify Oxygen**:
+Add secrets in **Hydrogen sales channel → Storefront settings → Environments and variables**, or push the variables in a local `.env` file with the Shopify CLI (there is no command that sets a single variable):
+
 ```bash
-# Set environment variables in Shopify CLI
-shopify hydrogen env set SECRET_NAME "secret-value" --environment production
+shopify hydrogen env push --env production
 ```
 
 
