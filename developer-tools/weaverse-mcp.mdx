@@ -60,7 +60,7 @@ below. Installing skills does not approve store access.
 
     Then create a Content API key in
     [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
-    and use the [local Codex configuration](#install--configure-weaversemcp-local)
+    and use the [local Codex configuration](#client-configuration)
     below. Codex uses `@weaverse/mcp` locally, not the hosted sign-in URL.
   </Tab>
   <Tab title="Cursor">
@@ -72,7 +72,7 @@ below. Installing skills does not approve store access.
 
     Then create a Content API key in
     [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
-    and use the [local Cursor configuration](#install--configure-weaversemcp-local)
+    and use the [local Cursor configuration](#client-configuration)
     below. Cursor uses `@weaverse/mcp` locally, not the hosted sign-in URL.
   </Tab>
   <Tab title="Other Agents">
@@ -83,7 +83,7 @@ below. Installing skills does not approve store access.
     Choose your agent and installation scope when prompted. For store access,
     create a Content API key in
     [Dashboard → Account → API Keys](https://studio.weaverse.io/dashboard/account)
-    and [configure the local server](#install--configure-weaversemcp-local)
+    and [configure the local server](#client-configuration)
     with command `npx`, arguments `["-y", "@weaverse/mcp"]`, and
     `WEAVERSE_API_KEY` in its environment.
   </Tab>
@@ -205,6 +205,8 @@ Node.js and npm; restart your agent after saving.
 
 The key is optional only for docs-only use. These clients use the local server
 rather than Weaverse's hosted sign-in. Claude Code can use the plugin above.
+
+### Client Configuration
 
 <Tabs>
   <Tab title="Cursor">
