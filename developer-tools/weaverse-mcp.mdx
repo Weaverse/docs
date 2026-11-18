@@ -172,7 +172,8 @@ docs-only MCP if you want docs without connecting a store.
 | Permission | Approval screen | What the connector can do |
 | --- | --- | --- |
 | `content:read` | Always included | Every read tool and docs search. |
-| `content:write` | "Save drafts and edit content" checkbox | `update_page`, `update_theme_settings`, `update_project`, `create_page`, `assign_template_resources`. Page and theme edits go **live on the storefront immediately**: this connector does not use drafts. `update_project` only renames the project in Weaverse. |
+| `content:draft` | "Save page drafts for review" checkbox | `get_page_draft`, `save_page_draft` and `discard_page_draft` for existing published pages. Nothing goes live; you review and publish in Studio. Does not grant live edits. |
+| `content:write` | "Edit live content" checkbox | The draft tools, plus `update_page`, `update_theme_settings`, `update_project`, `create_page` and `assign_template_resources`. Page and theme edits through the live tools go **live on the storefront immediately**. `update_project` only renames the project in Weaverse. |
 | `content:delete` | "Delete content" checkbox | Additionally needed for `delete_pages`. If you ask to delete without it, the assistant asks you to approve it. |
 
 The connector's tools never use publishing, project-management or translation
@@ -364,6 +365,39 @@ Account → Connected AI apps**.
 | `list_languages` | List a project's locales. |
 | `get_openapi_spec` | Get the Content API's OpenAPI document (public reference data). |
 
+### Page Drafts
+
+These tools appear with `content:draft` or `content:write` on a hosted
+connection. Locally, a configured Content API key allows drafts without
+`WEAVERSE_ENABLE_LIVE_WRITES`. The Content API checks every request.
+
+| Tool | Description |
+| ---- | ----------- |
+| `get_page_draft` | Read the current draft, or live content when no draft exists, and the revision tokens needed to save. Use `pageId` from `list_pages`. |
+| `save_page_draft` | Save the full item graph with the three tokens from `get_page_draft`. Nothing goes live. Returns a Studio link for review. |
+| `discard_page_draft` | Discard the exact draft head you read, leaving live content unchanged. Returns a Studio link. |
+
+### Review an Assistant's Draft in Studio
+
+Grant **Save page drafts for review** and leave **Edit live content** unchecked
+to let an assistant edit an existing published page without changing your
+storefront. Ask it to read the page with `get_page_draft`, save with
+`save_page_draft`, and share the Studio link returned by the tool.
+
+Open that link in Studio. The publish controls identify the draft as saved by
+an **AI assistant**. Preview the changes, then **Publish** when you are ready,
+or discard the draft. Version History identifies the assistant's saved
+version too. The assistant cannot publish through these tools; publishing
+permission stays separate.
+
+A save or discard rejected with `409` changed nothing. The assistant must
+re-read with `get_page_draft`, reconcile the newer work, and retry with the new
+tokens. It must not keep retrying the old request. Drafts do not cover theme
+settings or pages that have never been published.
+
+Store tools make Content API requests, which count as **view credits**.
+Documentation search does not use view credits.
+
 ### Live edits (opt-in)
 
 Edit tools appear only when edits are allowed: on the local server with
@@ -403,11 +437,9 @@ Use the Weaverse MCP server. List my Weaverse projects. For the first project, l
 ## Content writes & safety
 
 <Warning>
-  Write tools change the **live storefront immediately**: edits propagate
-  through the same cache-invalidation path as a Studio save. The MCP tools have
-  **no draft, preview, publish or restore step** and no automatic rollback.
-  Weaverse's own drafts, publishing and version restore exist in Studio and the
-  [Content API](/content-api/overview), but this connector does not use them.
+  The live-edit tools listed above change the **live storefront immediately**:
+  edits propagate through the same cache-invalidation path as a Studio save.
+  They bypass the separate page-draft tools and have no automatic rollback.
   The assistant should confirm each change with you first.
 </Warning>
 
