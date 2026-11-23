@@ -26,6 +26,23 @@ Both need a Weaverse project. Create one from the Weaverse app in your Shopify a
     The CLI downloads Forward, writes `.env` with your project ID, and installs dependencies with Bun. If Bun is missing, it offers to install it (`npm install -g bun`); in a non-interactive run it stops with install instructions instead. Pass `--no-install` to skip installing.
   </Step>
   <Step title="Add your Shopify keys">
+    **Hydrogen Sales Channel (Paid Shopify Plan)**
+
+    Create a storefront in the [Hydrogen app](https://apps.shopify.com/hydrogen) and choose **Set up CI/CD or manual deployments later**.
+
+    Back up `my-storefront/.env` somewhere private. From the `my-storefront` folder, link to the storefront you created, then pull its variables. Don't use `-f` or `--force`.
+
+    ```bash
+    npx @shopify/cli@latest hydrogen link
+    npx @shopify/cli@latest hydrogen env pull
+    ```
+
+    Keep `WEAVERSE_PROJECT_ID` in `.env`. Fill in any secrets the pull leaves empty. If `PUBLIC_STOREFRONT_API_TOKEN` is missing or empty, add a public Storefront API token for the same store. You can get one from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/getting-started#step-1-enable-storefront-api-access).
+
+    The pull sets `SHOP_ID` and `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`. To use Customer Account, set all four account variables listed in `.env.example`. Otherwise, clear the two pulled values and leave the whole group empty.
+
+    **Headless Sales Channel**
+
     In `my-storefront/.env`, set your store and its Storefront API keys from the [Headless channel](https://apps.shopify.com/headless):
 
     ```bash
@@ -34,7 +51,9 @@ Both need a Weaverse project. Create one from the Weaverse app in your Shopify a
     PUBLIC_STOREFRONT_API_TOKEN=your-public-token
     ```
 
-    Forward always runs against a real Shopify store, and refuses to start without a complete Shopify environment. `.env.example` documents every key, including the optional Customer Account ones.
+    Forward always runs against a real Shopify store, and refuses to start without a complete Shopify environment. `.env.example` documents every key, including the optional Customer Account ones. Never commit `.env`.
+
+    If you're already in `my-storefront`, skip `cd my-storefront` in the next step.
   </Step>
   <Step title="Run it">
     ```bash

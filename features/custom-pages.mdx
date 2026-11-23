@@ -63,6 +63,42 @@ Pilot ships this already — `app/routes/catch-all.tsx`, registered as the last 
 Pilot uses React Router 7's manual route registry. Adding a file under `app/routes/` does not create a route — it must be registered in `app/routes.ts`.
 </Note>
 
+### Where Studio Opens a Custom Page
+
+Studio opens a custom page at its handle, directly under the storefront root: handle `summer-sale` opens `/summer-sale`. When the selected market has a path prefix, Studio adds it in front, as in `/fr-ca/summer-sale`. Weaverse resolves the page from that same URL, so the route that answers it must call `loadPage({ type: "CUSTOM" })`.
+
+Custom pages can't be remapped through the theme schema's [`routes`](/features/custom-routing#declare-theme-routes-for-studio), because each custom page carries its own path.
+
+### When Another Route Answers the Same URL
+
+A custom page URL is served by whichever route in your theme matches it. If that is not the catch-all, for example a root-level `:handle` route for collections, that route must load the custom page when its own resource is missing. Otherwise visitors get your not-found page, and Studio's preview shows it instead of the page you opened.
+
+Give that route a static prefix, such as `collections/:handle`, or let it fall back to the custom page:
+
+```tsx
+// A root-level route, registered as route(":handle", "routes/collection.tsx")
+import type { LoaderFunctionArgs } from "react-router";
+import { validateWeaverseData } from "~/weaverse";
+
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const collection = await findCollection(context, params.handle); // your existing lookup
+  if (!collection) {
+    // Not a collection: this URL may belong to a Weaverse custom page.
+    const weaverseData = await context.weaverse.loadPage({ type: "CUSTOM" });
+    validateWeaverseData(weaverseData); // same 404 handling as the catch-all
+    return { weaverseData, collection: null };
+  }
+  const weaverseData = await context.weaverse.loadPage({
+    type: "COLLECTION",
+    handle: params.handle,
+  });
+  validateWeaverseData(weaverseData);
+  return { weaverseData, collection };
+}
+```
+
+Render `<WeaverseContent />` in both cases, and skip collection-only output, such as analytics events, when `collection` is `null`. Pilot's `routes/home.tsx` uses the same fallback for a one-segment URL that is not a locale.
+
 ### Handling Locales vs. Custom Page Handles
 
 In multilingual storefronts, the first segment of the URL may be a locale (e.g., `/en-us`) or a custom page handle. For a one-segment URL such as `/about`, React Router matches Pilot's index route inside the optional `:locale?` prefix. `routes/home.tsx` checks whether that segment is a supported locale; when it is not, the loader requests a `CUSTOM` page instead of the homepage.
@@ -368,8 +404,13 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 - Check that the custom page exists in Weaverse Studio and is published
 - Ensure the handle matches the route in the URL
 - Confirm your Hydrogen catch-all route is set up as above
+- **If another route matches the URL:** Make it load the custom page when its own resource is missing, as shown in [When Another Route Answers the Same URL](#when-another-route-answers-the-same-url).
 - **If using locales:** Make sure your loader distinguishes between locale codes and custom handles as shown in the example above.
 - Check browser console and network requests for errors
+
+**Studio's preview shows your not-found page instead of a new custom page:**
+- The route that answers the page's URL in your theme does not load custom pages. Check which route matches it, using [Where Studio Opens a Custom Page](#where-studio-opens-a-custom-page).
+- Fix that route before you edit the new page.
 
 **Sections not showing:**
 - Make sure you have added and saved sections in Weaverse Studio
@@ -383,7 +424,7 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 **Common Mistakes:**
 - Reusing a handle that conflicts with built-in Shopify routes
 - Not publishing the custom page in Weaverse Studio
-- Forgetting to update Hydrogen routes after adding new custom pages
+- A root-level route, such as `:handle` for collections, that renders a not-found page instead of loading the custom page
 
 ---
 

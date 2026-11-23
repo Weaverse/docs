@@ -54,13 +54,37 @@ In your Shopify admin, open the Hydrogen app and click "Create storefront" to be
   ![Hydrogen GitHub pull request](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/hydrogen_pull_request.png?v=1713674248)
 
 ### 7. Publish Your Storefront & Update Weaverse Preview URL
-After the GitHub Action completes:
-- **Make the storefront public**: Click "..." next to the storefront name, select "Edit environment," then choose "Publish."
-  ![hydrogen edit environment](https://cdn.shopify.com/s/files/1/0838/0052/3057/files/hydrogen_edit_environment.png?v=1713673181)
-  ![Make Hydrogen storefront public](https://cdn.shopify.com/s/files/1/0728/0410/6547/files/make_hydrogen_storefront_public.webp)
-- **Note**: Shopify Plus plans can publish up to 25 Storefronts. Other plans are limited to one.
 
-_Additional Note_: For Shopify Starter or Development plans, use Vercel or another platform, as the Hydrogen app cannot deploy to Oxygen.
+Oxygen environments are private by default. After the GitHub Action completes, make the environment public so Studio can load it:
+
+1. In your Hydrogen storefront, open **Storefront settings**.
+2. Click **Environments and variables**, then click the environment you want to use.
+3. Under **URL privacy**, select **Public**.
+4. Click **Save**.
+
+<Warning>
+A public environment is visible to anyone with its URL. Only make it public if its content is ready to share. A private environment redirects visitors to the Shopify login page, which cannot open inside Studio's preview iframe.
+</Warning>
+
+[Shopify limits the number of public environments per store](https://shopify.dev/docs/storefronts/hydrogen/deploy/oxygen/environments#public-environment-limits), not the number of deployments:
+
+| Store plan | Public environment limit |
+| --- | --- |
+| Shopify Plus | 25 |
+| Most other plans, including Starter | 1, usually already used by production |
+| Development stores and trial plans | 0 |
+
+If your store has no public environment available, deploy to another host with a public URL. See the [Cloudflare Workers migration guide](/guides/deployment/workers). This requires theme changes and validation; it is not a one-click deployment option.
+
+Then update the URL Studio uses:
+
+1. Copy the public environment or deployment URL.
+2. Open it in a private window and confirm it loads without a Shopify login.
+3. In Weaverse Studio, open **Manage previews** from the preview URL selector.
+4. Add or update the public URL and select it as the active preview.
+5. Click **Check again** if the preview message is still visible.
+
+If Studio still cannot open it, see [Private Oxygen Environment](/troubleshooting/preview-errors#private-oxygen-environment).
 
 ## Custom Domain
 

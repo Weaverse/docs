@@ -38,9 +38,9 @@ What changes is how the framework hands Weaverse a request and renders the page:
 
 ## Requirements
 
-- A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels): a private token for server reads, and the public token Studio uses to open default templates (see [Studio integration](/nextjs/studio)).
-- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). `@weaverse/hydrogen` lists `next >= 14` as an optional peer dependency and installs `react >= 19` and `react-dom >= 19` as regular dependencies, so use React 19.
-- `@weaverse/hydrogen` 6.2.0 or later (latest 6.3.1, which Forward uses). 6.3.0 and later need `@shopify/hydrogen` 2026.10.3 or later as a peer dependency (6.2.x needs 2026.10.0). 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
+- A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels) or, on a paid Shopify plan, the [Hydrogen channel](https://apps.shopify.com/hydrogen). Use a private token for server reads and a public token so [Studio](/nextjs/studio) can open default templates.
+- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Use React 19: `@weaverse/hydrogen` 6.4.0 and later take `react >= 19` and `react-dom >= 19` as peer dependencies (earlier 6.x versions install them as regular dependencies), and `next >= 14` is an optional peer dependency.
+- `@weaverse/hydrogen` 6.2.0 or later (latest 6.4.0; Forward uses 6.3.1). 6.3.0 and later need `@shopify/hydrogen` 2026.10.3 or later as a peer dependency (6.2.x needs 2026.10.0). 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
 - A Weaverse project.
 
 <Note>
