@@ -18,6 +18,26 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="Pilot v2026.11.23" description="November 23, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Weaverse SDK v6.5.1**: Pilot runs on `@weaverse/hydrogen` 6.5.1 and recognizes pages with no Weaverse page assigned through the SDK's `isFallback` flag. They answer 404 on the storefront and still show the placeholder in Studio.
+  - **Current SDK patterns**: Section schemas use `enabled` instead of the deprecated `enabledOn.pages`, and `.env.example` documents `WEAVERSE_PUBLIC_API_BASE`, the variable the SDK reads.
+  - **Supported Node on Oxygen**: The Oxygen deploy workflow installs the Node version from `package.json` `engines` instead of the latest LTS, which Pilot doesn't support yet.
+
+  #### Fixes
+
+  - **Studio SEO on custom pages**: Custom pages emit one title, description and Open Graph/Twitter tag each, so the SEO title set in Studio is no longer overridden by the shop name.
+
+  #### Upgrade
+
+  Breaking for themes built on Pilot: the unregistered `ali-reviews` section is removed, along with its CSP hosts, `ALI_REVIEWS_API_KEY` and the unused `useClosestWeaverseItem` hook. Forks that registered the section need to keep their own copy. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.23)
+</Update>
+
 <Update label="Forward v2026.11.23" description="November 23, 2026" tags={["Theme", "Forward", "Next.js"]}>
   ### Weaverse Forward Theme
 
