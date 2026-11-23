@@ -7,7 +7,7 @@ published: true
 This guide adds Weaverse to an **existing** Shopify Hydrogen storefront on **Hydrogen 2026.10** with **`@weaverse/hydrogen` 6**. Once it's in, merchants build pages visually in Weaverse Studio, edit theme settings, and use the sections you register.
 
 <Visibility for="agents">
-> **Agent note:** This page targets Hydrogen 2026.10.3 or later with `@weaverse/hydrogen` 6.3.1. Import Weaverse from `@weaverse/hydrogen/react-router`. Build `WeaverseClient` in the app context from the request's Storefront client (`storefront`, `env`, `cache`, `waitUntil`, `request`, `themeSchema`, `components`, optional `locale`), return it from `createAppContext()`, and let `server.ts` copy the context onto React Router's `RouterContextProvider`. The root loader must return `weaverseTheme: await context.weaverse.loadThemeSettings()`. Pass `cache` to every `storefront.graphql()` call. Build the CSP in `entry.server.tsx` with `createContentSecurityPolicy({ nonce: false, shop, directives })` from `@shopify/hydrogen` 2026.10.3+, merging `getWeaverseStudioCspDirectives(request)` (`@weaverse/hydrogen` 6.3.0+) into the theme's directives. Never use `createHydrogenContext`, `storefront.query()`, `hydrogenRoutes()`, `weaverse.withCache`, `useNonce`, or a copied `app/utils/csp.ts`. Pilot `main` is the reference implementation.
+> **Agent note:** This page targets Hydrogen 2026.10.3 or later with `@weaverse/hydrogen` 6.5.0. Import Weaverse from `@weaverse/hydrogen/react-router`. Build `WeaverseClient` in the app context from the request's Storefront client (`storefront`, `env`, `cache`, `waitUntil`, `request`, `themeSchema`, `components`, optional `locale`), return it from `createAppContext()`, and let `server.ts` copy the context onto React Router's `RouterContextProvider`. The root loader must return `weaverseTheme: await context.weaverse.loadThemeSettings()`. Pass `cache` to every `storefront.graphql()` call. Build the CSP in `entry.server.tsx` with `createContentSecurityPolicy({ nonce: false, shop, directives })` from `@shopify/hydrogen` 2026.10.3+, merging `getWeaverseStudioCspDirectives(request)` (`@weaverse/hydrogen` 6.3.0+) into the theme's directives. Never use `createHydrogenContext`, `storefront.query()`, `hydrogenRoutes()`, `weaverse.withCache`, `useNonce`, or a copied `app/utils/csp.ts`. Pilot `main` is the reference implementation.
 </Visibility>
 
 <Note>
@@ -22,7 +22,7 @@ This guide adds Weaverse to an **existing** Shopify Hydrogen storefront on **Hyd
   A 2026.10 project has a `server.ts` that composes the request lifecycle with `handleShopifyRoutes()`, and queries Shopify with `storefront.graphql()`. If yours still calls `createHydrogenContext()` or `storefront.query()`, it is classic Hydrogen.
 </Note>
 
-Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pilot), Weaverse's reference theme on Hydrogen 2026.10.3 and `@weaverse/hydrogen` 6.3.1. `// ...` marks omitted code. When a sample and Pilot disagree, Pilot `main` wins.
+Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pilot), Weaverse's reference theme on Hydrogen 2026.10.3. `// ...` marks omitted code. When a sample and Pilot disagree, Pilot `main` wins.
 
 ## Prerequisites
 
@@ -34,10 +34,10 @@ Every sample on this page is trimmed from [Pilot](https://github.com/Weaverse/pi
 ## Step 1: Install the SDK
 
 ```bash
-npm install @weaverse/hydrogen@^6.3.1
+npm install @weaverse/hydrogen@^6.5.0
 ```
 
-`@weaverse/hydrogen` 6.3.1 has `@shopify/hydrogen` `>=2026.10.3` as a peer dependency, and depends on exactly `@weaverse/react` 6.3.1 (which pins `@weaverse/core` 6.3.1) and `@weaverse/schema` 0.20.1. You don't need to install those yourself: a theme imports everything through the `@weaverse/hydrogen` entries. Remove `@weaverse/react` and `@weaverse/core` from your `package.json` if it lists them; if you really need one directly, pin it to the exact version your `@weaverse/hydrogen` depends on. Two copies of `@weaverse/react` have separate React contexts, and components stop finding their data. `@weaverse/next` is deprecated and no longer a dependency; remove it.
+`@weaverse/hydrogen` 6.5.0 has `@shopify/hydrogen` `>=2026.10.3`, `react` and `react-dom` `>=19`, and `react-router` `^7 || ^8` as peer dependencies (React, React DOM and React Router became peers in 6.4.0), and depends on exactly `@weaverse/react` 6.5.0 (which pins `@weaverse/core` 6.5.0) and `@weaverse/schema` 0.20.1. You don't need to install those yourself: a theme imports everything through the `@weaverse/hydrogen` entries. Remove `@weaverse/react` and `@weaverse/core` from your `package.json` if it lists them; if you really need one directly, pin it to the exact version your `@weaverse/hydrogen` depends on. Two copies of `@weaverse/react` have separate React contexts, and components stop finding their data. `@weaverse/next` is deprecated and no longer a dependency; remove it.
 
 Hydrogen themes import everything from one entry point:
 
@@ -257,7 +257,7 @@ export type AppContext = Awaited<ReturnType<typeof createAppContext>>;
 | Argument | Required | Notes |
 | --- | --- | --- |
 | `storefront` | Yes | The request's Storefront API client. Section loaders reach it as `weaverse.storefront`. |
-| `env` | Yes | The worker `env`. Weaverse reads `WEAVERSE_PROJECT_ID`, `WEAVERSE_API_KEY`, `WEAVERSE_HOST`, `WEAVERSE_PUBLIC_API_BASE`, `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`, falling back to `process.env` for a missing key. `WEAVERSE_API_KEY` ends up in public loader data, so keep it out of this env; see [Environment Setup](/development-guide/environment-setup#weaverse-variables). |
+| `env` | Yes | The worker `env`. Weaverse reads `WEAVERSE_PROJECT_ID`, `WEAVERSE_HOST`, `WEAVERSE_PUBLIC_API_BASE`, `PUBLIC_STORE_DOMAIN` and `PUBLIC_STOREFRONT_API_TOKEN`, falling back to `process.env` for a missing key. It doesn't read `WEAVERSE_API_KEY`, which is only for your own server-side Content API code; see [Environment Setup](/development-guide/environment-setup#weaverse-variables). |
 | `cache` | Yes | The worker cache (`caches.open(...)`). Weaverse content is cached in it ([Step 6](#step-6-cache-explicitly)). |
 | `request` | Yes | The incoming request. |
 | `themeSchema`, `components` | Yes | From Step 3. |

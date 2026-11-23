@@ -23,4 +23,4 @@ Hydrogen 2026.10 removes its CSP helpers, so Weaverse themes build the CSP heade
 
 ## Update (2026-11-13)
 
-Hydrogen 2026.10.3 restored `createContentSecurityPolicy`, and `@weaverse/hydrogen` 6.3.0 added `getWeaverseStudioCspDirectives(request)`. Pilot dropped `app/utils/csp.ts` and now calls `createContentSecurityPolicy({ nonce: false, shop, directives })`. The CSP pages were rewritten for that setup in [#157](https://github.com/Weaverse/docs/issues/157); see [`2026-11-13--sdk-6-3-audit-fixes`](../2026-11-13--sdk-6-3-audit-fixes/README.md).
+Hydrogen 2026.10.3 restored `createContentSecurityPolicy`, and `@weaverse/hydrogen` 6.3.0 added `getWeaverseStudioCspDirectives(request)`. Pilot dropped `app/utils/csp.ts` and now calls `createContentSecurityPolicy({ nonce: false, shop, directives })`. The CSP pages were rewritten for that setup in [#157](https://github.com/Weaverse/docs/issues/157); see [`2026-11-23--sdk-6-3-audit-fixes`](../2026-11-23--sdk-6-3-audit-fixes/README.md).

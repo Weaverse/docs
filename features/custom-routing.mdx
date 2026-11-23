@@ -202,8 +202,8 @@ export async function loader({ params, context, request }: LoaderFunctionArgs) {
   }
 
   // 4. `loadPage()` returns `WeaverseLoaderData | null`. A route with no
-  //    assigned page gets a fallback page (`page.id` starts with
-  //    `fallback_page_`), not `null`. Pilot's `validateWeaverseData` helper
+  //    assigned page gets a fallback page (`isFallback: true` from
+  //    6.5.0), not `null`. Pilot's `validateWeaverseData` helper
   //    throws a 404 for `null` and for the fallback page outside design mode.
   validateWeaverseData(weaverseData);
 
@@ -234,7 +234,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 -   **Missing page vs. failed load:** a route with no assigned page resolves to a fallback page, not `null`. By default a load failure (network error, error response, invalid per-call `projectId`) is logged and resolves to `null`, so branch on the result or hand it to `validateWeaverseData`. With `throwPageLoadFailures: true` on the `WeaverseClient` (Pilot sets it), a failure rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) instead, so the route can answer 503 rather than 404. A 404 from the Weaverse API still resolves to `null`.
 
 <Warning>
-If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null` and for the `fallback_page_` id. Passing a missing page straight to `<WeaverseContent />` renders the error component.
+If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null` and for `weaverseData.isFallback` (6.5.0+; on earlier versions, a `page.id` starting with `fallback_page_`). Passing a missing page straight to `<WeaverseContent />` renders the error component.
 </Warning>
 
 ### Step 4: Render the Weaverse Content

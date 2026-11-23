@@ -115,9 +115,16 @@ const weaverse = throwRouteFailures(
 
 `throwRouteFailures` is Pilot's helper, not an SDK export. The root `ErrorBoundary` reads `weaverseFailure` from the thrown response to render a "try again" page.
 
-<Note>
-  `WeaverseError` and `WeaverseLoadError` are also exported from `@weaverse/hydrogen/next`. The Next.js server client catches page-load failures and resolves `loadPage()` to `null`; it has no `throwPageLoadFailures` option.
-</Note>
+## Next.js
+
+`WeaverseError`, `WeaverseLoadError` and the `WeaverseLoadFailureKind` type are also exported from `@weaverse/hydrogen/next/server` (6.5.0+). `@weaverse/hydrogen/next` exports the two classes.
+
+From 6.5.0, `createWeaverseNextServerClient` takes the same opt-in `throwPageLoadFailures` option, with the same `kind` values. It differs from `WeaverseClient` in two ways:
+
+- A missing project ID is a load failure, not a constructor error: `loadPage()` resolves to `null`, or rejects with a `configuration` `WeaverseLoadError` when the option is on.
+- The Next.js server client doesn't retry, so `unavailable` means the first request failed.
+
+With the option off (the default), a failed load resolves to `null`, and, as with `WeaverseClient`, a 200 whose body has no page (for example `{}`) resolves to the placeholder page. A 404 from the Weaverse API resolves to `null`, and an unassigned route to the placeholder page, either way. See [Outages are not 404s](/nextjs/rendering-pages#outages-are-not-404s) for a recipe.
 
 ## Related
 

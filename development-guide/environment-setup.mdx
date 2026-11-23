@@ -31,9 +31,9 @@ Environment variables connect your Hydrogen storefront to Shopify, Weaverse Stud
 3. **`WEAVERSE_HOST`**: Optional Weaverse service host. Default: `https://studio.weaverse.io`.
 4. **`WEAVERSE_PUBLIC_API_BASE`**: Optional base URL for public page and theme-settings reads. Default: `https://api.weaverse.io`, or `WEAVERSE_HOST` when you set a custom host.
 
-<Warning>
-  `WeaverseClient` copies `WEAVERSE_API_KEY` from the `env` you pass it into the page configs it returns from `loadPage()`, and those are serialized into public loader data (`weaverseData.configs.weaverseApiKey`). It also falls back to `process.env.WEAVERSE_API_KEY`. Until [Weaverse/weaverse#517](https://github.com/Weaverse/weaverse/issues/517) is fixed, keep Content API keys out of the env handed to `WeaverseClient` and out of `process.env` in that runtime; a server-only variable name alone doesn't protect the value. Give the key to the code that calls the Content API through a separate env object or secret.
-</Warning>
+<Note>
+  `WeaverseClient` doesn't read `WEAVERSE_API_KEY`, so the key never reaches loader data. Before `@weaverse/hydrogen` 6.5.0, the client copied it into page configs as `configs.weaverseApiKey`, which was serialized into public loader data. 6.5.0 removed that field from loader data, configs and types; if your code reads `configs.weaverseApiKey`, delete that use and read `WEAVERSE_API_KEY` from the environment in server-only code instead.
+</Note>
 
 ### Optional Theme Variables
 1. **`PUBLIC_STOREFRONT_API_VERSION`**: Storefront API version. If omitted, Hydrogen uses its configured default.
@@ -84,7 +84,7 @@ SHOP_ID="your-shop-id"
 
 # Weaverse
 WEAVERSE_PROJECT_ID="YOUR_PROJECT_ID"
-# WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional; see the warning above
+# WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional; server-only Content API calls
 WEAVERSE_HOST="https://studio.weaverse.io"  # Optional
 
 # Optional integrations
