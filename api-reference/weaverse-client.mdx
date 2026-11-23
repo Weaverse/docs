@@ -273,7 +273,7 @@ fetchCustomPages(options?: {
 }): Promise<CustomPageEntry[]>
 ```
 
-Fetches the route metadata of every custom page assigned in the project (`path`, `lastModified`, `changeFrequency`, `priority`), for sitemap and route-generation workflows. It paginates automatically and never throws: on a failed page of results it returns the entries fetched so far.
+Fetches the route metadata of every custom page assigned in the project (`path`, `lastModified`, `changeFrequency`, `priority`), for sitemap and route-generation workflows. Each entry also carries `locale`, `market` and `scope`, which tell global, locale and market assignments apart; see [Assignment scope](/content-api/public-custom-pages#assignment-scope). It paginates automatically and never throws: on a failed page of results it returns the entries fetched so far.
 
 <Warning>
   The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages).
