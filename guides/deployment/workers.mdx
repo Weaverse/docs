@@ -47,7 +47,7 @@ Nothing below is pre-configured. Treat each step as a change you are making to y
     `npm i -D wrangler @cloudflare/vite-plugin`
   </Step>
   <Step title="Swap the Oxygen Vite plugin for the Cloudflare plugin">
-    Edit `vite.config.ts`.
+    Edit `vite.config.ts`, then set `future.v8_viteEnvironmentApi: true` in `react-router.config.ts`.
   </Step>
   <Step title="Create wrangler.json">
     Point `main` at your worker entry and enable `nodejs_compat`.
@@ -80,7 +80,7 @@ Your theme currently registers the Oxygen plugin. Replace it with the Cloudflare
   import { localHttps } from "@shopify/hydrogen/vite";
 - import { oxygen } from "@shopify/mini-oxygen/vite";
   import tailwindcss from "@tailwindcss/vite";
-  import { defineConfig } from "vite";
+  import { defineConfig } from "vite-plus";
 
   export default defineConfig(({ isSsrBuild }) => ({
     plugins: [
@@ -101,7 +101,23 @@ Your theme currently registers the Oxygen plugin. Replace it with the Cloudflare
 Keep `assetsInlineLimit: 0`. Pilot sets this so no asset is inlined as a data URI, which keeps the storefront compatible with a strict Content-Security-Policy. See [Content Security Policy](/features/content-security).
 </Note>
 
-Removing `oxygen()` also removes the local Oxygen preview that `npm run dev` and `npm run preview` rely on. Decide up front whether you are keeping an Oxygen path for local development or moving entirely to `wrangler dev`.
+### Turn on the Vite Environment API
+
+The Cloudflare plugin builds the worker through Vite's Environment API, which React Router only uses when its `v8_viteEnvironmentApi` future flag is on. Pilot sets it to `false` for Oxygen. Leave it off and `react-router build` fails with `ENOENT: no such file or directory, open '.../dist/server/.vite/manifest.json'`.
+
+```diff react-router.config.ts
+  future: {
+    v8_middleware: true,
+    v8_splitRouteModules: true,
+-   v8_viteEnvironmentApi: false,
++   v8_viteEnvironmentApi: true,
+    unstable_optimizeDeps: true,
+    v8_passThroughRequests: true,
+    v8_trailingSlashAwareDataRequests: true,
+  },
+```
+
+`npm run dev` and `npm run preview` keep working after the swap: the Cloudflare plugin runs your server code in `workerd`, as the Oxygen plugin did.
 
 ## 3. Review your worker entry
 
@@ -261,8 +277,8 @@ A rollback shifts all traffic immediately. Verify the target deployment is healt
 
 ## Troubleshooting
 
-**Build fails after removing `oxygen()`**
-`npm run dev`, `npm run preview`, and `npm run start` all go through the Shopify CLI's Oxygen sandbox. Once the Oxygen plugin is gone, use `npm run cf-dev` instead.
+**Build fails with `ENOENT ... dist/server/.vite/manifest.json`**
+`future.v8_viteEnvironmentApi` is still `false` in `react-router.config.ts`. Set it to `true`; see [Turn on the Vite Environment API](#turn-on-the-vite-environment-api).
 
 **`nodejs_compat` errors at runtime**
 Confirm the flag is in `wrangler.json` and that `compatibility_date` is recent enough for the Node compatibility mode your dependencies need.
