@@ -246,8 +246,7 @@ export async function loader({ context, params }: Route.LoaderArgs) {
   // `null`, or the fallback page outside design mode, means no page
   if (
     !weaverseData ||
-    (weaverseData.page.id.startsWith('fallback_page_') &&
-      !weaverseData.configs.isDesignMode)
+    (weaverseData.isFallback && !weaverseData.configs.isDesignMode)
   ) {
     throw new Response(null, { status: 404 })
   }
@@ -259,9 +258,9 @@ export async function loader({ context, params }: Route.LoaderArgs) {
 What `loadPage()` resolves to:
 
 - **A page** when one is assigned to the route.
-- **A fallback page** when the project loads but no page is assigned to the route. Its `page.id` starts with `fallback_page_` and it renders "Please add new section to start." It is not `null`. Answer it with a 404 on the live storefront, but keep it in design mode, where the merchant builds on it in Studio (Pilot's `validateWeaverseData` does both). An explicit "no page" signal is tracked in [Weaverse/weaverse#597](https://github.com/Weaverse/weaverse/issues/597).
+- **A fallback page with `isFallback: true`** when the project loads but no page is assigned to the route. It renders "Please add new section to start." It is not `null`. Answer it with a 404 on the live storefront, but keep it in design mode, where the merchant builds on it in Studio (Pilot's `validateWeaverseData` does both). `isFallback` is set from `@weaverse/hydrogen` 6.5.0 and is absent for assigned pages, including empty ones. Before 6.5.0, detect the fallback page by its `page.id`, which starts with `fallback_page_`.
 - **`null`** when the Weaverse API answers 404 (for example, the project doesn't exist), and, by default, when the load fails (invalid per-call `projectId`, network error, timeout, error status or error body). The failure is logged.
-- **The fallback page**, by default, when the API answers 200 with a body that isn't a page envelope (for example `{}`). The warning is logged, but the result looks like an unassigned route. Set `throwPageLoadFailures: true` if you need to tell an invalid response from an absent page.
+- **The fallback page**, by default, when the API answers 200 with a body that isn't a page envelope (for example `{}`). The warning is logged, but the result looks like an unassigned route, `isFallback` included. Set `throwPageLoadFailures: true` if you need to tell an invalid response from an absent page.
 - **A rejection with [`WeaverseLoadError`](/api-reference/weaverse-load-error)** instead of `null` for a failed load when the client sets `throwPageLoadFailures: true`. Its `kind` tells an outage (`unavailable`, `invalid-response`) from a `configuration` error.
 
 ### `fetchCustomPages`

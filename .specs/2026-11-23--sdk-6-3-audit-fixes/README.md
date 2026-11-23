@@ -2,12 +2,12 @@
 
 | Field            | Value                                                                                                                                                                  |
 | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Status**       | in-progress                                                                                                                                                            |
+| **Status**       | completed                                                                                                                                                              |
 | **Owner**        | @hta218                                                                                                                                                                |
-| **Issue**        | [#157](https://github.com/Weaverse/docs/issues/157) (partial), [#158](https://github.com/Weaverse/docs/issues/158), [#159](https://github.com/Weaverse/docs/issues/159) |
-| **Branch**       | `docs/sdk-6-3-audit-fixes`                                                                                                                                             |
+| **Issue**        | [#157](https://github.com/Weaverse/docs/issues/157), [#158](https://github.com/Weaverse/docs/issues/158), [#159](https://github.com/Weaverse/docs/issues/159)          |
+| **Branch**       | `docs/sdk-6-3-audit-fixes`, then `docs/sdk-6-5-follow-ups`                                                                                                             |
 | **Created**      | 2026-11-13                                                                                                                                                             |
-| **Last Updated** | 2026-11-13                                                                                                                                                             |
+| **Last Updated** | 2026-11-23                                                                                                                                                             |
 
 ## Original Prompt
 
@@ -23,3 +23,14 @@
 ## Summary
 
 Follow-up to the #151 audit: bring the docs in line with `@weaverse/hydrogen` 6.3.1, Hydrogen 2026.10.3, CLI 5.9.0, Pilot and Forward. It rewrites the CSP guidance, corrects the `loadPage()` and cache contracts, fixes code samples that don't compile, adds missing reference pages, and removes unlisted pages behind redirects. The only part of #157 left open waits on an SDK "no page" signal (Weaverse/weaverse#597).
+
+## 6.5.0 Follow-Ups (2026-11-23)
+
+`@weaverse/hydrogen` 6.5.0 (Weaverse/weaverse#598) shipped the "no page" signal, so the rest of #157 is done in `docs/sdk-6-5-follow-ups`:
+
+- `weaverseData.isFallback` replaces the `fallback_page_` id check on both adapters; the id stays as the pre-6.5.0 fallback.
+- The Next.js server client's opt-in `throwPageLoadFailures` is documented, with the `WeaverseLoadError` exports from `@weaverse/hydrogen/next/server` and an outage recipe; "never throws" wording is gone.
+- The `WEAVERSE_API_KEY` loader-data warning becomes a note that 6.5.0 removed `weaverseApiKey`.
+- "Latest" versions read 6.5.0, and React, React DOM and React Router are noted as peer dependencies from 6.4.0.
+
+Sources: the published 6.5.0 tarball (`dist/types`), `npm view` of 6.3.1 / 6.4.0 / 6.5.0, SDK `origin/main` (`packages/hydrogen/src`, `.specs/2026-11-13-page-load-contract-fixes.md`) and the v6.4.0 / v6.5.0 release notes.

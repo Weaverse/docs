@@ -78,7 +78,7 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `createSchema()` | Defines a component schema. |
 | `IMAGES_PLACEHOLDERS` | Placeholder images for schema defaults. |
 | `generateDataFromSchema(schema)` | Extracts the default settings of a component or theme schema. |
-| `WeaverseError`, `WeaverseLoadError` | Error classes thrown by the SDK. The server client's `loadPage()` never throws `WeaverseLoadError`: it resolves to `null` on a failed load. See [WeaverseLoadError](/api-reference/weaverse-load-error). |
+| `WeaverseError`, `WeaverseLoadError` | Error classes thrown by the SDK. The server client's `loadPage()` rejects with a `WeaverseLoadError` only when the client sets `throwPageLoadFailures: true` (6.5.0+); otherwise a failed load resolves to `null`. See [WeaverseLoadError](/api-reference/weaverse-load-error). |
 
 ### Types
 
@@ -86,7 +86,7 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | --- | --- |
 | `WeaverseNextComponent` | A registry entry: `default` (component), `schema`, optional `loader`. |
 | `WeaverseNextComponentProps`, `WeaverseNextComponentData`, `WeaverseNextComponentLoaderArgs` | Component props, item data and loader arguments. |
-| `WeaverseNextLoaderData` | What `loadPage()` returns and `WeaverseNextRenderer` renders. |
+| `WeaverseNextLoaderData` | What `loadPage()` returns and `WeaverseNextRenderer` renders. `isFallback` is `true` on the placeholder page of an unassigned route (6.5.0+). |
 | `WeaverseNextRequestContext`, `WeaverseNextRequestInfo` | Route identity: URL, pathname, search params, page type, handle, i18n, design flags. |
 | `WeaverseNextThemeSchema`, `WeaverseNextThemeSchemaGroup`, `WeaverseNextThemeSchemaInput`, `WeaverseNextI18n` | Theme schema, a settings group, and a market. |
 | `WeaverseNextCommerceContext`, `WeaverseNextStorefront` | The commerce context passed to the server client. |
@@ -107,8 +107,9 @@ Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pag
 | `createWeaverseNextRevalidateHandler({ getClient })` | Creates the `POST` handler for per-item revalidation. `getClient(request, requestContext)` receives the validated route context. See [Studio integration](/nextjs/studio#per-item-revalidation). |
 | `getWeaverseNextSeoMetadata()`, `formatWeaverseNextSeoMetadata()` | SEO helpers, as above. |
 | `getWeaverseStudioCspDirectives(request)` | CSP sources Weaverse Studio needs for this request (6.3.0+); see below. |
+| `WeaverseError`, `WeaverseLoadError` | Error classes, as above (6.5.0+). |
 
-Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseStudioCspDirectives`, the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
+Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseStudioCspDirectives`, `WeaverseLoadFailureKind` (6.5.0+), the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
 
 ### Server client config
 
@@ -126,12 +127,13 @@ Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNe
 | `commerce` | Commerce context passed to loaders (for example a Storefront client). |
 | `cache` | `{ revalidate, tags }` for published reads. |
 | `fetch`, `fetchTimeoutMs` | Custom fetch and timeout (default 10 seconds). |
+| `throwPageLoadFailures` | 6.5.0+, default `false`. `loadPage()` rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) when the page can't be loaded (`kind`: `unavailable`, `invalid-response` or `configuration`), instead of resolving to `null`, so a route can tell an outage from a missing page. A 404 from the Weaverse API still resolves to `null`. |
 
 ### Server client members
 
 | Member | Description |
 | --- | --- |
-| `loadPage({ type, handle?, locale?, projectId?, cache? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. `locale` selects the assigned page's locale, `projectId` overrides the project for this call, and `cache` (`{ revalidate, tags }`) is merged over the client-level `cache`. Never throws: an unassigned route resolves to a placeholder page whose `page.id` starts with `fallback_page_`, and a missing project ID or failed request resolves to `null`. See [Rendering pages](/nextjs/rendering-pages#no-page-means-404). |
+| `loadPage({ type, handle?, locale?, projectId?, cache? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. `locale` selects the assigned page's locale, `projectId` overrides the project for this call, and `cache` (`{ revalidate, tags }`) is merged over the client-level `cache`. An unassigned route resolves to a placeholder page with `isFallback: true` (6.5.0+). A missing project ID or failed request resolves to `null`, or rejects with a `WeaverseLoadError` when the client sets `throwPageLoadFailures: true`; a 404 from the Weaverse API always resolves to `null`. See [Rendering pages](/nextjs/rendering-pages#no-page-means-404). |
 | `loadThemeSettings()` | Fetches theme settings merged over schema defaults. Returns `theme`, `schema`, `staticContent`, `publicEnv` in design mode, and `merchantOverrides` when the theme declares `i18n` and the request carries a language and country. |
 | `fetchCustomPages(options?)` | Lists the custom pages assigned in the project for a sitemap, paginating automatically. Not filtered by publication state; see [Custom pages in the sitemap](/nextjs/rendering-pages#custom-pages-in-the-sitemap). |
 | `fetchWithCache(url, options?)` | Next-aware fetch: `no-store` in design and revision preview, `next: { revalidate, tags }` in published mode. |

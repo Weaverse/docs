@@ -148,7 +148,7 @@ export default function Component() {
 
 #### How it works:
 - The loader fetches the custom page matching the current request URL.
-- When no page is assigned to the URL, `loadPage()` resolves to a fallback page (its `page.id` starts with `fallback_page_`), not `null`. `validateWeaverseData()` throws a 404 for `null` and for that fallback page outside design mode, where Studio needs it so the merchant can add sections.
+- When no page is assigned to the URL, `loadPage()` resolves to a fallback page with `isFallback: true` (6.5.0+), not `null`. `validateWeaverseData()` throws a 404 for `null` and for that fallback page outside design mode, where Studio needs it so the merchant can add sections.
 - A load failure resolves to `null` by default. Pilot's client sets `throwPageLoadFailures: true`, so a failure rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) and the route answers 503 or 500 instead of 404.
 - `getWeaverseSeoMeta()` renders the SEO fields you configured on the page in Studio. Pilot's `withWeaverseSeo()` (in `app/utils/seo.ts`) merges them with the market's canonical and hreflang tags from the root route.
 - `<WeaverseContent />` renders the sections.

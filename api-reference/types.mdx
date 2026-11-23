@@ -173,6 +173,8 @@ type WeaverseLoaderData = {
   page: WeaversePageData
   project: WeaverseProjectType
   pageAssignment?: WeaversePageAssignment
+  /** `true` when nothing is assigned at the URL and `page` is the SDK's placeholder (6.5.0+) */
+  isFallback?: boolean
 }
 ```
 

@@ -40,8 +40,8 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 | Package | Version |
 | --- | --- |
 | `@shopify/hydrogen` | `2026.10.3` or later (Pilot uses `^2026.10.3`; `@weaverse/hydrogen` 6.3.0+ requires `>=2026.10.3`) |
-| `@weaverse/hydrogen` | `6.x`, latest `6.3.1` (Pilot uses `^6.3.1`; the `locale` option needs 6.1.0, `getWeaverseStudioCspDirectives` needs 6.3.0) |
-| `@weaverse/react`, `@weaverse/core`, `@weaverse/schema` | Installed by `@weaverse/hydrogen` at exact versions (6.3.1 pins `@weaverse/react` 6.3.1, `@weaverse/core` 6.3.1 and `@weaverse/schema` 0.20.1). Don't list them yourself |
+| `@weaverse/hydrogen` | `6.x`, latest `6.5.0` (the `locale` option needs 6.1.0, `getWeaverseStudioCspDirectives` needs 6.3.0, `isFallback` needs 6.5.0). From 6.4.0, `react`, `react-dom` and `react-router` are peer dependencies |
+| `@weaverse/react`, `@weaverse/core`, `@weaverse/schema` | Installed by `@weaverse/hydrogen` at exact versions (6.5.0 pins `@weaverse/react` 6.5.0, `@weaverse/core` 6.5.0 and `@weaverse/schema` 0.20.1). Don't list them yourself |
 | `@shopify/cli` (dev) | `4.4.0` or later, for `shopify hydrogen deploy` (Pilot uses `^4.9.4`) |
 | `react-router`, `@react-router/dev` | `7.18` or later 7.x, both on the same version (Pilot uses `7.18.5`) |
 | `vite` | `8` |
@@ -51,7 +51,7 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 Themes on Hydrogen 2026.4 or earlier stay on `@weaverse/hydrogen` 5.x. React Router 8 is not supported yet.
 
 <Warning>
-  `@weaverse/hydrogen` depends on exact versions of `@weaverse/react` and `@weaverse/core` (6.3.1 on 6.3.1), and themes import everything through `@weaverse/hydrogen/react-router`. Remove `@weaverse/react`, `@weaverse/core` and `@weaverse/next` from your `package.json`. If you must keep a direct `@weaverse/react` dependency, pin it to the exact version your `@weaverse/hydrogen` depends on (`npm view @weaverse/hydrogen@<version> dependencies`). Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
+  `@weaverse/hydrogen` depends on exact versions of `@weaverse/react` and `@weaverse/core` (6.5.0 on 6.5.0), and themes import everything through `@weaverse/hydrogen/react-router`. Remove `@weaverse/react`, `@weaverse/core` and `@weaverse/next` from your `package.json`. If you must keep a direct `@weaverse/react` dependency, pin it to the exact version your `@weaverse/hydrogen` depends on (`npm view @weaverse/hydrogen@<version> dependencies`). Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
 </Warning>
 
 <Note>
@@ -95,7 +95,7 @@ Follow the steps below. They follow the order Pilot used, so the project builds 
 ### Dependencies
 
 ```bash
-npm install @shopify/hydrogen@^2026.10.3 @weaverse/hydrogen@^6.3.1 \
+npm install @shopify/hydrogen@^2026.10.3 @weaverse/hydrogen@^6.5.0 \
   react-router@7.18.5 @react-router/dev@7.18.5
 npm install -D gql.tada @types/node @shopify/mini-oxygen@^4.2.3 @shopify/cli@^4.9.4
 npm uninstall @shopify/hydrogen-codegen @graphql-codegen/cli
@@ -1213,7 +1213,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
     The renames match whole words in every file that imports Weaverse. A local `ThemeSettingsResponse` becomes `WeaverseThemeSettingsResponse` too. Run with `--dry-run` first and review `git diff` after applying.
   </Accordion>
   <Accordion title="Weaverse components lose their data after the upgrade">
-    Two copies of `@weaverse/react` are installed. Remove direct `@weaverse/react`, `@weaverse/core` and `@weaverse/next` dependencies (or pin `@weaverse/react` to the exact version your `@weaverse/hydrogen` depends on, 6.3.1 for 6.3.1), and check with `npm ls @weaverse/react`.
+    Two copies of `@weaverse/react` are installed. Remove direct `@weaverse/react`, `@weaverse/core` and `@weaverse/next` dependencies (or pin `@weaverse/react` to the exact version your `@weaverse/hydrogen` depends on, 6.5.0 for 6.5.0), and check with `npm ls @weaverse/react`.
   </Accordion>
   <Accordion title="Translations show the theme defaults in one market">
     Weaverse asked for the wrong locale key. If the Storefront client's `i18n.language` is a Shopify code such as `ZH_TW`, pass the market's public locale to `WeaverseClient` as `locale` (`@weaverse/hydrogen` 6.1.0 or later). See [The `locale` option](#the-locale-option).
@@ -1261,7 +1261,7 @@ A cart keeps the country it was created in. If the shopper switches market, the 
 
 ## Migration Checklist
 
-- `@shopify/hydrogen` `^2026.10.3`, `@weaverse/hydrogen` `^6.3.1`, React Router 7.18+ on one version, Vite 8
+- `@shopify/hydrogen` `^2026.10.3`, `@weaverse/hydrogen` `^6.5.0`, React Router 7.18+ on one version, Vite 8
 - Scripts: `vite dev`, `dev:https`, `react-router build`, `vite preview`, `shopify hydrogen deploy --assets-dir dist/client --worker-dir dist/server`; `@shopify/cli` 4.4.0 or later
 - `vite.config.ts` without `hydrogen()`; `react-router.config.ts` with `buildDirectory: "dist"` and `v8_middleware`
 - GraphQL codegen removed; `@shopify/hydrogen/ts-plugin` and `hydrogen gql check` in place

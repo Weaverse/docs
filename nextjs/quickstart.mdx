@@ -79,10 +79,10 @@ This path assumes an App Router app that already reads from your Shopify store, 
 ### 1. Install
 
 ```bash
-npm install @weaverse/hydrogen@^6.3.1
+npm install @weaverse/hydrogen@^6.5.0
 ```
 
-The Next.js adapter ships in `@weaverse/hydrogen` 6.2.0 and later (Forward uses 6.3.1): import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/hydrogen` 6.3 needs `@shopify/hydrogen` 2026.10.3 or later as a peer dependency; install it too if your app doesn't have it yet.
+The Next.js adapter ships in `@weaverse/hydrogen` 6.2.0 and later; this guide uses 6.5.0 (for `isFallback`). Import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. From 6.3.0, `@weaverse/hydrogen` needs `@shopify/hydrogen` 2026.10.3 or later as a peer dependency, and from 6.4.0 also `react`, `react-dom` (19 or later) and `react-router`; install any your app doesn't have yet.
 
 ### 2. Environment variables
 
@@ -380,12 +380,9 @@ export default async function Home(props: {
     pageType: 'INDEX',
   })
   let data = await weaverse.loadPage({ type: 'INDEX' })
-  // `null` is a failed load; a `fallback_page_` id means no page is assigned
+  // `null` is a failed load; `isFallback` means no page is assigned
   // (keep it in design mode so the merchant can build it in Studio).
-  if (
-    !data ||
-    (data.page.id.startsWith('fallback_page_') && !data.configs?.isDesignMode)
-  ) {
+  if (!data || (data.isFallback && !data.configs?.isDesignMode)) {
     notFound()
   }
 

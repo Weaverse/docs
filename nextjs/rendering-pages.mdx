@@ -109,7 +109,7 @@ export async function loadWeaversePage(options: {
     // An unassigned route resolves to a placeholder page, not null. Treat it
     // as "no page", except in Studio's design mode, where the merchant adds
     // sections to it.
-    if (page?.page.id.startsWith('fallback_page_') && !page.configs?.isDesignMode) {
+    if (page?.isFallback && !page.configs?.isDesignMode) {
       return null
     }
     return page
@@ -119,14 +119,58 @@ export async function loadWeaversePage(options: {
 }
 ```
 
+`isFallback` needs `@weaverse/hydrogen` 6.5.0 or later. On earlier versions, check `page.page.id.startsWith('fallback_page_')` instead.
+
 ### No page means 404
 
-The server client's `loadPage` never throws. It resolves to:
+By default, the server client's `loadPage` doesn't throw. It resolves to:
 
-- **A placeholder page** when the project loads but no page is assigned to the route. Its `page.id` starts with `fallback_page_` and it renders "Please add new section to start." It is not `null`, so check for it, as `loadWeaversePage` above does. Keep it in design mode: it is the page Studio lets the merchant build on.
-- **`null`** when no project ID resolves or the request fails (network error, timeout, error status or error body). The failure is logged on the server.
+- **A placeholder page with `isFallback: true`** when the project loads but no page is assigned to the route. It renders "Please add new section to start." It is not `null`, so check for it, as `loadWeaversePage` above does. Keep it in design mode: it is the page Studio lets the merchant build on. A 200 response whose body has no page (for example `{}`) also resolves to the placeholder.
+- **`null`** when the Weaverse API answers 404 (for example, the project doesn't exist), when no project ID resolves, or when the request fails (network error, timeout, error status or error body). The failure is logged on the server.
 
-The `fallback_page_` check is a stopgap until the SDK exposes an explicit "no page" signal ([Weaverse/weaverse#597](https://github.com/Weaverse/weaverse/issues/597)). Answer "no page" with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+Answer "no page" with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+
+### Outages are not 404s
+
+With the default, an outage looks like a missing page, so `loadWeaversePage` answers it with a 404. From 6.5.0, set `throwPageLoadFailures: true` on the server client to tell them apart: a failed load then rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) whose `kind` is `unavailable` (timeout, network error, 408, 425, 429 or 5xx), `invalid-response` (error body, non-JSON body, or a body that isn't a page envelope) or `configuration` (no project ID, or another refusal such as 401 or 403). A 404 from the Weaverse API still resolves to `null`, and an unassigned route still resolves to the placeholder page.
+
+```ts
+// weaverse/server.ts
+import {
+  createWeaverseNextServerClient,
+  WeaverseLoadError,
+} from '@weaverse/hydrogen/next/server'
+
+// In getWeaverseServerClient:
+createWeaverseNextServerClient({
+  // ...
+  throwPageLoadFailures: true,
+})
+
+// In loadWeaversePage, let load failures through and keep `null` for "no page":
+  } catch (error) {
+    if (error instanceof WeaverseLoadError) throw error
+    return null
+  }
+```
+
+A page route that lets the error through renders the nearest `error.tsx` instead of the 404 page. A [route handler](https://nextjs.org/docs/app/api-reference/file-conventions/route) can answer with a status of its own, for example a `503` that isn't cached for `unavailable` and `invalid-response`, and a `500` for `configuration`:
+
+```ts
+try {
+  let page = await weaverse.loadPage({ type: 'INDEX' })
+  // ...
+} catch (error) {
+  if (error instanceof WeaverseLoadError) {
+    let retryable = error.kind !== 'configuration'
+    return new Response(null, {
+      status: retryable ? 503 : 500,
+      headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+  throw error
+}
+```
 
 <Warning>
   `notFound()` returns a real 404 only while no `loading.tsx` wraps the route. A `loading.tsx` adds a Suspense boundary, and once the streamed shell is sent the response is committed to `200` before your check runs.
