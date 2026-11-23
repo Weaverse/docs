@@ -31,7 +31,7 @@ Returns route metadata for non-deleted `CUSTOM` page assignments. Unlike the aut
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `locale` | string | — | Limit results to a locale. Use `default` to match assignments whose locale is empty or `null`, which includes market assignments. |
-| `market` | string | — | Limit results to one market's assignments, by country code (for example `DE`; case-insensitive). |
+| `market` | string | — | Limit results to one market's assignments, by country code (for example `de`; case-insensitive). |
 | `limit` | integer | `100` | Page size. Values above `1000` are capped at `1000`. |
 | `cursor` | string | — | Cursor from the previous response's `nextCursor` field. |
 
@@ -77,7 +77,7 @@ Use each returned `handle` and `path` exactly as returned. A handle may contain 
 |---|---|---|---|
 | `global` | `null` | `null` | Shared by every market and locale, for example `/about` |
 | `locale` | locale code | `null` | Assigned to one locale |
-| `market` | `null` | country code | Assigned to one market only |
+| `market` | `null` | lowercase country code, for example `de` | Assigned to one market only |
 
 `locale` is `null` for both global and market assignments, so check `scope` (or `market`) before you add an entry to a market's sitemap: include `global` entries in every market, and `market` entries only in the market whose country code matches. For a `market` entry, `path` has no locale prefix; build the URL with that market's prefix.
 
