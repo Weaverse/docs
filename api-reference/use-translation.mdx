@@ -1,0 +1,104 @@
+---
+title: useTranslation
+description: Translate theme text in Weaverse components with useTranslation and the TranslationProvider that withWeaverse mounts.
+published: true
+---
+
+# useTranslation
+
+`useTranslation` returns a `t()` function that resolves your theme's text keys for the active locale: Studio's live edits, the merchant's translations from the Translation Manager, then your theme's default copy. `TranslationProvider` supplies it; [`withWeaverse`](/api-reference/with-weaverse) mounts one for you.
+
+## Import
+
+```tsx
+import { useTranslation } from '@weaverse/hydrogen/react-router'
+```
+
+## Type
+
+```typescript
+function useTranslation(): TranslationValue
+
+type TranslationValue = {
+  t: (key: string, variables?: Record<string, string | number>) => string
+  /** Merchant translations for the active locale, or `null`. */
+  merchantOverrides: Record<string, unknown> | null
+  /** Store for Studio's live design-mode text edits, or `null`. */
+  translationStore: TranslationStore | null
+}
+```
+
+`useTranslation` throws if no `TranslationProvider` is above it. In a theme, that means the root `Layout` isn't wrapped with `withWeaverse`.
+
+## Usage
+
+```tsx
+import { useTranslation } from '@weaverse/hydrogen/react-router'
+
+export function CartTitle({ count }: { count: number }) {
+  const { t } = useTranslation()
+  return <h2>{t('cart.title', { count })}</h2>
+}
+```
+
+Keys are dot paths into your theme's text, for example `cart.title` reads `{ "cart": { "title": "..." } }`. `t()` replaces `{{name}}` placeholders with the matching `variables` value. It doesn't handle plurals or number formatting; see [i18next Integration](/features/i18next-integration) for that.
+
+## Resolution Order
+
+`t(key)` returns the first value it finds, highest priority first:
+
+1. The external `t` passed to `withWeaverse(Layout, { t })` or `TranslationProvider`, unless it returns an empty string or the key unchanged
+2. Unsaved edits the merchant is making in Studio's design mode
+3. The merchant's translations for the active locale (`merchantOverrides`)
+4. Your theme's default copy (`staticContent`)
+5. The key itself
+
+Studio's translations always win over the bundled default copy. Editing your theme's default JSON doesn't change a key the merchant has already translated in Studio.
+
+## Where the Data Comes From
+
+`withWeaverse` reads `weaverseTheme.staticContent` and `weaverseTheme.merchantOverrides` from the root route's loader data, so the root loader must return `loadThemeSettings()` as `weaverseTheme`:
+
+```ts app/root.tsx
+export async function loader({ context }: Route.LoaderArgs) {
+  return {
+    weaverseTheme: await context.weaverse.loadThemeSettings(),
+    // ...
+  }
+}
+```
+
+`staticContent` comes from `i18n.staticContent` in your theme schema. See [Translation Feature Guide](/features/translation-feature-guide) to enable the Translation Manager.
+
+## `TranslationProvider`
+
+`withWeaverse` already renders `TranslationProvider`, so themes rarely use it directly. Use it to provide `t()` to a tree that isn't under the Weaverse root, such as a test or a standalone component preview.
+
+```tsx
+import { TranslationProvider } from '@weaverse/hydrogen/react-router'
+import staticContent from '~/i18n/en.json'
+
+<TranslationProvider staticContent={staticContent}>
+  <CartTitle count={2} />
+</TranslationProvider>
+```
+
+| Prop | Type | Description |
+| --- | --- | --- |
+| `staticContent` | `Record<string, unknown>` | **Required.** The theme's default-locale text. |
+| `merchantOverrides` | `Record<string, unknown>` | Merchant translations for the active locale. |
+| `t` | `(key, variables?) => string` | External translate function, used first. |
+| `translationStore` | `TranslationStore \| null` | Store for live design-mode overrides. |
+| `children` | `ReactNode` | Content that can call `useTranslation`. |
+
+<Note>
+  `useThemeText`, `ThemeTextProvider` and the `themeTextStore` prop are deprecated aliases of `useTranslation`, `TranslationProvider` and `translationStore`.
+</Note>
+
+The Next.js adapter exports `useTranslation` and `TranslationProvider` from `@weaverse/hydrogen/next`, where `WeaverseNextRootProvider` mounts the provider.
+
+## Related
+
+- [Translation Feature Guide](/features/translation-feature-guide)
+- [withWeaverse](/api-reference/with-weaverse)
+- [useThemeSettings](/api-reference/use-theme-settings)

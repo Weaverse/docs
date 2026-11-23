@@ -25,7 +25,7 @@ function useParentInstance(): WeaverseItemStore | null
 - `WeaverseItemStore | null` — The parent item store, or `null` when the lookup does not find an instance.
 
 <Note>
-  In SDK v5.19.1, a missing parent ID falls back to the current item because `useParentInstance()` delegates to `useItemInstance(parentId || '')`. Root components therefore receive their own item store rather than `null`.
+  A missing parent ID falls back to the current item because `useParentInstance()` delegates to `useItemInstance(parentId || '')`. Root components therefore receive their own item store rather than `null`.
 </Note>
 
 ## Common Use Patterns

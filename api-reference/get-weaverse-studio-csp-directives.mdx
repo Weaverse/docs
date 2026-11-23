@@ -1,0 +1,102 @@
+---
+title: getWeaverseStudioCspDirectives
+description: Get the Content Security Policy sources Weaverse Studio needs for a request, to merge into Hydrogen's createContentSecurityPolicy.
+published: true
+---
+
+# getWeaverseStudioCspDirectives
+
+`getWeaverseStudioCspDirectives` returns the CSP sources Weaverse Studio needs while it drives your storefront in its iframe. Merge the result into the directives you pass to Hydrogen's `createContentSecurityPolicy`.
+
+Requires `@weaverse/hydrogen` 6.3.0 or later. `createContentSecurityPolicy` requires `@shopify/hydrogen` 2026.10.3 or later.
+
+## Import
+
+```ts
+import { getWeaverseStudioCspDirectives } from '@weaverse/hydrogen/react-router'
+```
+
+Next.js storefronts import it from `@weaverse/hydrogen/next/server` (see the [Next.js reference](/nextjs/api-reference#getweaversestudiocspdirectives)).
+
+## Signature
+
+```ts
+function getWeaverseStudioCspDirectives(
+  request: Request | URL | string,
+): WeaverseStudioCspDirectives
+
+interface WeaverseStudioCspDirectives {
+  connectSrc?: string[]
+  fontSrc?: string[]
+  frameAncestors?: string[]
+  imgSrc?: string[]
+  scriptSrc?: string[]
+  styleSrc?: string[]
+}
+```
+
+The shape matches Hydrogen's `ContentSecurityPolicyDirectives`, where each array extends Hydrogen's default for that directive (and replaces a `'none'` default such as `frame-ancestors`).
+
+## Return Value
+
+| Request | Result |
+| --- | --- |
+| Normal visitor (no Studio markers in the URL) | `{}` |
+| Relative or malformed URL | `{}` |
+| Studio request (design mode, section preview or revision preview) with a trusted `weaverseHost` | The Studio origin in `connectSrc`, `fontSrc`, `frameAncestors`, `imgSrc`, `scriptSrc` and `styleSrc` |
+| Same, in design mode (`isDesignMode=true`) | As above, plus `'unsafe-eval'` in `scriptSrc`, because the Studio bridge rebuilds schema `condition` functions from strings |
+| Untrusted `weaverseHost` | `{}` |
+
+`weaverseHost` comes from the URL, so anyone can set it. The helper runs it through the same trust check that gates the Studio bridge script: only `https://` hosts on `weaverse.io` or `weaverse.dev` (or their subdomains) are trusted, and loopback hosts only when the storefront itself runs on loopback. Without a `weaverseHost`, the default Studio origin `https://studio.weaverse.io` is used. The result works in both report-only and enforcing policies.
+
+<Note>
+  A self-hosted or staging Studio on another domain isn't trusted, so the helper returns `{}` for it. Add that origin to your own directives if you use one.
+</Note>
+
+## Usage
+
+Pilot keeps its own sources in `app/weaverse/csp.ts` and appends Studio's:
+
+```ts app/weaverse/csp.ts
+import type { ContentSecurityPolicyDirectives } from '@shopify/hydrogen'
+import { getWeaverseStudioCspDirectives } from '@weaverse/hydrogen/react-router'
+
+const THEME_DIRECTIVES = {
+  scriptSrc: ["'unsafe-inline'", 'https://www.youtube.com'],
+  // ...
+} satisfies ContentSecurityPolicyDirectives
+
+export function getCspDirectives(request: Request): ContentSecurityPolicyDirectives {
+  const directives: ContentSecurityPolicyDirectives = { ...THEME_DIRECTIVES }
+  const studio = getWeaverseStudioCspDirectives(request)
+  for (const key of Object.keys(studio) as (keyof typeof studio)[]) {
+    directives[key] = [...(directives[key] ?? []), ...(studio[key] ?? [])]
+  }
+  return directives
+}
+```
+
+```tsx app/entry.server.tsx
+import { createContentSecurityPolicy } from '@shopify/hydrogen'
+import { getCspDirectives } from '~/weaverse/csp'
+
+// inside handleRequest(request, responseStatusCode, responseHeaders, reactRouterContext, context)
+const csp = createContentSecurityPolicy({
+  nonce: false,
+  shop: {
+    checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || undefined,
+    storeDomain: context.env?.PUBLIC_STORE_DOMAIN || undefined,
+  },
+  directives: getCspDirectives(request),
+})
+responseHeaders.set('Content-Security-Policy-Report-Only', csp.header)
+```
+
+<Warning>
+  Append Studio's arrays to yours instead of assigning them. Overwriting `scriptSrc` with Studio's drops your own sources, such as `'unsafe-inline'`, inside Studio.
+</Warning>
+
+## Related
+
+- [Content Security Policy](/features/content-security): full setup, third-party sources and rollout
+- [Preview Errors](/troubleshooting/preview-errors): Studio connection problems

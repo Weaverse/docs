@@ -30,7 +30,8 @@ Returns route metadata for non-deleted `CUSTOM` page assignments. Unlike the aut
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `locale` | string | — | Limit results to a locale. Use `default` to match assignments whose locale is empty or `null`. |
+| `locale` | string | — | Limit results to a locale. Use `default` to match assignments whose locale is empty or `null`, which includes market assignments. |
+| `market` | string | — | Limit results to one market's assignments, by country code (for example `de`; case-insensitive). |
 | `limit` | integer | `100` | Page size. Values above `1000` are capped at `1000`. |
 | `cursor` | string | — | Cursor from the previous response's `nextCursor` field. |
 
@@ -52,6 +53,8 @@ curl "https://studio.weaverse.io/api/public/v1/projects/PROJECT_ID/custom-pages?
     {
       "handle": "pages/gift-shop",
       "locale": "en-us",
+      "market": null,
+      "scope": "locale",
       "path": "/en-us/pages/gift-shop",
       "lastModified": "2026-08-24T10:30:00.000Z",
       "priority": 0.7,
@@ -65,6 +68,18 @@ curl "https://studio.weaverse.io/api/public/v1/projects/PROJECT_ID/custom-pages?
 `nextCursor` is `null` when there are no more results. Otherwise, pass it unchanged as the next request's `cursor` value.
 
 Use each returned `handle` and `path` exactly as returned. A handle may contain `/`, for example `pages/gift-shop`.
+
+### Assignment scope
+
+`scope` says who the page is assigned to:
+
+| `scope` | `locale` | `market` | Meaning |
+|---|---|---|---|
+| `global` | `null` | `null` | Shared by every market and locale, for example `/about` |
+| `locale` | locale code | `null` | Assigned to one locale |
+| `market` | `null` | lowercase country code, for example `de` | Assigned to one market only |
+
+`locale` is `null` for both global and market assignments, so check `scope` (or `market`) before you add an entry to a market's sitemap: include `global` entries in every market, and `market` entries only in the market whose country code matches. For a `market` entry, `path` has no locale prefix; build the URL with that market's prefix.
 
 ## Errors
 

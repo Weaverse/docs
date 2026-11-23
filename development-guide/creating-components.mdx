@@ -48,14 +48,18 @@ Here's a simple component following modern React 19 patterns:
 ```tsx
 // app/sections/hero-banner/index.tsx
 import { createSchema } from "@weaverse/hydrogen/react-router";
-import type { WeaverseComponentProps } from "@weaverse/hydrogen/react-router";
+import type {
+  WeaverseComponentProps,
+  WeaverseImage,
+} from "@weaverse/hydrogen/react-router";
 
 interface HeroBannerProps extends WeaverseComponentProps {
   heading: string;
   description: string;
   buttonText: string;
   buttonLink: string;
-  backgroundImage: string;
+  // An `image` input returns an image object, not a URL string
+  backgroundImage?: WeaverseImage;
 }
 
 function HeroBanner(props: HeroBannerProps) {
@@ -73,7 +77,7 @@ function HeroBanner(props: HeroBannerProps) {
     <section 
       {...rest}
       className="relative min-h-[500px] flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: `url(${backgroundImage})` }}
+      style={backgroundImage?.url ? { backgroundImage: `url(${backgroundImage.url})` } : undefined}
     >
       <div className="absolute inset-0 bg-black/40" />
       <div className="relative z-10 text-center text-white max-w-4xl mx-auto px-4">
@@ -166,7 +170,7 @@ export const schema = createSchema({
 1. **Import your component** in the components file:
 
 ```tsx
-// app/weaverse/components.ts (or templates/pilot/app/weaverse/components.ts)
+// app/weaverse/components.ts
 import type { WeaverseComponent } from "@weaverse/hydrogen/react-router";
 
 // Import your new component
@@ -193,7 +197,7 @@ npm run dev
 Here's how components are registered in the official Pilot template:
 
 ```tsx
-// templates/pilot/app/weaverse/components.ts
+// app/weaverse/components.ts
 import * as HeroImage from "~/sections/hero-image";
 import * as FeaturedProducts from "~/sections/featured-products";  
 import * as ImageWithText from "~/sections/image-with-text";
@@ -291,7 +295,7 @@ settings: [
       { type: "video", name: "video", label: "Video" },
       { type: "color", name: "color", label: "Color" },
       { type: "range", name: "opacity", label: "Opacity", configs: { min: 0, max: 100 } },
-      { type: "toggle", name: "enabled", label: "Enable Feature" },
+      { type: "switch", name: "showBadge", label: "Show Badge" },
       { type: "select", name: "layout", label: "Layout", configs: {
         options: [
           { value: "grid", label: "Grid" },
@@ -386,7 +390,10 @@ For components that need server-side data, export a loader function:
 
 ```tsx
 import { Cache } from "@shopify/hydrogen";
-import type { WeaverseComponentLoaderArgs } from "@weaverse/hydrogen/react-router";
+import type {
+  WeaverseComponentLoaderArgs,
+  WeaverseComponentProps,
+} from "@weaverse/hydrogen/react-router";
 import { unwrapStorefront } from "~/utils/storefront";
 
 interface FeaturedProductData {

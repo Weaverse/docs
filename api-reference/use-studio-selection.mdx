@@ -1,0 +1,76 @@
+---
+title: useStudioSelection
+description: Read what the merchant has selected in Weaverse Studio, a page item or a theme settings group, to open or highlight the matching UI.
+published: true
+---
+
+# useStudioSelection
+
+`useStudioSelection` returns what the merchant has selected in Weaverse Studio: a page item, or a theme settings group. Use it to reveal UI that is normally hidden while the merchant edits it, such as opening a newsletter popup when its settings group is selected.
+
+## Import
+
+```tsx
+import { useStudioSelection } from '@weaverse/hydrogen/react-router'
+```
+
+## Type
+
+```typescript
+function useStudioSelection(): StudioSelection
+
+type StudioSelection = {
+  /** ID of the selected page item, or `null`. */
+  selectedItemId: string | null
+  /**
+   * Name of the selected theme settings group, exactly as declared in the
+   * schema `group` field, or `null`.
+   */
+  selectedThemeGroup: string | null
+}
+```
+
+## Return Value
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `selectedItemId` | `string \| null` | ID of the page item selected in Studio. |
+| `selectedThemeGroup` | `string \| null` | Name of the selected theme settings group, matching the `group` field of your theme schema's `settings` exactly. |
+
+An item and a theme group are never selected at the same time, so at most one field is non-null. Both are `null`:
+
+- on the live storefront, outside Studio
+- during server rendering and hydration
+- outside a Weaverse root
+
+The component re-renders whenever the selection changes.
+
+## Setup
+
+The selection store is mounted by [`withWeaverse`](/api-reference/with-weaverse), which wraps your root `Layout`. No other setup is needed. If the root `Layout` isn't wrapped, the hook keeps returning the empty selection and the SDK logs a warning in Studio.
+
+## Example
+
+Open a popup while its settings group is selected in Studio's theme settings:
+
+```tsx app/components/newsletter-popup.tsx
+import { useStudioSelection } from '@weaverse/hydrogen/react-router'
+
+export function NewsletterPopup() {
+  const { selectedThemeGroup } = useStudioSelection()
+  // Matches `group: 'Newsletter Popup'` in the theme schema's settings
+  const forceOpen = selectedThemeGroup === 'Newsletter Popup'
+
+  // ...render the popup open when `forceOpen` is true
+}
+```
+
+<Note>
+  The Next.js adapter exports the same hook from `@weaverse/hydrogen/next`. There, `WeaverseNextRootProvider` mounts the store.
+</Note>
+
+## Related
+
+- [withWeaverse](/api-reference/with-weaverse)
+- [useWeaverse](/api-reference/use-weaverse)
+- [Design Mode](/development-guide/design-mode)

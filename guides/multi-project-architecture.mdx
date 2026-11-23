@@ -382,20 +382,17 @@ shopify hydrogen deploy
 
 **3. Environment Variables (Oxygen)**
 
-Set project IDs in your Oxygen deployment:
+Set the project IDs on your Oxygen environments in Shopify Admin:
+1. Open the **Hydrogen** sales channel and select your storefront
+2. Go to **Storefront settings → Environments and variables**
+3. Add `WEAVERSE_PROJECT_ID`, `WEAVERSE_PROJECT_SWEDEN`, `WEAVERSE_PROJECT_FRANCE` and `WEAVERSE_PROJECT_GERMANY`
+
+Or push them from a local `.env` file with the Shopify CLI. The Hydrogen CLI has `env list`, `env pull` and `env push`; there is no command that sets a single variable:
 
 ```bash
-# Using Shopify CLI
-shopify hydrogen env set WEAVERSE_PROJECT_SWEDEN project-sweden-456
-shopify hydrogen env set WEAVERSE_PROJECT_FRANCE project-france-789
-shopify hydrogen env set WEAVERSE_PROJECT_GERMANY project-germany-012
-shopify hydrogen env set WEAVERSE_PROJECT_DEFAULT project-default-123
+# Push the variables in .env to the environment with handle "production"
+shopify hydrogen env push --env production
 ```
-
-Or configure via Shopify Admin:
-1. Go to **Settings → Hydrogen**
-2. Select your storefront
-3. Add environment variables under **Environment variables**
 
 **4. SSL Certificates**
 
@@ -445,13 +442,8 @@ export function createWeaverseClient(args: CreateWeaverseClientArgs) {
         return env.WEAVERSE_PROJECT_GERMANY!;
       }
 
-      // Local-development fallback
-      if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-        return env.WEAVERSE_PROJECT_ID!;
-      }
-
-      // Default production project (e.g., .com)
-      return env.WEAVERSE_PROJECT_DEFAULT!;
+      // Default project: local development and the main domain (e.g., .com)
+      return env.WEAVERSE_PROJECT_ID!;
     },
   });
 }
@@ -1266,10 +1258,8 @@ import { data } from "react-router";
 export async function loader({ request, context }: LoaderFunctionArgs) {
   let { weaverse } = context;
 
-  // Determine project ID
-  let projectId = typeof weaverse.projectId === "function"
-    ? weaverse.projectId()
-    : weaverse.projectId;
+  // The project the client resolved for this request
+  let projectId = weaverse.configs.projectId;
 
   // Add to response headers for CDN
   let headers = new Headers();
@@ -1892,7 +1882,7 @@ projectId: () => {
   }
 
   // All other markets use single project with locale
-  return env.WEAVERSE_PROJECT_DEFAULT!;
+  return env.WEAVERSE_PROJECT_ID!;
 }
 ```
 

@@ -44,10 +44,10 @@ export async function loadCriticalData({ context }: LoaderFunctionArgs) {
       },
       // Localizes the banner based on the visitor's market
       i18n: {
-        country: storefront.i18n.country,
-        language: storefront.i18n.language,
-        pathPrefix: storefront.i18n.pathPrefix,
-        currency: storefront.i18n.currency,
+        country: storefront.locale.country,
+        language: storefront.locale.language,
+        pathPrefix: storefront.locale.pathPrefix,
+        currency: storefront.locale.currency,
       },
       channel: storefrontId ? "hydrogen" : "headless",
       shopifyAnalytics: storefrontId !== "",
@@ -61,7 +61,7 @@ export async function loadCriticalData({ context }: LoaderFunctionArgs) {
 }
 ```
 
-`storefront.i18n.currency` is set by your Storefront client's request context; see Pilot's [`app/.server/root.ts`](https://github.com/Weaverse/pilot/blob/main/app/.server/root.ts) for the full version.
+`storefront.locale.currency` is set by your Storefront client's request context; see Pilot's [`app/.server/root.ts`](https://github.com/Weaverse/pilot/blob/main/app/.server/root.ts) for the full version.
 
 <Warning>
   The `storefrontAccessToken` must be your **public** Storefront API token (32 characters). Never use a private/admin API token (starts with `shpat_`).
@@ -74,11 +74,9 @@ In your root layout (`app/root.tsx`), render `<ShopifyScripts>` first in `<head>
 ```tsx
 import { ShopifyScripts } from "@shopify/hydrogen/react";
 import { useNavigate, useRouteLoaderData } from "react-router";
-import { useNonce } from "~/utils/csp";
 import { routeTemplates } from "~/utils/route-templates";
 
 export function Layout({ children }: { children: React.ReactNode }) {
-  const nonce = useNonce();
   const navigate = useNavigate();
   const data = useRouteLoaderData<RootLoader>("root");
 
@@ -88,7 +86,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
         {/* Step 3 */}
         {data ? (
           <ShopifyScripts
-            nonce={nonce}
             shop={data.shopifyScripts.shop}
             i18n={data.shopifyScripts.i18n}
             analytics={{ channel: data.shopifyScripts.channel }}
@@ -105,7 +102,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 ```
 
-`useNonce` comes from your theme's CSP helpers (see [Content Security Policy](/features/content-security)), and `routeTemplates` from `createShopifyRouteTemplates()`; see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration).
+`routeTemplates` comes from `createShopifyRouteTemplates()`; see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration).
 
 ### Step 3: Expose the Storefront Access Token to the Banner
 
@@ -223,7 +220,7 @@ window.Shopify.customerPrivacy.currentVisitorConsent()
 
 **Cause:** The banner script failed to initialize, which means it never set up the Customer Privacy API. This prevents the banner from showing and analytics consent from working.
 
-**Fix:** This is almost always caused by the missing access token (follow Step 3), or by a CSP nonce that doesn't reach `<ShopifyScripts>`. Check the console for CSP violations.
+**Fix:** This is almost always caused by the missing access token (follow Step 3), or by a CSP that blocks Shopify's inline bootstrap scripts (with `nonce: false`, `scriptSrc` needs `'unsafe-inline'`; see [Content Security Policy](/features/content-security)). Check the console for CSP violations.
 
 ### Banner Doesn't Show for Specific Regions
 

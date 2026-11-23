@@ -290,11 +290,10 @@ import { GithubLogo, LinkedinLogo, XLogo } from "@phosphor-icons/react";
 import { Link } from "react-router";
 import {
   type WeaverseComponentProps,
-  type WeaverseComponentSchema,
   type WeaverseImage,
+  createSchema,
   useParentInstance,
 } from "@weaverse/hydrogen/react-router";
-import { forwardRef } from "react";
 import type { OurTeamQuery } from "."; // `StorefrontApi.ResultOf<typeof OUR_TEAM_QUERY>`, exported by the section
 import { Image } from "~/components/image";
 
@@ -446,10 +445,9 @@ A component that displays product reviews with ratings and filtering options.
 // app/sections/ali-reviews/review-list.tsx
 import {
   type WeaverseComponentProps,
-  type WeaverseComponentSchema,
+  createSchema,
   useParentInstance,
 } from "@weaverse/hydrogen/react-router";
-import { forwardRef } from "react";
 import { StarRating } from "~/components/star-rating";
 import type { AliReviewsLoaderData } from ".";
 import { ReviewBar } from "./review-bar";
@@ -559,31 +557,32 @@ export let schema = createSchema({
       group: "Display",
       inputs: [
         {
-          type: "toggle",
+          type: "switch",
           name: "showAvgRating",
           label: "Show average rating",
           defaultValue: true,
         },
         {
-          type: "toggle",
+          type: "switch",
           name: "showReviewsCount",
           label: "Show reviews count",
           defaultValue: true,
         },
         {
-          type: "toggle",
+          type: "switch",
           name: "showReviewsProgressBar",
           label: "Show rating distribution",
           defaultValue: true,
         },
         {
-          type: "number",
+          type: "range",
           name: "reviewsToShow",
           label: "Number of reviews to show",
           defaultValue: 5,
+          configs: { min: 1, max: 20, step: 1 },
         },
         {
-          type: "toggle",
+          type: "switch",
           name: "showReviewWithMediaOnly",
           label: "Show reviews with media only",
           defaultValue: false,
@@ -620,7 +619,7 @@ A versatile component that combines images with text content in various layouts.
 
 ```tsx
 // app/sections/image-with-text/index.tsx
-import type { WeaverseComponentProps, WeaverseComponentSchema } from '@weaverse/hydrogen/react-router';
+import { createSchema, type WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
 import { ImageWithTextContent } from './content';
 import { ImageWithTextImage } from './image';
 

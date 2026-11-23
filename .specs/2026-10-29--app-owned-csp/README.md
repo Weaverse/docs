@@ -2,12 +2,12 @@
 
 | Field            | Value                                              |
 | ---------------- | -------------------------------------------------- |
-| **Status**       | in-progress                                        |
+| **Status**       | completed                                          |
 | **Owner**        | @hta218                                            |
 | **Issue**        | [#113](https://github.com/Weaverse/docs/issues/113) |
 | **Branch**       | `docs/113-app-owned-csp`                           |
 | **Created**      | 2026-10-29                                         |
-| **Last Updated** | 2026-10-29                                         |
+| **Last Updated** | 2026-11-13                                         |
 
 ## Original Prompt
 
@@ -20,3 +20,7 @@
 ## Summary
 
 Hydrogen 2026.10 removes its CSP helpers, so Weaverse themes build the CSP header and nonce themselves, as Pilot does since Weaverse/pilot#204. These docs explain that setup, the sources Studio and common services need, and how to move from report-only to an enforced policy.
+
+## Update (2026-11-13)
+
+Hydrogen 2026.10.3 restored `createContentSecurityPolicy`, and `@weaverse/hydrogen` 6.3.0 added `getWeaverseStudioCspDirectives(request)`. Pilot dropped `app/utils/csp.ts` and now calls `createContentSecurityPolicy({ nonce: false, shop, directives })`. The CSP pages were rewritten for that setup in [#157](https://github.com/Weaverse/docs/issues/157); see [`2026-11-13--sdk-6-3-audit-fixes`](../2026-11-13--sdk-6-3-audit-fixes/README.md).

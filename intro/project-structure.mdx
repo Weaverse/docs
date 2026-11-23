@@ -128,7 +128,7 @@ Core Weaverse configuration files:
 - `schema.server.ts` - Theme schema
 - `index.tsx` - `WeaverseContent` renderer and page-data validation
 - `style.tsx` - Global styles generated from theme settings
-- `csp.ts` - Content Security Policy directives for Studio
+- `csp.ts` - The theme's Content Security Policy directives, merged with Weaverse Studio's from `getWeaverseStudioCspDirectives`
 
 ## Essential Files
 
@@ -234,18 +234,14 @@ export default {
 See [Step 3 of the v6 migration guide](/migration-advanced/v6-migration#step-3-own-the-request-lifecycle-in-the-server-entry) for the full file.
 
 ### `entry.server.tsx`
-Server-side rendering setup with React Router v7. The CSP header and nonce come from the theme's own `app/utils/csp.ts` (see [Content Security Policy](/features/content-security)):
+Server-side rendering setup with React Router v7. The CSP header comes from Hydrogen's `createContentSecurityPolicy`, with the theme's and Weaverse Studio's sources from `app/weaverse/csp.ts` (see [Content Security Policy](/features/content-security)):
 ```tsx
+import { createContentSecurityPolicy } from "@shopify/hydrogen";
 import { isbot } from "isbot";
 import { renderToReadableStream } from "react-dom/server";
 import type { EntryContext, RouterContextProvider } from "react-router";
 import { ServerRouter } from "react-router";
-import {
-  createContentSecurityPolicy,
-  generateNonce,
-  NonceProvider,
-} from "~/utils/csp";
-import { getWeaverseCsp } from "~/weaverse/csp";
+import { getCspDirectives } from "~/weaverse/csp";
 
 export default async function handleRequest(
   request: Request,
@@ -254,27 +250,22 @@ export default async function handleRequest(
   reactRouterContext: EntryContext,
   context: RouterContextProvider,
 ) {
-  const nonce = generateNonce();
-  const header = createContentSecurityPolicy(
-    nonce,
-    getWeaverseCsp(request, context.env),
-    {
-      checkoutDomain:
-        context.env?.PUBLIC_CHECKOUT_DOMAIN || context.env?.PUBLIC_STORE_DOMAIN,
-      storeDomain: context.env?.PUBLIC_STORE_DOMAIN,
+  // No nonce, so Oxygen's full-page cache can store the document
+  const csp = createContentSecurityPolicy({
+    nonce: false,
+    shop: {
+      checkoutDomain: context.env?.PUBLIC_CHECKOUT_DOMAIN || undefined,
+      storeDomain: context.env?.PUBLIC_STORE_DOMAIN || undefined,
     },
-  );
+    directives: getCspDirectives(
+      request,
+      context.env?.PUBLIC_CHECKOUT_DOMAIN || undefined,
+    ),
+  });
 
   const body = await renderToReadableStream(
-    <NonceProvider value={nonce}>
-      <ServerRouter
-        context={reactRouterContext}
-        url={request.url}
-        nonce={nonce}
-      />
-    </NonceProvider>,
+    <ServerRouter context={reactRouterContext} url={request.url} />,
     {
-      nonce,
       signal: request.signal,
       onError(error) {
         console.error(error);
@@ -291,7 +282,7 @@ export default async function handleRequest(
   }
 
   responseHeaders.set("Content-Type", "text/html");
-  responseHeaders.set("Content-Security-Policy-Report-Only", header);
+  responseHeaders.set("Content-Security-Policy-Report-Only", csp.header);
   // ... Oxygen full-page cache headers
 
   return new Response(body, {
@@ -353,7 +344,7 @@ npm run preview
 
 ## Next Steps
 
-- [Development Guide](/development-guide/index) - Build custom components and sections
+- [Development Guide](/development-guide/creating-components) - Build custom components and sections
 - [API Reference](/api-reference/introduction) - Learn about Weaverse APIs and utilities
 - [Deployment](/guides/deployment) - Deploy your theme to production
 

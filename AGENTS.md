@@ -78,11 +78,8 @@ mint dev
 docs/
 ├── docs.json                    # Mintlify configuration (navigation, theme, metadata)
 ├── index.mdx                    # Homepage
-├── quickstart.mdx               # 5-minute quickstart guide
-├── development.mdx              # Development overview
-├── deployment.mdx               # Deployment guide
-├── getting-started/             # Getting started guides
-├── core-concepts/               # Architecture and concepts
+├── intro/                       # Quickstart, how it works, project structure
+├── getting-started/             # Installation
 ├── development-guide/           # Component development guides
 │   ├── environment-setup.mdx
 │   ├── creating-components.mdx
@@ -248,9 +245,7 @@ export let schema = createSchema({
   childTypes: ['allowed-child'],  // Optional
   presets: { /* defaults */ },    // Optional
   limit: 1,                       // Optional
-  enabledOn: {                    // Optional
-    pages: ['INDEX', 'PRODUCT']
-  }
+  enabled: ({ page }) => page.type === 'PRODUCT', // Optional; `enabledOn` is deprecated
 })
 ```
 
@@ -268,7 +263,7 @@ npm run dev
 npm run dev:ca
 
 # Code quality
-npm run biome:fix
+npm run check:fix
 npm run typecheck
 ```
 
@@ -342,7 +337,7 @@ Use relative paths for internal links:
 
 ### Page Types Referenced
 
-When documenting `enabledOn.pages`:
+When documenting `enabled` rules (`page.type`) or the deprecated `enabledOn.pages`:
 - `INDEX` - Homepage
 - `PRODUCT` - Product detail pages
 - `COLLECTION` - Collection pages

@@ -55,7 +55,15 @@ npx @weaverse/cli@latest create --template=pilot --project-id=your-project-id --
 cd my-store && npm run dev
 ```
 
-**Available templates**: `pilot`, `naturelle`, `aspen`, `maison`
+**Available templates**: `pilot`, `naturelle`, `aspen` and `maison` (Shopify Hydrogen, npm, port 3456), and `forward` (Next.js, Bun, port 3333; see the [Next.js quickstart](/nextjs/quickstart)). The CLI installs dependencies with the template's package manager.
+
+**Licensed partner theme**: run the install command from your Weaverse dashboard. It uses a one-time `--pass` instead of `--template`:
+
+```bash
+npx @weaverse/cli@latest create --pass=<one-time-pass> --project-id=your-project-id
+```
+
+See the [Weaverse CLI reference](/developer-tools/weaverse-cli) for every option.
 
 ---
 
@@ -188,8 +196,8 @@ export const schema = createSchema({
 
 ## Next Steps
 
-1. **[Core Concepts](/core-concepts)** - Understand how Weaverse works
-2. **[Development Guide](/development-guide/index)** - Build custom sections
+1. **[How Weaverse Works](/intro/how-it-works)** - Understand how Weaverse works
+2. **[Creating Components](/development-guide/creating-components)** - Build custom sections
 3. **[API Reference](/api-reference/introduction)** - Complete API documentation
 
 Need help? Check our [FAQ](/resources/faq) or [Community](/community/community).

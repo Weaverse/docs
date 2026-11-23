@@ -110,7 +110,7 @@ export async function loader(args: LoaderFunctionArgs) {
   // NOTE: This locale-detection pattern assumes the index route sits under a
   // `:locale?` prefix, so params.locale holds the first URL segment.
   // Adjust to match your theme's own locale-detection logic.
-  const { pathPrefix } = context.storefront.i18n;
+  const { pathPrefix } = context.storefront.locale;
   const locale = pathPrefix?.slice(1) || "";
   let type: PageType = "INDEX";
 
@@ -169,7 +169,7 @@ Routes for Shopify resources (product, collection, blog, article, Shopify pages)
 2. **Locate every route that calls `context.weaverse.loadPage(...)`** — `grep -rln "weaverse.loadPage" app/routes`.
 3. **For each, decide which recipe applies** (catch-all, home/index, or — optionally — template) and apply it. Routes that already build SEO from Shopify data stay as they are.
 4. **Remove legacy overrides** (see next section), if any.
-5. **Run `typecheck` and `build`.** Fix any `errorComponent` regression caused by the SDK bump (see [SDK 5.14 side effect](#sdk-5-14-error-component-prop-type)).
+5. **Run `typecheck` and `build`.** If you came from a release older than 5.14, fix any `errorComponent` type error (see [SDK 5.14 side effect](#sdk-5-14-error-component-prop-type)).
 6. **Smoke test**: open a Weaverse page in Studio, set a Title and Description, save, view source on the storefront URL. The tags should appear.
 
 ---
@@ -218,7 +218,7 @@ Apply the same narrowing pattern wherever you read `.stack` or other fields off 
 
 ## Verification checklist
 
-- [ ] `@weaverse/hydrogen` is at `^5.14.0` (or newer) in `package.json` and the installed `node_modules` version matches.
+- [ ] `@weaverse/hydrogen` is at `^6` in `package.json` (`^5.14.0` on classic Hydrogen) and the installed `node_modules` version matches.
 - [ ] Every route you opted in exports a `meta` function returning `getWeaverseSeoMeta(data?.weaverseData)` (or branches per the home/index recipe).
 - [ ] Any legacy `seo-overrides.ts` / `customPage` helper is deleted.
 - [ ] `typecheck` passes (or only flags pre-existing, unrelated errors).
