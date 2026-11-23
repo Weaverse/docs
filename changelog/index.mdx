@@ -18,6 +18,35 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="Forward v2026.11.23" description="November 23, 2026" tags={["Theme", "Forward", "Next.js"]}>
+  ### Weaverse Forward Theme
+
+  #### New Features
+
+  - **Account order view**: Order lists show a thumbnail, item count, payment and fulfillment badges and the total. Order pages show each line's image, variant, SKU and price, shipments with tracking links, the billing address and a link to Shopify's order status page.
+  - **Navigation progress bar**: A bar at the top of the page shows that a clicked link is loading.
+  - **Custom pages in the sitemap**: Weaverse custom pages for the default market are listed in `sitemap.xml`.
+
+  #### Improvements
+
+  - **Addresses and sign-out**: Address cards are spaced out with compact actions and a confirmation before deleting, and sign-out is a separate bordered button.
+  - **Data Connectors**: Bindings such as `{{current.product.title}}` resolve on Forward pages.
+  - **Studio fallback page**: Studio can compose an empty page from its fallback placeholder, and each Weaverse page loads once per request.
+  - **Weaverse SDK v6.5.1**: Forward runs on `@weaverse/hydrogen` 6.5.1.
+
+  #### Fixes
+
+  - **Weaverse outages**: When Weaverse is unreachable or refuses a request, pages answer with the error page and a 5xx instead of a 404, so crawlers and caches don't treat them as gone.
+  - **Order item counts**: Item counts on account orders come from line quantities.
+  - **Customer Account setup**: The client ID error names both the Headless and the Hydrogen channel, and the README documents Hydrogen channel env sync.
+
+  #### Upgrade
+
+  No setup or code changes are needed.
+
+  [GitHub release](https://github.com/Weaverse/forward/releases/tag/v2026.11.23)
+</Update>
+
 <Update label="SDK v6.5.1" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
