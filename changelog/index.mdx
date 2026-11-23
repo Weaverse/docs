@@ -18,6 +18,26 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="SDK v6.4.0" description="November 20, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **React Router 8 support**: `@weaverse/hydrogen` now works with React Router 7 or 8. On React Router 8, `context` in `RouteLoaderArgs` combines the router's context provider with the Weaverse context, so `context.get()` works in your loaders. Members your app adds to its load context, such as `context.env` and `context.storefront`, stay typed on both versions.
+
+  #### Improvements
+
+  - **One copy of React and React Router**: `@weaverse/react` and `@weaverse/hydrogen` now list `react` and `react-dom` (19 or later) as peer dependencies, and `@weaverse/hydrogen` also lists `react-router` (7 or 8), instead of installing their own copies. The SDK always uses your storefront's React and router, which avoids "Invalid hook call" and router context errors in workspaces that mix versions. React Router storefronts already install all three, so no change is needed. An app on an unsupported version now gets a peer dependency warning instead of a hidden second copy.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.4.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.4.0)
+</Update>
+
 <Update label="2026.11.38" description="November 15, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
