@@ -39,8 +39,8 @@ What changes is how the framework hands Weaverse a request and renders the page:
 ## Requirements
 
 - A Shopify store with Storefront API access from the [Headless channel](https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/manage-headless-channels) or, on a paid Shopify plan, the [Hydrogen channel](https://apps.shopify.com/hydrogen). Use a private token for server reads and a public token so [Studio](/nextjs/studio) can open default templates.
-- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Use React 19: `@weaverse/hydrogen` 6.4.0 and later take `react >= 19`, `react-dom >= 19` and `react-router` as peer dependencies (earlier 6.x versions install them as regular dependencies), and `next >= 14` is an optional peer dependency.
-- `@weaverse/hydrogen` 6.2.0 or later (latest 6.5.0). `isFallback` and the server client's `throwPageLoadFailures` option need 6.5.0. 6.3.0 and later need `@shopify/hydrogen` 2026.10.3 or later as a peer dependency (6.2.x needs 2026.10.0). 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
+- A Next.js App Router app that reads from Shopify, typically through the Hydrogen SDK (`npx @shopify/hydrogen@latest setup`). Use React 19: `@weaverse/hydrogen` 6.4.0 and later take `react >= 19` and `react-dom >= 19` as peer dependencies (earlier 6.x versions install them as regular dependencies), and `next >= 14` is an optional peer dependency. 6.4.0 and 6.5.0 also list `react-router` as a peer, so pnpm and bun install it into a Next.js app; from 6.5.1 it is optional and they don't.
+- `@weaverse/hydrogen` 6.2.0 or later (latest 6.5.1). `isFallback` and the server client's `throwPageLoadFailures` option need 6.5.0. 6.3.0 and later need `@shopify/hydrogen` 2026.10.3 or later as a peer dependency (6.2.x needs 2026.10.0; optional from 6.5.1). 6.0 and 6.1 also have `@weaverse/hydrogen/next`, but with fewer exports than these guides use.
 - A Weaverse project.
 
 <Note>

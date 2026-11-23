@@ -40,8 +40,8 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 | Package | Version |
 | --- | --- |
 | `@shopify/hydrogen` | `2026.10.3` or later (Pilot uses `^2026.10.3`; `@weaverse/hydrogen` 6.3.0+ requires `>=2026.10.3`) |
-| `@weaverse/hydrogen` | `6.x`, latest `6.5.0` (the `locale` option needs 6.1.0, `getWeaverseStudioCspDirectives` needs 6.3.0, `isFallback` needs 6.5.0). From 6.4.0, `react`, `react-dom` and `react-router` are peer dependencies |
-| `@weaverse/react`, `@weaverse/core`, `@weaverse/schema` | Installed by `@weaverse/hydrogen` at exact versions (6.5.0 pins `@weaverse/react` 6.5.0, `@weaverse/core` 6.5.0 and `@weaverse/schema` 0.20.1). Don't list them yourself |
+| `@weaverse/hydrogen` | `6.x`, latest `6.5.1` (the `locale` option needs 6.1.0, `getWeaverseStudioCspDirectives` needs 6.3.0, `isFallback` needs 6.5.0). From 6.4.0, `react`, `react-dom` and `react-router` are peer dependencies; from 6.5.1, `react-router` and `@shopify/hydrogen` are optional peers, which your theme installs itself |
+| `@weaverse/react`, `@weaverse/core`, `@weaverse/schema` | Installed by `@weaverse/hydrogen` at exact versions (6.5.1 pins `@weaverse/react` 6.5.1, `@weaverse/core` 6.5.1 and `@weaverse/schema` 0.20.1). Don't list them yourself |
 | `@shopify/cli` (dev) | `4.4.0` or later, for `shopify hydrogen deploy` (Pilot uses `^4.9.4`) |
 | `react-router`, `@react-router/dev` | `7.18` or later; 8.x is accepted from `@weaverse/hydrogen` 6.4.0. Keep both on the same version (Pilot uses `7.18.5`) |
 | `vite` | `8` |
@@ -51,7 +51,7 @@ Hydrogen 2026.10 is a **server-handler library**. Your app composes the request 
 Themes on Hydrogen 2026.4 or earlier stay on `@weaverse/hydrogen` 5.x.
 
 <Warning>
-  `@weaverse/hydrogen` depends on exact versions of `@weaverse/react` and `@weaverse/core` (6.5.0 on 6.5.0), and themes import everything through `@weaverse/hydrogen/react-router`. Remove `@weaverse/react`, `@weaverse/core` and `@weaverse/next` from your `package.json`. If you must keep a direct `@weaverse/react` dependency, pin it to the exact version your `@weaverse/hydrogen` depends on (`npm view @weaverse/hydrogen@<version> dependencies`). Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
+  `@weaverse/hydrogen` depends on exact versions of `@weaverse/react` and `@weaverse/core` (6.5.1 on 6.5.1), and themes import everything through `@weaverse/hydrogen/react-router`. Remove `@weaverse/react`, `@weaverse/core` and `@weaverse/next` from your `package.json`. If you must keep a direct `@weaverse/react` dependency, pin it to the exact version your `@weaverse/hydrogen` depends on (`npm view @weaverse/hydrogen@<version> dependencies`). Mismatched versions install two copies of `@weaverse/react` with separate React contexts, and Weaverse components stop finding their data.
 </Warning>
 
 <Note>

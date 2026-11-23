@@ -18,6 +18,22 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="SDK v6.5.1" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Next.js apps no longer install React Router**: `react-router` and `@shopify/hydrogen` are now optional peer dependencies of `@weaverse/hydrogen`, like `next`. The Next.js entries never load them, so package managers that install peers on their own (pnpm, bun) stop adding an unused router to Next.js storefronts. React Router themes install both already, and a version outside the supported range still gets a peer dependency warning.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.5.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.5.1)
+</Update>
+
 <Update label="SDK v6.5.0" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
   ### Weaverse SDKs
 
