@@ -18,6 +18,32 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="SDK v6.5.0" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Know when a route has no Weaverse page**: when no page is assigned to a URL, `loadPage()` still returns Weaverse's placeholder page so Studio can open it, and the loader data now also has `isFallback: true`. Check `isFallback` instead of the placeholder's page id to answer 404 on your live storefront. Works with React Router and Next.js.
+  - **Opt-in load errors on Next.js**: pass `throwPageLoadFailures: true` to `createWeaverseNextServerClient()` and `loadPage()` rejects with `WeaverseLoadError` when Weaverse is unreachable (`unavailable`), answers with a bad body (`invalid-response`) or refuses the request (`configuration`), so you can answer 503 instead of a broken page. A project that doesn't exist still resolves to `null`. `WeaverseError` and `WeaverseLoadError` are exported from `@weaverse/hydrogen/next/server`. React Router already had this option.
+  - **Market scope for custom pages**: `fetchCustomPages()` entries add optional `market` and `scope` (`global`, `locale` or `market`), so a sitemap can include shared pages in every market and market-only pages only in their market. Studio returns them from 2026.11.62.
+
+  #### Fixes
+
+  - **Route project id in loader data**: when you pass `projectId` to `loadPage()`, `configs.projectId` in the loader data is now that project, not the default one.
+
+  #### Breaking change
+
+  - **`weaverseApiKey` removed**: the Weaverse API key no longer appears in loader data, page configs or Studio query data, and the `weaverseApiKey` field is gone from `WeaverseProjectConfigs`, `WeaverseStudioQueries` and `WeaverseHydrogenParams`. It was sent to the browser and nothing read it. If your code reads `configs.weaverseApiKey`, delete that use; server code that needs the key for the [Content API](/content-api/overview) reads `WEAVERSE_API_KEY` from the environment.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.5.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.5.0)
+</Update>
+
 <Update label="2026.11.38" description="November 15, 2026" tags={["Studio"]}>
   ### Weaverse Studio
 
