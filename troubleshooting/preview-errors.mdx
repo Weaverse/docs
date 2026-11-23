@@ -15,14 +15,13 @@ When working with Weaverse Studio, you may encounter preview connection errors t
 
 ### CONNECTION_TIMEOUT
 
-**Symptom**: Studio shows **"Your preview isn’t ready yet"** or **"Studio can't open this Oxygen preview"**. The side panels show **Preview not connected**. Studio has not received a response from the preview bridge. A timeout does not prove the site is offline.
+**Symptom**: Studio shows **"Your preview isn’t ready yet"** or **"Studio can't open this Oxygen preview"**. The side panels show **Preview not connected**. The preview did not answer Studio in time. Studio cannot tell why: a timeout does not prove the site is offline, requires sign-in, or is private.
 
 **For a hosted preview**:
 
-1. Open the preview URL in a private window.
-2. If an Oxygen URL ending in `.myshopify.dev` asks you to log in to Shopify, follow [Private Oxygen Environment](#private-oxygen-environment) below.
-3. Otherwise, confirm the deployment has finished and the URL works without a login, VPN, or IP allowlist.
-4. In Studio, open **Manage previews** to select or update the URL, then click **Check again**.
+1. Check the selected URL in **Manage previews**. Open that exact URL in a separate, regular tab in the same browser profile.
+2. If the storefront asks for a customer or B2B account, follow [Sign-In and Cookies](#sign-in-and-cookies). If Oxygen asks you to sign in as a **staff member of the Shopify store**, see [Private Oxygen Environment](#private-oxygen-environment).
+3. If the site doesn't load in the tab, check the URL, deployment status and any VPN or firewall requirements with your developer. When the URL is ready, return to Studio and choose **Check again**.
 
 **For a local preview**:
 
@@ -35,23 +34,38 @@ If a developer is setting up your storefront, ask them to finish the preview set
 
 ---
 
+### Sign-In and Cookies
+
+1. Open the **exact preview URL selected in Studio** in a separate, regular tab in the **same browser profile**. Sign in to the storefront as you normally would. Signing in to a different domain, even for the same store, may not sign you in to the preview.
+2. Return to Studio. A storefront that recognizes you in its own tab might not recognize you inside Studio. If needed, use only the site-specific cookie or storage permission described below for your browser.
+3. Choose **Check again** (or **Retry**) in Studio. Remove any exception if it doesn't help or you no longer need it.
+
+These options are for desktop browsers in normal browsing mode. Private windows and managed profiles can have different rules.
+
+- **Chrome:** Open **Settings → Privacy and security → Third-party cookies**. Under **Sites allowed to use third-party cookies**, choose **Add** and enter `https://studio.weaverse.io`, the top-level site where the preview runs. This exception applies to embeds on Studio, not just this preview. Don't use a wildcard or change the default for all sites. [Chrome cookie settings](https://support.google.com/chrome/answer/95647?co=GENIE.Platform%3DDesktop&hl=en)
+- **Edge:** While you're on Studio, Edge may ask whether another site can use its cookies and site data. Allow it only if the requesting site is your trusted preview. The permission is temporary and applies while you're on the site where the prompt appeared. [Microsoft's guide to temporary permissions](https://support.microsoft.com/en-us/edge/temporarily-allow-cookies-and-site-data-in-microsoft-edge)
+- **Firefox:** Total Cookie Protection gives an embedded site separate storage for each top-level site. If the trusted preview requests access to its cookies inside Studio, you can grant that site-specific request. Leave Enhanced Tracking Protection on. [Mozilla on partitioned cookies and storage access](https://developer.mozilla.org/en-US/docs/Web/Privacy/Guides/Third-party_cookies)
+- **Safari on Mac:** Safari's Privacy settings don't have a general per-site exception for cross-site cookies. Leave **Prevent cross-site tracking** on. If the trusted preview supports storage access and asks for it inside Studio, you can allow that request. If no prompt appears, try another approved browser or ask your storefront developer for help. [Safari Privacy settings](https://support.apple.com/guide/safari/privacy-sfri35610/mac) · [WebKit on storage access](https://webkit.org/blog/11545/updates-to-the-storage-access-api/)
+- **Brave:** With **Studio** open, select the **Shields** lion in the address bar and expand **Advanced controls** (or **Advanced options**). Change only the cookie setting to allow cookies for **this site**. Keep Shields on and leave the trackers and ads setting unchanged. [Brave's cookie control](https://support.brave.app/hc/en-us/articles/360022806212-How-do-I-use-Shields-while-browsing) · [Site-specific Shields settings](https://support.brave.app/hc/en-us/articles/360023646212-How-do-I-configure-global-and-site-specific-Shields-settings)
+- **Other or managed browsers:** Use a documented site-specific permission if one is available. Otherwise, try a supported browser approved by your organization or ask your administrator.
+
+Signing in or granting a permission is not a guarantee. The browser may keep the two sessions separate, a cookie's `SameSite` setting may keep it from being sent inside Studio, or the preview may never request storage access. Studio cannot inspect a sign-in redirect inside a cross-origin preview. If it still doesn't connect, ask the storefront developer or support to check whether this preview supports embedded sign-in. Keep storefront authentication and global privacy protections in place.
+
 ### Private Oxygen Environment
 
-**Symptom**: Your preview URL ends in `.myshopify.dev`, Studio cannot open it, and opening it in a private window shows the Shopify login page.
+Use this section only if the preview shows Oxygen's **Shopify staff sign-in** or the environment owner has confirmed that its **URL privacy** is **Private**. A `.myshopify.dev` hostname identifies an Oxygen URL, not the cause of a timeout. A customer or B2B login page is not the staff gate; use [Sign-In and Cookies](#sign-in-and-cookies) for that case.
 
-**Cause**: Oxygen environments are private by default. They send visitors who are not logged in to Shopify's login page. That page blocks iframe embedding, so it cannot open inside Studio. Logging in in another tab is not a public-preview fix.
+Oxygen's staff sign-in page cannot open in Studio's preview frame. A browser cookie exception doesn't change the environment's URL privacy.
 
-Studio's Oxygen message is a hint based on the hostname, not a confirmed authentication error. Check the URL in a private window before changing settings.
+**Option A: Use a public Oxygen URL**
 
-**Fix A: Make the Oxygen environment public**
+Only an authorized store operator should make the environment public. This removes the staff gate for anyone with the URL. Keep the storefront's own customer authentication in place. If removing the staff gate isn't acceptable, keep the environment private.
 
 1. In Shopify admin, open your **Hydrogen storefront**.
 2. Open **Storefront settings** → **Environments and variables**.
 3. Click the environment used by your preview URL.
 4. Under **URL privacy**, select **Public**, then click **Save**.
-5. Confirm the URL opens in a private window without asking you to log in. In Studio, select it in **Manage previews** and click **Check again**.
-
-A public environment is visible to anyone with its URL. Only make it public if its content is ready to share.
+5. Select the approved URL in **Manage previews** and choose **Check again**.
 
 [Shopify's public environment limits](https://shopify.dev/docs/storefronts/hydrogen/deploy/oxygen/environments#public-environment-limits) apply per store:
 
@@ -63,9 +77,9 @@ A public environment is visible to anyone with its URL. Only make it public if i
 
 For the full deployment steps, see [Publish Your Storefront & Update Weaverse Preview URL](/guides/deployment/oxygen).
 
-**Fix B: Use a public URL on another host**
+**Option B: Use an approved public URL on another host**
 
-If your store cannot make this environment public, deploy to another host, such as [Cloudflare Workers](/guides/deployment/workers). The Workers guide is a migration path, not a one-click theme preset. Follow it and verify the deployed storefront before using its URL.
+If a public preview is appropriate but the store has no public Oxygen environment available, the developer can evaluate another host, such as [Cloudflare Workers](/guides/deployment/workers). This requires a migration and validation. It is not a fix for a customer sign-in cookie.
 
 Open **Manage previews** in Studio, add and select the new public URL, then click **Check again**.
 
@@ -150,29 +164,11 @@ This is a normal, recoverable state — not a broken preview. Studio stays conne
 
 ### AUTH_REQUIRED
 
-**Symptom**: Preview shows "Authentication required" or login prompt.
+If opening the exact preview URL prompts for access, check who is asking:
 
-**Common Causes**:
-- Password-protected development server
-- Shopify authentication required
-- Proxy/VPN requiring credentials
-- Corporate network restrictions
-
-**Quick Fixes**:
-
-1. **Remove password protection temporarily**
-   - Disable HTTP authentication in development
-   - Check for `.htaccess` or auth middleware
-   - Ensure dev server allows unauthenticated requests
-
-2. **Check for a private Oxygen environment**
-   - If an Oxygen URL shows the Shopify login page in a private window, follow [Private Oxygen Environment](#private-oxygen-environment).
-   - Make that environment public, or use a public URL on another host. Changing session tokens or Shopify app OAuth settings will not make a private Oxygen URL embeddable.
-
-3. **Bypass network restrictions**
-   - Test on different network (mobile hotspot)
-   - Whitelist localhost in corporate firewall
-   - Contact IT if on restricted network
+- **Storefront customer or B2B account:** Follow [Sign-In and Cookies](#sign-in-and-cookies). Keep the store's sign-in requirement.
+- **Shopify staff access to an Oxygen environment:** See [Private Oxygen Environment](#private-oxygen-environment).
+- **Development server, proxy or corporate network:** Ask the preview owner or network administrator to confirm your access. Use the normal sign-in method for that service.
 
 ---
 
@@ -270,13 +266,7 @@ Check the storefront runtimes in `window.__weaverses`, not the Studio bridge. Th
 
 ### Test with Different Browser
 
-- Try Chrome, Firefox, Safari
-- Disable browser extensions
-- Use incognito/private mode
-- **Brave Browser Users**: Disable "Shields" (ad blocker) for Studio domain
-  - Click the shield icon in the address bar
-  - Turn off "Shields" for `studio.weaverse.io` and your preview domain
-  - Brave's aggressive ad/tracker blocking can interfere with iframe communication
+For a signed-in preview, start with [Sign-In and Cookies](#sign-in-and-cookies). If you try another approved browser, sign in on the exact preview URL in that browser's normal profile before checking Studio again.
 
 ---
 
@@ -298,7 +288,7 @@ If you've tried all troubleshooting steps and still experiencing issues:
      - Browser and OS version
      - Node.js version (`node --version`)
      - Package versions from `package.json`
-     - Console error messages (screenshots)
+     - Relevant error messages, without cookies, authentication headers or sign-in URLs
 
 ---
 
@@ -360,5 +350,5 @@ export default defineConfig({
 ---
 
 <Note>
-**Still having issues?** The preview error overlay in Weaverse Studio provides real-time troubleshooting suggestions specific to your error type. Click the **Documentation** button in the error overlay for context-specific help.
+**Still having issues?** Open **Show details** in the preview error overlay for troubleshooting steps. The help link below the recovery buttons opens this guide.
 </Note>

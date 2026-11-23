@@ -35,7 +35,7 @@ The Shopify app connects your store to the Weaverse project workflow. Creating a
 ## Set Up and Verify Your Headless Storefront
 
 1. **Use a supported storefront.** Follow the [Hydrogen quickstart](/intro/quickstart) to set up a Weaverse-integrated storefront, or connect an existing storefront with the appropriate Weaverse integration. A store using only a Liquid theme is not enough.
-2. **Confirm the headless application loads.** Open its preview URL directly. If testing on another machine, use a reachable hosted preview; `localhost` refers to the machine running the browser.
+2. **Confirm the headless application loads.** Open its preview URL directly. If the storefront requires a customer or B2B account, follow [Sign-In and Cookies](/troubleshooting/preview-errors#sign-in-and-cookies). A session that works in a tab may not carry over to Studio. If testing on another machine, use a reachable hosted preview; `localhost` refers to the machine running the browser.
 3. **Connect Studio to that application.** Open the corresponding Weaverse project. If Studio can't connect to the preview, use **Manage previews** to check that the selected URL belongs to the running headless application, not the store's Liquid storefront.
 4. **Verify visual editing.** Open a page containing Weaverse sections, select a section, change an available content setting, and confirm the change appears in Studio's preview. Use the project's normal save and publish workflow to verify the result on that headless storefront.
 5. **Check the correct output.** The expected result is on the connected headless storefront. The store's separate Liquid theme is not the output of this workflow.
