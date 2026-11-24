@@ -17,7 +17,7 @@ Every Weaverse section component can define its own `loader` function that runs 
 - Each section exports a `loader` that receives the Weaverse context and component settings
 - The loader fetches data from Shopify's Storefront API, third-party services, or any external API
 - Data is returned as `loaderData` props — fully server-rendered in the initial HTML
-- Built-in `fetchWithCache` utility applies [Hydrogen caching strategies](https://shopify.dev/docs/storefronts/headless/hydrogen/caching) (`CacheShort`, `CacheLong`, `CacheCustom`) to every request
+- Built-in `fetchWithCache` utility applies [Hydrogen caching strategies](https://shopify.dev/docs/storefronts/hydrogen/data-fetching/caching) (`CacheShort`, `CacheLong`, `CacheCustom`) to every request
 
 **What this enables:**
 
@@ -56,7 +56,7 @@ Weaverse is built on a multi-layered infrastructure designed for global availabi
 
 ### Store Hosting — Shopify Oxygen
 
-Your Hydrogen storefront runs on [Shopify Oxygen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments), Shopify's edge hosting platform:
+Your Hydrogen storefront runs on [Shopify Oxygen](https://shopify.dev/docs/storefronts/hydrogen/deploy/oxygen), Shopify's edge hosting platform:
 
 - **Global CDN** with edge locations worldwide
 - **Automatic scaling** — handles traffic spikes without configuration
