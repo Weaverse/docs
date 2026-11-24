@@ -603,103 +603,113 @@ Need a specific audience instead of a random split? Pass your own `seed` (e.g. a
 
 #### Tracking exposure and segmenting downstream events
 
-<Warning>
-The sample below uses classic Hydrogen's `Analytics.Provider` and `useAnalytics` (Hydrogen 2026.4 and earlier). Hydrogen 2026.10 removes them: `ShopifyScripts` loads the analytics bus at `window.Shopify.analytics` instead (see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration)). On 2026.10, keep `<WeaverseExperiments>` around `<Outlet />` as shown, and publish exposure and variant data through that bus.
-</Warning>
+In Hydrogen 2026.10, `ShopifyScripts` from `@shopify/hydrogen/react` creates the analytics bus at `window.Shopify.analytics` (see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration)). Connect experiments to it at two points:
 
-Integrate with Hydrogen's [`Analytics.Provider`](https://shopify.dev/docs/api/hydrogen/hooks/useanalytics) at two points. Passing assignments to `customData` makes the variant ride along on **every** event (`page_viewed`, `product_added_to_cart`, `purchase`, …) — that's how you measure conversion impact, not just impressions. `onExpose` adds a one-time impression event.
+1. **Segment events by variant.** Pass the assignments as `customData` in the `analytics` prop. Cart events (`cart_updated`, `product_added_to_cart`, `product_removed_from_cart`) carry it in their payload, and every destination can read it with `getConfig().customData`. That's how you measure conversion impact, not just impressions.
+2. **Record exposure in a destination.** The bus only accepts Shopify's standard event names and drops custom ones, so there is no `custom_experiment_viewed` event to publish. Push the exposure from your destination on the first `page_viewed` instead. Destinations only receive events once Customer Privacy consent allows tracking, and events published earlier are replayed when consent is granted, so the impression isn't lost or sent without consent.
 
 ```tsx
 // app/root.tsx
-import { Analytics, useAnalytics } from "@shopify/hydrogen";
+import { ShopifyScripts } from "@shopify/hydrogen/react";
 import { WeaverseExperiments } from "@weaverse/experiments/react";
-import type { ReactNode } from "react";
 
-export default function App() {
-  let { assignments, cart, shop, consent } = useLoaderData<typeof loader>();
+export function Layout({ children }: { children: ReactNode }) {
+  let data = useRouteLoaderData<RootLoader>("root");
+  let navigate = useNavigate();
 
   return (
-    <Analytics.Provider
-      cart={cart}
-      shop={shop}
-      consent={consent}
-      customData={{
-        experiments: Object.fromEntries(
-          assignments.map((a) => [a.experimentId, a.variant.id])
-        ),
-      }}
-    >
-      <Experiments assignments={assignments}>
-        <Outlet />
-      </Experiments>
-    </Analytics.Provider>
+    <html lang="en">
+      <head>
+        {data ? (
+          <ShopifyScripts
+            shop={data.shopifyScripts.shop}
+            i18n={data.shopifyScripts.i18n}
+            analytics={{
+              channel: data.shopifyScripts.channel,
+              customData: {
+                experiments: Object.fromEntries(
+                  data.assignments.map((a) => [a.experimentId, a.variant.id])
+                ),
+              },
+            }}
+            shopifyAnalytics={data.shopifyScripts.shopifyAnalytics}
+            consent={{ mode: data.consent.mode }}
+            routes={routeTemplates}
+            navigate={navigate}
+          />
+        ) : null}
+        <Meta />
+        <Links />
+      </head>
+      <body>{children}</body>
+    </html>
   );
 }
 
-// Provides the resolved assignments to the whole tree — so `useExperiment(...)`
-// works in any route or section — and fires one exposure event per variant.
-// Wrapping `<Outlet />` is required: a self-closing `<WeaverseExperiments />`
-// provides its context to no descendants, so `useExperiment` would read the
-// empty default and return `undefined`.
-function Experiments({
-  assignments,
-  children,
-}: {
-  assignments: Assignment[];
-  children: ReactNode;
-}) {
-  let { publish, canTrack } = useAnalytics();
-  // Attach `onExpose` only once consent is granted. If it were always present,
-  // the provider would mark a variant exposed before `canTrack()` is true, and a
-  // later consent grant would never re-publish the impression. Leaving it
-  // `undefined` until then defers exposure — the provider fires it when consent
-  // flips and this prop becomes defined.
-  let tracking = canTrack();
+export default function App() {
+  let { assignments } = useLoaderData<typeof loader>();
 
+  // Provides the resolved assignments to the whole tree, so
+  // `useExperiment(...)` works in any route or section. Wrapping `<Outlet />`
+  // is required: a self-closing `<WeaverseExperiments />` provides its context
+  // to no descendants, so `useExperiment` would read the empty default and
+  // return `undefined`.
   return (
-    <WeaverseExperiments
-      value={assignments}
-      onExpose={
-        tracking
-          ? (assignment) => {
-              publish("custom_experiment_viewed", {
-                experimentId: assignment.experimentId,
-                variantId: assignment.variant.id,
-              });
-            }
-          : undefined
-      }
-    >
-      {children}
+    <WeaverseExperiments value={assignments}>
+      <Outlet />
     </WeaverseExperiments>
   );
 }
 ```
 
-Bridge the custom event to GA4/GTM (or any sink) from a subscriber. Custom event names must be prefixed `custom_`, and `ready()` ensures events aren't dropped before the subscriber attaches:
+The `ShopifyScripts` props other than `analytics` are the ones from the migration guide. `ShopifyScripts` reads its props once per page load. That's fine here: the visitor seed cookie keeps assignments stable for the whole visit.
+
+Forward the variant to GA4/GTM (or any sink) from a destination. Add it once per page: adding a destination again replays the bus's retained events.
 
 ```tsx
-// app/components/CustomAnalytics.tsx
-import { useAnalytics } from "@shopify/hydrogen";
+// app/components/experiment-analytics.tsx
+import { AnalyticsEvent } from "@shopify/hydrogen";
 import { useEffect } from "react";
 
-export function CustomAnalytics() {
-  let { subscribe, register } = useAnalytics();
-  let { ready } = register("CustomAnalytics");
+let destinationAdded = false;
 
+export function ExperimentAnalytics() {
   useEffect(() => {
-    subscribe("custom_experiment_viewed", (data) => {
-      window.dataLayer?.push({ event: "experiment_viewed", ...data });
+    let bus = window.Shopify?.analytics;
+    if (destinationAdded || !bus) return;
+    destinationAdded = true;
+
+    bus.addDestination({
+      name: "experiments",
+      setup({ subscribe, getConfig }) {
+        let experiments =
+          (getConfig().customData?.experiments as Record<string, string>) ?? {};
+        let exposed = false;
+
+        subscribe(AnalyticsEvent.PAGE_VIEWED, (data) => {
+          if (!exposed) {
+            exposed = true;
+            for (let [experimentId, variantId] of Object.entries(experiments)) {
+              window.dataLayer?.push({ event: "experiment_viewed", experimentId, variantId });
+            }
+          }
+          window.dataLayer?.push({ event: "page_viewed", page_url: data.url, experiments });
+        });
+        subscribe(AnalyticsEvent.PRODUCT_ADD_TO_CART, () => {
+          window.dataLayer?.push({ event: "add_to_cart", experiments });
+        });
+      },
     });
-    ready();
   }, []);
 
   return null;
 }
 ```
 
+Render `<ExperimentAnalytics />` once in the root, after `ShopifyScripts`. If you already have a destination for GTM (Pilot's `app/components/root/custom-analytics.tsx`), add the `experiments` field to its pushes instead of adding a second destination.
+
 <Tip>
-Because `customData` is merged into every analytics event, downstream conversions are already tagged with the variant — no need to re-attach the experiment on each `add_to_cart` or `purchase` call.
+Checkout and order events come from Shopify's checkout, not from this bus. To segment purchases by variant, also write the assignment to a cart attribute, which carries over to the order.
 </Tip>
 
 Read the active variant anywhere with `useExperiment("green-theme-test")`.
@@ -752,7 +762,7 @@ export async function loader({ context, params, request }: LoaderFunctionArgs) {
 }
 ```
 
-The loader returns `assignments` alongside `weaverseData`, so this route can feed the chosen variant into its own `<Analytics.Provider customData>` / `<WeaverseExperiments>` — exactly like the global setup above — making variant-segmented events and `useExperiment("pdp-layout-test")` work on this route too.
+The loader returns `assignments` alongside `weaverseData`, so this route can wrap its content in its own `<WeaverseExperiments value={assignments}>`, so `useExperiment("pdp-layout-test")` works on this route too. The analytics bus configuration is fixed once `ShopifyScripts` starts, so it can't carry an assignment made in a route loader. To segment events by this experiment as well, also resolve it in the root loader: `getExperiments` hashes the same visitor seed, so it returns the same variant there. Use only its `assignments` for `customData`, and keep the root's `projectId` from the site-wide experiment (`projectIdFrom`).
 
 **Use Cases for Route-Level A/B Testing:**
 - Test product page layouts without changing the homepage
