@@ -606,12 +606,13 @@ Need a specific audience instead of a random split? Pass your own `seed` (e.g. a
 In Hydrogen 2026.10, `ShopifyScripts` from `@shopify/hydrogen/react` creates the analytics bus at `window.Shopify.analytics` (see Step 10 of the [v6 migration guide](/migration-advanced/v6-migration)). Connect experiments to it at two points:
 
 1. **Segment events by variant.** Pass the assignments as `customData` in the `analytics` prop. Cart events (`cart_updated`, `product_added_to_cart`, `product_removed_from_cart`) carry it in their payload, and every destination can read it with `getConfig().customData`. That's how you measure conversion impact, not just impressions.
-2. **Record exposure in a destination.** The bus only accepts Shopify's standard event names and drops custom ones, so there is no `custom_experiment_viewed` event to publish. Push the exposure from your destination on the first `page_viewed` instead. Destinations only receive events once Customer Privacy consent allows tracking, and events published earlier are replayed when consent is granted, so the impression isn't lost or sent without consent.
+2. **Record exposure in a destination.** The bus only accepts Shopify's standard event names and drops custom ones, so there is no `custom_experiment_viewed` event to publish. Push the exposure from your destination on the first `page_viewed` instead. That's only correct for site-wide experiments, which every page renders, so keep route-level experiments out of `customData`. Destinations only receive events once Customer Privacy consent allows tracking, and events published earlier are replayed when consent is granted, so the impression isn't lost or sent without consent.
 
 ```tsx
 // app/root.tsx
 import { ShopifyScripts } from "@shopify/hydrogen/react";
 import { WeaverseExperiments } from "@weaverse/experiments/react";
+import type { ReactNode } from "react";
 
 export function Layout({ children }: { children: ReactNode }) {
   let data = useRouteLoaderData<RootLoader>("root");
@@ -762,7 +763,7 @@ export async function loader({ context, params, request }: LoaderFunctionArgs) {
 }
 ```
 
-The loader returns `assignments` alongside `weaverseData`, so this route can wrap its content in its own `<WeaverseExperiments value={assignments}>`, so `useExperiment("pdp-layout-test")` works on this route too. The analytics bus configuration is fixed once `ShopifyScripts` starts, so it can't carry an assignment made in a route loader. To segment events by this experiment as well, also resolve it in the root loader: `getExperiments` hashes the same visitor seed, so it returns the same variant there. Use only its `assignments` for `customData`, and keep the root's `projectId` from the site-wide experiment (`projectIdFrom`).
+The loader returns `assignments` alongside `weaverseData`, so this route can wrap its content in its own `<WeaverseExperiments value={assignments}>`, so `useExperiment("pdp-layout-test")` works on this route too. The analytics bus configuration is fixed once `ShopifyScripts` starts, so it can't carry an assignment made in a route loader. Don't resolve it again in the root loader to get it into `customData`: on a first visit the root and route loaders run in parallel, each mints its own visitor seed, and they can pick different variants. The destination above would also record its exposure on pages that never render the tested route.
 
 **Use Cases for Route-Level A/B Testing:**
 - Test product page layouts without changing the homepage
