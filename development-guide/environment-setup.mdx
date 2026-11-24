@@ -22,8 +22,7 @@ Environment variables connect your Hydrogen storefront to Shopify, Weaverse Stud
 5. **`PUBLIC_STOREFRONT_ID`**: The numeric Hydrogen storefront ID.
 6. **`PUBLIC_CHECKOUT_DOMAIN`**: Checkout domain, often your original Shopify Online Store domain. Some themes fall back to `PUBLIC_STORE_DOMAIN`.
 7. **`PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`**: Customer Account API client ID.
-8. **`PUBLIC_CUSTOMER_ACCOUNT_API_URL`**: Customer Account API URL, usually in the format `https://shopify.com/{SHOP_ID}`.
-9. **`SHOP_ID`**: Shopify store ID. Some Hydrogen features and theme code use this alongside Customer Account API values.
+8. **`SHOP_ID`**: Numeric Shopify shop ID. Pilot builds the Customer Account client from `SHOP_ID` and `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`. Leave both empty to run without customer accounts; a non-numeric `SHOP_ID` also turns accounts off.
 
 ### Weaverse Variables
 1. **`WEAVERSE_PROJECT_ID`**: Unique ID for your Weaverse project. Find it in Weaverse Studio under **Project Settings**.
@@ -36,11 +35,10 @@ Environment variables connect your Hydrogen storefront to Shopify, Weaverse Stud
 </Note>
 
 ### Optional Theme Variables
-1. **`PUBLIC_STOREFRONT_API_VERSION`**: Storefront API version. If omitted, Hydrogen uses its configured default.
-2. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
-3. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
-4. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
-5. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
+1. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
+2. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
+3. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
+4. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
 
 ### Custom Metafields and Metaobjects
 1. **`METAOBJECT_COLORS_TYPE`**: Type identifier for color metaobjects.
@@ -79,7 +77,6 @@ PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
 PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
-PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://shopify.com/your-shop-id"
 SHOP_ID="your-shop-id"
 
 # Weaverse
