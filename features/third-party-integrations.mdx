@@ -12,6 +12,18 @@ Enhancing your Weaverse Hydrogen theme with third-party applications allows you 
 
 This guide provides a comprehensive approach to integrating third-party services with your Weaverse Hydrogen store, with real-world examples and proven patterns that maintain performance and user experience.
 
+## Shopify Apps on a Hydrogen Storefront
+
+A Shopify app built for Online Store themes doesn't work on a Hydrogen storefront just because it's installed. Check which parts of the app you need (see Shopify's [Installed apps on a Hydrogen storefront](https://shopify.dev/docs/storefronts/hydrogen/installed-apps)):
+
+| Works on Hydrogen | Doesn't work on Hydrogen |
+| --- | --- |
+| App scripts that use `window.Shopify` (standard events and actions, Customer Privacy) once you add them to your layout. `ShopifyScripts` loads that runtime. | App blocks, app embed blocks, and sections or snippets the app adds to a theme. They're Liquid, and Hydrogen doesn't render Liquid. |
+| AJAX cart requests (`/cart.js`, `/cart/add.js`, ...) and the Storefront API at your own origin, answered by `handleShopifyRoutes()`. | Scripts and styles that an app embed block or script tag injects into a theme. |
+| App data in metafields and metaobjects whose definitions grant storefront access. | App proxy URLs (`/apps/...`) and AJAX endpoints outside the cart, such as `/products/{handle}.js` and `/recommendations/products.json`. |
+
+An app proxy needs a route on your storefront. Hydrogen's request handlers don't answer `/apps/...`, so the request reaches your router and returns a 404 unless you add a route for that path. Most of the time you don't need the proxy at all: read the app's metafields or call its API from a loader (the two methods below) and render the result in a Weaverse section. Prefer apps that document headless support.
+
 ## Integration Methods
 
 Weaverse supports two primary approaches for integrating third-party applications:
@@ -582,7 +594,7 @@ When integrating third-party services, follow these security practices:
 1. **Keep API Keys Secure**
    - Never hardcode API keys in your components
    - Use environment variables accessible only on the server
-   - Consider using Shopify's app proxy for sensitive operations
+   - Call APIs that need a secret key from a loader, action, or resource route, never from browser code
 
 2. **Validate All External Data**
    - Validate and sanitize all data from third-party APIs
