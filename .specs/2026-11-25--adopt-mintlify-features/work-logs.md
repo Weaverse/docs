@@ -31,3 +31,9 @@
 - Built the TypeDoc SDK reference (Weaverse/weaverse#556, Weaverse/docs#98), then deferred it: the current entry points export mostly internal symbols, which Weaverse/weaverse#547 removes in 6.0.
 - Both PRs stay as drafts. Weaverse/weaverse#555 is marked blocked by #547.
 - Closed #80 with Phases 1 and 2.
+
+## 2026-11-25 — @hta218 (Phase 3, resumed for SDK 6.x)
+
+- Merged `main` into Weaverse/weaverse#556 and Weaverse/docs#98, and regenerated the artifacts per framework adapter (`react-router.json`, `next.json`).
+- Moved the SDK 6 updates of the retired pages (docs#118, #132, #133, #136, #151 and later) into TSDoc, and retired the four SDK 6 reference pages as well.
+- Checked: `mint validate` passes; on `mint dev` every link to a generated page returns 200 and the old URLs return 307 to them.
