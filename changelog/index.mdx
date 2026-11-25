@@ -18,6 +18,24 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
 </Update>
 
+<Update label="SDK v6.6.0" description="November 24, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Sitemaps no longer drop custom pages on errors**: `fetchCustomPages` (React Router and Next.js) now rejects with a `WeaverseLoadError` when the custom pages can't be loaded, instead of resolving to a partial or empty list. Answer the error with a 5xx in your sitemap route so search engines keep your last good sitemap and retry, rather than caching one without your custom pages. The error's `kind` tells a temporary outage (`unavailable`) from a setup problem (`configuration`) or an unexpected response (`invalid-response`).
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.6.0
+  ```
+
+  If your sitemap route calls `fetchCustomPages`, catch the error and return a 5xx response, for example `503` with `Retry-After` and `Cache-Control: no-store`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.6.0)
+</Update>
+
 <Update label="Pilot v2026.11.23" description="November 23, 2026" tags={["Theme", "Pilot"]}>
   ### Weaverse Pilot Theme
 
