@@ -551,7 +551,97 @@
 					},
 					{
 						"kind": "text",
-						"text": "), not a\ncomplete endpoint URL."
+						"text": "), not a\ncomplete endpoint URL.\n\nThe constructor checks the project ID, whatever "
+					},
+					{
+						"kind": "code",
+						"text": "`throwPageLoadFailures`"
+					},
+					{
+						"kind": "text",
+						"text": " is\nset to: it throws a "
+					},
+					{
+						"kind": "inline-tag",
+						"tag": "@link",
+						"text": "WeaverseError",
+						"target": 363
+					},
+					{
+						"kind": "text",
+						"text": " with code "
+					},
+					{
+						"kind": "code",
+						"text": "`MISSING_PROJECT_ID`"
+					},
+					{
+						"kind": "text",
+						"text": "\nwhen none resolves ("
+					},
+					{
+						"kind": "code",
+						"text": "`?weaverseProjectId=`"
+					},
+					{
+						"kind": "text",
+						"text": ", the "
+					},
+					{
+						"kind": "code",
+						"text": "`projectId`"
+					},
+					{
+						"kind": "text",
+						"text": " argument or\n"
+					},
+					{
+						"kind": "code",
+						"text": "`WEAVERSE_PROJECT_ID`"
+					},
+					{
+						"kind": "text",
+						"text": "), "
+					},
+					{
+						"kind": "code",
+						"text": "`INVALID_PROJECT_ID`"
+					},
+					{
+						"kind": "text",
+						"text": " for a malformed "
+					},
+					{
+						"kind": "code",
+						"text": "`projectId`"
+					},
+					{
+						"kind": "text",
+						"text": ",\nand "
+					},
+					{
+						"kind": "code",
+						"text": "`ASYNC_PROJECT_ID`"
+					},
+					{
+						"kind": "text",
+						"text": " for an "
+					},
+					{
+						"kind": "code",
+						"text": "`async`"
+					},
+					{
+						"kind": "text",
+						"text": " "
+					},
+					{
+						"kind": "code",
+						"text": "`projectId`"
+					},
+					{
+						"kind": "text",
+						"text": " function, which must be\nawaited before you create the client."
 					}
 				],
 				"blockTags": [
@@ -637,7 +727,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 296,
+							"line": 303,
 							"character": 2
 						}
 					],
@@ -659,7 +749,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 296,
+									"line": 303,
 									"character": 2
 								}
 							],
@@ -704,7 +794,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 259,
+							"line": 266,
 							"character": 2
 						}
 					],
@@ -731,7 +821,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 261,
+							"line": 268,
 							"character": 2
 						}
 					],
@@ -775,7 +865,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 263,
+							"line": 270,
 							"character": 2
 						}
 					],
@@ -819,7 +909,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 282,
+							"line": 289,
 							"character": 2
 						}
 					],
@@ -851,7 +941,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 276,
+							"line": 283,
 							"character": 2
 						}
 					],
@@ -888,7 +978,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 265,
+							"line": 272,
 							"character": 2
 						}
 					],
@@ -916,7 +1006,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 272,
+							"line": 279,
 							"character": 2
 						}
 					],
@@ -942,7 +1032,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 280,
+							"line": 287,
 							"character": 2
 						}
 					],
@@ -970,7 +1060,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 270,
+							"line": 277,
 							"character": 2
 						}
 					],
@@ -1002,7 +1092,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 274,
+							"line": 281,
 							"character": 2
 						}
 					],
@@ -1030,7 +1120,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 278,
+							"line": 285,
 							"character": 2
 						}
 					],
@@ -1058,7 +1148,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 284,
+							"line": 291,
 							"character": 2
 						}
 					],
@@ -1129,7 +1219,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 1452,
+							"line": 1459,
 							"character": 2
 						}
 					],
@@ -1151,7 +1241,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 1452,
+									"line": 1459,
 									"character": 24
 								}
 							],
@@ -1200,7 +1290,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 1140,
+							"line": 1147,
 							"character": 8
 						}
 					],
@@ -1299,7 +1389,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 1140,
+									"line": 1147,
 									"character": 8
 								}
 							],
@@ -1355,7 +1445,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 766,
+							"line": 773,
 							"character": 9
 						}
 					],
@@ -1437,7 +1527,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 766,
+									"line": 773,
 									"character": 26
 								}
 							],
@@ -1528,7 +1618,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 1107,
+							"line": 1114,
 							"character": 2
 						}
 					],
@@ -1561,7 +1651,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 1107,
+									"line": 1114,
 									"character": 25
 								}
 							],
@@ -1604,7 +1694,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 1254,
+							"line": 1261,
 							"character": 2
 						}
 					],
@@ -1761,7 +1851,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 1254,
+									"line": 1261,
 									"character": 13
 								}
 							],
@@ -1860,7 +1950,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
-							"line": 903,
+							"line": 910,
 							"character": 2
 						}
 					],
@@ -1928,7 +2018,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
-									"line": 903,
+									"line": 910,
 									"character": 22
 								}
 							],
@@ -2022,7 +2112,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/weaverse-client.ts",
-					"line": 257,
+					"line": 264,
 					"character": 13
 				}
 			]
@@ -2062,7 +2152,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 933,
+							"line": 941,
 							"character": 2
 						}
 					],
@@ -2084,7 +2174,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/types.ts",
-									"line": 933,
+									"line": 941,
 									"character": 2
 								}
 							],
@@ -2196,7 +2286,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 926,
+							"line": 934,
 							"character": 18
 						}
 					],
@@ -2226,7 +2316,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 930,
+							"line": 938,
 							"character": 18
 						}
 					],
@@ -2272,7 +2362,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 928,
+							"line": 936,
 							"character": 18
 						}
 					],
@@ -2301,7 +2391,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 924,
+					"line": 932,
 					"character": 13
 				}
 			],
@@ -2469,7 +2559,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1024,
+							"line": 1032,
 							"character": 2
 						}
 					],
@@ -2491,7 +2581,7 @@
 							"sources": [
 								{
 									"fileName": "hydrogen/src/types.ts",
-									"line": 1024,
+									"line": 1032,
 									"character": 2
 								}
 							],
@@ -2603,7 +2693,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 926,
+							"line": 934,
 							"character": 18
 						}
 					],
@@ -2639,7 +2729,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 930,
+							"line": 938,
 							"character": 18
 						}
 					],
@@ -2689,7 +2779,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1021,
+							"line": 1029,
 							"character": 18
 						}
 					],
@@ -2722,7 +2812,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 928,
+							"line": 936,
 							"character": 18
 						}
 					],
@@ -2757,7 +2847,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 1019,
+					"line": 1027,
 					"character": 13
 				}
 			],
@@ -3148,7 +3238,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1050,
+							"line": 1058,
 							"character": 2
 						}
 					],
@@ -3187,7 +3277,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1052,
+							"line": 1060,
 							"character": 2
 						}
 					],
@@ -3213,7 +3303,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1054,
+							"line": 1062,
 							"character": 2
 						}
 					],
@@ -3247,7 +3337,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1056,
+							"line": 1064,
 							"character": 2
 						}
 					],
@@ -3292,7 +3382,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1061,
+							"line": 1069,
 							"character": 2
 						}
 					],
@@ -3327,7 +3417,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1063,
+							"line": 1071,
 							"character": 2
 						}
 					],
@@ -3355,7 +3445,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1065,
+							"line": 1073,
 							"character": 2
 						}
 					],
@@ -3439,7 +3529,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1072,
+							"line": 1080,
 							"character": 2
 						}
 					],
@@ -3480,7 +3570,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 1048,
+					"line": 1056,
 					"character": 17
 				}
 			]
@@ -5392,7 +5482,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 846,
+							"line": 854,
 							"character": 2
 						}
 					],
@@ -5420,7 +5510,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 848,
+							"line": 856,
 							"character": 2
 						}
 					],
@@ -5448,7 +5538,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 853,
+							"line": 861,
 							"character": 2
 						}
 					],
@@ -5484,7 +5574,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 855,
+							"line": 863,
 							"character": 2
 						}
 					],
@@ -5512,7 +5602,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 857,
+							"line": 865,
 							"character": 2
 						}
 					],
@@ -5540,7 +5630,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 859,
+							"line": 867,
 							"character": 2
 						}
 					],
@@ -5566,7 +5656,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 844,
+					"line": 852,
 					"character": 17
 				}
 			],
@@ -5588,7 +5678,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 861,
+							"line": 869,
 							"character": 2
 						}
 					],
@@ -6825,7 +6915,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 589,
+							"line": 597,
 							"character": 2
 						}
 					],
@@ -6855,7 +6945,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 600,
+							"line": 608,
 							"character": 2
 						}
 					],
@@ -6883,7 +6973,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 591,
+							"line": 599,
 							"character": 2
 						}
 					],
@@ -6915,7 +7005,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 597,
+											"line": 605,
 											"character": 4
 										}
 									],
@@ -6943,7 +7033,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 595,
+											"line": 603,
 											"character": 4
 										}
 									],
@@ -6971,7 +7061,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 593,
+											"line": 601,
 											"character": 4
 										}
 									],
@@ -7013,7 +7103,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 585,
+							"line": 593,
 							"character": 2
 						}
 					],
@@ -7039,7 +7129,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 587,
+							"line": 595,
 							"character": 2
 						}
 					],
@@ -7064,7 +7154,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 583,
+					"line": 591,
 					"character": 12
 				}
 			]
@@ -7125,7 +7215,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1313,
+							"line": 1321,
 							"character": 2
 						}
 					],
@@ -7153,7 +7243,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1302,
+							"line": 1310,
 							"character": 2
 						}
 					],
@@ -7193,7 +7283,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1355,
+							"line": 1363,
 							"character": 2
 						}
 					],
@@ -7221,7 +7311,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1323,
+							"line": 1331,
 							"character": 2
 						}
 					],
@@ -7266,7 +7356,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 1294,
+							"line": 1302,
 							"character": 2
 						}
 					],
@@ -7293,7 +7383,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 1285,
+					"line": 1293,
 					"character": 12
 				}
 			]
@@ -7402,7 +7492,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 640,
+					"line": 648,
 					"character": 12
 				}
 			],
@@ -8352,7 +8442,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 869,
+					"line": 877,
 					"character": 12
 				}
 			],
@@ -8449,7 +8539,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 751,
+							"line": 759,
 							"character": 2
 						}
 					],
@@ -8481,7 +8571,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 733,
+							"line": 741,
 							"character": 2
 						}
 					],
@@ -8514,7 +8604,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 727,
+							"line": 735,
 							"character": 2
 						}
 					],
@@ -8548,7 +8638,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 718,
+							"line": 726,
 							"character": 2
 						}
 					],
@@ -8598,7 +8688,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 793,
+							"line": 801,
 							"character": 2
 						}
 					],
@@ -8685,7 +8775,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 715,
+							"line": 723,
 							"character": 2
 						}
 					],
@@ -8797,7 +8887,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 777,
+							"line": 785,
 							"character": 2
 						}
 					],
@@ -8825,7 +8915,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 745,
+							"line": 753,
 							"character": 2
 						}
 					],
@@ -8883,7 +8973,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 703,
+							"line": 711,
 							"character": 2
 						}
 					],
@@ -8911,7 +9001,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 739,
+							"line": 747,
 							"character": 2
 						}
 					],
@@ -9002,7 +9092,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 807,
+							"line": 815,
 							"character": 2
 						}
 					],
@@ -9030,7 +9120,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 721,
+							"line": 729,
 							"character": 2
 						}
 					],
@@ -9106,7 +9196,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 697,
+					"line": 705,
 					"character": 12
 				}
 			]
@@ -9128,7 +9218,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 867,
+					"line": 875,
 					"character": 12
 				}
 			],
@@ -10715,7 +10805,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 967,
+					"line": 975,
 					"character": 12
 				}
 			],
@@ -10754,7 +10844,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 873,
+					"line": 881,
 					"character": 12
 				}
 			],
@@ -11052,7 +11142,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 865,
+					"line": 873,
 					"character": 12
 				}
 			],
@@ -11626,7 +11716,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 817,
+					"line": 825,
 					"character": 12
 				}
 			],
@@ -11683,7 +11773,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 813,
+							"line": 821,
 							"character": 2
 						}
 					],
@@ -11710,7 +11800,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 811,
+					"line": 819,
 					"character": 12
 				}
 			]
@@ -11781,7 +11871,71 @@
 					},
 					{
 						"kind": "text",
-						"text": " because its rules are fixed by the theme author rather than\nedited by merchants."
+						"text": " because its rules are fixed by the theme author rather than\nedited by merchants. "
+					},
+					{
+						"kind": "code",
+						"text": "`outline`"
+					},
+					{
+						"kind": "text",
+						"text": " lists settings groups in Studio's Page\nOutline, keyed by area: "
+					},
+					{
+						"kind": "code",
+						"text": "`header`"
+					},
+					{
+						"kind": "text",
+						"text": " and "
+					},
+					{
+						"kind": "code",
+						"text": "`aside`"
+					},
+					{
+						"kind": "text",
+						"text": " render above the page\nsections, every other key below them. "
+					},
+					{
+						"kind": "code",
+						"text": "`routes`"
+					},
+					{
+						"kind": "text",
+						"text": " and "
+					},
+					{
+						"kind": "code",
+						"text": "`outline`"
+					},
+					{
+						"kind": "text",
+						"text": " take the\n"
+					},
+					{
+						"kind": "code",
+						"text": "`ThemeRoutes`"
+					},
+					{
+						"kind": "text",
+						"text": " and "
+					},
+					{
+						"kind": "code",
+						"text": "`ThemeOutline`"
+					},
+					{
+						"kind": "text",
+						"text": " types from "
+					},
+					{
+						"kind": "code",
+						"text": "`@weaverse/schema`"
+					},
+					{
+						"kind": "text",
+						"text": "."
 					}
 				],
 				"blockTags": [
@@ -11790,7 +11944,7 @@
 						"content": [
 							{
 								"kind": "code",
-								"text": "```ts\nimport type { WeaverseThemeSchema } from '@weaverse/hydrogen/react-router'\n\nexport const themeSchema: WeaverseThemeSchema = {\n  info: {\n    name: 'My Theme',\n    version: '1.0.0',\n    author: 'Acme',\n    authorProfilePhoto: 'https://example.com/acme.png',\n    documentationUrl: 'https://example.com/docs',\n    supportUrl: 'https://example.com/support',\n  },\n  settings: [\n    {\n      group: 'Colors',\n      inputs: [{ type: 'color', name: 'colorPrimary', label: 'Primary', defaultValue: '#000000' }],\n    },\n  ],\n  routes: { COLLECTION: '/shop/:handle' },\n}\n```"
+								"text": "```ts\nimport type { WeaverseThemeSchema } from '@weaverse/hydrogen/react-router'\n\nexport const themeSchema: WeaverseThemeSchema = {\n  info: {\n    name: 'My Theme',\n    version: '1.0.0',\n    author: 'Acme',\n    authorProfilePhoto: 'https://example.com/acme.png',\n    documentationUrl: 'https://example.com/docs',\n    supportUrl: 'https://example.com/support',\n  },\n  settings: [\n    {\n      group: 'Colors',\n      inputs: [{ type: 'color', name: 'colorPrimary', label: 'Primary', defaultValue: '#000000' }],\n    },\n  ],\n  routes: { COLLECTION: '/shop/:handle' },\n  outline: {\n    header: ['Scrolling announcements', 'Header'],\n    footer: ['Footer'],\n    'popups-and-newsletter': ['Newsletter Popup'],\n  },\n}\n```"
 							}
 						]
 					}
@@ -11816,7 +11970,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 568,
+							"line": 576,
 							"character": 2
 						}
 					],
@@ -11846,7 +12000,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 572,
+											"line": 580,
 											"character": 4
 										}
 									],
@@ -11874,7 +12028,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 574,
+											"line": 582,
 											"character": 4
 										}
 									],
@@ -11907,7 +12061,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 576,
+											"line": 584,
 											"character": 4
 										}
 									],
@@ -11951,7 +12105,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 578,
+											"line": 586,
 											"character": 4
 										}
 									],
@@ -11977,7 +12131,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 570,
+											"line": 578,
 											"character": 4
 										}
 									],
@@ -12032,7 +12186,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 502,
+							"line": 510,
 							"character": 2
 						}
 					],
@@ -12062,7 +12216,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 508,
+											"line": 516,
 											"character": 4
 										}
 									],
@@ -12088,7 +12242,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 510,
+											"line": 518,
 											"character": 4
 										}
 									],
@@ -12114,7 +12268,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 512,
+											"line": 520,
 											"character": 4
 										}
 									],
@@ -12140,7 +12294,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 504,
+											"line": 512,
 											"character": 4
 										}
 									],
@@ -12166,7 +12320,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 514,
+											"line": 522,
 											"character": 4
 										}
 									],
@@ -12192,7 +12346,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 506,
+											"line": 514,
 											"character": 4
 										}
 									],
@@ -12243,7 +12397,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 517,
+							"line": 525,
 							"character": 2
 						}
 					],
@@ -12340,7 +12494,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 531,
+							"line": 539,
 							"character": 2
 						}
 					],
@@ -12372,7 +12526,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 533,
+											"line": 541,
 											"character": 4
 										}
 									],
@@ -12403,7 +12557,7 @@
 									"sources": [
 										{
 											"fileName": "hydrogen/src/types.ts",
-											"line": 535,
+											"line": 543,
 											"character": 4
 										}
 									],
@@ -12519,7 +12673,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 566,
+							"line": 574,
 							"character": 2
 						}
 					],
@@ -12577,7 +12731,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 545,
+							"line": 553,
 							"character": 2
 						}
 					],
@@ -12611,7 +12765,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 538,
+							"line": 546,
 							"character": 2
 						}
 					],
@@ -12643,7 +12797,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 500,
+					"line": 508,
 					"character": 12
 				}
 			]
@@ -12748,7 +12902,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 896,
+							"line": 904,
 							"character": 2
 						}
 					],
@@ -12776,7 +12930,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 898,
+							"line": 906,
 							"character": 2
 						}
 					],
@@ -12804,7 +12958,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 894,
+							"line": 902,
 							"character": 2
 						}
 					],
@@ -12848,7 +13002,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 890,
+							"line": 898,
 							"character": 2
 						}
 					],
@@ -12878,7 +13032,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 888,
+							"line": 896,
 							"character": 2
 						}
 					],
@@ -12916,7 +13070,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 892,
+							"line": 900,
 							"character": 2
 						}
 					],
@@ -12960,7 +13114,7 @@
 					"sources": [
 						{
 							"fileName": "hydrogen/src/types.ts",
-							"line": 886,
+							"line": 894,
 							"character": 2
 						}
 					],
@@ -12989,7 +13143,7 @@
 			"sources": [
 				{
 					"fileName": "hydrogen/src/types.ts",
-					"line": 884,
+					"line": 892,
 					"character": 12
 				}
 			]
