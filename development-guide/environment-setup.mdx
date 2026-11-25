@@ -22,20 +22,23 @@ Environment variables connect your Hydrogen storefront to Shopify, Weaverse Stud
 5. **`PUBLIC_STOREFRONT_ID`**: The numeric Hydrogen storefront ID.
 6. **`PUBLIC_CHECKOUT_DOMAIN`**: Checkout domain, often your original Shopify Online Store domain. Some themes fall back to `PUBLIC_STORE_DOMAIN`.
 7. **`PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`**: Customer Account API client ID.
-8. **`PUBLIC_CUSTOMER_ACCOUNT_API_URL`**: Customer Account API URL, usually in the format `https://shopify.com/{SHOP_ID}`.
-9. **`SHOP_ID`**: Shopify store ID. Some Hydrogen features and theme code use this alongside Customer Account API values.
+8. **`SHOP_ID`**: Numeric Shopify shop ID. Pilot builds the Customer Account client from `SHOP_ID` and `PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID`. Leave both empty to run without customer accounts; a non-numeric `SHOP_ID` also turns accounts off.
 
 ### Weaverse Variables
 1. **`WEAVERSE_PROJECT_ID`**: Unique ID for your Weaverse project. Find it in Weaverse Studio under **Project Settings**.
-2. **`WEAVERSE_API_KEY`**: Optional API key from your Weaverse account or project settings. Only include it when your theme or automation needs direct API access.
+2. **`WEAVERSE_API_KEY`**: Optional API key from your Weaverse account or project settings. Rendering pages doesn't need it; only include it when your own code or automation calls the Content API.
 3. **`WEAVERSE_HOST`**: Optional Weaverse service host. Default: `https://studio.weaverse.io`.
+4. **`WEAVERSE_PUBLIC_API_BASE`**: Optional base URL for public page and theme-settings reads. Default: `https://api.weaverse.io`, or `WEAVERSE_HOST` when you set a custom host.
+
+<Note>
+  `WeaverseClient` doesn't read `WEAVERSE_API_KEY`, so the key never reaches loader data. Before `@weaverse/hydrogen` 6.5.0, the client copied it into page configs as `configs.weaverseApiKey`, which was serialized into public loader data. 6.5.0 removed that field from loader data, configs and types; if your code reads `configs.weaverseApiKey`, delete that use and read `WEAVERSE_API_KEY` from the environment in server-only code instead.
+</Note>
 
 ### Optional Theme Variables
-1. **`PUBLIC_STOREFRONT_API_VERSION`**: Storefront API version. If omitted, Hydrogen uses its configured default.
-2. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
-3. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
-4. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
-5. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
+1. **`PUBLIC_GOOGLE_GTM_ID`**: Google Tag Manager ID for analytics.
+2. **`JUDGEME_PRIVATE_API_TOKEN`**: API token for Judge.me reviews integration.
+3. **`KLAVIYO_PRIVATE_API_TOKEN`**: API token for Klaviyo integration.
+4. **`PUBLIC_SHOPIFY_INBOX_SHOP_ID`**: Shopify Inbox shop ID for chat functionality.
 
 ### Custom Metafields and Metaobjects
 1. **`METAOBJECT_COLORS_TYPE`**: Type identifier for color metaobjects.
@@ -74,12 +77,11 @@ PUBLIC_STOREFRONT_API_TOKEN="your-storefront-api-token"
 PRIVATE_STOREFRONT_API_TOKEN="your-private-storefront-api-token"  # Optional
 PUBLIC_STOREFRONT_ID="your-storefront-id"  # Optional
 PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID="your-customer-account-api-client-id"
-PUBLIC_CUSTOMER_ACCOUNT_API_URL="https://shopify.com/your-shop-id"
 SHOP_ID="your-shop-id"
 
 # Weaverse
 WEAVERSE_PROJECT_ID="YOUR_PROJECT_ID"
-WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional
+# WEAVERSE_API_KEY="your-weaverse-api-key"  # Optional; server-only Content API calls
 WEAVERSE_HOST="https://studio.weaverse.io"  # Optional
 
 # Optional integrations
@@ -95,35 +97,38 @@ CUSTOM_COLLECTION_BANNER_METAFIELD="custom.collection_banner"  # Optional
 
 ## TypeScript Support
 
-For TypeScript support, add your environment variables to `env.d.ts`:
+For TypeScript support, add your environment variables to `env.d.ts`. Hydrogen 2026.10 removed `HydrogenEnv`, so `Env` extends `WeaverseEnv` and lists every variable your theme reads:
 
 ```typescript
-interface Env extends HydrogenEnv {
-  // Shopify and Hydrogen
-  SESSION_SECRET: string;
-  PUBLIC_STORE_DOMAIN: string;
-  PUBLIC_STOREFRONT_API_TOKEN: string;
-  PRIVATE_STOREFRONT_API_TOKEN?: string;
-  PUBLIC_STOREFRONT_ID?: string;
-  PUBLIC_CHECKOUT_DOMAIN?: string;
-  PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
-  PUBLIC_CUSTOMER_ACCOUNT_API_URL?: string;
-  SHOP_ID: string;
+import type { WeaverseEnv } from "@weaverse/hydrogen/react-router";
+
+declare global {
+  interface Env extends WeaverseEnv {
+    // Shopify and Hydrogen
+    SESSION_SECRET: string;
+    PUBLIC_STORE_DOMAIN: string;
+    PUBLIC_STOREFRONT_API_TOKEN?: string;
+    PRIVATE_STOREFRONT_API_TOKEN?: string;
+    PUBLIC_STOREFRONT_ID?: string;
+    PUBLIC_CHECKOUT_DOMAIN?: string;
+    PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID: string;
+    SHOP_ID: string;
   
-  // Weaverse
-  WEAVERSE_PROJECT_ID: string;
-  WEAVERSE_API_KEY?: string;
-  WEAVERSE_HOST?: string;
+    // Weaverse
+    WEAVERSE_PROJECT_ID: string;
+    WEAVERSE_API_KEY?: string;
+    WEAVERSE_HOST?: string;
   
-  // Optional integrations
-  PUBLIC_GOOGLE_GTM_ID?: string;
-  JUDGEME_PRIVATE_API_TOKEN?: string;
-  KLAVIYO_PRIVATE_API_TOKEN?: string;
-  PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
+    // Optional integrations
+    PUBLIC_GOOGLE_GTM_ID?: string;
+    JUDGEME_PRIVATE_API_TOKEN?: string;
+    KLAVIYO_PRIVATE_API_TOKEN?: string;
+    PUBLIC_SHOPIFY_INBOX_SHOP_ID?: string;
   
-  // Optional theme-specific metafields
-  METAOBJECT_COLORS_TYPE?: string;
-  CUSTOM_COLLECTION_BANNER_METAFIELD?: string;
+    // Optional theme-specific metafields
+    METAOBJECT_COLORS_TYPE?: string;
+    CUSTOM_COLLECTION_BANNER_METAFIELD?: string;
+  }
 }
 ```
 
@@ -195,13 +200,15 @@ Access environment variables in your code:
 
 ```tsx
 // In route loaders
-export async function loader({ context }: LoaderArgs) {
+import type { LoaderFunctionArgs } from "react-router";
+
+export async function loader({ context }: LoaderFunctionArgs) {
   const { env } = context;
-  return json({ storeDomain: env.PUBLIC_STORE_DOMAIN });
+  return { storeDomain: env.PUBLIC_STORE_DOMAIN };
 }
 
 // In Weaverse components
-export let loader = async ({ weaverse }: ComponentLoaderArgs<{}, Env>) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
   const { env } = weaverse;
   return { projectId: env.WEAVERSE_PROJECT_ID };
 }

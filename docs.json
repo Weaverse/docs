@@ -41,7 +41,7 @@
   "navigation": {
     "versions": [
       {
-        "version": "v5.x",
+        "version": "v6.x",
         "tag": "Latest",
         "default": true,
         "tabs": [
@@ -208,7 +208,7 @@
                     "group": "Reference",
                     "sdk": {
                       "format": "typedoc",
-                      "source": "sdk-artifacts/hydrogen.json",
+                      "source": "sdk-artifacts/react-router.json",
                       "directory": "api-reference"
                     }
                   }
@@ -308,6 +308,7 @@
                 "group": "Migration",
                 "pages": [
                   "migration-advanced/index",
+                  "migration-advanced/v6-migration",
                   "migration-advanced/v5-migration",
                   "migration-advanced/existing-hydrogen-integration"
                 ]
@@ -340,6 +341,7 @@
                 "pages": [
                   "community/community",
                   "changelog/index",
+                  "changelog/weaverse-v6-release",
                   "changelog/weaverse-v5-release"
                 ]
               }
@@ -495,6 +497,66 @@
       "destination": "/content-api/languages-and-localization/list-project-languages"
     },
     {
+      "source": "/development",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/getting-started",
+      "destination": "/intro/quickstart"
+    },
+    {
+      "source": "/getting-started/index",
+      "destination": "/intro/quickstart"
+    },
+    {
+      "source": "/core-concepts",
+      "destination": "/intro/how-it-works"
+    },
+    {
+      "source": "/core-concepts/index",
+      "destination": "/intro/how-it-works"
+    },
+    {
+      "source": "/development-guide",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/development-guide/index",
+      "destination": "/development-guide/environment-setup"
+    },
+    {
+      "source": "/features",
+      "destination": "/features/global-sections"
+    },
+    {
+      "source": "/features/index",
+      "destination": "/features/global-sections"
+    },
+    {
+      "source": "/api-reference",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/api-reference/index",
+      "destination": "/api-reference/introduction"
+    },
+    {
+      "source": "/developer-tools",
+      "destination": "/developer-tools/weaverse-cli"
+    },
+    {
+      "source": "/developer-tools/index",
+      "destination": "/developer-tools/weaverse-cli"
+    },
+    {
+      "source": "/community",
+      "destination": "/community/community"
+    },
+    {
+      "source": "/community/index",
+      "destination": "/community/community"
+    },
+    {
       "source": "/api-reference/use-weaverse",
       "destination": "/api-reference/functions/useWeaverse"
     },
@@ -513,6 +575,14 @@
     {
       "source": "/api-reference/use-theme-settings",
       "destination": "/api-reference/functions/useThemeSettings"
+    },
+    {
+      "source": "/api-reference/use-studio-selection",
+      "destination": "/api-reference/functions/useStudioSelection"
+    },
+    {
+      "source": "/api-reference/use-translation",
+      "destination": "/api-reference/functions/useTranslation"
     },
     {
       "source": "/api-reference/weaverse-root",
@@ -536,27 +606,35 @@
     },
     {
       "source": "/api-reference/types",
-      "destination": "/api-reference/types/HydrogenComponentSchema"
+      "destination": "/api-reference/types/WeaverseComponent"
+    },
+    {
+      "source": "/api-reference/get-weaverse-studio-csp-directives",
+      "destination": "/api-reference/functions/getWeaverseStudioCspDirectives"
+    },
+    {
+      "source": "/api-reference/weaverse-load-error",
+      "destination": "/api-reference/classes/WeaverseLoadError"
     },
     {
       "source": "/nextjs/api/use-weaverse",
-      "destination": "/nextjs/api/main/functions/useWeaverse"
+      "destination": "/nextjs/api/next/functions/useWeaverse"
     },
     {
       "source": "/nextjs/api/use-item-instance",
-      "destination": "/nextjs/api/main/functions/useItemInstance"
+      "destination": "/nextjs/api/next/functions/useItemInstance"
     },
     {
       "source": "/nextjs/api/use-parent-instance",
-      "destination": "/nextjs/api/main/functions/useParentInstance"
+      "destination": "/nextjs/api/next/functions/useParentInstance"
     },
     {
       "source": "/nextjs/api/use-child-instances",
-      "destination": "/nextjs/api/main/functions/useChildInstances"
+      "destination": "/nextjs/api/next/functions/useChildInstances"
     },
     {
       "source": "/nextjs/api/use-theme-settings",
-      "destination": "/nextjs/api/main/functions/useThemeSettings"
+      "destination": "/nextjs/api/next/functions/useThemeSettings"
     }
   ],
   "footer": {
@@ -570,9 +648,11 @@
     "instructions": [
       "Weaverse component configuration uses `settings`. `inspector` is deprecated; never generate it.",
       "Weaverse Hydrogen themes use React Router v7: import from `react-router`, never `react-router-dom` or `@remix-run/*`.",
-      "Define component schemas with `createSchema()` from `@weaverse/hydrogen` (React Router themes) or `@weaverse/next` (Next.js themes).",
-      "These docs cover @weaverse/hydrogen, @weaverse/react and @weaverse/core 5.x, and @weaverse/next 1.x. Do not use APIs from other major versions.",
-      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://docs.weaverse.io/developer-tools/weaverse-mcp"
+      "Before using any code sample, read `@weaverse/hydrogen` in the project's `package.json`: 6.x and 5.x import from different entries and use different type names, so code for one does not build on the other.",
+      "`@weaverse/hydrogen` 6 (Shopify Hydrogen 2026.10 and later, the version these docs show) imports from `@weaverse/hydrogen/react-router` and uses `Weaverse*` types such as `WeaverseComponentProps`, `WeaverseComponentLoaderArgs` and `WeaverseComponentSchema`; the root `@weaverse/hydrogen` entry only exports `createSchema()`, data helpers and types.",
+      "`@weaverse/hydrogen` 5.x (Hydrogen 2026.4 and earlier) imports everything from `@weaverse/hydrogen` and uses `HydrogenComponentProps`, `ComponentLoaderArgs` and `HydrogenComponentSchema`. On a 5.x project, convert samples to these names. Upgrade to 6 only when asked (`npx @weaverse/cli@latest migrate v6`, plus the Hydrogen 2026.10 upgrade). Do not mix major versions.",
+      "Next.js themes use `@weaverse/hydrogen` 6.2.0 or later: import client and shared code from `@weaverse/hydrogen/next` and server-only code from `@weaverse/hydrogen/next/server`. `@weaverse/next` is deprecated; never install or import it.",
+      "For live project data (pages, theme settings, translations), use the Weaverse MCP server: https://weaverse.io/docs/developer-tools/weaverse-mcp"
     ]
   },
   "api": {

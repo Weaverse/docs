@@ -44,7 +44,6 @@ npm install @weaverse/react
 **Core Components:**
 - `WeaverseRoot`: The main component that renders your Weaverse content tree
 - `WeaverseContextProvider`: Provides the Weaverse context to all child components
-- `ItemComponent`: Renders individual Weaverse items based on their type and properties
 
 **Essential Hooks:**
 - `useWeaverse()`: Access the Weaverse instance from any component
@@ -106,6 +105,7 @@ integration with Weaverse Studio's customization features.
 - Theme customization components
 - Studio preview capabilities
 - Hydrogen-specific renderers and utilities
+- Entry points: themes import from `@weaverse/hydrogen/react-router`; `@weaverse/hydrogen/react` has the framework-free hooks
 
 **Installation:**
 ```bash
@@ -115,7 +115,7 @@ npm install @weaverse/hydrogen
 **Basic Usage:**
 ```tsx
 // app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from '@weaverse/hydrogen';
+import { WeaverseHydrogenRoot } from '@weaverse/hydrogen/react-router';
 import { GenericError } from '~/components/root/generic-error';
 import { components } from './components';
 
@@ -134,25 +134,27 @@ for the current React Router route. Its props are:
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `components` | `HydrogenComponent[]` | Yes | Theme components available to the page renderer |
+| `components` | `WeaverseComponent[]` | Yes | Theme components available to the page renderer |
 | `data` | `WeaverseLoaderData \| Promise<WeaverseLoaderData \| null> \| null` | No | Explicit `weaverseData` payload that bypasses automatic route-scoped resolution. Pass `null` to suppress rendering |
 | `errorComponent` | `React.FC<{ error: Error \| unknown }>` | No | Component rendered when page data cannot be resolved |
 
-### `@weaverse/next`
+### `@weaverse/hydrogen/next`
 
-The integration for Next.js App Router storefronts. It renders Weaverse pages, runs section loaders on the server, connects to Weaverse Studio, and refreshes loader-backed edits without React Router.
+The integration for Next.js App Router storefronts, shipped as entry points of `@weaverse/hydrogen` (`@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`). It renders Weaverse pages, runs section loaders on the server, connects to Weaverse Studio, and refreshes loader-backed edits without React Router.
 
 **Key Features:**
-- Request-scoped server client (`createWeaverseNextServerClient` from `@weaverse/next/server`) for pages, theme settings, and custom pages
+- Request-scoped server client (`createWeaverseNextServerClient` from `@weaverse/hydrogen/next/server`) for pages, theme settings, and custom pages
 - `WeaverseNextRenderer`, `WeaverseNextProvider`, and a root `WeaverseNextRootProvider` for layout-level theme settings
 - Studio bridge, per-item loader revalidation route handler, and Next `Metadata` helpers
 - Markets, Translation Manager, and theme route support
-- Re-exports `@weaverse/react` hooks and `@weaverse/schema`
+- The Weaverse hooks (`useWeaverse`, `useItemInstance`, `useThemeSettings` and others) and `createSchema`
 
 **Installation:**
 ```bash
-npm install @weaverse/next
+npm install @weaverse/hydrogen
 ```
+
+`@weaverse/next` is deprecated; don't install it.
 
 **Usage:** Start from the [Next.js quickstart](/nextjs/quickstart), or the [Forward starter theme](/hydrogen-themes/forward).
 
@@ -182,8 +184,10 @@ A package that provides standardized [Biome](https://biomejs.dev/) configuration
 
 **Installation:**
 ```bash
-npm install @weaverse/biome --save-dev
+npm install --save-dev @weaverse/biome @biomejs/biome ultracite
 ```
+
+The config extends `ultracite`'s Biome presets, and the package declares no dependencies, so install `@biomejs/biome` and `ultracite` next to it.
 
 **Usage:**
 In your project's root directory, create or update your `biome.json` file to extend the Weaverse configuration:
@@ -220,11 +224,10 @@ The Weaverse SDK packages are designed to work together seamlessly, but each can
 |---------|----------------|---------|----------------------|
 | `@weaverse/core` | Any JavaScript project | `>=18` | None |
 | `@weaverse/react` | React applications | `>=18` | `@weaverse/core`, `react` `>=19`, `react-dom` `>=19`, `clsx` |
-| `@weaverse/hydrogen` | Shopify Hydrogen storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `@shopify/hydrogen` `>=2025.5`, `@shopify/remix-oxygen` `3`, `react`/`react-dom` `>=19`, `react-router` `^7`, `react-error-boundary` `^6` |
-| `@weaverse/next` | Next.js App Router storefronts | `>=20` | `@weaverse/react`, `@weaverse/schema`, `next` `>=14`, `react`/`react-dom` `>=19` |
+| `@weaverse/hydrogen` | Shopify Hydrogen storefronts on React Router or the Next.js App Router | `>=20` | `@weaverse/react`, `@weaverse/schema`, `react-error-boundary` `^6` (peers: `react`/`react-dom` `>=19` and `react-router` `^7 \|\| ^8` from 6.4.0, `@shopify/hydrogen` `>=2026.10.3` from 6.3.0, `>=2026.10.0` before; optional peers: `next` `>=14`, and `react-router` and `@shopify/hydrogen` from 6.5.1) |
 | `@weaverse/schema` | Any JavaScript/TypeScript project | - | `zod` `^4` |
 | `@weaverse/cli` | Node.js environment | `>=18` | None (run via `npx`) |
-| `@weaverse/biome` | Any JavaScript/TypeScript project | - | None (peer: `@biomejs/biome`) |
+| `@weaverse/biome` | Any JavaScript/TypeScript project | - | None; install `@biomejs/biome` and `ultracite` yourself |
 
 ## System Requirements
 
@@ -232,14 +235,14 @@ Requirements differ per package — check the table above for the exact package 
 install. For the `@weaverse/hydrogen` package:
 
 - **Node.js**: v20.0.0 or higher
-- **React / React DOM**: v19.0.0 or higher
-- **React Router**: v7 (not React Router DOM)
-- **Shopify Hydrogen**: 2025.5 or higher
+- **React / React DOM**: v19.0.0 or higher (peer dependencies from `@weaverse/hydrogen` 6.4.0)
+- **React Router**: v7 or v8 (not React Router DOM; a peer dependency from 6.4.0, which also added v8; optional from 6.5.1, so Next.js apps skip it)
+- **Shopify Hydrogen**: 2026.10.3 or higher for `@weaverse/hydrogen` 6.3.0 and later (latest 6.5.1); 6.0 to 6.2 accept 2026.10.0. Classic Hydrogen 2026.4 and earlier stays on `@weaverse/hydrogen` 5.x; see the [v6 migration guide](/migration-advanced/v6-migration)
 - **npm**: v7.0.0 or higher (or equivalent package manager)
 
 <Note>
   A generated theme may require a newer Node.js version than the SDK package.
-  The current Pilot template declares Node.js `>=22.12.0`.
+  The current Pilot template declares Node.js `^22.18.0 || ^24.11.0`.
 </Note>
 
 ## Getting Started

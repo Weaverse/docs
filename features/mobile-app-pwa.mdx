@@ -67,7 +67,7 @@ A resource route (registered **top-level** in `app/routes.ts`, outside the `:loc
 
 ### Head tags — `app/root.tsx`
 
-Rendered only when the feature is on: the manifest `<link>`, `theme-color`, `apple-touch-icon` (iOS ignores manifest icons), and standalone meta tags. The service worker registration is a nonce'd inline script; when the toggle is **off** it actively unregisters Pilot's worker — and only Pilot's, never third-party workers.
+Rendered only when the feature is on: the manifest `<link>`, `theme-color`, `apple-touch-icon` (iOS ignores manifest icons), and standalone meta tags. The service worker registration is an inline script (allowed by `'unsafe-inline'` in Pilot's `scriptSrc`); when the toggle is **off** it actively unregisters Pilot's worker — and only Pilot's, never third-party workers.
 
 ### Service worker — `public/sw.js`
 

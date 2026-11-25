@@ -63,23 +63,60 @@ Pilot ships this already — `app/routes/catch-all.tsx`, registered as the last 
 Pilot uses React Router 7's manual route registry. Adding a file under `app/routes/` does not create a route — it must be registered in `app/routes.ts`.
 </Note>
 
+### Where Studio Opens a Custom Page
+
+Studio opens a custom page at its handle, directly under the storefront root: handle `summer-sale` opens `/summer-sale`. When the selected market has a path prefix, Studio adds it in front, as in `/fr-ca/summer-sale`. Weaverse resolves the page from that same URL, so the route that answers it must call `loadPage({ type: "CUSTOM" })`.
+
+Custom pages can't be remapped through the theme schema's [`routes`](/features/custom-routing#declare-theme-routes-for-studio), because each custom page carries its own path.
+
+### When Another Route Answers the Same URL
+
+A custom page URL is served by whichever route in your theme matches it. If that is not the catch-all, for example a root-level `:handle` route for collections, that route must load the custom page when its own resource is missing. Otherwise visitors get your not-found page, and Studio's preview shows it instead of the page you opened.
+
+Give that route a static prefix, such as `collections/:handle`, or let it fall back to the custom page:
+
+```tsx
+// A root-level route, registered as route(":handle", "routes/collection.tsx")
+import type { LoaderFunctionArgs } from "react-router";
+import { validateWeaverseData } from "~/weaverse";
+
+export async function loader({ params, context }: LoaderFunctionArgs) {
+  const collection = await findCollection(context, params.handle); // your existing lookup
+  if (!collection) {
+    // Not a collection: this URL may belong to a Weaverse custom page.
+    const weaverseData = await context.weaverse.loadPage({ type: "CUSTOM" });
+    validateWeaverseData(weaverseData); // same 404 handling as the catch-all
+    return { weaverseData, collection: null };
+  }
+  const weaverseData = await context.weaverse.loadPage({
+    type: "COLLECTION",
+    handle: params.handle,
+  });
+  validateWeaverseData(weaverseData);
+  return { weaverseData, collection };
+}
+```
+
+Render `<WeaverseContent />` in both cases, and skip collection-only output, such as analytics events, when `collection` is `null`. Pilot's `routes/home.tsx` uses the same fallback for a one-segment URL that is not a locale.
+
 ### Handling Locales vs. Custom Page Handles
 
 In multilingual storefronts, the first segment of the URL may be a locale (e.g., `/en-us`) or a custom page handle. For a one-segment URL such as `/about`, React Router matches Pilot's index route inside the optional `:locale?` prefix. `routes/home.tsx` checks whether that segment is a supported locale; when it is not, the loader requests a `CUSTOM` page instead of the homepage.
 
-Pilot handles this in `app/.server/context.ts`: `getLocaleFromRequest()` only treats the first path segment as a locale when it matches an entry in `COUNTRIES`; otherwise the default locale is used and the segment stays part of the custom page path.
+Pilot handles this in `app/utils/locale.ts`: `resolveLocale()` only treats the first path segment as a locale when it matches an entry in `SUPPORTED_LOCALES`; otherwise the default locale is used and the segment stays part of the custom page path. `app/.server/storefront.ts` uses it to build the Storefront client's `i18n` for each request.
 
-> **Best Practice:** Keep your supported-locale list (`COUNTRIES`) as the single source of truth. Anything not in it is a custom page handle — you don't need per-route locale sniffing.
+> **Best Practice:** Keep your supported-locale list (`SUPPORTED_LOCALES`) as the single source of truth. Anything not in it is a custom page handle — you don't need per-route locale sniffing.
 
 ### The Home and Catch-All Routes
 
-Pilot's `app/routes/catch-all.tsx` handles other unmatched paths with `type: "CUSTOM"`. The handle is resolved from the request URL, so no `handle` argument is needed. The home route uses the same page type for an unrecognized one-segment locale parameter:
+Pilot's `app/routes/catch-all.tsx` handles other unmatched paths with `type: "CUSTOM"`. The handle is resolved from the request URL, so no `handle` argument is needed. The home route uses the same page type for an unrecognized one-segment locale parameter. This is Pilot's catch-all route:
 
 ```tsx
 // app/routes/catch-all.tsx
-import { getWeaverseSeoMeta } from "@weaverse/hydrogen";
-import type { LoaderFunctionArgs, MetaFunction } from "react-router";
+import { getWeaverseSeoMeta } from "@weaverse/hydrogen/react-router";
+import type { LoaderFunctionArgs, MetaArgs } from "react-router";
 import { routeHeaders } from "~/utils/cache";
+import { seoMetaFromMatches, withWeaverseSeo } from "~/utils/seo";
 import { validateWeaverseData, WeaverseContent } from "~/weaverse";
 
 export let headers = routeHeaders;
@@ -95,8 +132,13 @@ export async function loader({ context }: LoaderFunctionArgs) {
   };
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
-  return getWeaverseSeoMeta(data?.weaverseData);
+export const meta = ({ data, matches }: MetaArgs<typeof loader>) => {
+  // Weaverse CUSTOM pages are public and indexable, so they need the market's
+  // canonical + hreflang alternates from the root match, not just page SEO.
+  return withWeaverseSeo(
+    seoMetaFromMatches(matches),
+    getWeaverseSeoMeta(data?.weaverseData),
+  );
 };
 
 export default function Component() {
@@ -106,12 +148,13 @@ export default function Component() {
 
 #### How it works:
 - The loader fetches the custom page matching the current request URL.
-- `validateWeaverseData()` throws a 404 when no page is found (and for the fallback page outside design mode). `loadPage()` itself resolves to `null` on failure rather than throwing, so always check the result.
-- `getWeaverseSeoMeta()` renders the SEO fields you configured on the page in Studio.
+- When no page is assigned to the URL, `loadPage()` resolves to a fallback page with `isFallback: true` (6.5.0+), not `null`. `validateWeaverseData()` throws a 404 for `null` and for that fallback page outside design mode, where Studio needs it so the merchant can add sections.
+- A load failure resolves to `null` by default. Pilot's client sets `throwPageLoadFailures: true`, so a failure rejects with a [`WeaverseLoadError`](/api-reference/classes/WeaverseLoadError) and the route answers 503 or 500 instead of 404.
+- `getWeaverseSeoMeta()` renders the SEO fields you configured on the page in Studio. Pilot's `withWeaverseSeo()` (in `app/utils/seo.ts`) merges them with the market's canonical and hreflang tags from the root route.
 - `<WeaverseContent />` renders the sections.
 
 <Note>
-Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs` and `MetaFunction` from `react-router`, not from `@shopify/remix-oxygen`, and return plain objects from loaders instead of `json()`.
+Route modules are ordinary React Router 7 modules: import `LoaderFunctionArgs` and `MetaArgs` (or `MetaFunction`) from `react-router`, not from `@shopify/remix-oxygen`, and return plain objects from loaders instead of `json()`.
 </Note>
 
 > **Troubleshooting:** If your custom page is not rendering, check the handle, page publication status, and route setup.
@@ -143,7 +186,13 @@ Root-level custom pages need no extra route — Pilot's home/catch-all routing a
 
 ---
 
-> **Note:** Custom pages created in Weaverse are **not automatically included** in your store's sitemap (e.g., `sitemap.xml`) yet. To ensure they appear in your sitemap for SEO, you need to manually add them in your sitemap route (e.g., `sitemap.$type.$page[.xml].tsx`). Automatic inclusion will be supported in a future release.
+## Custom Pages in the Sitemap
+
+`context.weaverse.fetchCustomPages()` returns the route metadata (`path`, `lastModified`, `changeFrequency`, `priority`) of every custom page assigned in the project, paginating for you. Pilot already uses it: `app/routes/seo/sitemap-weaverse.xml.ts` serves `/sitemap-weaverse.xml`, and the sitemap index in `app/routes/seo/sitemap.ts` links to it. Other themes add a similar route.
+
+<Warning>
+  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages) and [`fetchCustomPages`](/api-reference/classes/WeaverseClient#fetchcustompages).
+</Warning>
 
 ---
 
@@ -166,7 +215,7 @@ Custom pages automatically detect the locale from Hydrogen's i18n context:
 export async function loader({ context }: LoaderFunctionArgs) {
   let weaverseData = await context.weaverse.loadPage({
     type: "CUSTOM",
-    // locale auto-detected from context.storefront.i18n
+    // locale defaults to the client's `locale`, or `context.storefront.locale`
   });
 
   validateWeaverseData(weaverseData);
@@ -192,9 +241,8 @@ export async function loader({ context, request }: LoaderFunctionArgs) {
     locale, // Explicitly specify locale
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // 404 for `null` and for the fallback page outside design mode
+  validateWeaverseData(weaverseData);
 
   return { weaverseData, locale };
 }
@@ -226,9 +274,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     locale: "sv-se", // Load Swedish version
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // 404 for `null` and for the fallback page outside design mode
+  validateWeaverseData(weaverseData);
 
   return { weaverseData };
 }
@@ -247,9 +294,8 @@ export async function loader({ context }: LoaderFunctionArgs) {
     locale: "fr-ca", // Load French Canadian version
   });
 
-  if (!weaverseData) {
-    throw new Response("Page not found", { status: 404 });
-  }
+  // 404 for `null` and for the fallback page outside design mode
+  validateWeaverseData(weaverseData);
 
   return { weaverseData };
 }
@@ -284,18 +330,20 @@ For complex multi-market scenarios, use the multi-project approach:
 
 ```tsx
 // app/.server/context.ts
-export async function createHydrogenRouterContext(
+export async function createAppContext(
   request: Request,
   env: Env,
   executionContext: ExecutionContext,
 ) {
-  // …cache/session setup…
-  const hydrogenContext = createHydrogenContext({ /* … */ }, additionalContext);
+  // …cache, session, storefront and customerAccount setup…
 
   const weaverse = new WeaverseClient({
-    ...hydrogenContext,
-    request,
+    storefront,
+    env,
     cache,
+    waitUntil,
+    request,
+    customerAccount,
     themeSchema,
     components,
     projectId: () => {
@@ -312,12 +360,8 @@ export async function createHydrogenRouterContext(
     },
   });
 
-  // Attach `weaverse` to the existing context instance instead of spreading it
-  // into a new object — spreading would discard the RouterContextProvider
-  // class instance React Router 7 expects.
-  Object.assign(hydrogenContext, { weaverse });
-
-  return hydrogenContext;
+  // `server.ts` copies this plain object onto React Router's context
+  return { env, cache, waitUntil, session, storefront, customerAccount, weaverse };
 }
 
 // app/routes/pages/about.tsx
@@ -350,7 +394,7 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 - Add meta titles/descriptions in your Hydrogen loader or via Weaverse SEO settings
 - Use semantic section blocks for accessibility
 - Keep images optimized for fast loading
-- Link to [Hydrogen SEO Guide](https://shopify.dev/docs/custom-storefronts/hydrogen/seo)
+- See [Page SEO](/features/page-seo) for SEO settings on Weaverse pages
 
 ---
 
@@ -360,8 +404,13 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 - Check that the custom page exists in Weaverse Studio and is published
 - Ensure the handle matches the route in the URL
 - Confirm your Hydrogen catch-all route is set up as above
+- **If another route matches the URL:** Make it load the custom page when its own resource is missing, as shown in [When Another Route Answers the Same URL](#when-another-route-answers-the-same-url).
 - **If using locales:** Make sure your loader distinguishes between locale codes and custom handles as shown in the example above.
 - Check browser console and network requests for errors
+
+**Studio's preview shows your not-found page instead of a new custom page:**
+- The route that answers the page's URL in your theme does not load custom pages. Check which route matches it, using [Where Studio Opens a Custom Page](#where-studio-opens-a-custom-page).
+- Fix that route before you edit the new page.
 
 **Sections not showing:**
 - Make sure you have added and saved sections in Weaverse Studio
@@ -375,7 +424,7 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 **Common Mistakes:**
 - Reusing a handle that conflicts with built-in Shopify routes
 - Not publishing the custom page in Weaverse Studio
-- Forgetting to update Hydrogen routes after adding new custom pages
+- A root-level route, such as `:handle` for collections, that renders a not-found page instead of loading the custom page
 
 ---
 
@@ -393,20 +442,30 @@ See [Advanced Localization Guide](/guides/localization-advanced) for complete de
 
 ### Example 3: Dynamic Content Page
 - Use loader to fetch dynamic data (e.g., from a CMS or API)
-- Render with WeaverseContent and pass data as props
+- Return it from the loader next to `weaverseData`, read it with `useLoaderData()`, and render `<WeaverseContent />` (it reads the Weaverse data from the route itself and takes no props)
 
 ```tsx
 // Example: Fetching CMS data in loader
+import type { LoaderFunctionArgs } from "react-router";
+import { useLoaderData } from "react-router";
+import { validateWeaverseData, WeaverseContent } from "~/weaverse";
+
 export async function loader({ context }: LoaderFunctionArgs) {
-  const cmsData = await fetch('https://api.example.com/content').then(res => res.json());
-  const weaverseData = await context.weaverse.loadPage({ type: "CUSTOM" });
+  const [cmsData, weaverseData] = await Promise.all([
+    fetch("https://api.example.com/content").then(
+      (res) => res.json() as Promise<{ title: string }>,
+    ),
+    context.weaverse.loadPage({ type: "CUSTOM" }),
+  ]);
+  validateWeaverseData(weaverseData);
   return { weaverseData, cmsData };
 }
 
-export default function CustomPage({ weaverseData, cmsData }: { weaverseData: any; cmsData: any }) {
+export default function CustomPage() {
+  const { cmsData } = useLoaderData<typeof loader>();
   return (
     <>
-      <WeaverseContent {...weaverseData} />
+      <WeaverseContent />
       <section>{cmsData.title}</section>
     </>
   );
@@ -422,7 +481,7 @@ export default function CustomPage({ weaverseData, cmsData }: { weaverseData: an
 
 - For multi-market or multi-brand custom pages, see [Multi-Project Architecture Guide](/guides/multi-project-architecture)
 - Explore [Weaverse Documentation](/)
-- Learn more about [Hydrogen Routing](https://shopify.dev/docs/custom-storefronts/hydrogen/routing)
+- Learn more about [Hydrogen Routing](https://shopify.dev/docs/storefronts/hydrogen/routing)
 - Review [Shopify Navigation](https://help.shopify.com/manual/online-store/menus-and-links)
 - For advanced customization, see [Weaverse SDK](/developer-tools/weaverse-sdks)
 

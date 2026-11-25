@@ -16,11 +16,11 @@ To use your components in Weaverse, you need to register them in your applicatio
 
 ```tsx
 // app/weaverse/components.ts
-import type { HydrogenComponent } from '@weaverse/hydrogen';
+import type { WeaverseComponent } from '@weaverse/hydrogen/react-router';
 import * as HeroImage from '~/sections/hero-image';
 import * as RelatedProducts from '~/sections/related-products';
 
-export const components: HydrogenComponent[] = [
+export const components: WeaverseComponent[] = [
   HeroImage,
   RelatedProducts,
   // Add more components...
@@ -29,7 +29,7 @@ export const components: HydrogenComponent[] = [
 
 ```tsx
 // app/weaverse/index.tsx
-import { WeaverseHydrogenRoot } from "@weaverse/hydrogen";
+import { WeaverseHydrogenRoot } from "@weaverse/hydrogen/react-router";
 import { GenericError } from "~/components/root/generic-error";
 import { components } from "./components";
 
@@ -82,10 +82,11 @@ Every Weaverse component follows a consistent structure:
 ### Basic Component Template
 
 ```tsx
-import type { HydrogenComponentProps } from '@weaverse/hydrogen';
-import { createSchema } from '@weaverse/hydrogen';
+import type { WeaverseComponentProps } from '@weaverse/hydrogen/react-router';
+import { createSchema } from '@weaverse/hydrogen/react-router';
 
-interface MyComponentProps extends HydrogenComponentProps {
+interface MyComponentProps extends WeaverseComponentProps {
+  ref?: React.Ref<HTMLElement>; // React 19 passes ref as a prop
   // Add your custom props here
   title?: string;
   description?: string;
@@ -128,7 +129,7 @@ export default MyComponent;
 
 ### Key Elements
 
-1. **HydrogenComponentProps**: Base props interface that all Weaverse components extend
+1. **WeaverseComponentProps**: Base props interface that all Weaverse components extend
 2. **ref and root props**: Pass `ref` and the remaining Weaverse props to the component's root DOM element
 3. **type property in schema**: Unique identifier for the component (must be unique across all components)
 4. **settings**: Defines the UI controls in Weaverse Studio
@@ -139,10 +140,10 @@ export default MyComponent;
 For more complex components, you may need to handle data loading, custom styling, or complex props management:
 
 ```tsx
-import { createSchema } from "@weaverse/hydrogen";
+import { createSchema } from "@weaverse/hydrogen/react-router";
 import { Await, useLoaderData } from "react-router";
-import { Suspense, forwardRef } from "react";
-import type { ProductCardFragment } from "storefront-api.generated";
+import { Suspense } from "react";
+import type { ProductCardFragment } from "~/graphql/fragments";
 import Heading, { type HeadingProps, headingInputs } from "~/components/heading";
 import { ProductCard } from "~/components/product/product-card";
 import { Section, type SectionProps, layoutInputs } from "~/components/section";
@@ -154,7 +155,7 @@ interface RelatedProductsProps
   headingTagName?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
 }
 
-const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, ref) => {
+function RelatedProducts({ ref, ...props }: RelatedProductsProps & { ref?: React.Ref<HTMLElement> }) {
   const { recommended } = useLoaderData<{
     recommended: { nodes: ProductCardFragment[] };
   }>();
@@ -215,7 +216,7 @@ const RelatedProducts = forwardRef<HTMLElement, RelatedProductsProps>((props, re
   }
   
   return <section ref={ref} {...rest} />;
-});
+}
 
 export default RelatedProducts;
 
@@ -223,9 +224,7 @@ export let schema = createSchema({
   type: "related-products",
   title: "Related products",
   limit: 1,
-  enabledOn: {
-    pages: ["PRODUCT"],
-  },
+  enabled: ({ page }) => page.type === "PRODUCT",
   settings: [
     {
       group: "Layout",
@@ -307,13 +306,13 @@ export let schema = createSchema({
   presets: {                   // Default values
     // Default values for properties
   },
-  enabledOn: {                 // Page type restrictions
-    pages: ['PAGE_TYPE'],
-  },
+  enabled: ({ page }) => page.type === 'PRODUCT', // Availability rule (replaces the deprecated `enabledOn`)
   childTypes: ['component-type'], // Allowed child components
   limit: 1,                    // Maximum instances
 });
 ```
+
+Studio's **Page sections** grouping still reads `enabledOn.pages`; see [the note on migrating to `enabled`](/development-guide/component-schema#page-types).
 
 ### Common Input Types
 
@@ -321,28 +320,33 @@ export let schema = createSchema({
    - `text`: Single-line text input
    - `textarea`: Multi-line text input
    - `richtext`: Rich text editor with formatting
-   - `number`: Numeric input
+   - `url`: Link input
    - `color`: Color picker
-   - `toggle`: Boolean switch
+   - `switch`: Boolean on/off switch
    - `select`: Dropdown selection
-   - `range`: Slider input
+   - `range`: Slider for numeric values
    - `toggle-group`: Group of exclusive options
+   - `datepicker`: Date and time selector
 
 2. **Media Inputs**
    - `image`: Image selector
    - `video`: Video selector
-   - `file`: File selector
 
 3. **Layout Inputs**
    - `position`: Position selector (top/center/bottom, left/center/right)
-   - `spacing`: Margin and padding controls
-   - `alignment`: Text alignment controls
+   - `heading`: Settings group divider with a heading
 
-4. **Special Inputs**
-   - `product`: Product selector
-   - `collection`: Collection selector
-   - `datepicker`: Date and time selector
-   - `heading`: Section divider with heading
+4. **Shopify Resource Inputs**
+   - `product` / `product-list`: One product or a list of products
+   - `collection` / `collection-list`: One collection or a list of collections
+   - `blog`: Blog selector
+   - `metaobject`: Metaobject selector
+
+5. **Other Inputs**
+   - `map-autocomplete`: Address search with map suggestions
+   - `translation-key` / `translation-image`: Translatable theme text and images (theme `settings` only)
+
+See [Input Settings](/development-guide/input-settings) for each type's options.
 
 ### Input Configuration
 
@@ -485,16 +489,22 @@ In React Router route files, you define loaders that run on the server and provi
 
 ```tsx
 // app/routes/products/product.tsx
+import { Cache } from '@shopify/hydrogen';
 import type { LoaderFunctionArgs } from 'react-router';
 import { useLoaderData } from 'react-router';
+import { unwrapStorefront } from '~/utils/storefront';
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
   const { productHandle: handle } = params;
   const { storefront } = context;
 
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: { handle },
-  });
+  // `graphql()` returns `{ data, errors }`; `unwrapStorefront` throws on errors
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle },
+      cache: Cache.short(),
+    }),
+  );
 
   // Return a plain object — `json()` is no longer needed in React Router v7
   return { product };
@@ -519,18 +529,20 @@ Weaverse components can define their own loaders, which fetch data specifically 
 
 ```tsx
 // app/sections/featured-product/index.tsx
+import { Cache } from '@shopify/hydrogen';
 import type {
-  ComponentLoaderArgs,
-  HydrogenComponentProps,
+  WeaverseComponentLoaderArgs,
+  WeaverseComponentProps,
   WeaverseProduct,
-} from '@weaverse/hydrogen';
+} from '@weaverse/hydrogen/react-router';
 import { PRODUCT_QUERY } from '~/graphql/queries';
+import { unwrapStorefront } from '~/utils/storefront';
 
 interface FeaturedProductData {
   product: WeaverseProduct;
 }
 
-export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => {
+export const loader = async (args: WeaverseComponentLoaderArgs<FeaturedProductData>) => {
   const { weaverse, data } = args;
   const { storefront } = weaverse;
   
@@ -538,16 +550,18 @@ export const loader = async (args: ComponentLoaderArgs<FeaturedProductData>) => 
     return null;
   }
   
-  const { product } = await storefront.query(PRODUCT_QUERY, {
-    variables: {
-      handle: data.product.handle,
-    },
-  });
+  const { product } = unwrapStorefront(
+    await storefront.graphql(PRODUCT_QUERY, {
+      variables: { handle: data.product.handle },
+      cache: Cache.short(),
+    }),
+  );
 
   return { product };
 };
 
-type FeaturedProductProps = HydrogenComponentProps<Awaited<ReturnType<typeof loader>>> & FeaturedProductData;
+type FeaturedProductProps = WeaverseComponentProps<Awaited<ReturnType<typeof loader>>> &
+  FeaturedProductData & { ref?: React.Ref<HTMLElement> };
 
 function FeaturedProduct({ ref, loaderData, product: selectedProduct, ...rest }: FeaturedProductProps) {
   const product = loaderData?.product;
@@ -601,7 +615,7 @@ export let schema = createSchema({
      - `weaverse`: The `WeaverseClient` instance — Storefront API access, `fetchWithCache`, `env`, and the current `request`
      - `data`: Contains the component's configured data from the editor
 
-   There is no `context` argument in `ComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
+   There is no `context` argument in `WeaverseComponentLoaderArgs`. Reach the incoming request through `weaverse.request`.
 
 4. **Use cases**:
    - Use route loaders for route-level data like page information
@@ -612,11 +626,11 @@ export let schema = createSchema({
 Components can access data from their parent components using the `useParentInstance` hook:
 
 ```tsx
-import { useParentInstance } from '@weaverse/hydrogen';
+import { useParentInstance } from '@weaverse/hydrogen/react-router';
 
 function ChildComponent() {
-  const parent = useParentInstance();
-  const data = parent.data.loaderData;
+  const parent = useParentInstance(); // null outside a parent component
+  const data = parent?.data.loaderData;
   // Use the data from parent component
 }
 ```
@@ -630,7 +644,7 @@ interface ComponentData {
   // Define your data structure
 }
 
-export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> {
+export async function loader(args: WeaverseComponentLoaderArgs): Promise<ComponentData> {
   // Fetch data
   return data;
 }
@@ -639,7 +653,7 @@ export async function loader(args: ComponentLoaderArgs): Promise<ComponentData> 
 2. **Error Handling**: Implement proper error handling in your loaders:
 
 ```tsx
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   try {
     const data = await fetchData(weaverse);
     return { data };
@@ -653,7 +667,7 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
 3. **Data Transformation**: Transform data in the loader before passing it to the component:
 
 ```tsx
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const rawData = await fetchData(weaverse);
   return {
     data: transformData(rawData), // Transform data for easier consumption
@@ -664,9 +678,18 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
 4. **Caching**: Leverage Hydrogen's built-in caching mechanisms and Weaverse's utilities for improved performance:
 
 ```tsx
-import { CacheLong } from '@shopify/hydrogen';
+import { Cache, gql } from '@shopify/hydrogen';
 
-export async function loader({ weaverse }: ComponentLoaderArgs) {
+const COLLECTION_QUERY = gql(`
+  query CollectionDetails($handle: String!) {
+    collection(handle: $handle) {
+      title
+      description
+    }
+  }
+`);
+
+export async function loader({ weaverse }: WeaverseComponentLoaderArgs) {
   const { storefront, fetchWithCache } = weaverse;
 
   // Using Weaverse's fetchWithCache utility (recommended)
@@ -678,7 +701,7 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
       headers: {
         'Content-Type': 'application/json',
       },
-      strategy: CacheLong(), // Use appropriate cache strategy
+      strategy: Cache.long(), // Use appropriate cache strategy
     }
   );
 
@@ -691,25 +714,18 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ id: 'my-product' }),
-      strategy: CacheLong(),
+      strategy: Cache.long(),
     }
   );
 
-  // Or using storefront API with caching
-  const { collection } = await storefront.query(
-    `query CollectionDetails($handle: String!) {
-      collection(handle: $handle) {
-        title
-        description
-      }
-    }`,
-    {
-      variables: {
-        handle: 'summer-collection',
-      },
-      cache: CacheLong(), // Cache for a long time (1 day by default)
-    }
-  );
+  // Or using the Storefront API with caching (there is no default cache)
+  const { data: collectionData } = await storefront.graphql(COLLECTION_QUERY, {
+    variables: {
+      handle: 'summer-collection',
+    },
+    cache: Cache.long(), // Fresh for an hour, then stale for up to 23 hours
+  });
+  const collection = collectionData?.collection;
   
   return { product, collection, data };
 }
@@ -724,20 +740,20 @@ export async function loader({ weaverse }: ComponentLoaderArgs) {
 - Includes the URL, method, body, and project ID in the cache key, so POST requests cache correctly
 - Bypasses the cache automatically while in Studio design mode
 
-Hydrogen provides several caching strategies out of the box:
+Hydrogen provides its caching strategies through `Cache` from `@shopify/hydrogen`:
 
-- `CacheNone()`: No caching, always fetches fresh data
-- `CacheShort()`: Short-term caching (a few minutes)
-- `CacheLong()`: Long-term caching (1 day by default)
-- `cache.with()`: Custom cache control
+- `Cache.none()`: No caching, always fetches fresh data
+- `Cache.short()`: Short-term caching (fresh for 1 second, stale for 9 more)
+- `Cache.long()`: Long-term caching (fresh for 1 hour, stale for 23 more)
+- `Cache({ ... })`: Custom cache durations
 
 You can also customize cache durations:
 
 ```tsx
-import { CacheLong } from '@shopify/hydrogen';
+import { Cache } from '@shopify/hydrogen';
 
 // Cache for 60 seconds
-const cacheStrategy = CacheLong({
+const cacheStrategy = Cache({
   maxAge: 60,
   staleWhileRevalidate: 10,
 });
@@ -748,14 +764,14 @@ const data = await weaverse.fetchWithCache(
   { method: 'GET', strategy: cacheStrategy }
 );
 
-// Or use in storefront query
-const data = await storefront.query(QUERY, {
+// Or use in a Storefront API query
+const result = await storefront.graphql(QUERY, {
   variables,
   cache: cacheStrategy,
 });
 ```
 
-For more details, see [Hydrogen Documentation on Caching](https://shopify.dev/docs/storefronts/headless/hydrogen/caching).
+For more details, see [Hydrogen Documentation on Caching](https://shopify.dev/docs/storefronts/hydrogen/data-fetching/caching).
 
 ## Component Organization Patterns
 
@@ -766,23 +782,23 @@ For more details, see [Hydrogen Documentation on Caching](https://shopify.dev/do
 import { ImageWithTextContent } from './content';
 import { ImageWithTextImage } from './image';
 
-const ImageWithText = forwardRef<HTMLElement, ImageWithTextProps>((props, ref) => {
+function ImageWithText({ ref, ...props }: ImageWithTextProps & { ref?: React.Ref<HTMLElement> }) {
   return (
     <section ref={ref}>
       <ImageWithTextContent />
       <ImageWithTextImage />
     </section>
   );
-});
+}
 
 // Child component (content.tsx)
-const ImageWithTextContent = forwardRef<HTMLDivElement, ImageWithTextContentProps>((props, ref) => {
+function ImageWithTextContent({ ref, ...props }: ImageWithTextContentProps & { ref?: React.Ref<HTMLDivElement> }) {
   return (
     <div ref={ref}>
       {props.children}
     </div>
   );
-});
+}
 
 export let schema = createSchema({
   type: "image-with-text--content",
@@ -809,7 +825,7 @@ interface HotspotsItemData {
   viewDetailsLinkText: string;
 }
 
-const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>((props, ref) => {
+function HotspotsItem({ ref, ...props }: HotspotsItemProps & { ref?: React.Ref<HTMLDivElement> }) {
   const {
     icon,
     iconSize,
@@ -838,7 +854,7 @@ const HotspotsItem = forwardRef<HTMLDivElement, HotspotsItemProps>((props, ref) 
       {/* Component content */}
     </div>
   );
-});
+}
 ```
 
 ## Styling Patterns
@@ -877,7 +893,7 @@ interface ComponentProps extends VariantProps<typeof variants> {
 ### 2. CSS Custom Properties
 
 ```tsx
-const Component = forwardRef<HTMLElement, ComponentProps>((props, ref) => {
+function Component({ ref, ...props }: ComponentProps & { ref?: React.Ref<HTMLElement> }) {
   const { textColor, ...rest } = props;
   
   const style = {
@@ -894,7 +910,7 @@ const Component = forwardRef<HTMLElement, ComponentProps>((props, ref) => {
       {/* Component content */}
     </div>
   );
-});
+}
 ```
 
 ## Interactive Components
@@ -902,7 +918,7 @@ const Component = forwardRef<HTMLElement, ComponentProps>((props, ref) => {
 ### 1. Countdown Timer
 
 ```tsx
-const CountdownTimer = forwardRef<HTMLElement, CountdownTimerProps>((props, ref) => {
+function CountdownTimer({ ref, ...props }: CountdownTimerProps & { ref?: React.Ref<HTMLElement> }) {
   const { endTime, ...rest } = props;
   const [remainingTime, setRemainingTime] = useState(calculateRemainingTime(endTime));
 
@@ -924,13 +940,13 @@ const CountdownTimer = forwardRef<HTMLElement, CountdownTimerProps>((props, ref)
       {/* Timer display */}
     </div>
   );
-});
+}
 ```
 
 ### 2. Hotspots
 
 ```tsx
-const Hotspots = forwardRef<HTMLElement, HotspotsProps>((props, ref) => {
+function Hotspots({ ref, ...props }: HotspotsProps & { ref?: React.Ref<HTMLElement> }) {
   const { items, ...rest } = props;
   
   return (
@@ -940,7 +956,7 @@ const Hotspots = forwardRef<HTMLElement, HotspotsProps>((props, ref) => {
       ))}
     </div>
   );
-});
+}
 ```
 
 ## Best Practices
@@ -984,24 +1000,22 @@ const variants = cva("flex flex-col [&_.paragraph]:mx-[unset]", {
 export interface HeroImageProps extends VariantProps<typeof variants> {}
 
 // Use variants in component
-const HeroImage = forwardRef<HTMLElement, HeroImageProps & SectionProps>(
-  (props, ref) => {
-    const { children, height, contentPosition, ...rest } = props;
-    
-    return (
-      <Section
-        ref={ref}
-        {...rest}
-        containerClassName={variants({
-          contentPosition,
-          height,
-        })}
-      >
-        {children}
-      </Section>
-    );
-  },
-);
+function HeroImage({ ref, ...props }: HeroImageProps & SectionProps & { ref?: React.Ref<HTMLElement> }) {
+  const { children, height, contentPosition, ...rest } = props;
+
+  return (
+    <Section
+      ref={ref}
+      {...rest}
+      containerClassName={variants({
+        contentPosition,
+        height,
+      })}
+    >
+      {children}
+    </Section>
+  );
+}
 
 // Define schema with matching select inputs
 export let schema = createSchema({
@@ -1075,7 +1089,7 @@ This pattern works particularly well for components with multiple configurable a
 import { useState, useReducer } from 'react';
 
 // Simple state management with useState
-const SimpleComponent = forwardRef<HTMLElement, SimpleComponentProps>((props, ref) => {
+function SimpleComponent({ ref, ...props }: SimpleComponentProps & { ref?: React.Ref<HTMLElement> }) {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -1084,7 +1098,7 @@ const SimpleComponent = forwardRef<HTMLElement, SimpleComponentProps>((props, re
       {isOpen && <div>Content</div>}
     </section>
   );
-});
+}
 
 // Complex state management with useReducer
 function reducer(state, action) {
@@ -1098,7 +1112,7 @@ function reducer(state, action) {
   }
 }
 
-const ComplexComponent = forwardRef<HTMLElement, ComplexComponentProps>((props, ref) => {
+function ComplexComponent({ ref, ...props }: ComplexComponentProps & { ref?: React.Ref<HTMLElement> }) {
   const [state, dispatch] = useReducer(reducer, { count: 0 });
   
   return (
@@ -1108,7 +1122,7 @@ const ComplexComponent = forwardRef<HTMLElement, ComplexComponentProps>((props, 
       <button onClick={() => dispatch({ type: 'decrement' })}>-</button>
     </section>
   );
-});
+}
 ```
 
 ### 4. Error Handling
@@ -1126,7 +1140,7 @@ const ErrorFallback = ({ error, resetErrorBoundary }) => {
   );
 };
 
-const SafeComponent = forwardRef<HTMLElement, SafeComponentProps>((props, ref) => {
+function SafeComponent({ ref, ...props }: SafeComponentProps & { ref?: React.Ref<HTMLElement> }) {
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <section ref={ref}>
@@ -1134,7 +1148,7 @@ const SafeComponent = forwardRef<HTMLElement, SafeComponentProps>((props, ref) =
       </section>
     </ErrorBoundary>
   );
-});
+}
 ```
 
 ### 5. Accessibility
@@ -1146,7 +1160,7 @@ const SafeComponent = forwardRef<HTMLElement, SafeComponentProps>((props, ref) =
   - Provide sufficient color contrast
 
 ```tsx
-const AccessibleComponent = forwardRef<HTMLElement, AccessibleComponentProps>((props, ref) => {
+function AccessibleComponent({ ref, ...props }: AccessibleComponentProps & { ref?: React.Ref<HTMLElement> }) {
   const { ariaLabel, ariaDescribedby, ...rest } = props;
   
   return (
@@ -1161,7 +1175,7 @@ const AccessibleComponent = forwardRef<HTMLElement, AccessibleComponentProps>((p
       {/* Component content */}
     </section>
   );
-});
+}
 ```
 
 ### 6. Performance Considerations
@@ -1212,7 +1226,7 @@ const AccessibleComponent = forwardRef<HTMLElement, AccessibleComponentProps>((p
 
 ```tsx
 // Add debug logging
-const DebugComponent = forwardRef<HTMLElement, DebugComponentProps>((props, ref) => {
+function DebugComponent({ ref, ...props }: DebugComponentProps & { ref?: React.Ref<HTMLElement> }) {
   console.log('Props:', props);
   
   // Track re-renders
@@ -1231,7 +1245,7 @@ const DebugComponent = forwardRef<HTMLElement, DebugComponentProps>((props, ref)
       {/* Component content */}
     </section>
   );
-});
+}
 ```
 
 ### Development Environment Setup

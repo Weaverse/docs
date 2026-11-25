@@ -13,21 +13,21 @@ The Weaverse SDK provides the runtime, React bindings, framework integrations, a
 
 ### `@weaverse/hydrogen`
 
-The adapter for Hydrogen storefronts on React Router. It includes:
+The adapter for Hydrogen storefronts on React Router. Version 6 runs on Hydrogen 2026.10; themes import it from the `@weaverse/hydrogen/react-router` entry point, which re-exports the framework-free `@weaverse/hydrogen` core and the `@weaverse/hydrogen/react` hooks. It includes:
 
 - `WeaverseClient` for server-side page and theme loading
 - `WeaverseHydrogenRoot` for page rendering
 - Hydrogen hooks, component types, and utilities
 - Re-exports from `@weaverse/react` and `@weaverse/schema`
 
-### `@weaverse/next`
+### `@weaverse/hydrogen/next`
 
-The package for Next.js App Router storefronts. It includes:
+The `@weaverse/hydrogen` entry points for Next.js App Router storefronts, `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`. They include:
 
-- `createWeaverseNextServerClient` (from `@weaverse/next/server`) for request-scoped page and theme loading
+- `createWeaverseNextServerClient` (from `@weaverse/hydrogen/next/server`) for request-scoped page and theme loading
 - `WeaverseNextRenderer`, `WeaverseNextProvider`, and `WeaverseNextRootProvider` for rendering
 - Studio connection, per-item revalidation, and translation utilities
-- Re-exports from `@weaverse/react` and `@weaverse/schema`
+- The Weaverse hooks and `createSchema`
 
 See the [Next.js API reference](/nextjs/api-reference).
 
@@ -49,8 +49,8 @@ Schema definitions, Studio input types, availability types, and validation utili
 import {
   WeaverseHydrogenRoot,
   useWeaverse,
-  type WeaverseHydrogen,
-} from '@weaverse/hydrogen'
+  type WeaversePageData,
+} from '@weaverse/hydrogen/react-router'
 import { components } from '~/weaverse/components'
 
 export function WeaversePage() {
@@ -58,7 +58,7 @@ export function WeaversePage() {
 }
 
 export function RuntimeInfo() {
-  const weaverse = useWeaverse<WeaverseHydrogen>()
+  const weaverse = useWeaverse<{ data: WeaversePageData }>()
 
   return <span>{weaverse.data.name}</span>
 }
@@ -78,7 +78,7 @@ The reference in the sidebar is generated from the SDK's TSDoc comments, so it m
   <Card title="Client" icon="server" href="/api-reference/classes/WeaverseClient">
     Load page data, theme settings, and custom page metadata on the server.
   </Card>
-  <Card title="Types and Utilities" icon="brackets-curly" href="/api-reference/types/HydrogenComponentSchema">
+  <Card title="Types and Utilities" icon="brackets-curly" href="/api-reference/types/WeaverseComponent">
     Reference public TypeScript contracts and helper functions.
   </Card>
 </CardGroup>

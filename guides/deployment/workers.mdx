@@ -11,22 +11,22 @@ published: true
 </Note>
 
 <Warning>
-**This is a migration, not a supported preset.** Weaverse themes (Pilot, Naturelle) ship configured for **Shopify Oxygen** — the Oxygen Vite plugin, the Oxygen request handler, and Oxygen worker types. There is **no** Cloudflare plugin, `wrangler` config, Cloudflare worker entry, or `cf-*` script in the theme. Everything on this page is something **you add yourself**.
+**This is a migration, not a supported preset.** Weaverse themes (Pilot, Naturelle) ship configured for **Shopify Oxygen** — the Oxygen Vite plugin, Oxygen deployment, and Oxygen worker types. There is **no** Cloudflare plugin, `wrangler` config, Cloudflare worker entry, or `cf-*` script in the theme. Everything on this page is something **you add yourself**.
 
 For production storefronts, use [Shopify Oxygen](/guides/deployment/oxygen). Only take this path if you have a concrete reason to host on Cloudflare, and budget time to validate the result end to end.
 </Warning>
 
 ## What your theme ships with today
 
-Before changing anything, it helps to see exactly what you are migrating away from. In the current Pilot theme:
+Before changing anything, it helps to see exactly what you are migrating away from. In the current Pilot theme (Hydrogen 2026.10):
 
 | File | Current state |
 | --- | --- |
-| `vite.config.ts` | Uses `oxygen()` from `@shopify/mini-oxygen/vite` alongside `hydrogen()` and `reactRouter()` |
-| `server.ts` | Module-format `fetch(request, env, executionContext)` handler built on `createRequestHandler` from `@shopify/hydrogen/oxygen` |
-| `react-router.config.ts` | `presets: [hydrogenPreset()]`, `ssr: true`, `buildDirectory: "dist"` |
+| `vite.config.ts` | Uses `...oxygen()` from `@shopify/mini-oxygen/vite` alongside `localHttps()` from `@shopify/hydrogen/vite` and `reactRouter()` |
+| `server.ts` | Module-format `fetch(request, env, executionContext)` handler built on React Router's `createRequestHandler`, with Hydrogen's `handleShopifyRoutes` and `handleShopifyRedirects` |
+| `react-router.config.ts` | No preset: `ssr: true`, `buildDirectory: "dist"` and the `future` flags Hydrogen needs |
 | `env.d.ts` | References `@shopify/oxygen-workers-types` for the worker globals |
-| `package.json` | Scripts are `dev` / `build` / `preview` / `start` via the Shopify CLI — no `deploy`, `cf-dev`, `cf-typegen`, or `check` |
+| `package.json` | `dev` / `build` / `preview` / `start` run `vite` and `react-router`; `deploy` runs `shopify hydrogen deploy` to Oxygen; `check` is the linter. No `cf-dev`, `cf-typegen`, `cf-check` or `cf-deploy` |
 | `wrangler.json` | **Does not exist** |
 | `.gitignore` | Already ignores `.env` and `.wrangler/` |
 
@@ -34,7 +34,7 @@ Nothing below is pre-configured. Treat each step as a change you are making to y
 
 ## Prerequisites
 
-- **Node.js**: `>=22.12.0` (this is the `engines.node` requirement of the current Pilot theme)
+- **Node.js**: `^22.18.0 || ^24.11.0` (this is the `engines.node` requirement of the current Pilot theme)
 - **Cloudflare account**: sign up at [cloudflare.com](https://cloudflare.com)
 - **Shopify store**: active store with Storefront API access
 - **Weaverse project**: a configured project ID for your storefront
@@ -47,13 +47,13 @@ Nothing below is pre-configured. Treat each step as a change you are making to y
     `npm i -D wrangler @cloudflare/vite-plugin`
   </Step>
   <Step title="Swap the Oxygen Vite plugin for the Cloudflare plugin">
-    Edit `vite.config.ts`.
+    Edit `vite.config.ts`, then set `future.v8_viteEnvironmentApi: true` in `react-router.config.ts`.
   </Step>
   <Step title="Create wrangler.json">
     Point `main` at your worker entry and enable `nodejs_compat`.
   </Step>
   <Step title="Add your own npm scripts">
-    `deploy`, `cf-dev`, `cf-typegen`, `check` — none of these exist yet.
+    `cf-dev`, `cf-typegen`, `cf-check`, `cf-deploy` — none of these exist yet.
   </Step>
   <Step title="Upload secrets and deploy">
     `npx wrangler secret bulk .dev.vars` then `npx wrangler deploy`.
@@ -77,15 +77,15 @@ Your theme currently registers the Oxygen plugin. Replace it with the Cloudflare
 ```diff vite.config.ts
   import { reactRouter } from "@react-router/dev/vite";
 + import { cloudflare } from "@cloudflare/vite-plugin";
-  import { hydrogen } from "@shopify/hydrogen/vite";
+  import { localHttps } from "@shopify/hydrogen/vite";
 - import { oxygen } from "@shopify/mini-oxygen/vite";
   import tailwindcss from "@tailwindcss/vite";
-  import { defineConfig } from "vite";
+  import { defineConfig } from "vite-plus";
 
   export default defineConfig(({ isSsrBuild }) => ({
     plugins: [
-      hydrogen(),
--     oxygen(),
+      localHttps({ enabled: process.env.npm_lifecycle_event === "dev:https" }),
+-     ...oxygen(),
 +     cloudflare({ viteEnvironment: { name: "ssr" } }),
       reactRouter(),
       tailwindcss(),
@@ -101,18 +101,33 @@ Your theme currently registers the Oxygen plugin. Replace it with the Cloudflare
 Keep `assetsInlineLimit: 0`. Pilot sets this so no asset is inlined as a data URI, which keeps the storefront compatible with a strict Content-Security-Policy. See [Content Security Policy](/features/content-security).
 </Note>
 
-Removing `oxygen()` also removes the local Oxygen preview that `npm run dev` and `npm run preview` rely on. Decide up front whether you are keeping an Oxygen path for local development or moving entirely to `wrangler dev`.
+### Turn on the Vite Environment API
+
+The Cloudflare plugin builds the worker through Vite's Environment API, which React Router only uses when its `v8_viteEnvironmentApi` future flag is on. Pilot sets it to `false` for Oxygen. Leave it off and `react-router build` fails with `ENOENT: no such file or directory, open '.../dist/server/.vite/manifest.json'`.
+
+```diff react-router.config.ts
+  future: {
+    v8_middleware: true,
+    v8_splitRouteModules: true,
+-   v8_viteEnvironmentApi: false,
++   v8_viteEnvironmentApi: true,
+    unstable_optimizeDeps: true,
+    v8_passThroughRequests: true,
+    v8_trailingSlashAwareDataRequests: true,
+  },
+```
+
+`npm run dev` and `npm run preview` keep working after the swap: the Cloudflare plugin runs your server code in `workerd`, as the Oxygen plugin did.
 
 ## 3. Review your worker entry
 
-`server.ts` already exports a module-format worker — a default object with an `async fetch(request, env, executionContext)` method — which is the shape Cloudflare Workers expects. What is *not* portable is the Oxygen-specific plumbing around it:
+`server.ts` already exports a module-format worker — a default object with an `async fetch(request, env, executionContext)` method — which is the shape Cloudflare Workers expects. On Hydrogen 2026.10 it uses React Router's own `createRequestHandler`, so there is no Oxygen request handler to replace. What is still Oxygen-specific:
 
-- `createRequestHandler` is imported from `@shopify/hydrogen/oxygen`
 - `env.d.ts` pulls worker globals from `@shopify/oxygen-workers-types`
-- `createHydrogenRouterContext` builds the Hydrogen context from Oxygen's `env` binding shape
+- `createAppContext()` in `app/.server/context.ts` reads Oxygen's `env` binding shape, opens the Cache API with `caches.open()`, and reads the buyer IP from Oxygen's `oxygen-buyer-ip` header for the private Storefront client (it falls back to the public client without it)
 
 <Warning>
-Shopify does not publish a Cloudflare Workers entry for Hydrogen. You will need to verify that the Oxygen request handler, session storage, and caching behave correctly on Cloudflare, and adjust `server.ts` if they do not. Test this before pointing production traffic at it.
+Shopify does not publish a Cloudflare Workers entry for Hydrogen. You will need to verify that session storage, caching, and the buyer IP header behave correctly on Cloudflare, and adjust `server.ts` and `app/.server/context.ts` if they do not. Test this before pointing production traffic at it.
 </Warning>
 
 ## 4. Create `wrangler.json`
@@ -181,15 +196,15 @@ Add `.dev.vars` to `.gitignore`. The theme already ignores `.env` and `.wrangler
 
 ## 6. Add npm scripts
 
-None of these scripts exist in the theme. Add the ones you need to `package.json`:
+None of these scripts exist in the theme. Pilot's own `deploy` (Oxygen) and `check` (lint) scripts keep their names, so prefix the Cloudflare ones. Add the ones you need to `package.json`:
 
 ```json package.json
 {
   "scripts": {
     "cf-typegen": "wrangler types && react-router typegen",
     "cf-dev": "wrangler dev --port 8787",
-    "check": "tsc --noEmit && react-router build && wrangler deploy --dry-run",
-    "deploy": "wrangler deploy"
+    "cf-check": "tsc --noEmit && react-router build && wrangler deploy --dry-run",
+    "cf-deploy": "wrangler deploy"
   }
 }
 ```
@@ -198,8 +213,8 @@ None of these scripts exist in the theme. Add the ones you need to `package.json
 | --- | --- |
 | `cf-typegen` | Generates Worker binding types plus React Router route types |
 | `cf-dev` | Runs the app locally in `workerd` on port 8787 |
-| `check` | Type check, build, and dry-run deploy — catches config errors before shipping |
-| `deploy` | Publishes the worker |
+| `cf-check` | Type check, build, and dry-run deploy — catches config errors before shipping |
+| `cf-deploy` | Publishes the worker |
 
 ## 7. Deploy
 
@@ -215,10 +230,10 @@ npm run build
 npm run cf-dev
 
 # Validate before shipping
-npm run check
+npm run cf-check
 
 # Ship it
-npm run deploy
+npm run cf-deploy
 ```
 
 Wrangler prints the live URL on success, typically `https://your-project-name.<subdomain>.workers.dev`.
@@ -262,8 +277,8 @@ A rollback shifts all traffic immediately. Verify the target deployment is healt
 
 ## Troubleshooting
 
-**Build fails after removing `oxygen()`**
-`npm run dev`, `npm run preview`, and `npm run start` all go through the Shopify CLI's Oxygen sandbox. Once the Oxygen plugin is gone, use `npm run cf-dev` instead.
+**Build fails with `ENOENT ... dist/server/.vite/manifest.json`**
+`future.v8_viteEnvironmentApi` is still `false` in `react-router.config.ts`. Set it to `true`; see [Turn on the Vite Environment API](#turn-on-the-vite-environment-api).
 
 **`nodejs_compat` errors at runtime**
 Confirm the flag is in `wrangler.json` and that `compatibility_date` is recent enough for the Node compatibility mode your dependencies need.
@@ -281,6 +296,6 @@ Expected — this is the least-validated part of the migration. Compare against 
 
 - [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/)
-- [Shopify: Self-hosting Hydrogen](https://shopify.dev/docs/storefronts/headless/hydrogen/deployments/self-hosting)
+- [Shopify: Deploy Hydrogen](https://shopify.dev/docs/storefronts/hydrogen/deploy)
 - [Deploy to Oxygen](/guides/deployment/oxygen) — the supported path
 - [Weaverse Community on Slack](https://join.slack.com/t/weaversecommunity/shared_invite/zt-235bv7d80-velzJU8CpZIHWdrzFwAdXg)

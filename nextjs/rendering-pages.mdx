@@ -1,6 +1,6 @@
 ---
 title: "Rendering Pages in Next.js"
-description: "Load and render Weaverse pages in Next.js App Router routes with @weaverse/next: route identity, page types, custom pages, 404s, SEO metadata and sitemaps."
+description: "Load and render Weaverse pages in Next.js App Router routes with @weaverse/hydrogen/next: route identity, page types, custom pages, 404s, SEO metadata and sitemaps."
 published: true
 ---
 
@@ -48,6 +48,8 @@ Each Weaverse page type maps to a route your app owns. The paths are yours; Weav
 | `PRODUCT` | `{ type: 'PRODUCT', handle }` | `app/products/[handle]/page.tsx` |
 | `COLLECTION` | `{ type: 'COLLECTION', handle }` | `app/collections/[handle]/page.tsx` |
 | `ALL_PRODUCTS` | `{ type: 'ALL_PRODUCTS' }` | `app/products/page.tsx` |
+| `COLLECTION_LIST` | `{ type: 'COLLECTION_LIST' }` | `app/collections/page.tsx` |
+| `BLOG` | `{ type: 'BLOG', handle }` | `app/blogs/[blog]/page.tsx` |
 | `ARTICLE` | `{ type: 'ARTICLE', handle }` | `app/blogs/[blog]/[handle]/page.tsx` |
 | `PAGE` | `{ type: 'PAGE', handle }` | `app/pages/[handle]/page.tsx` |
 | `CUSTOM` | `{ type: 'CUSTOM' }`, resolved by `pathname` | `app/[...slug]/page.tsx` |
@@ -85,7 +87,7 @@ export default async function ProductPage(props: {
 }
 ```
 
-`loadWeaversePage` is an app helper that builds the server client and calls `loadPage`, returning `null` when the project is not configured, the request fails, or no page exists.
+`loadWeaversePage` is an app helper that builds the server client and calls `loadPage`, returning `null` when the project is not configured, the request fails, or Weaverse has no page for the route.
 
 It wraps the `getWeaverseServerClient` helper from the [Quickstart](/nextjs/quickstart#4-create-the-server-client-helper):
 
@@ -103,16 +105,72 @@ export async function loadWeaversePage(options: {
       options.searchParams,
       { pageType: options.type, handle: options.handle }
     )
-    return (await weaverse.loadPage({ type: options.type, handle: options.handle })) ?? null
+    let page = await weaverse.loadPage({ type: options.type, handle: options.handle })
+    // An unassigned route resolves to a placeholder page, not null. Treat it
+    // as "no page", except in Studio's design mode, where the merchant adds
+    // sections to it.
+    if (page?.isFallback && !page.configs?.isDesignMode) {
+      return null
+    }
+    return page
   } catch {
     return null
   }
 }
 ```
 
+`isFallback` needs `@weaverse/hydrogen` 6.5.0 or later. On earlier versions, check `page.page.id.startsWith('fallback_page_')` instead.
+
 ### No page means 404
 
-`loadPage` resolves to `null` when Weaverse holds no page for the route. Answer that with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+By default, the server client's `loadPage` doesn't throw. It resolves to:
+
+- **A placeholder page with `isFallback: true`** when the project loads but no page is assigned to the route. It renders "Please add new section to start." It is not `null`, so check for it, as `loadWeaversePage` above does. Keep it in design mode: it is the page Studio lets the merchant build on. A 200 response whose body has no page (for example `{}`) also resolves to the placeholder.
+- **`null`** when the Weaverse API answers 404 (for example, the project doesn't exist), when no project ID resolves, or when the request fails (network error, timeout, error status or error body). The failure is logged on the server.
+
+Answer "no page" with `notFound()`. Do not substitute a hard-coded composition: a Weaverse project always ships its default templates, so a page renders exactly as the merchant authored it, and an empty template renders empty.
+
+### Outages are not 404s
+
+With the default, an outage looks like a missing page, so `loadWeaversePage` answers it with a 404. From 6.5.0, set `throwPageLoadFailures: true` on the server client to tell them apart: a failed load then rejects with a [`WeaverseLoadError`](/nextjs/api/next/classes/WeaverseLoadError) whose `kind` is `unavailable` (timeout, network error, 408, 425, 429 or 5xx), `invalid-response` (error body, non-JSON body, or a body that isn't a page envelope) or `configuration` (no project ID, or another refusal such as 401 or 403). A 404 from the Weaverse API still resolves to `null`, and an unassigned route still resolves to the placeholder page.
+
+```ts
+// weaverse/server.ts
+import {
+  createWeaverseNextServerClient,
+  WeaverseLoadError,
+} from '@weaverse/hydrogen/next/server'
+
+// In getWeaverseServerClient:
+createWeaverseNextServerClient({
+  // ...
+  throwPageLoadFailures: true,
+})
+
+// In loadWeaversePage, let load failures through and keep `null` for "no page":
+  } catch (error) {
+    if (error instanceof WeaverseLoadError) throw error
+    return null
+  }
+```
+
+A page route that lets the error through renders the nearest `error.tsx` instead of the 404 page. A [route handler](https://nextjs.org/docs/app/api-reference/file-conventions/route) can answer with a status of its own, for example a `503` that isn't cached for `unavailable` and `invalid-response`, and a `500` for `configuration`:
+
+```ts
+try {
+  let page = await weaverse.loadPage({ type: 'INDEX' })
+  // ...
+} catch (error) {
+  if (error instanceof WeaverseLoadError) {
+    let retryable = error.kind !== 'configuration'
+    return new Response(null, {
+      status: retryable ? 503 : 500,
+      headers: { 'Cache-Control': 'no-store' },
+    })
+  }
+  throw error
+}
+```
 
 <Warning>
   `notFound()` returns a real 404 only while no `loading.tsx` wraps the route. A `loading.tsx` adds a Suspense boundary, and once the streamed shell is sent the response is committed to `200` before your check runs.
@@ -163,12 +221,12 @@ The server payload carries the route identity in `data.configs.requestInfo`. Res
 import type {
   WeaverseNextLoaderData,
   WeaverseNextRequestInfo,
-} from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
 import {
   createWeaverseNextClient,
   WeaverseNextProvider,
   WeaverseNextRenderer,
-} from '@weaverse/next'
+} from '@weaverse/hydrogen/next'
 import { components } from './components'
 import { StorefrontDataProvider, type StorefrontData } from './data-context'
 
@@ -183,7 +241,8 @@ export function WeaversePage({
     | WeaverseNextRequestInfo
     | undefined
   let projectId =
-    (data.configs?.projectId as string | undefined) ?? data.project?.id
+    (data.configs?.projectId as string | undefined) ??
+    (data.project?.id as string | undefined)
   if (!projectId) throw new Error('Missing Weaverse project id')
 
   let client = createWeaverseNextClient({
@@ -260,12 +319,12 @@ export function useStorefrontData() {
 
 ## SEO metadata
 
-Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/next/server`:
+Map the page's Weaverse SEO into Next's `Metadata` with `getWeaverseNextSeoMetadata` from `@weaverse/hydrogen/next/server`:
 
 ```ts
 // app/pages/[handle]/page.tsx
 import type { Metadata } from 'next'
-import { getWeaverseNextSeoMetadata } from '@weaverse/next/server'
+import { getWeaverseNextSeoMetadata } from '@weaverse/hydrogen/next/server'
 
 export async function generateMetadata(props: {
   params: Promise<{ handle: string }>
@@ -291,7 +350,7 @@ The helper accepts the loader data, a page, or `null` (which returns indexable d
 
 ## Custom pages in the sitemap
 
-`fetchCustomPages` returns every published custom page, paginating for you. It accepts Next cache options:
+`fetchCustomPages` returns the route metadata of every custom page assigned in the project, paginating for you. It accepts Next cache options:
 
 ```ts
 // app/sitemap.ts
@@ -316,6 +375,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 If a later page of results fails, it returns the pages already fetched instead of throwing, so one API error does not break the sitemap.
 
+<Warning>
+  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages).
+</Warning>
+
 ## Next steps
 
 <CardGroup cols={2}>
@@ -329,6 +392,6 @@ If a later page of results fails, it returns the pages already fetched instead o
     Localized routes and Translation Manager
   </Card>
   <Card title="API Reference" icon="code" href="/nextjs/api-reference">
-    Every export of `@weaverse/next`
+    Every export of `@weaverse/hydrogen/next`
   </Card>
 </CardGroup>

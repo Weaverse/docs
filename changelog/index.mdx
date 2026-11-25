@@ -8,6 +8,930 @@ published: true
 
 Stay up-to-date with the latest features, improvements, and bug fixes across the entire Weaverse ecosystem.
 
+<Update label="2026.11.39" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Latest release on partner theme pages**: The Overview of a partner theme in the [Themes](https://weaverse.io/themes) gallery now shows the theme's latest release version.
+  - **Hydrogen version on partner theme pages**: The Overview also shows the Hydrogen version the theme is built on, instead of "N/A".
+  - **Changelog table of contents**: The Changelog tab lists the theme's versions as a table of contents beside the notes. Long changelogs are shortened with a **Read More** button, and following a version in the contents opens the full changelog.
+</Update>
+
+<Update label="SDK v6.6.0" description="November 24, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Sitemaps no longer drop custom pages on errors**: `fetchCustomPages` (React Router and Next.js) now rejects with a `WeaverseLoadError` when the custom pages can't be loaded, instead of resolving to a partial or empty list. Answer the error with a 5xx in your sitemap route so search engines keep your last good sitemap and retry, rather than caching one without your custom pages. The error's `kind` tells a temporary outage (`unavailable`) from a setup problem (`configuration`) or an unexpected response (`invalid-response`).
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.6.0
+  ```
+
+  If your sitemap route calls `fetchCustomPages`, catch the error and return a 5xx response, for example `503` with `Retry-After` and `Cache-Control: no-store`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.6.0)
+</Update>
+
+<Update label="Pilot v2026.11.23" description="November 23, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Weaverse SDK v6.5.1**: Pilot runs on `@weaverse/hydrogen` 6.5.1 and recognizes pages with no Weaverse page assigned through the SDK's `isFallback` flag. They answer 404 on the storefront and still show the placeholder in Studio.
+  - **Current SDK patterns**: Section schemas use `enabled` instead of the deprecated `enabledOn.pages`, and `.env.example` documents `WEAVERSE_PUBLIC_API_BASE`, the variable the SDK reads.
+  - **Supported Node on Oxygen**: The Oxygen deploy workflow installs the Node version from `package.json` `engines` instead of the latest LTS, which Pilot doesn't support yet.
+
+  #### Fixes
+
+  - **Studio SEO on custom pages**: Custom pages emit one title, description and Open Graph/Twitter tag each, so the SEO title set in Studio is no longer overridden by the shop name.
+
+  #### Upgrade
+
+  Breaking for themes built on Pilot: the unregistered `ali-reviews` section is removed, along with its CSP hosts, `ALI_REVIEWS_API_KEY` and the unused `useClosestWeaverseItem` hook. Forks that registered the section need to keep their own copy. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.23)
+</Update>
+
+<Update label="Forward v2026.11.23" description="November 23, 2026" tags={["Theme", "Forward", "Next.js"]}>
+  ### Weaverse Forward Theme
+
+  #### New Features
+
+  - **Account order view**: Order lists show a thumbnail, item count, payment and fulfillment badges and the total. Order pages show each line's image, variant, SKU and price, shipments with tracking links, the billing address and a link to Shopify's order status page.
+  - **Navigation progress bar**: A bar at the top of the page shows that a clicked link is loading.
+  - **Custom pages in the sitemap**: Weaverse custom pages for the default market are listed in `sitemap.xml`.
+
+  #### Improvements
+
+  - **Addresses and sign-out**: Address cards are spaced out with compact actions and a confirmation before deleting, and sign-out is a separate bordered button.
+  - **Data Connectors**: Bindings such as `{{current.product.title}}` resolve on Forward pages.
+  - **Studio fallback page**: Studio can compose an empty page from its fallback placeholder, and each Weaverse page loads once per request.
+  - **Weaverse SDK v6.5.1**: Forward runs on `@weaverse/hydrogen` 6.5.1.
+
+  #### Fixes
+
+  - **Weaverse outages**: When Weaverse is unreachable or refuses a request, pages answer with the error page and a 5xx instead of a 404, so crawlers and caches don't treat them as gone.
+  - **Order item counts**: Item counts on account orders come from line quantities.
+  - **Customer Account setup**: The client ID error names both the Headless and the Hydrogen channel, and the README documents Hydrogen channel env sync.
+
+  #### Upgrade
+
+  No setup or code changes are needed.
+
+  [GitHub release](https://github.com/Weaverse/forward/releases/tag/v2026.11.23)
+</Update>
+
+<Update label="SDK v6.5.1" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Next.js apps no longer install React Router**: `react-router` and `@shopify/hydrogen` are now optional peer dependencies of `@weaverse/hydrogen`, like `next`. The Next.js entries never load them, so package managers that install peers on their own (pnpm, bun) stop adding an unused router to Next.js storefronts. React Router themes install both already, and a version outside the supported range still gets a peer dependency warning.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.5.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.5.1)
+</Update>
+
+<Update label="SDK v6.5.0" description="November 23, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Know when a route has no Weaverse page**: when no page is assigned to a URL, `loadPage()` still returns Weaverse's placeholder page so Studio can open it, and the loader data now also has `isFallback: true`. Check `isFallback` instead of the placeholder's page id to answer 404 on your live storefront. Works with React Router and Next.js.
+  - **Opt-in load errors on Next.js**: pass `throwPageLoadFailures: true` to `createWeaverseNextServerClient()` and `loadPage()` rejects with `WeaverseLoadError` when Weaverse is unreachable (`unavailable`), answers with a bad body (`invalid-response`) or refuses the request (`configuration`), instead of returning `null`, so an outage no longer looks like a missing page. A page route then renders its `error.tsx`; a route handler can answer 503. A project that doesn't exist still resolves to `null`. `WeaverseError` and `WeaverseLoadError` are exported from `@weaverse/hydrogen/next/server`. React Router already had this option.
+  - **Market scope for custom pages**: `fetchCustomPages()` entries add optional `market` and `scope` (`global`, `locale` or `market`), so a sitemap can include shared pages in every market and market-only pages only in their market. Studio returns them from 2026.11.62.
+
+  #### Fixes
+
+  - **Route project id in loader data**: when you pass `projectId` to `loadPage()`, `configs.projectId` in the loader data is now that project, not the default one.
+
+  #### Breaking change
+
+  - **`weaverseApiKey` removed**: the Weaverse API key no longer appears in loader data, page configs or Studio query data, and the `weaverseApiKey` field is gone from `WeaverseProjectConfigs`, `WeaverseStudioQueries` and `WeaverseHydrogenParams`. It was sent to the browser and nothing read it. If your code reads `configs.weaverseApiKey`, delete that use; server code that needs the key for the [Content API](/content-api/overview) reads `WEAVERSE_API_KEY` from the environment.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.5.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.5.0)
+</Update>
+
+<Update label="SDK v6.4.0" description="November 20, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **React Router 8 support**: `@weaverse/hydrogen` now works with React Router 7 or 8. On React Router 8, `context` in `RouteLoaderArgs` combines the router's context provider with the Weaverse context, so `context.get()` works in your loaders. Members your app adds to its load context, such as `context.env` and `context.storefront`, stay typed on both versions.
+
+  #### Improvements
+
+  - **One copy of React and React Router**: `@weaverse/react` and `@weaverse/hydrogen` now list `react` and `react-dom` (19 or later) as peer dependencies, and `@weaverse/hydrogen` also lists `react-router` (7 or 8), instead of installing their own copies. The SDK always uses your storefront's React and router, which avoids "Invalid hook call" and router context errors in workspaces that mix versions. React Router storefronts already install all three, so no change is needed. An app on an unsupported version now gets a peer dependency warning instead of a hidden second copy.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.4.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.4.0)
+</Update>
+
+<Update label="2026.11.38" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Theme demos**: Trying a theme from the [Themes](https://weaverse.io/themes) gallery now connects to that theme's demo storefront for every theme, including newer partner themes that previously could not connect.
+</Update>
+
+<Update label="2026.11.37" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Partner themes first**: Partner themes are now listed first in the [Themes](https://weaverse.io/themes) gallery. Theme cards no longer show **Buy theme** or **Coming soon**: open a theme to get or buy it.
+  - **Theme page actions**: A theme's page has one main button with the price, **Get theme** for free themes or **Buy theme** for paid ones. A **Preview** menu beside it opens the **Live storefront** or **Try in Studio** in a new tab.
+  - **Theme descriptions**: The theme page header shows the description in up to three lines. Long partner descriptions open in full with **Read More**.
+  - **Book a Demo page**: The [Book a Demo](https://weaverse.io/book-a-demo) page now matches the rest of the site and keeps the calendar steady while it loads. If you dismissed the cookie banner, you can reopen your privacy preferences from the calendar. Demo buttons across the site now read "Book a Demo".
+</Update>
+
+<Update label="2026.11.36" description="November 15, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **README and Changelog on partner theme pages**: Partner theme pages in the [Themes](https://weaverse.io/themes) gallery now have **README** and **Changelog** tabs, read from the theme's source package. Long changelogs are collapsed.
+
+  #### Improvements
+
+  - **Shorter theme preview links**: Partner theme preview links are shorter, named after the theme, and always show the latest saved draft.
+</Update>
+
+<Update label="2026.11.35" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **No reload after saving**: Studio no longer shows "Reloading window to apply changes..." and reloads the window after every save or publish.
+</Update>
+
+<Update label="2026.11.34" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Book a Demo page**: A new [Book a Demo](https://weaverse.io/book-a-demo) page lets you schedule a demo with the Weaverse team. The calendar loads once you allow functional cookies, and a direct scheduling link is always available.
+</Update>
+
+<Update label="2026.11.33" description="November 13, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Theme purchases on the Billing page**: The Billing page in your dashboard now lists the themes your store has bought, with the price paid, purchase date and license status, plus a **Create project** button while the license is active. The list appears once your store has bought a theme.
+</Update>
+
+<Update label="2026.11.32" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Open in Studio from usage breakdown**: Each project and top page in your billing usage breakdown has an **Open in Studio** button, so you can go from a usage number straight to that project or page.
+
+  #### Fixes
+
+  - **Uninstalling Weaverse**: Uninstalling the app from a store with a long usage history now reliably ends the store's Weaverse billing.
+</Update>
+
+<Update label="2026.11.31" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Sandbox setup asks for what it needs**: When a Sandbox sets up a linked repository, Weaverse now provides the values it already knows, such as `WEAVERSE_PROJECT_ID` and `SESSION_SECRET`. Any other value appears as a field in the Sandbox card with a **Save and continue** button, instead of setup stopping at "Waiting for your input".
+</Update>
+
+<Update label="2026.11.30" description="November 12, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Theme purchases on your Shopify invoice**: Buying a paid partner theme now adds its price to your next Weaverse invoice on Shopify, instead of a separate one-time charge.
+  - **Partner theme descriptions**: Partner theme descriptions in the [Themes](https://weaverse.io/themes) gallery now show Markdown formatting, such as headings, lists, links and images hosted on Shopify. Theme cards show the description as plain text.
+</Update>
+
+<Update label="2026.11.28" description="November 11, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Usage breakdown**: Page views recorded shortly after the hour now appear in the breakdown.
+  - **AI agent code for SDK 6 themes**: Components the AI agent generates now use the imports and types that match your theme's Weaverse SDK version.
+</Update>
+
+<Update label="Pilot v2026.11.13" description="November 13, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Content Security Policy on Hydrogen's helpers**: The report-only policy is built with Hydrogen's `createContentSecurityPolicy` and the Weaverse SDK's Studio sources, so normal visitors get no Weaverse or Shopify wildcards, and pages stay cacheable on Oxygen. Set `PUBLIC_CHECKOUT_DOMAIN` to allow Shopify videos served from your store's own domain.
+  - **Markets with `defineShopifyI18n`**: Markets are defined with Hydrogen 2026.10.3's locale APIs, and every market keeps its URL.
+
+  #### Fixes
+
+  - **Sign-out**: Signing out returns shoppers to the home page of the market they were browsing, such as `/de-de`, instead of `/`.
+  - **Related products**: Opening a related product on a product page no longer logs a duplicate view-transition error, and its image still expands into the next page.
+  - **Account page**: The account page keeps its spacing on desktop, and "Add an Address" opens the address form.
+  - **CSP reports**: Upgrading to Weaverse SDK v6.3.1 stops a CSP `unsafe-eval` report on every page.
+
+  #### Upgrade
+
+  Register `<your-origin>/account/signed-out` as a Logout URI in the Customer Account API settings. Until then, sign-out still works and returns to `/`.
+
+  Breaking for themes built on Pilot: forks that import `app/utils/csp.ts`, `useNonce`, `I18nConfig` or `storefront.i18n` need to update. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.13)
+</Update>
+
+<Update label="Forward v2026.11.13" description="November 13, 2026" tags={["Theme", "Forward", "Next.js"]}>
+  ### Weaverse Forward Theme
+
+  #### New Features
+
+  - **Date-based versions**: Forward now uses date-based versions (`YYYY.M.D`) like Pilot, and ships a `CHANGELOG.md`. This release follows `1.0.0`.
+  - **Opt-in Content Security Policy**: Set `CSP_MODE` to `report-only` (the default), `enforce` or `off`. Weaverse Studio's sources are added in design mode, and `PUBLIC_CHECKOUT_DOMAIN` allows Shopify videos served from your store's own domain.
+
+  #### Improvements
+
+  - **Weaverse SDK v6**: Forward imports Weaverse from `@weaverse/hydrogen/next` (v6.3.1), defines markets with `defineShopifyI18n`, resolves theme copy with `createTranslate` and maps page SEO with `getWeaverseNextSeoMetadata`.
+  - **Hydrogen 2026.10.3**: Forward runs on `@shopify/hydrogen` 2026.10.3 and Next 16.4.6.
+
+  #### Fixes
+
+  - **Sign-out**: Signing out returns shoppers to the home page of the market they were browsing, instead of `/`.
+  - **Cart market**: The cart stays in the market of the current page, and switching market reloads its totals in the new currency.
+  - **Sitemap and robots.txt**: Both advertise your site's origin (`PUBLIC_SITE_URL`, or the Vercel production domain) instead of a placeholder.
+
+  #### Upgrade
+
+  Register `https://<your-domain>/account/signed-out` as a Logout URI in the Customer Account API settings. Until then, sign-out still works and returns to `/`.
+
+  Breaking for themes built on Forward: forks that import from `@weaverse/next` can run the codemod below. Lint, format and tests now run on Vite+ (`vp`) instead of Biome and `bun test`. Merchants using Forward as-is need no changes.
+
+  ```bash
+  npx @weaverse/cli@latest migrate v6
+  ```
+
+  [GitHub release](https://github.com/Weaverse/forward/releases/tag/v2026.11.13)
+</Update>
+
+<Update label="SDK v6.3.1" description="November 12, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **No more `unsafe-eval` CSP reports**: storefronts with a Content Security Policy no longer log an `'unsafe-eval'` violation on every page load. The schema validator used by the SDK probed whether it could compile code at runtime; it now skips that probe. Nothing else changes, and you don't need to add `'unsafe-eval'` to your policy. This release ships with `@weaverse/schema` 0.20.1.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.3.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.3.1)
+</Update>
+
+<Update label="@weaverse/schema 0.20.1" description="November 12, 2026" tags={["SDK"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **No runtime code compilation**: the package now turns off Zod's JIT mode, so Zod never probes `new Function()` and storefronts with a Content Security Policy without `'unsafe-eval'` no longer log a violation. It requires Zod 4.4 or later. JIT mode is a global Zod setting, so other code sharing the same Zod instance also runs without it.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/schema@0.20.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/schema%400.20.1)
+</Update>
+
+<Update label="2026.11.27" description="November 11, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **One year of usage history, a rolling free allowance.** Usage history is kept for one year and older usage data is automatically removed. Free evaluation includes 10,000 view credits in any 30-day period. Billing records, charges and invoices are unchanged.
+</Update>
+
+<Update label="SDK v6.3.0" description="November 12, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Content Security Policy for Weaverse Studio**: `getWeaverseStudioCspDirectives(request)` returns the CSP sources Weaverse Studio needs for the current request, ready to pass to Hydrogen's `createContentSecurityPolicy`. Normal visitors get no extra sources, and only trusted Weaverse Studio origins are allowed to embed and edit the page. Import it from `@weaverse/hydrogen/react-router` or `@weaverse/hydrogen/next/server`.
+
+  #### Improvements
+
+  - **Hydrogen 2026.10.3 locale APIs**: the SDK now reads the storefront's `locale` instead of the deprecated `i18n`, so storefronts using `defineShopifyI18n` get no deprecation warnings from Weaverse.
+
+  #### Upgrade
+
+  This release requires `@shopify/hydrogen` 2026.10.3 or later:
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.3.0 @shopify/hydrogen@^2026.10.3
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.3.0)
+</Update>
+
+<Update label="2026.11.25" description="November 11, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Understand your page views.** See which storefronts and pages drive your usage, with a daily trend and Content API requests listed separately. Page views include content loads by crawlers and bots, not just visitors.
+</Update>
+
+<Update label="SDK v6.2.0" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **One package for Next.js**: the Next.js adapter now ships inside `@weaverse/hydrogen` (`@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`), so Next.js storefronts install one Weaverse package and no longer get a second copy of the React bindings.
+  - **Translation and SEO helpers for Next.js**: `createTranslate`, `interpolate` and `getNestedKey`, and the SEO helpers `getWeaverseNextSeoMetadata` and `formatWeaverseNextSeoMetadata`, are now exported from `@weaverse/hydrogen/next` (the SEO helpers from `/next/server` too), so themes can use them instead of their own copies.
+
+  #### Upgrade
+
+  `@weaverse/next` is deprecated. Remove it from your dependencies, upgrade `@weaverse/hydrogen`, and let the codemod rewrite the imports:
+
+  ```bash
+  npm uninstall @weaverse/next
+  npm install @weaverse/hydrogen@^6.2.0
+  npx @weaverse/cli@latest migrate v6
+  ```
+
+  Already-published `@weaverse/next` versions keep installing.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.2.0)
+</Update>
+
+<Update label="2026.11.22" description="November 10, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### New Features
+
+  - **Partner themes**: The [Themes](https://weaverse.io/themes) gallery now includes themes from Weaverse partners, each with its own detail page, preview and price.
+  - **Buy themes**: Buy a paid partner theme with a one-time Shopify charge, then create a project from it in the Create project dialog. Purchased and free themes give you a `npx @weaverse/cli@latest create` command that downloads the theme source into your new project.
+  - **Theme settings from the Page Outline**: In themes that support it, open the settings for the header, footer and other theme areas from the Page Outline or by clicking them in the preview.
+
+  #### Improvements
+
+  - **Restore published page drafts**: Restore an eligible published page draft as a new draft, with its translations, without changing live content.
+  - **Clearer preview status**: When the preview is not ready or cannot connect, Studio shows setup or recovery steps instead of a generic connection error.
+
+  #### Fixes
+
+  - **Publishing after deleting a global section**: Publishing a page no longer fails after a global section was deleted.
+  - **Browser translation**: The editor no longer crashes when the browser's page translation is turned on.
+  - **Projects created from a theme preset**: The home page keeps its content when a store uses market-based locales.
+</Update>
+
+<Update label="SDK v6.1.3" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Studio selection on the Next.js entry**: `useStudioSelection()` is now available from `@weaverse/hydrogen/next` too, so Next.js themes can read what is selected in Weaverse Studio without importing `@weaverse/next`. The entry still works in Server Components.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.3
+  ```
+
+  Released with `@weaverse/next` 1.1.4, which pins the same `@weaverse/react`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.3)
+</Update>
+
+<Update label="@weaverse/next 1.1.4" description="November 11, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.3**: Pins the same `@weaverse/react` as `@weaverse/hydrogen` 6.1.3, which now also exports `useStudioSelection()` from `@weaverse/hydrogen/next`. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.4
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.4)
+</Update>
+
+<Update label="SDK v6.1.2" description="November 11, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **Next.js entry in Server Components**: `@weaverse/hydrogen/next` no longer crashes `next build` with `createContext is not a function` when a Server Component imports it, such as a root layout or a section schema. Next.js storefronts can import from `@weaverse/hydrogen/next` instead of `@weaverse/next`.
+
+  #### New Features
+
+  - **Studio selection store**: `useStudioSelection()` from `@weaverse/hydrogen/react-router` reads what is selected in Weaverse Studio from anywhere under the root layout, including UI rendered outside the page, such as popups. It returns empty values until Studio starts sending selections.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.2
+  ```
+
+  Released with `@weaverse/next` 1.1.3.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.2)
+</Update>
+
+<Update label="@weaverse/next 1.1.3" description="November 11, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### New Features
+
+  - **Studio selection store**: `useStudioSelection()` reads what is selected in Weaverse Studio under `WeaverseNextRootProvider` or `WeaverseNextProvider`. It returns empty values until Studio starts sending selections.
+
+  Pins `@weaverse/react` 6.1.2, the version `@weaverse/hydrogen` 6.1.2 uses.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse%2Fnext%401.1.3)
+</Update>
+
+<Update label="2026.11.19" description="November 9, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Agent index**: [weaverse.io/llms.txt](https://weaverse.io/llms.txt) now covers SDK v6, Next.js and the Forward theme, and agents that request Markdown from the homepage now receive the full index.
+</Update>
+
+<Update label="Pilot v2026.11.10" description="November 10, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### Improvements
+
+  - **Collection filters on Hydrogen's collection store**: Collection and all-products filters and sort run on Hydrogen 2026.10's collection store, so checked filters update instantly and follow back and forward navigation. URLs use Liquid-compatible params (`filter.p.*`, `filter.v.*`, `sort_by`), and older filter links redirect to them.
+  - **Prices in each market's format**: Prices, including compare-at prices, follow each market's locale, such as `1.234,50 €` in Germany. English-language markets abroad, such as `/en-de`, format prices like their country, and the collection price filter shows the market's currency.
+  - **Market translations**: Markets whose Shopify language differs from their public locale, such as Traditional Chinese in Hong Kong, get their Weaverse translations.
+
+  #### Fixes
+
+  - **Search**: Pressing Enter in the header search opens the results page without a full reload, and the search page has a submit button.
+  - **Account icon**: The header account icon no longer flickers or shifts the header while the page loads.
+
+  #### Upgrade
+
+  Breaking for themes built on Pilot: forks that build collection filter URLs or parse rendered price strings should check them. Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.10)
+</Update>
+
+<Update label="Maison v2026.11.10" description="November 10, 2026" tags={["Theme", "Maison"]}>
+  ### Maison Theme
+
+  #### New Features
+
+  - **Refreshed storefront**: The visual system, home page sections and page layout are refreshed, with a rebuilt footer, announcement bar and product gallery.
+  - **New sections**: **Highlights**, **Instagram**, **Image with product** and **Rich text**. Testimonials now run as a carousel, and featured collections add an editorial layout alongside the grid and carousel.
+  - **B2B through B2Bridge**: B2B pricing, checkout and settlement run through B2Bridge. Each buyer sees the prices for their company location, and a cart can't be checked out twice.
+  - **Judge.me and Klaviyo**: Reviews and email signup are ready to connect. Each stays hidden until its token is added, so the storefront never shows an empty reviews widget or a signup form that can't submit.
+
+  #### Improvements
+
+  - **Collection, product, cart and search**: The cart order summary shows the subtotal before discounts, the variant table has its own tablet and desktop layouts inside quick shop, collection cards show the correct product count, and the search bar and popular keywords stay inside the viewport on mobile.
+  - **New projects start clean**: Section presets and defaults ship placeholder images and copy only, so there is no demo content to remove before adding your own.
+  - **Selling in more than one language**: Newsletter and free-shipping messages follow the shopper's language, cart and quick shop work under a locale prefix, footer and quick shop labels are editable from theme settings, and sitemap URLs point at the right blog.
+  - **Documentation**: New guides cover setup, the section library and third-party integrations.
+
+  #### Fixes
+
+  - **Carts stay with their shopper**: Signing in as a second account on the same browser no longer shows the previous shopper's cart, checkout details or company pricing. A guest cart carries over when that shopper signs in, and signing out leaves the cart behind.
+  - **Removing cart lines**: Removing several cart lines in quick succession no longer brings a deleted line back on screen.
+
+  [GitHub release](https://github.com/Weaverse/maison/releases/tag/v2026.11.10)
+</Update>
+
+<Update label="SDK v6.1.1" description="November 10, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Fixes
+
+  - **`fetchWithCache` with form bodies**: Requests whose body is `FormData`, a `Blob` or another non-string body are no longer cached under one shared entry, so two such requests with different bodies each get their own response. These requests now skip the cache; string, `URLSearchParams` and body-less requests are cached as before.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.1
+  ```
+
+  Released with `@weaverse/next` 1.1.2, which pins the same `@weaverse/react`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.1)
+</Update>
+
+<Update label="@weaverse/next 1.1.2" description="November 10, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.1**: Pins the same `@weaverse/react` as `@weaverse/hydrogen` 6.1.1, which fixes `fetchWithCache` sharing one cache entry between requests with different `FormData` or other non-string bodies. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.2
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.2)
+</Update>
+
+<Update label="2026.11.9" description="November 3, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Development and client-transfer stores**: Shopify development and client-transfer stores can keep using Studio and the dashboard without being redirected to plan selection, even after passing the free view allowance. Once a store moves to a paid Shopify plan, the usual plan requirement applies.
+</Update>
+
+<Update label="SDK v6.1.0" description="November 9, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Market locale for Weaverse**: `WeaverseClient` takes an optional `locale`, the market as Weaverse identifies it. It selects the Translation Manager overrides, the locale sent with page requests and the locale Studio reads, including `pathPrefix`, while the Storefront API keeps its own `i18n`. Use it when a market's Shopify `LanguageCode` differs from its public language, such as `ZH_TW` for a Traditional Chinese Hong Kong market, whose translations otherwise fall back to theme defaults. Without `locale`, nothing changes.
+
+  ```ts
+  new WeaverseClient({
+    storefront,
+    locale: { language: 'ZH', country: 'HK', pathPrefix: '/zh-hk' },
+    // ...env, cache, waitUntil, request, components, themeSchema
+  })
+  ```
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/hydrogen@^6.1.0
+  ```
+
+  Released with `@weaverse/next` 1.1.1, which pins the same `@weaverse/react`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.1.0)
+</Update>
+
+<Update label="@weaverse/next 1.1.1" description="November 9, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.1.0**: Pins `@weaverse/react` 6.1.0, the version `@weaverse/hydrogen` 6.1.0 uses, so both packages share one copy of `@weaverse/react`. No changes to `@weaverse/next` itself.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.1
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.1)
+</Update>
+
+<Update label="Pilot v2026.11.7" description="November 7, 2026" tags={["Theme", "Pilot"]}>
+  ### Weaverse Pilot Theme
+
+  #### New Features
+
+  - **Hydrogen 2026.10 and Weaverse SDK 6**: Pilot now runs on Hydrogen 2026.10 and `@weaverse/hydrogen` 6.0. Every route, SEO output, analytics event and commerce feature keeps working: `server.ts` owns the request lifecycle, the cart and product form use Hydrogen's stores, customer accounts use Hydrogen's OAuth handlers, and `ShopifyScripts` replaces `Analytics.Provider`.
+  - **Image focal points**: Images keep the focal point set in Weaverse Studio visible when their frame crops them.
+
+  #### Improvements
+
+  - **Content Security Policy**: Pilot builds the CSP header and nonce itself, so the Studio bridge, YouTube and Google Tag Manager are covered by `script-src`.
+  - **Weaverse load failures**: A page whose Weaverse content fails to load answers a retryable 503 with a reload link instead of a broken page.
+  - **Unsupported markets**: URLs with a market prefix the store doesn't support answer 404.
+
+  #### Fixes
+
+  - **Product quantity**: A quantity chosen on one product no longer carries over to the next product you open.
+  - **Product card transitions**: Fixed a duplicate `view-transition-name` when opening a product from a product card.
+
+  #### Upgrade
+
+  Breaking for themes built on Pilot. Run `npx @weaverse/cli migrate v6` to rewrite the Weaverse imports, then follow Shopify's Hydrogen 2026.10 upgrade guide and Pilot's cut-over spec (`.weaverse/specs/2026-10-29-hydrogen-2026-10-cut-over.md`). Merchants using Pilot as-is need no changes.
+
+  [GitHub release](https://github.com/Weaverse/pilot/releases/tag/v2026.11.7)
+</Update>
+
+<Update label="CLI v5.9.0" description="November 7, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### New Features
+
+  - **`weaverse migrate v6` codemod**: rewrites a theme for `@weaverse/hydrogen` 6. It moves `@weaverse/hydrogen` imports to `@weaverse/hydrogen/react-router`, and `@weaverse/next` and `@weaverse/next/server` imports to `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`. It also applies the 6.0 type renames. Only files that import Weaverse are changed. Use `--dry-run` to list the files it would change and `--dir` to point it at another project folder.
+
+  #### Upgrade
+
+  ```bash
+  npx @weaverse/cli@latest migrate v6 --dry-run
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.9.0)
+</Update>
+
+<Update label="@weaverse/next 1.1.0" description="November 7, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### Improvements
+
+  - **Ships with Weaverse SDK v6.0.0**: `@weaverse/next` now depends on `@weaverse/react` 6.0.0, the same version as `@weaverse/hydrogen` 6.0.0. Next.js themes can also import it as `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`.
+  - **Optional `next` peer**: `next` is now an optional peer dependency, so React Router themes that install `@weaverse/hydrogen` 6 don't pull in Next.js.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.1.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.1.0)
+</Update>
+
+<Update label="SDK v6.0.0" description="November 7, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Hydrogen 2026.10 support**: `@weaverse/hydrogen` 6 runs on `@shopify/hydrogen` 2026.10 and later, which is now a peer dependency. Themes on Hydrogen 2026.4 or earlier stay on `@weaverse/hydrogen` 5.x.
+  - **One entry point per framework**:
+    - `@weaverse/hydrogen/react-router` for Hydrogen and React Router themes;
+    - `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server` for Next.js themes;
+    - `@weaverse/hydrogen/react` for framework-free React hooks;
+    - the root `@weaverse/hydrogen` entry for schemas, data helpers and types, without loading React or a router.
+  - **`WeaverseClient` on the 2026.10 Storefront client**: the client takes the request's Storefront API client plus `env`, `cache` and `waitUntil`. Section loaders query Shopify with `weaverse.storefront.graphql()`.
+
+  #### Improvements
+
+  - **Caching on Hydrogen 2026.10**: Weaverse content keeps the same freshness: 60 seconds fresh, then up to a day stale while it revalidates or when the API fails. A failing cache read now loads from the API instead of failing the page.
+
+  #### Upgrade
+
+  This is a major release. Move your theme to Hydrogen 2026.10 first, then:
+
+  1. Install the new version:
+     ```bash
+     npm install @weaverse/hydrogen@6
+     ```
+  2. Preview the import and type changes, then apply them:
+     ```bash
+     npx @weaverse/cli@latest migrate v6 --dry-run
+     npx @weaverse/cli@latest migrate v6
+     ```
+  3. Review the diff. The codemod renames types by name across each file that imports Weaverse, so a local type that shares a renamed name, such as `ThemeSettingsResponse`, is renamed too.
+
+  Renamed types include `HydrogenComponentProps` → `WeaverseComponentProps`, `HydrogenComponentSchema` → `WeaverseComponentSchema`, `HydrogenThemeSettings` → `WeaverseThemeSettings`, `ComponentLoaderArgs` → `WeaverseComponentLoaderArgs` and `ThemeSettingsResponse` → `WeaverseThemeSettingsResponse`.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v6.0.0)
+</Update>
+
+<Update label="SDK v5.25.0" description="November 6, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Studio selection hook**: `useStudioSelection()` in `@weaverse/react` returns `{ selectedItemId, selectedThemeGroup }`, the page item or theme settings group the merchant has selected in Weaverse Studio. Both values are `null` on the storefront and during server rendering. Hydrogen and Next.js start providing the selection in upcoming releases; until then the hook returns `null` for both.
+
+  #### Upgrade
+
+  Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.25.0.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.25.0)
+</Update>
+
+<Update label="CLI v5.8.0" description="November 6, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### New Features
+
+  - **Install a licensed partner theme**: `weaverse create --pass=<pass>` downloads the source of a partner theme your store has a license for, verifies it, and sets it up as a new project. The folder is named after the theme unless you pass `--project-name`, and `--project-id` writes the `.env` file as for templates. A used or expired pass asks you to get a new install command from your Weaverse dashboard. `--pass` can't be combined with `--template` or `--commit`.
+
+  #### Fixes
+
+  - **Aspen demo link**: The Aspen template now points to its current live demo.
+
+  #### Upgrade
+
+  ```bash
+  npx @weaverse/cli@latest create --pass=<pass>
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.8.0)
+</Update>
+
+<Update label="2026.11.8" description="November 3, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Connecting AI assistants**: Fixed the redirect back to AI assistants after approving a Weaverse connection.
+</Update>
+
+<Update label="2026.11.5" description="November 2, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Connecting AI assistants**: Fixed an authorization error when connecting AI assistants to Weaverse.
+</Update>
+
+<Update label="2026.10.51" description="October 31, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Sandbox previews after idle**: A Sandbox preview left idle is now kept paused instead of shut down, so opening it again usually resumes it rather than restarting it.
+</Update>
+
+<Update label="2026.10.48" description="October 29, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Page selector without a running preview**: Home page, All products and Collections list now show their names, and page lists show "Preview not connected" instead of loading forever when the preview can't connect.
+</Update>
+
+<Update label="@weaverse/next 1.0.2" description="October 29, 2026" tags={["SDK", "Next.js"]}>
+  ### Weaverse SDK for Next.js
+
+  #### New Features
+
+  - **Typed theme outline**: `WeaverseNextThemeSchema` now accepts an `outline` field, typed as `ThemeOutline` from `@weaverse/schema` 0.20.0, to list theme settings groups in the Page Outline.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/next@1.0.2
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/next%401.0.2)
+</Update>
+
+<Update label="SDK v5.24.1" description="October 29, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Typed theme outline**: `HydrogenThemeSchema` now accepts an `outline` field, typed as `ThemeOutline` from `@weaverse/schema` 0.20.0, to list theme settings groups in the Page Outline.
+
+  #### Upgrade
+
+  Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.24.1.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.24.1)
+</Update>
+
+<Update label="@weaverse/schema 0.20.0" description="October 29, 2026" tags={["SDK"]}>
+  ### Weaverse SDKs
+
+  #### New Features
+
+  - **Theme outline types**: a new `ThemeOutline` type describes which theme settings groups a theme lists in the Page Outline, grouped into areas such as `header`, `aside` and `footer`.
+  - **Theme element markers**: `getThemeElementProps(groupName)` marks the storefront element a theme settings group styles with a `data-wv-theme-id` attribute, so Studio can highlight it. It is server-safe and works in React Server Components. `getThemeElementId` and `THEME_ELEMENT_ATTRIBUTE` are exported too.
+
+  #### Upgrade
+
+  ```bash
+  npm install @weaverse/schema@0.20.0
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/schema%400.20.0)
+</Update>
+
+<Update label="2026.10.45" description="October 27, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Custom pages from theme starters**: A new project created from a theme now includes the starter's custom pages, alongside its default page templates.
+</Update>
+
+<Update label="CLI v5.7.1" description="October 29, 2026" tags={["CLI"]}>
+  ### Weaverse CLI
+
+  #### Fixes
+
+  - **`--version` shows the CLI version**: `weaverse --version` printed `unknown`; it now prints the installed version.
+  - **Clear error in read-only folders**: `weaverse create` now stops before any prompts when you can't write to the current folder, and tells you to run it from a folder you own, such as your home directory.
+  - **Correct example command**: when required options are missing, the suggested command now uses the template you chose (for example `--template=forward`) instead of always Pilot.
+  - **Bun install on npm 11**: when the CLI installs Bun for you, it now approves Bun's install script, so the install completes on npm 11.
+
+  #### Upgrade
+
+  ```bash
+  npx @weaverse/cli@latest --version
+  ```
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/%40weaverse/cli%405.7.1)
+</Update>
+
+<Update label="SDK v5.24.0" description="October 28, 2026" tags={["SDK", "Hydrogen"]}>
+  ### Weaverse SDKs
+
+  #### Improvements
+
+  - **Clearer loading errors:** Storefront developers can opt in to distinguish Weaverse loading failures from missing pages and offer shoppers a reload action.
+  - **Invalid responses are identified:** Page and theme loading now detects invalid responses so storefronts can avoid treating them as saved content.
+
+  #### Upgrade
+
+  Update `@weaverse/core`, `@weaverse/react` and `@weaverse/hydrogen` to 5.24.0. Enable `throwPageLoadFailures` to use the new `WeaverseLoadError` handling.
+
+  This release requires `@shopify/hydrogen >=2025.5 <2026.10.0`. Shopify Hydrogen 2026.10 is not yet supported.
+
+  [GitHub release](https://github.com/Weaverse/weaverse/releases/tag/v5.24.0)
+</Update>
+
+<Update label="2026.10.44" description="October 26, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Next.js setup for Forward projects**: A project created from Forward now shows the Next.js setup steps: the Weaverse CLI command, the Shopify keys to add, `bun run dev`, and Vercel as the deploy target. Its default preview URL is `http://localhost:3333`, where Forward's dev server runs.
+</Update>
+
+<Update label="2026.10.43" description="October 26, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **New homepage hero**: The homepage introduces Weaverse as a headless CMS for Shopify Hydrogen and shows the command to create a project with the Pilot (React Router) or Forward (Next.js) starter.
+  - **Interactive feature demos**: The homepage features list shows each feature in action: no-code editing, global sections, scheduled publishing, localization, SEO management, instant setup and the Content API.
+  - **Next.js on the website**: The FAQ, the integration section and the integrations page now cover Next.js and link to the Next.js quickstart.
+  - **Product screenshots on the Hydrogen CMS page**: Its capabilities are shown as a grid of product screenshots, and the SEO management page shows the SEO manager.
+</Update>
+
+<Update label="2026.10.41" description="October 25, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Choose your preview destination**: When a connected hosted preview redirects to another hostname, Studio lets you use the destination URL or keep the current URL. Switching reuses an existing saved destination when available and preserves your original URL and default preview.
+</Update>
+
+<Update label="2026.10.40" description="October 25, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Experimental WebMCP** is available to all authenticated shops in supported browsers. Every proposed edit requires confirmation and remains unsaved draft work.
+</Update>
+
+<Update label="2026.10.39" description="October 21, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Redesigned Hydrogen CMS and feature pages**: The Hydrogen CMS page and the visual builder, custom components, scheduled publishing, localization and SEO pages now share the website's design, with real Studio screenshots and recordings.
+  - **Refreshed showcases**: The homepage and the showcases page feature 18 live Hydrogen storefronts built with Weaverse, with new screenshots and an industry filter.
+  - **Every feature page in the menu**: The Product menu and the footer now link to each feature page.
+  - **Updated Trust & Security page**: Each service provider is listed with its logo, followed by a security contact section.
+</Update>
+
+<Update label="2026.10.38" description="October 21, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Improved the “Reduce your bill” reminder** so a confirmed recommendation can remain available when switching stores.
+  - **Improved rich-text video-link handling** when saving editor content.
+</Update>
+
+<Update label="2026.10.37" description="October 20, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Fixes
+
+  - **Localized page recreation**: Fixed an issue that could prevent recreating a localized page after resetting or deleting it.
+</Update>
+
 <Update label="2026.10.36" description="October 20, 2026" tags={["Studio", "API"]}>
   ### Weaverse Studio
 
@@ -20,6 +944,18 @@ Stay up-to-date with the latest features, improvements, and bug fixes across the
   - **Clearer Content API refusals**: Requests the API refuses now return `404` or `409` with an error code instead of a generic `500`. This covers cancelling or publishing a version that is not scheduled, scheduling a draft that is out of date, assignment handles already in use, invalid project hierarchy changes and duplicate preview URLs.
   - **Publish now reports what happened**: `POST /versions/{versionId}/publish-now` returns `409` when nothing was published, instead of `200`.
   - **Retired page versions honor `limit`**: `GET /projects/{projectId}/versions?kind=retired-pages` now returns at most `limit` rows, like the other version lists.
+</Update>
+
+<Update label="2026.10.35" description="October 20, 2026" tags={["Studio"]}>
+  ### Weaverse Studio
+
+  #### Improvements
+
+  - **Version history labels** changes made by integrations and scheduled publishing when that information is available.
+  - **The “Reduce your bill” prompt** appears once per store instead of repeating.
+  - **Draft loading is bounded** so a slow read no longer blocks editing.
+  - **The dashboard lists 20 projects per page.**
+  - **The website includes new contact next steps, team facts, and integration data-flow notes.**
 </Update>
 
 <Update label="2026.10.33" description="October 19, 2026" tags={["Studio"]}>

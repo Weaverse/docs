@@ -1,23 +1,27 @@
 ---
-title: "@weaverse/next API Reference"
-description: "Every export of @weaverse/next and @weaverse/next/server."
+title: "@weaverse/hydrogen/next API Reference"
+description: "Every export of @weaverse/hydrogen/next and @weaverse/hydrogen/next/server."
 published: true
 ---
 
-# @weaverse/next API Reference
+# @weaverse/hydrogen/next API Reference
 
-`@weaverse/next` has two entry points:
+The Next.js adapter ships in `@weaverse/hydrogen` (install `@weaverse/hydrogen`) and has two entry points:
 
 | Import | Use in | Purpose |
 | --- | --- | --- |
-| `@weaverse/next` | Server and Client Components | Registry types, providers, renderer, hooks, Studio runtime, translation, schema re-exports |
-| `@weaverse/next/server` | Server only | The Weaverse API client, config resolution, page URL helpers, the revalidation route handler |
+| `@weaverse/hydrogen/next` | Server and Client Components | Registry types, providers, renderer, hooks, Studio connection, translation, schema helpers |
+| `@weaverse/hydrogen/next/server` | Server only | The Weaverse API client and the revalidation route handler |
 
-Server code lives under `@weaverse/next/server` so a Client Component can import the root entry without pulling server-only fetch code into the browser bundle.
+Server code lives under `@weaverse/hydrogen/next/server` so a Client Component can import the root entry without pulling server-only fetch code into the browser bundle.
 
-Since 1.0.1, the root entry is safe in Server Components: its components, hooks and runtime are Client Components (render them, don't call them on the server), and its schema, loader and SEO helpers run as ordinary server functions.
+The root entry is safe in Server Components: its components, hooks and runtime are Client Components (render them, don't call them on the server), and its schema helpers run as ordinary server functions.
 
-## `@weaverse/next`
+<Note>
+  `@weaverse/next` is deprecated. Its root and `/server` entries exported more than `@weaverse/hydrogen/next` does: the page, root and commerce data hooks, the lower-level Studio runtime, loader and revalidation helpers, the `ThemeText*` aliases, and the server config and page URL helpers. Only the exports listed on this page are available.
+</Note>
+
+## `@weaverse/hydrogen/next`
 
 ### Components and providers
 
@@ -32,37 +36,31 @@ Since 1.0.1, the root entry is safe in Server Components: its components, hooks 
 
 | Export | Description |
 | --- | --- |
-| `useThemeSettings()` | Live theme settings; re-renders on Studio edits. Same name as in `@weaverse/hydrogen`. See [useThemeSettings](/nextjs/api/main/functions/useThemeSettings). |
-| `useWeaverse()` | The Weaverse instance. See [useWeaverse](/nextjs/api/main/functions/useWeaverse). |
-| `useItemInstance()` | The current item instance. See [useItemInstance](/nextjs/api/main/functions/useItemInstance). |
-| `useParentInstance()` | The parent item instance. See [useParentInstance](/nextjs/api/main/functions/useParentInstance). |
-| `useChildInstances()` | The child item instances. See [useChildInstances](/nextjs/api/main/functions/useChildInstances). |
-| `useWeaversePageData()` | Page data passed to the provider. Replaces a section's `useLoaderData()`. |
-| `useWeaverseRootData()` | Root data passed to the provider. Replaces `useRouteLoaderData('root')`. |
-| `useWeaverseCommerce()` | The commerce context your app provided (storefront, cart, customer). |
-| `isBrowser`, `isIframe` | Environment checks re-exported from `@weaverse/react`. |
+| `useThemeSettings()` | Live theme settings; re-renders on Studio edits. See [useThemeSettings](/nextjs/api/next/functions/useThemeSettings). |
+| `useWeaverse()` | The Weaverse runtime. See [useWeaverse](/nextjs/api/next/functions/useWeaverse). |
+| `useItemInstance()` | The current item instance. See [useItemInstance](/nextjs/api/next/functions/useItemInstance). |
+| `useParentInstance()` | The parent item instance. See [useParentInstance](/nextjs/api/next/functions/useParentInstance). |
+| `useChildInstances()` | The child item instances. See [useChildInstances](/nextjs/api/next/functions/useChildInstances). |
+| `useStudioSelection()` | The current Studio selection, for example `selectedThemeGroup`. `WeaverseNextRootProvider` (or `WeaverseNextProvider`) mounts its store. See [useStudioSelection](/nextjs/api/next/functions/useStudioSelection). |
+| `isBrowser`, `isIframe` | Environment checks. |
 
-### Studio and runtime
+### Studio
 
 | Export | Description |
 | --- | --- |
 | `WeaverseNextStudioConnect` | Loads the Studio bridge script in design and preview contexts; does nothing in published mode. Mount once in the root layout. |
-| `loadWeaverseNextStudioScript()` | The script loader behind `WeaverseNextStudioConnect`. |
-| `resolveWeaverseNextStudioScriptSrc()` | Resolves the Studio bridge script URL. |
-| `WeaverseNextStudio`, `WeaverseNextStudioBridge` | Page-level Studio binding, wired by `WeaverseNextRenderer`. |
-| `useWeaverseNextStudioInternals()`, `createWeaverseNextStudioInternals()` | Map Studio's `navigate`, `revalidate` and `revalidateItem` to the Next router. |
-| `createWeaverseNextRuntime()`, `bindWeaverseNextStudioRuntime()`, `WeaverseNextRuntime` | Lower-level runtime helpers. |
-| `createWeaverseNextThemeSettingsStore()` | The theme settings store used by the root provider. |
 | `buildWeaverseNextRequestInfo()` | Builds the request info Studio reads. |
 
-### Loaders and revalidation
+### Translation
 
 | Export | Description |
 | --- | --- |
-| `runWeaverseComponentLoaders(args)` | Walks a page tree and runs each component's `loader` on the server. |
-| `revalidateWeaverseNextItem()` | Client side of per-item revalidation; posts to the revalidation route. |
-| `buildWeaverseNextRevalidateRouteContext()` | Builds the sanitized route context sent with a revalidation request. |
-| `DEFAULT_REVALIDATE_ENDPOINT` | The default revalidation route path. |
+| `useTranslation()` | Returns `t(key, variables?)` for theme copy, resolving external `t`, then Studio's live edits, then the market's overrides, then `staticContent`, then the key. See [useTranslation](/nextjs/api/next/functions/useTranslation). |
+| `TranslationProvider` | Provides translation sources below the root. `WeaverseNextRootProvider` renders one for you. |
+| `TranslationStore` | The live design-mode translation store. |
+| `createTranslate()`, `getNestedKey()`, `interpolate()` | The translation helpers behind `t`. |
+
+See [Markets & translations](/nextjs/markets-translations).
 
 ### SEO
 
@@ -71,23 +69,16 @@ Since 1.0.1, the root entry is safe in Server Components: its components, hooks 
 | `getWeaverseNextSeoMetadata(data)` | Maps a page's Weaverse SEO to a Next `Metadata` object. |
 | `formatWeaverseNextSeoMetadata(seo)` | Formats a raw SEO object into Next `Metadata`. |
 
-Both are also exported from `@weaverse/next/server`. See [Rendering pages](/nextjs/rendering-pages#seo-metadata).
+Both are also exported from `@weaverse/hydrogen/next/server`. See [Rendering pages](/nextjs/rendering-pages#seo-metadata).
 
-### Translation
+### Schema and errors
 
 | Export | Description |
 | --- | --- |
-| `useTranslation()` | Returns `t(key, variables?)` for theme copy, resolving external `t`, then Studio's live edits, then the market's overrides, then `staticContent`, then the key. |
-| `TranslationProvider` | Provides translation sources below the root. |
-| `createTranslate()`, `getNestedKey()`, `interpolate()` | The translation helpers behind `t`. |
-| `TranslationStore` | The live design-mode translation store. |
-| `useThemeText`, `ThemeTextProvider`, `ThemeTextStore` | Older names for `useTranslation`, `TranslationProvider` and `TranslationStore`. |
-
-See [Markets & translations](/nextjs/markets-translations).
-
-### Schema
-
-The root entry re-exports all of `@weaverse/schema`, including `createSchema`, the input and schema types, `IMAGES_PLACEHOLDERS` and the validators. `generateDataFromSchema(schema)` extracts the default settings of a component or theme schema.
+| `createSchema()` | Defines a component schema. |
+| `IMAGES_PLACEHOLDERS` | Placeholder images for schema defaults. |
+| `generateDataFromSchema(schema)` | Extracts the default settings of a component or theme schema. |
+| `WeaverseError`, `WeaverseLoadError` | Error classes thrown by the SDK. The server client's `loadPage()` rejects with a `WeaverseLoadError` only when the client sets `throwPageLoadFailures: true` (6.5.0+); otherwise a failed load resolves to `null`. See [WeaverseLoadError](/nextjs/api/next/classes/WeaverseLoadError). |
 
 ### Types
 
@@ -95,50 +86,56 @@ The root entry re-exports all of `@weaverse/schema`, including `createSchema`, t
 | --- | --- |
 | `WeaverseNextComponent` | A registry entry: `default` (component), `schema`, optional `loader`. |
 | `WeaverseNextComponentProps`, `WeaverseNextComponentData`, `WeaverseNextComponentLoaderArgs` | Component props, item data and loader arguments. |
-| `WeaverseNextLoaderData` | What `loadPage()` returns and `WeaverseNextRenderer` renders. |
+| `WeaverseNextLoaderData` | What `loadPage()` returns and `WeaverseNextRenderer` renders. `isFallback` is `true` on the placeholder page of an unassigned route (6.5.0+). |
 | `WeaverseNextRequestContext`, `WeaverseNextRequestInfo` | Route identity: URL, pathname, search params, page type, handle, i18n, design flags. |
-| `WeaverseNextThemeSchema`, `WeaverseNextThemeSchemaGroup`, `WeaverseNextI18n` | Theme schema, a settings group, and a market. |
+| `WeaverseNextThemeSchema`, `WeaverseNextThemeSchemaGroup`, `WeaverseNextThemeSchemaInput`, `WeaverseNextI18n` | Theme schema, a settings group, and a market. |
 | `WeaverseNextCommerceContext`, `WeaverseNextStorefront` | The commerce context passed to the server client. |
-| `WeaverseNextCacheConfig` | `revalidate` and `tags` for published reads. |
 | `WeaverseNextClient`, `WeaverseNextClientConfig` | The client returned by `createWeaverseNextClient` and its config. |
 | `WeaverseNextLoadPageInput`, `WeaverseNextPageData`, `WeaverseNextPageAssignment` | Page loading input and page data. |
-| `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions` | Custom page listing. |
-| `WeaverseProduct`, `WeaverseCollection`, `WeaverseBlog`, `WeaverseArticle`, `WeaverseMetaObject` | Resource picker values. |
-| `WeaverseNextTranslationMap` and related `WeaverseNextTranslation*` types | Translation data. |
+| `WeaverseNextProviderProps`, `WeaverseNextRendererProps`, `WeaverseNextRootProviderProps`, `WeaverseNextStudioConnectProps` | Component props. |
+| `TranslationProviderProps`, `TranslationValue`, `TranslateFunction`, `CreateTranslateSources` | Translation types. |
+| `WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter` | SEO helper input and output types. |
+| `StudioSelection` | What `useStudioSelection()` returns. |
+| `BasicInput`, `InspectorGroup`, `PageType`, `SchemaType` | Schema types. |
+| `WeaverseProduct`, `WeaverseCollection`, `WeaverseBlog`, `WeaverseMetaObject` | Resource picker values. |
 
-## `@weaverse/next/server`
+## `@weaverse/hydrogen/next/server`
 
 | Export | Description |
 | --- | --- |
 | `createWeaverseNextServerClient(config)` | The request-scoped Weaverse API client. Create it per request; see below. |
 | `createWeaverseNextRevalidateHandler({ getClient })` | Creates the `POST` handler for per-item revalidation. `getClient(request, requestContext)` receives the validated route context. See [Studio integration](/nextjs/studio#per-item-revalidation). |
-| `getWeaverseNextConfigs()` | Resolves project id, Studio host, API base and design mode from the request and env. |
-| `normalizeNextPageUrl()`, `resolveRequestUrl()` | Stable page URL helpers. |
 | `getWeaverseNextSeoMetadata()`, `formatWeaverseNextSeoMetadata()` | SEO helpers, as above. |
+| `getWeaverseStudioCspDirectives(request)` | CSP sources Weaverse Studio needs for this request (6.3.0+); see below. |
+| `WeaverseError`, `WeaverseLoadError` | Error classes, as above (6.5.0+). |
 
-Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextFetchOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseNextRevalidateRequestBody`, `WeaverseNextRevalidateRouteContext`, plus the shared types above.
+Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNextServerLoadPageInput`, `WeaverseNextThemeSettingsOptions`, `WeaverseNextThemeSettingsResponse`, `WeaverseNextConfigs`, `WeaverseNextBaseConfigs`, `WeaverseNextCacheConfig`, `WeaverseNextFetchOptions`, `WeaverseNextCustomPageEntry`, `WeaverseNextFetchCustomPagesOptions`, `WeaverseNextProjectId`, `WeaverseNextRevalidateHandler`, `WeaverseNextRevalidateHandlerConfig`, `WeaverseStudioCspDirectives`, `WeaverseLoadFailureKind` (6.5.0+), the SEO types (`WeaverseNextSeoInput`, `WeaverseNextSeoMetadata`, `WeaverseNextSeoPageContainer`, `NextOpenGraph`, `NextTwitter`), plus the shared types above.
 
 ### Server client config
 
 | Option | Description |
 | --- | --- |
 | `components` | Required. The server registry: schemas and loaders. |
-| `projectId` | Project id, or a function returning it. Falls back to `WEAVERSE_PROJECT_ID`. |
+| `projectId` | Project id, or a function returning it. The function receives the `requestContext` and may be `async`; the client awaits it. Falls back to `WEAVERSE_PROJECT_ID`. |
 | `weaverseHost` | Studio host. Falls back to `WEAVERSE_HOST`, then `https://studio.weaverse.io`. |
-| `env` | Environment object the SDK reads its keys from. |
+| `weaverseApiBase` | Base URL for public page and settings reads. Overrides `WEAVERSE_PUBLIC_API_BASE`; a trusted Studio host on the request still wins. |
+| `weaverseVersion` | Studio asset version. A `?weaverseVersion=` query on the request wins. |
+| `env` | Environment object the SDK reads its keys from. A missing key falls back to `process.env`, so `env: process.env` is redundant. |
 | `requestContext` | The route identity of this request. |
 | `themeSchema` | Your theme schema, for theme settings defaults and Studio. |
+| `themeSettings` | Theme settings merged over the schema defaults on the client's `themeSettings`. |
 | `commerce` | Commerce context passed to loaders (for example a Storefront client). |
 | `cache` | `{ revalidate, tags }` for published reads. |
-| `fetch`, `fetchTimeoutMs` | Custom fetch and timeout. |
+| `fetch`, `fetchTimeoutMs` | Custom fetch and timeout (default 10 seconds). |
+| `throwPageLoadFailures` | 6.5.0+, default `false`. `loadPage()` rejects with a [`WeaverseLoadError`](/nextjs/api/next/classes/WeaverseLoadError) when the page can't be loaded (`kind`: `unavailable`, `invalid-response` or `configuration`), instead of resolving to `null`, so a route can tell an outage from a missing page. A 404 from the Weaverse API still resolves to `null`. |
 
 ### Server client members
 
 | Member | Description |
 | --- | --- |
-| `loadPage({ type, handle? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. |
+| `loadPage({ type, handle?, locale?, projectId?, cache? })` | Fetches the page, runs component loaders, and returns `WeaverseNextLoaderData`. `locale` selects the assigned page's locale, `projectId` overrides the project for this call, and `cache` (`{ revalidate, tags }`) is merged over the client-level `cache`. An unassigned route resolves to a placeholder page with `isFallback: true` (6.5.0+). A missing project ID or failed request resolves to `null`, or rejects with a `WeaverseLoadError` when the client sets `throwPageLoadFailures: true`; a 404 from the Weaverse API always resolves to `null`. See [Rendering pages](/nextjs/rendering-pages#no-page-means-404). |
 | `loadThemeSettings()` | Fetches theme settings merged over schema defaults. Returns `theme`, `schema`, `staticContent`, `publicEnv` in design mode, and `merchantOverrides` when the theme declares `i18n` and the request carries a language and country. |
-| `fetchCustomPages(options?)` | Lists published custom pages for a sitemap, paginating automatically. |
+| `fetchCustomPages(options?)` | Lists the custom pages assigned in the project for a sitemap, paginating automatically. Not filtered by publication state; see [Custom pages in the sitemap](/nextjs/rendering-pages#custom-pages-in-the-sitemap). |
 | `fetchWithCache(url, options?)` | Next-aware fetch: `no-store` in design and revision preview, `next: { revalidate, tags }` in published mode. |
 | `projectId`, `resolveProjectId()` | The project id; `resolveProjectId()` resolves it asynchronously (query, function, string, env). |
 | `components` | The server registry. |
@@ -152,3 +149,21 @@ Types: `WeaverseNextServerClient`, `WeaverseNextServerClientConfig`, `WeaverseNe
 - **Studio host**: trusted `?weaverseHost=` (`https://*.weaverse.io`, `https://*.weaverse.dev`) → `WEAVERSE_HOST` → `https://studio.weaverse.io`.
 - **API base**: trusted request host → `WEAVERSE_PUBLIC_API_BASE` → non-production `WEAVERSE_HOST` → `https://api.weaverse.io`.
 - **Public env**: `PUBLIC_STORE_DOMAIN`, `PUBLIC_STOREFRONT_API_TOKEN`.
+
+### `getWeaverseStudioCspDirectives`
+
+```ts
+import { getWeaverseStudioCspDirectives } from '@weaverse/hydrogen/next/server'
+
+function getWeaverseStudioCspDirectives(
+  request: Request | URL | string,
+): WeaverseStudioCspDirectives
+```
+
+Available in `@weaverse/hydrogen` 6.3.0 and later. Returns the CSP sources Weaverse Studio needs for this request, shaped like Hydrogen's `ContentSecurityPolicyDirectives` so you can append them to your directives before calling `createContentSecurityPolicy` (`@shopify/hydrogen` 2026.10.3+):
+
+- `{}` for normal visitors, and for a relative or malformed URL.
+- On Studio requests (design mode, section preview or revision preview) with a trusted `weaverseHost` (`https://` on `weaverse.io` or `weaverse.dev`): the Studio origin in `frameAncestors`, `scriptSrc`, `connectSrc`, `styleSrc`, `fontSrc` and `imgSrc`. Design mode adds `'unsafe-eval'` to `scriptSrc`.
+- `{}` for an untrusted `weaverseHost`, so a crafted URL can't widen the policy.
+
+The same function is exported from `@weaverse/hydrogen/react-router`; see [`getWeaverseStudioCspDirectives`](/nextjs/api/next/functions/getWeaverseStudioCspDirectives). For a full setup, see [Studio integration](/nextjs/studio#content-security-policy).

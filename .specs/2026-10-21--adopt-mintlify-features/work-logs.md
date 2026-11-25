@@ -25,3 +25,9 @@
   - The overlay keeps the interactive playground on `GET` only.
   - Replaced the 11 hand-written endpoint pages with redirects, and moved the Portable Text guide to its own page.
 - Checked: `mint validate` and `mint broken-links` pass. `mint dev` shows **Try it** on GET pages only, and the old URLs return 307 to the generated pages.
+
+## 2026-10-21 — @hta218 (Phase 3)
+
+- Built the TypeDoc SDK reference (Weaverse/weaverse#556, Weaverse/docs#98), then deferred it: the current entry points export mostly internal symbols, which Weaverse/weaverse#547 removes in 6.0.
+- Both PRs stay as drafts. Weaverse/weaverse#555 is marked blocked by #547.
+- Closed #80 with Phases 1 and 2.

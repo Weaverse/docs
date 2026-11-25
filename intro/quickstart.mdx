@@ -5,6 +5,10 @@ description: "Get a Weaverse Hydrogen storefront running locally in just 5 minut
 
 # 5-Minute Quickstart
 
+<Warning>
+  Weaverse is for Shopify Hydrogen and supported headless storefronts, not Shopify Online Store Liquid themes. This guide sets up a separate Hydrogen application. Installing the Shopify app alone does not make your existing Liquid theme editable. Use the running Hydrogen application's URL for Studio preview, not your store's `.myshopify.com` storefront. See [supported storefronts and setup](/intro/how-it-works).
+</Warning>
+
 Get your first Weaverse Hydrogen storefront up and running locally in just 5 minutes. No complex setup, no manual configuration – just install the app and start building.
 
 <Note>
@@ -24,7 +28,7 @@ A complete Shopify Hydrogen storefront powered by Weaverse with:
 
 Before starting, make sure you have:
 
-- **Node.js 22.12+** - [Download here](https://nodejs.org/) and verify with `node --version`
+- **Node.js 22.18+ or 24.11+** - [Download here](https://nodejs.org/) and verify with `node --version`
 - **A Shopify store** - [Create a development store](https://partners.shopify.com/) (free for testing)
 - **An AI coding agent** (recommended) - Cursor, Claude Code, Codex, Windsurf, or similar. The agent handles setup for you so you barely touch the terminal.
 
@@ -265,7 +269,7 @@ Before moving on, make sure the local storefront and Studio preview are working 
 ### CLI Command Not Working
 **Problem**: The generated CLI command fails to run
 **Solutions**:
-- Ensure Node.js 22.12+ is installed: `node --version`
+- Ensure Node.js 22.18+ or 24.11+ is installed: `node --version`
 - Check internet connection for downloading packages
 - Copy the latest command directly from the Weaverse onboarding modal
 - Confirm you replaced `YOUR_PROJECT_ID` with your actual Project ID
@@ -338,11 +342,11 @@ npm run dev -- --port 3457
 
 ### Short Term Goals (This Week)
 1. **[Explore Themes](/hydrogen-themes)** - Browse available themes and components
-2. **[Core Concepts](/core-concepts)** - Understand how Weaverse works
-3. **[Features](/features)** - Configure meta tags and integrations
+2. **[How Weaverse Works](/intro/how-it-works)** - Understand how Weaverse works
+3. **[Page SEO](/features/page-seo)** - Configure meta tags and integrations
 
 ### Medium Term (Next Month)
-1. **[Custom Components](/development-guide/index)** - Build sections unique to your brand
+1. **[Custom Components](/development-guide/creating-components)** - Build sections unique to your brand
 2. **[API Reference](/api-reference/introduction)** - Learn advanced customization options
 3. **[Deployment](/guides/deployment)** - Set up production hosting
 
@@ -378,4 +382,4 @@ You've just created a modern, high-performance e-commerce storefront in under 10
 
 **Time to live storefront**: Under 10 minutes
 
-Ready to customize and launch? Dive into [Core Concepts](/core-concepts) to understand how everything works together!
+Ready to customize and launch? Dive into [How Weaverse Works](/intro/how-it-works) to understand how everything works together!

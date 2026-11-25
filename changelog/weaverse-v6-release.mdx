@@ -1,0 +1,55 @@
+---
+title: "Weaverse v6 Release"
+description: "Major release for Hydrogen 2026.10: one entry point per framework, WeaverseClient on the new Storefront client, and a migration codemod"
+---
+
+# Weaverse v6 Release
+
+Released November 7, 2026: `@weaverse/hydrogen` 6.0.0, `@weaverse/react` 6.0.0, `@weaverse/next` 1.1.0, `@weaverse/cli` 5.9.0 and Pilot v2026.11.7.
+
+## Major Features
+
+### Hydrogen 2026.10 Support
+- **Hydrogen as a library**: `@weaverse/hydrogen` 6 runs on `@shopify/hydrogen` 2026.10 and later, where Hydrogen is a server-handler library rather than a framework. `@shopify/hydrogen` `>=2026.10.0` is now a peer dependency.
+- **`WeaverseClient` on the new Storefront client**: the client takes the request's Storefront API client plus `env`, `cache` and `waitUntil` instead of a classic Hydrogen context. Section loaders query Shopify with `weaverse.storefront.graphql()`.
+- **Classic Hydrogen stays on v5**: themes on Hydrogen 2026.4 or earlier keep using `@weaverse/hydrogen` 5.x.
+
+### One Entry Point per Framework
+- **`@weaverse/hydrogen/react-router`**: everything a Hydrogen or React Router theme uses, in one import.
+- **`@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`**: the Next.js SDK, also published as `@weaverse/next` 1.1.0.
+- **`@weaverse/hydrogen/react`**: framework-free React hooks.
+- **`@weaverse/hydrogen`**: schemas, data helpers and types, without loading React or a router.
+
+### Clearer Type Names
+- **`Weaverse*` names**: `HydrogenComponentProps` → `WeaverseComponentProps`, `HydrogenComponentSchema` → `WeaverseComponentSchema`, `HydrogenThemeSettings` → `WeaverseThemeSettings`, `ComponentLoaderArgs` → `WeaverseComponentLoaderArgs`, `ThemeSettingsResponse` → `WeaverseThemeSettingsResponse`, and the rest of the `Hydrogen*` types.
+- **Env typing**: `Env` extends the SDK's `WeaverseEnv` instead of Hydrogen's removed `HydrogenEnv`.
+
+## Developer Experience
+
+### Migration Codemod
+- **`npx @weaverse/cli migrate v6`**: moves Weaverse imports to the new entry points and applies the type renames, in files that import Weaverse only.
+- **Preview first**: `--dry-run` lists the files it would change; `--dir` points it at another project folder.
+
+### Reference Implementation
+- **Pilot v2026.11.7**: Pilot runs on Hydrogen 2026.10 and `@weaverse/hydrogen` 6.0, with every route, SEO output, analytics event and commerce feature kept. Its cut-over ([Weaverse/pilot#209](https://github.com/Weaverse/pilot/pull/209)) is the reference for the migration guide.
+
+## SDK & Tools
+
+### Package Versions
+- **One version group**: `@weaverse/hydrogen` 6.0.0 depends on exactly `@weaverse/react` 6.0.0 and `@weaverse/next` 1.1.0. Keep them aligned so a theme installs one copy of `@weaverse/react`.
+- **Optional `next` peer**: React Router themes that install `@weaverse/hydrogen` 6 don't pull in Next.js.
+
+## Technical Improvements
+
+### Caching
+- **Same freshness on Hydrogen 2026.10**: Weaverse content is fresh for 60 seconds, then served stale for up to a day while it revalidates or when the API fails.
+- **Resilient cache reads**: a failing cache read loads from the API instead of failing the page.
+
+## What's Next
+
+- **Docs**: code samples across the rest of the documentation move to Hydrogen 2026.10 and `@weaverse/hydrogen` 6 ([Weaverse/docs#118](https://github.com/Weaverse/docs/issues/118)).
+- **Pilot**: follow-ups include Hydrogen's collection store and price formatting in each market's locale.
+
+---
+
+For step-by-step upgrade instructions, see the [V6 Migration Guide](/migration-advanced/v6-migration).

@@ -12,6 +12,18 @@ Enhancing your Weaverse Hydrogen theme with third-party applications allows you 
 
 This guide provides a comprehensive approach to integrating third-party services with your Weaverse Hydrogen store, with real-world examples and proven patterns that maintain performance and user experience.
 
+## Shopify Apps on a Hydrogen Storefront
+
+A Shopify app built for Online Store themes doesn't work on a Hydrogen storefront just because it's installed. Check which parts of the app you need (see Shopify's [Installed apps on a Hydrogen storefront](https://shopify.dev/docs/storefronts/hydrogen/installed-apps)):
+
+| Works on Hydrogen | Doesn't work on Hydrogen |
+| --- | --- |
+| App scripts that use `window.Shopify` (standard events and actions, Customer Privacy) once you add them to your layout. `ShopifyScripts` loads that runtime. | App blocks, app embed blocks, and sections or snippets the app adds to a theme. They're Liquid, and Hydrogen doesn't render Liquid. |
+| AJAX cart requests (`/cart.js`, `/cart/add.js`, ...) and the Storefront API at your own origin, answered by `handleShopifyRoutes()`. | Scripts and styles that an app embed block or script tag injects into a theme. |
+| App data in metafields and metaobjects whose definitions grant storefront access. | App proxy URLs (`/apps/...`) and AJAX endpoints outside the cart, such as `/products/{handle}.js` and `/recommendations/products.json`. |
+
+An app proxy needs a route on your storefront. Hydrogen's request handlers don't answer `/apps/...`, so the request reaches your router and returns a 404 unless you add a route for that path. Most of the time you don't need the proxy at all: read the app's metafields or call its API from a loader (the two methods below) and render the result in a Weaverse section. Prefer apps that document headless support.
+
 ## Integration Methods
 
 Weaverse supports two primary approaches for integrating third-party applications:
@@ -35,7 +47,6 @@ Many third-party applications provide React components that you can incorporate 
    import { ThirdPartyComponent } from '@third-party-app/react'
    import type { SectionProps } from '~/components/section'
    import { Section } from '~/components/section'
-   import { forwardRef } from 'react'
    
    export type ThirdPartyWidgetProps = {
      // Public, non-secret identifier only. Never put private API keys or tokens
@@ -44,19 +55,20 @@ Many third-party applications provide React components that you can incorporate 
      widgetId: string
    }
    
-   const ThirdPartyWidget = forwardRef<HTMLElement, SectionProps & ThirdPartyWidgetProps>(
-     (props, ref) => {
-       const { widgetId, ...rest } = props
-       
-       return (
-         <Section ref={ref} {...rest}>
-           <ThirdPartyComponent widgetId={widgetId} />
-         </Section>
-       )
-     }
-   )
-   
+   function ThirdPartyWidget({ ref, ...props }: SectionProps & ThirdPartyWidgetProps & { ref?: React.Ref<HTMLElement> }) {
+     const { widgetId, ...rest } = props
+
+     return (
+       <Section ref={ref} {...rest}>
+         <ThirdPartyComponent widgetId={widgetId} />
+       </Section>
+     )
+   }
+
    export default ThirdPartyWidget
+
+   // Weaverse reads the default export and `schema` from the same module
+   export { schema } from './schema'
    ```
 
    <Warning>
@@ -67,7 +79,7 @@ Many third-party applications provide React components that you can incorporate 
 
    ```tsx
    // app/sections/third-party-widget/schema.ts
-   import { createSchema } from '@weaverse/hydrogen'
+   import { createSchema } from '@weaverse/hydrogen/react-router'
    
    export let schema = createSchema({
      type: 'third-party-widget',
@@ -97,20 +109,17 @@ Many third-party applications provide React components that you can incorporate 
 
 4. **Register the Section in Weaverse**
 
-   Ensure your component is registered in your Weaverse configuration file:
+   Import the section module as a namespace and add it to the `components` array in `app/weaverse/components.ts`:
 
    ```tsx
-   // app/weaverse/sections.ts
-   import ThirdPartyWidget from '~/sections/third-party-widget'
-   import { schema as thirdPartyWidgetSchema } from '~/sections/third-party-widget/schema'
-   
-   export const sections = {
-     // Other sections
-     'third-party-widget': {
-       Component: ThirdPartyWidget,
-       schema: thirdPartyWidgetSchema
-     }
-   }
+   // app/weaverse/components.ts
+   import type { WeaverseComponent } from '@weaverse/hydrogen/react-router'
+   import * as ThirdPartyWidget from '~/sections/third-party-widget'
+
+   export const components: WeaverseComponent[] = [
+     // Other components
+     ThirdPartyWidget,
+   ]
    ```
 
 ### Querying App Data from App's API
@@ -130,9 +139,9 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
 
    ```tsx
    // app/sections/api-widget/index.tsx
-   import type { ComponentLoaderArgs } from '@weaverse/hydrogen'
-   import { createSchema } from '@weaverse/hydrogen'
-   import { forwardRef } from 'react'
+   import { Cache } from '@shopify/hydrogen'
+   import type { WeaverseComponentLoaderArgs } from '@weaverse/hydrogen/react-router'
+   import { createSchema } from '@weaverse/hydrogen/react-router'
    import { Section, type SectionProps } from '~/components/section'
 
    type ApiWidgetData = {
@@ -140,22 +149,24 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
      itemsToShow: number
    }
 
-   export const loader = async ({ weaverse, data }: ComponentLoaderArgs<ApiWidgetData>) => {
-     const { fetchWithCache, env, storefront } = weaverse
+   type ApiWidgetItem = { id: string; title: string; description: string }
+
+   export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<ApiWidgetData>) => {
+     const { fetchWithCache, env } = weaverse
      const { resourceId, itemsToShow = 5 } = data
 
      if (!resourceId) return { items: [] }
      
      try {
-       return await fetchWithCache(
+       return await fetchWithCache<{ items: ApiWidgetItem[]; error?: boolean }>(
          `https://api.third-party.com/resources/${resourceId}?limit=${itemsToShow}`,
          {
            headers: {
              'Authorization': ['Bearer', env.THIRD_PARTY_API_KEY].join(' '),
              'Content-Type': 'application/json'
            },
-           // Use Hydrogen's caching to optimize performance
-           strategy: storefront.CacheShort()
+           // Use Hydrogen's caching (`Cache` from `@shopify/hydrogen`)
+           strategy: Cache.short()
          }
        )
      } catch (error) {
@@ -166,7 +177,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
 
    type ApiWidgetProps = SectionProps<Awaited<ReturnType<typeof loader>>> & ApiWidgetData
 
-   const ApiWidget = forwardRef<HTMLElement, ApiWidgetProps>((props, ref) => {
+   function ApiWidget({ ref, ...props }: ApiWidgetProps & { ref?: React.Ref<HTMLElement> }) {
      const { loaderData, resourceId, itemsToShow, ...rest } = props
      const { items, error } = loaderData || { items: [] }
 
@@ -192,7 +203,7 @@ For third-party services that offer a REST or GraphQL API, Weaverse's loader pat
          </div>
        </Section>
      )
-   })
+   }
 
    export default ApiWidget
 
@@ -238,7 +249,7 @@ Weaverse provides multiple approaches to fetch data from third-party services, e
 Server-side data fetching is the preferred approach for most integrations as it keeps API keys secure and reduces client-side JavaScript:
 
 ```tsx
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { fetchWithCache, env } = weaverse
   
   return await fetchWithCache('https://api.third-party.com/data', {
@@ -262,8 +273,7 @@ Some third-party widgets require client-side initialization:
 
 ```tsx
 // app/sections/analytics-widget/client.tsx
-'use client'
-
+// useEffect runs only in the browser, after hydration
 import { useEffect } from 'react'
 
 export function AnalyticsClient({ trackingId }) {
@@ -299,13 +309,13 @@ Combine server and client approaches for the best of both worlds:
 
 ```tsx
 // Server component that fetches data
-export const loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export const loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   // Fetch initial data server-side
   return await weaverse.fetchWithCache('https://api.third-party.com/initial-data')
 }
 
 // Main component
-const HybridWidget = forwardRef((props, ref) => {
+function HybridWidget({ ref, ...props }: { ref?: React.Ref<HTMLElement>; [key: string]: any }) {
   const { loaderData, settings } = props
   
   return (
@@ -317,10 +327,9 @@ const HybridWidget = forwardRef((props, ref) => {
       <ClientInteractivity initialData={loaderData} settings={settings} />
     </div>
   )
-})
+}
 
-// Client component for interactive features
-'use client'
+// Interactive part: rendered on the server, then hydrated in the browser
 function ClientInteractivity({ initialData, settings }) {
   const [data, setData] = useState(initialData)
   
@@ -358,7 +367,7 @@ Most third-party APIs require authentication. Here are the common approaches:
 1. **API Key Authentication**
 
    ```tsx
-   export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
+   export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
      const { env } = weaverse
      
      return await weaverse.fetchWithCache('https://api.example.com/data', {
@@ -374,7 +383,7 @@ Most third-party APIs require authentication. Here are the common approaches:
    For services using OAuth:
 
    ```tsx
-   export let loader = async ({ weaverse, context }: ComponentLoaderArgs) => {
+   export let loader = async ({ weaverse, context }: WeaverseComponentLoaderArgs) => {
      const { session } = context
      const accessToken = await session.get('thirdPartyAccessToken')
      
@@ -396,12 +405,12 @@ Most third-party APIs require authentication. Here are the common approaches:
 Prevent rate limit issues by implementing proper caching:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
-  const { fetchWithCache, storefront } = weaverse
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
+  const { fetchWithCache } = weaverse
   
   return await fetchWithCache('https://rate-limited-api.example.com/data', {
     // Use longer cache times for rate-limited APIs
-    strategy: storefront.CacheCustom({
+    strategy: Cache({
       maxAge: 600, // 10 minutes
       staleWhileRevalidate: 3600, // 1 hour
       staleIfError: 86400 // 1 day - use stale data on errors
@@ -415,7 +424,7 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
 Implement robust error handling for third-party services:
 
 ```tsx
-export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
+export let loader = async ({ weaverse }: WeaverseComponentLoaderArgs) => {
   const { fetchWithCache } = weaverse
   
   try {
@@ -450,32 +459,23 @@ export let loader = async ({ weaverse }: ComponentLoaderArgs) => {
 For widgets that need to stay in sync with your store data:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { storefront, fetchWithCache } = weaverse
   const { productId } = data
   
-  // First get the product data from Shopify
-  const { product } = await storefront.query(`
-    query Product($id: ID!) {
-      product(id: $id) {
-        id
-        title
-        updatedAt
-      }
-    }
-  `, {
-    variables: { id: productId }
+  // First get the product data from Shopify (PRODUCT_QUERY is a `gql()` document)
+  const { data: productData } = await storefront.graphql(PRODUCT_QUERY, {
+    variables: { id: productId },
+    cache: Cache.short(),
   })
+  const product = productData?.product
+  if (!product) return { product: null, externalData: null }
   
   // Then get related data from third-party
+  // A GET request can't carry a body: pass the product's updated timestamp in
+  // the query string, which also makes it part of the cache key
   const externalData = await fetchWithCache(
-    `https://api.third-party.com/products/${productId}`,
-    {
-      // Include product updated timestamp to maintain consistency
-      body: JSON.stringify({ 
-        productUpdatedAt: product.updatedAt
-      })
-    }
+    `https://api.third-party.com/products/${encodeURIComponent(productId)}?updatedAt=${encodeURIComponent(product.updatedAt)}`
   )
   
   return {
@@ -492,17 +492,19 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) 
 The choice of caching strategy depends on how frequently your third-party data changes:
 
 ```tsx
+import { Cache } from '@shopify/hydrogen'
+
 // For rarely changing data (e.g., product descriptions)
-strategy: storefront.CacheLong()
+strategy: Cache.long()
 
 // For frequently changing data (e.g., inventory, prices)
-strategy: storefront.CacheShort()
+strategy: Cache.short()
 
 // For personalized or dynamic content
-strategy: storefront.CacheNone()
+strategy: Cache.none()
 
 // For custom requirements
-strategy: storefront.CacheCustom({
+strategy: Cache({
   maxAge: 300, // 5 minutes
   staleWhileRevalidate: 1800, // 30 minutes
   staleIfError: 86400, // 1 day
@@ -515,7 +517,7 @@ strategy: storefront.CacheCustom({
 Only load what's needed when it's needed:
 
 ```tsx
-export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) => {
+export let loader = async ({ weaverse, data }: WeaverseComponentLoaderArgs<WidgetData>) => {
   const { fetchWithCache, request } = weaverse
   const { widgetType, itemsToShow } = data
   
@@ -536,10 +538,9 @@ export let loader = async ({ weaverse, data }: ComponentLoaderArgs<WidgetData>) 
 
 ### Lazy Loading
 
-Use client components to defer loading of non-critical third-party widgets:
+Defer non-critical third-party widgets until they scroll into view:
 
 ```tsx
-'use client'
 import { useEffect, useState } from 'react'
 
 export function LazyThirdPartyWidget({ config }) {
@@ -593,7 +594,7 @@ When integrating third-party services, follow these security practices:
 1. **Keep API Keys Secure**
    - Never hardcode API keys in your components
    - Use environment variables accessible only on the server
-   - Consider using Shopify's app proxy for sensitive operations
+   - Call APIs that need a secret key from a loader, action, or resource route, never from browser code
 
 2. **Validate All External Data**
    - Validate and sanitize all data from third-party APIs
@@ -644,7 +645,7 @@ Common issues and their solutions:
    Solution:
 
    ```tsx
-   const Widget = forwardRef((props, ref) => {
+   function Widget({ ref, ...props }: { ref?: React.Ref<HTMLElement>; [key: string]: any }) {
      const { loaderData } = props
      
      // Always check if data exists before rendering
@@ -657,18 +658,17 @@ Common issues and their solutions:
      }
      
      // Proceed with normal rendering
-   })
+   }
    ```
 
 3. **Hydration Mismatch Errors**
    - Ensure server and client rendering produce the same output
    - Defer client-specific code to useEffect hooks
-   - Use client components with careful boundaries
+   - Render browser-only widgets after mount (see below)
 
    Solution:
 
    ```tsx
-   'use client'
    import { useEffect, useState } from 'react'
    
    export function ClientWidget({ initialData }) {

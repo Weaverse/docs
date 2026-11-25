@@ -78,11 +78,8 @@ mint dev
 docs/
 ├── docs.json                    # Mintlify configuration (navigation, theme, metadata)
 ├── index.mdx                    # Homepage
-├── quickstart.mdx               # 5-minute quickstart guide
-├── development.mdx              # Development overview
-├── deployment.mdx               # Deployment guide
-├── getting-started/             # Getting started guides
-├── core-concepts/               # Architecture and concepts
+├── intro/                       # Quickstart, how it works, project structure
+├── getting-started/             # Installation
 ├── development-guide/           # Component development guides
 │   ├── environment-setup.mdx
 │   ├── creating-components.mdx
@@ -248,9 +245,7 @@ export let schema = createSchema({
   childTypes: ['allowed-child'],  // Optional
   presets: { /* defaults */ },    // Optional
   limit: 1,                       // Optional
-  enabledOn: {                    // Optional
-    pages: ['INDEX', 'PRODUCT']
-  }
+  enabled: ({ page }) => page.type === 'PRODUCT', // Optional; `enabledOn` is deprecated
 })
 ```
 
@@ -268,7 +263,7 @@ npm run dev
 npm run dev:ca
 
 # Code quality
-npm run biome:fix
+npm run check:fix
 npm run typecheck
 ```
 
@@ -342,7 +337,7 @@ Use relative paths for internal links:
 
 ### Page Types Referenced
 
-When documenting `enabledOn.pages`:
+When documenting `enabled` rules (`page.type`) or the deprecated `enabledOn.pages`:
 - `INDEX` - Homepage
 - `PRODUCT` - Product detail pages
 - `COLLECTION` - Collection pages
@@ -425,12 +420,10 @@ Changes deploy automatically:
 ## Package Versions
 
 Documentation covers:
-- **@weaverse/hydrogen**: v5.23.0
-- **@weaverse/react**: v5.23.0
-- **@weaverse/core**: v5.23.0
-- **@weaverse/next**: v1.0.1
+- **@weaverse/hydrogen**, **@weaverse/react**, **@weaverse/core**: v6.x for Shopify Hydrogen 2026.10 and later. Classic Hydrogen projects (2026.4 and earlier) stay on v5.x; the v6 migration guide covers the move. Code samples use 6.x imports (`@weaverse/hydrogen/react-router`) and `Weaverse*` type names; only the migration guides and the changelog show 5.x code. Write new samples for 6.x.
+- **@weaverse/hydrogen/next**: the Next.js adapter, shipped in `@weaverse/hydrogen` 6.2.0 and later. Samples install `@weaverse/hydrogen` and import from `@weaverse/hydrogen/next` and `@weaverse/hydrogen/next/server`. `@weaverse/next` is deprecated; only the migration guides and the changelog mention it.
 - **@weaverse/shopify**: v5.8.4
-- **@weaverse/schema**: v0.19.0
+- **@weaverse/schema**: v0.20.x
 - **@weaverse/cli**: Latest
 - **@weaverse/mcp**: Latest
 
@@ -444,4 +437,4 @@ When documenting features, verify they match current SDK capabilities.
 - **Components**: `<FileTree>` for folder layouts (blank line after the opening tag and before the closing tag), `<GitHub.Repo repo="Weaverse/<repo>" />` for repo cards, `<Prompt>` for copyable AI prompts. Don't use `<View>` to switch frameworks: give each framework its own page in its sidebar dropdown (for example `features/third-party-integrations` and `nextjs/third-party-integrations`).
 - **Prompts**: `<Prompt>` only shows its `description`, so put the full prompt text in `description` as well as in the body, so readers can see what they copy.
 - **Content API reference**: generated from the remote builder spec (`https://studio.weaverse.io/api/v1/content/openapi.json`) through the Content API tab's `openapi` field, under `/content-api/<tag>/<summary>`. Fix endpoint details, examples and notes in `builder/app/routes/api/v1/content/openapi.json`, not here. Only prose pages (`overview`, `portable-text`, `public-custom-pages`) live in `content-api/`. `api/content-api-overlay.yaml` keeps the interactive playground on `GET` endpoints only. Mintlify fetches the spec only when the docs deploy, so a builder release that changes the spec shows up after the next docs deploy (the release's changelog PR merge triggers one; otherwise redeploy from the Mintlify dashboard). When a builder release renames a tag or `summary`, add a redirect for the old URL.
-- **SDK reference**: generated from TypeDoc JSON in `sdk-artifacts/` (`hydrogen.json` and `next.json`, both including the core, react and schema re-exports) through `sdk` groups in the SDKs dropdowns. Pages are `/api-reference/<kind>/<Symbol>` and `/nextjs/api/<main|server>/<kind>/<Symbol>`. Fix SDK docs in TSDoc in `Weaverse/weaverse`, not here. A stable SDK release opens the PR that updates `sdk-artifacts/`; never hand-edit them. `mint broken-links` reports links to generated SDK pages as broken, so check those links with `mint dev`.
+- **SDK reference**: generated from TypeDoc JSON in `sdk-artifacts/`, one artifact per `@weaverse/hydrogen` 6 framework adapter, through `sdk` groups in the SDKs dropdowns. `react-router.json` (`@weaverse/hydrogen/react-router`, which re-exports the core and `/react`) renders `/api-reference/<kind>/<Symbol>`; `next.json` renders `/nextjs/api/next/<kind>/<Symbol>` (`@weaverse/hydrogen/next`) and `/nextjs/api/next-server/<kind>/<Symbol>` (server-only symbols of `@weaverse/hydrogen/next/server`; symbols both Next entries export live under `next`). `<kind>` is `functions`, `variables`, `classes`, `interfaces` or `types`. `/internal` is not documented. Fix SDK docs in TSDoc in `Weaverse/weaverse`, not here, and keep guide-level recipes in guide pages. A stable SDK release opens the PR that updates `sdk-artifacts/`; never hand-edit them. `mint broken-links` reports links to generated SDK pages as broken, so check those links with `mint dev`.

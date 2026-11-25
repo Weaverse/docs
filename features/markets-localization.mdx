@@ -26,7 +26,11 @@ Start with a small canonical table. The unprefixed entry is the default market; 
 
 ```typescript
 // app/utils/locale.ts
-export const SUPPORTED_LOCALES = [
+import type { WeaverseI18n } from "@weaverse/hydrogen/react-router";
+
+// Typed as a mutable array: the theme schema's `shopLocales` is `WeaverseI18n[]`,
+// so an `as const` (readonly) table does not type-check there.
+export const SUPPORTED_LOCALES: WeaverseI18n[] = [
   {
     pathPrefix: "",
     label: "United States (USD $)",
@@ -54,7 +58,7 @@ export const SUPPORTED_LOCALES = [
     hreflang: "ar-AE",
     direction: "rtl",
   },
-] as const;
+];
 
 export const DEFAULT_LOCALE = SUPPORTED_LOCALES[0];
 ```
@@ -67,11 +71,11 @@ Use the same table in the theme schema instead of maintaining another locale lis
 
 ```typescript
 // app/weaverse/schema.server.ts
-import type { HydrogenThemeSchema } from "@weaverse/hydrogen";
+import type { WeaverseThemeSchema } from "@weaverse/hydrogen/react-router";
 import staticContent from "~/i18n/en.json" with { type: "json" };
 import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from "~/utils/locale";
 
-export const themeSchema: HydrogenThemeSchema = {
+export const themeSchema: WeaverseThemeSchema = {
   // ...components and settings
   i18n: {
     urlStructure: "url-path",
@@ -126,7 +130,7 @@ A shop-scoped `WEAVERSE_API_KEY` can authenticate Weaverse Content API/MCP capab
   </Step>
 
   <Step title="Verify identity and scopes">
-    Call the Weaverse MCP `whoami` tool first. For Shopify authority, make a harmless authenticated `POST https://studio.weaverse.io/api/admin-graphql` read for `shop {name primaryDomain {url}}` and `currentAppInstallation {accessScopes {handle}}`. Confirm the expected shop and minimum required scopes before continuing; a successful token lookup alone proves neither.
+    Call the Weaverse MCP `list_projects` tool first to confirm which projects the credential reaches. For Shopify authority, make a harmless authenticated `POST https://studio.weaverse.io/api/admin-graphql` read for `shop {name primaryDomain {url}}` and `currentAppInstallation {accessScopes {handle}}`. Confirm the expected shop and minimum required scopes before continuing; a successful token lookup alone proves neither.
   </Step>
 
   <Step title="Inventory before changing">
@@ -156,5 +160,5 @@ Before launch:
 - Confirm cart buyer identity and checkout remain in the selected country and currency.
 - Render the selected market's `hreflang` as `<html lang>` and set `dir="rtl"` for RTL markets.
 - Emit a self-canonical URL and only the `hreflang` alternates whose equivalent routes are known to exist. Omit uncertain alternates.
-- Register the storefront origin and every served market home URI as allowed Customer Account post-logout URIs. Keep the authentication callback unlocalized.
+- Register `<origin>/account/signed-out` as the Customer Account post-logout URI. Every sign-out returns there, and it redirects the shopper to their market's home page, so one URI covers every market. Keep the authentication callback unlocalized.
 - After deploying the corrected theme, sync and publish the intended keys and overrides in Translation Manager.

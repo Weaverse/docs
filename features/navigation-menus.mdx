@@ -35,12 +35,12 @@ To set up and manage your storefront navigation:
 The menu “handle” (such as `main-menu` or `footer`) is used in your Hydrogen backend to query the Shopify Storefront API for navigation data. For example:
 
 ```ts
-let data = await storefront.query<LayoutQuery>(LAYOUT_QUERY, {
+let { data } = await storefront.graphql(LAYOUT_QUERY, {
   variables: {
     headerMenuHandle: "main-menu",
     footerMenuHandle: "footer",
-    language: storefront.i18n.language,
   },
+  cache: Cache.long(),
 });
 ```
 
