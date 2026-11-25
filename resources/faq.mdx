@@ -72,6 +72,28 @@ Weaverse offers different pricing tiers to suit various business needs. For the 
 
 Pricing may vary based on features, usage, and business requirements.
 
+### How Weaverse Counts Views
+
+Use the Weaverse billing dashboard for plan usage and Google Analytics 4 (GA4) for visitor behavior. Weaverse counts a storefront view when its server (the origin) successfully loads live page content. It counts content loads, not people or sessions.
+
+[GA4 normally records a `page_view`](https://developers.google.com/analytics/devguides/collection/ga4/views) when its tag runs on a page load or a browser history change. Consent settings, tag setup and blockers can affect what GA4 reports.
+
+- **Weaverse can be higher:** A bot, such as a search crawler, can load live page content without sending a GA4 event. A browser prefetch can do the same before anyone opens the page.
+- **GA4 can be higher:** A shopper opens a cached page and the browser sends a `page_view`. If the cache serves the page without contacting the origin, there is no new Weaverse storefront view.
+
+A cached response does not always mean zero usage. A shared template can serve a cached page and still load content from the origin in the background. That load can count if it succeeds.
+
+Metered, authenticated [Content API requests](/content-api/overview) also use view credits, even without a browser visit. Usage within your plan's allowance is included; check your plan for any overage charges.
+
+To compare the two reports, use the same billing dates, match the Weaverse project and page to the hostname and page path in GA4, and set Content API usage aside. A gap by itself does not tell you how much traffic came from bots.
+
+#### Reduce Repeat Requests With Hydrogen Caching
+
+- **Reuse public data in your storefront worker.** [Shopify's Hydrogen caching guide](https://shopify.dev/docs/storefronts/hydrogen/data-fetching/caching) shows how to connect the worker cache and choose which reads to cache. For example, if a custom loader gets a published banner from the Weaverse Content API, cache just the public banner data for that project, page, market and language. A fresh hit avoids the network round trip and uses no new view credit. Caching a Shopify product query can also speed up the page, but by itself it does not reduce Weaverse usage.
+- **Cache public pages on Oxygen.** By default, `loadPage()` uses Weaverse's own edge cache, not the storefront worker cache. For a landing page that is the same for everyone in a given market and language, [Oxygen's full-page cache](https://shopify.dev/docs/storefronts/headless/legacy/hydrogen/caching/full-page-cache#how-it-works) can serve the HTML without calling Weaverse again. Check the `Oxygen-Full-Page-Cache` response header on a repeat visit: `Hit` skips that page load; `Stale` can trigger a background refresh.
+
+Choose a cache lifetime that matches how soon shoppers need to see published edits. Keep market and language variants separate when their content differs. Never use a shared cache for carts, account pages, personalized content or Studio previews.
+
 ### Is Weaverse production-ready?
 
 Weaverse is used for production Hydrogen storefronts. Production readiness still depends on your own theme: test checkout, localization, caching, accessibility, analytics, and third-party integrations before launch.
@@ -728,9 +750,8 @@ Liquid page builders add. How it keeps the payload in check:
 - All registered components can affect the client bundle, so inspect production output when adding large dependencies
 
 **Caching**:
-- Storefront API and Weaverse Builder API responses cached with Hydrogen caching
-  strategies
-- Static assets and HTML cached at the Oxygen edge
+- The storefront worker can reuse public Shopify data. Weaverse manages its own cache for standard page-content loads.
+- Oxygen can also serve eligible public HTML from its full-page cache. See [how to reduce repeat requests with Hydrogen caching](#reduce-repeat-requests-with-hydrogen-caching).
 
 **Measure your own bundle**:
 ```bash
@@ -895,17 +916,16 @@ function HeavySection(props) {
 **Dependency Chain**: Weaverse → Shopify Hydrogen → React Router v7
 
 **Server-Side Rendering**: ✅ Via Shopify Hydrogen
-- Every request is rendered on the server (`ssr: true` in `react-router.config.ts`)
+- The storefront renders HTML on the server when needed. A fresh full-page cache hit serves the saved HTML instead.
 - Seamless hydration on the client
 - Powered by React Router v7's SSR architecture
 
 **Static Site Generation / ISR**: ❌ Not part of the Weaverse model
-- Weaverse page data is fetched from the Builder API per request, so pages are
-  not pre-generated at build time
+- Weaverse pages are not pre-generated at build time. When a page needs rendering, the SDK requests its content through the Weaverse API.
 - The equivalent speed-up is caching, not prerendering: use Hydrogen caching
   strategies in your loaders plus the Oxygen edge cache
 
-**Implementation** — cache instead of prerender:
+**Example: cache the Shopify product query, not the Weaverse page load:**
 ```typescript
 import { Cache } from '@shopify/hydrogen';
 
@@ -919,9 +939,7 @@ export async function loader({ params, context }) {
 }
 ```
 
-**Note**: Content published in Studio becomes visible once the relevant cache
-entry expires or revalidates, so pick cache strategies that match how often your
-merchants publish.
+The query strategy above controls Shopify product data. If you also cache the full page on Oxygen, a Studio edit may not appear until that page's cached HTML refreshes.
 
 ---
 
