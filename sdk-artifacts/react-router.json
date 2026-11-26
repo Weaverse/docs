@@ -80,7 +80,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 16,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L16"
 						}
 					],
 					"type": {
@@ -115,7 +116,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 35,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L35"
 						}
 					],
 					"signatures": [
@@ -145,7 +147,8 @@
 								{
 									"fileName": "hydrogen/src/utils/translation-store.ts",
 									"line": 35,
-									"character": 22
+									"character": 22,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L35"
 								}
 							],
 							"type": {
@@ -181,7 +184,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 32,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L32"
 						}
 					],
 					"signatures": [
@@ -211,7 +215,8 @@
 								{
 									"fileName": "hydrogen/src/utils/translation-store.ts",
 									"line": 32,
-									"character": 16
+									"character": 16,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L32"
 								}
 							],
 							"type": {
@@ -247,7 +252,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 20,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L20"
 						}
 					],
 					"signatures": [
@@ -269,7 +275,8 @@
 								{
 									"fileName": "hydrogen/src/utils/translation-store.ts",
 									"line": 20,
-									"character": 17
+									"character": 17,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L20"
 								}
 							],
 							"parameters": [
@@ -318,7 +325,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 38,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L38"
 						}
 					],
 					"signatures": [
@@ -340,7 +348,8 @@
 								{
 									"fileName": "hydrogen/src/utils/translation-store.ts",
 									"line": 38,
-									"character": 14
+									"character": 14,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L38"
 								}
 							],
 							"parameters": [
@@ -411,7 +420,8 @@
 						{
 							"fileName": "hydrogen/src/utils/translation-store.ts",
 							"line": 26,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L26"
 						}
 					],
 					"signatures": [
@@ -433,7 +443,8 @@
 								{
 									"fileName": "hydrogen/src/utils/translation-store.ts",
 									"line": 26,
-									"character": 20
+									"character": 20,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L26"
 								}
 							],
 							"parameters": [
@@ -501,7 +512,8 @@
 				{
 					"fileName": "hydrogen/src/utils/translation-store.ts",
 					"line": 14,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translation-store.ts#L14"
 				}
 			]
 		},
@@ -728,7 +740,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 303,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L303"
 						}
 					],
 					"signatures": [
@@ -750,7 +763,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 303,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L303"
 								}
 							],
 							"parameters": [
@@ -795,7 +809,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 266,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L266"
 						}
 					],
 					"type": {
@@ -822,7 +837,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 268,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L268"
 						}
 					],
 					"type": {
@@ -866,7 +882,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 270,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L270"
 						}
 					],
 					"type": {
@@ -910,7 +927,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 289,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L289"
 						}
 					],
 					"type": {
@@ -942,7 +960,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 283,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L283"
 						}
 					],
 					"type": {
@@ -979,7 +998,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 272,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L272"
 						}
 					],
 					"type": {
@@ -1007,7 +1027,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 279,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L279"
 						}
 					],
 					"type": {
@@ -1033,7 +1054,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 287,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L287"
 						}
 					],
 					"type": {
@@ -1061,7 +1083,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 277,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L277"
 						}
 					],
 					"type": {
@@ -1093,7 +1116,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 281,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L281"
 						}
 					],
 					"type": {
@@ -1121,7 +1145,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 285,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L285"
 						}
 					],
 					"type": {
@@ -1149,7 +1174,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 291,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L291"
 						}
 					],
 					"type": {
@@ -1220,7 +1246,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 1459,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1459"
 						}
 					],
 					"signatures": [
@@ -1242,7 +1269,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 1459,
-									"character": 24
+									"character": 24,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1459"
 								}
 							],
 							"parameters": [
@@ -1291,7 +1319,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 1147,
-							"character": 8
+							"character": 8,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1147"
 						}
 					],
 					"signatures": [
@@ -1390,7 +1419,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 1147,
-									"character": 8
+									"character": 8,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1147"
 								}
 							],
 							"parameters": [
@@ -1446,7 +1476,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 773,
-							"character": 9
+							"character": 9,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L773"
 						}
 					],
 					"signatures": [
@@ -1528,7 +1559,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 773,
-									"character": 26
+									"character": 26,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L773"
 								}
 							],
 							"typeParameters": [
@@ -1619,7 +1651,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 1114,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1114"
 						}
 					],
 					"signatures": [
@@ -1652,7 +1685,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 1114,
-									"character": 25
+									"character": 25,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1114"
 								}
 							],
 							"parameters": [
@@ -1695,7 +1729,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 1261,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1261"
 						}
 					],
 					"signatures": [
@@ -1851,7 +1886,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 1261,
-									"character": 13
+									"character": 13,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L1261"
 								}
 							],
 							"parameters": [
@@ -1950,7 +1986,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 910,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L910"
 						}
 					],
 					"signatures": [
@@ -2018,7 +2055,8 @@
 								{
 									"fileName": "hydrogen/src/weaverse-client.ts",
 									"line": 910,
-									"character": 22
+									"character": 22,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L910"
 								}
 							],
 							"parameters": [
@@ -2112,7 +2150,8 @@
 				{
 					"fileName": "hydrogen/src/weaverse-client.ts",
 					"line": 264,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L264"
 				}
 			]
 		},
@@ -2152,7 +2191,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 948,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L948"
 						}
 					],
 					"signatures": [
@@ -2174,7 +2214,8 @@
 								{
 									"fileName": "hydrogen/src/types.ts",
 									"line": 948,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L948"
 								}
 							],
 							"parameters": [
@@ -2286,7 +2327,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 941,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L941"
 						}
 					],
 					"type": {
@@ -2316,7 +2358,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 945,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L945"
 						}
 					],
 					"type": {
@@ -2362,7 +2405,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 943,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L943"
 						}
 					],
 					"type": {
@@ -2391,7 +2435,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 939,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L939"
 				}
 			],
 			"extendedTypes": [
@@ -2559,7 +2604,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1039,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1039"
 						}
 					],
 					"signatures": [
@@ -2581,7 +2627,8 @@
 								{
 									"fileName": "hydrogen/src/types.ts",
 									"line": 1039,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1039"
 								}
 							],
 							"parameters": [
@@ -2693,7 +2740,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 941,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L941"
 						}
 					],
 					"type": {
@@ -2729,7 +2777,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 945,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L945"
 						}
 					],
 					"type": {
@@ -2779,7 +2828,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1036,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1036"
 						}
 					],
 					"type": {
@@ -2812,7 +2862,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 943,
-							"character": 18
+							"character": 18,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L943"
 						}
 					],
 					"type": {
@@ -2847,7 +2898,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 1034,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1034"
 				}
 			],
 			"extendedTypes": [
@@ -2894,7 +2946,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 562,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L562"
 						}
 					],
 					"type": {
@@ -2937,7 +2990,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 564,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L564"
 						}
 					],
 					"type": {
@@ -2971,7 +3025,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 566,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L566"
 						}
 					],
 					"type": {
@@ -2999,7 +3054,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 568,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L568"
 						}
 					],
 					"type": {
@@ -3027,7 +3083,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 570,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L570"
 						}
 					],
 					"type": {
@@ -3053,7 +3110,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 572,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L572"
 						}
 					],
 					"type": {
@@ -3081,7 +3139,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 574,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L574"
 						}
 					],
 					"type": {
@@ -3109,7 +3168,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 576,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L576"
 						}
 					],
 					"type": {
@@ -3137,7 +3197,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 578,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L578"
 						}
 					],
 					"type": {
@@ -3163,7 +3224,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 580,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L580"
 						}
 					],
 					"type": {
@@ -3199,7 +3261,8 @@
 				{
 					"fileName": "schema/src/validation.ts",
 					"line": 556,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L556"
 				}
 			]
 		},
@@ -3238,7 +3301,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1065,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1065"
 						}
 					],
 					"type": {
@@ -3277,7 +3341,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1067,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1067"
 						}
 					],
 					"type": {
@@ -3303,7 +3368,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1069,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1069"
 						}
 					],
 					"type": {
@@ -3337,7 +3403,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1071,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1071"
 						}
 					],
 					"type": {
@@ -3382,7 +3449,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1076,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1076"
 						}
 					],
 					"type": {
@@ -3417,7 +3485,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1078,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1078"
 						}
 					],
 					"type": {
@@ -3445,7 +3514,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1080,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1080"
 						}
 					],
 					"type": {
@@ -3529,7 +3599,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1087,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1087"
 						}
 					],
 					"type": {
@@ -3570,7 +3641,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 1063,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1063"
 				}
 			]
 		},
@@ -3619,7 +3691,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 170,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L170"
 						}
 					],
 					"type": {
@@ -3647,7 +3720,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 172,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L172"
 						}
 					],
 					"type": {
@@ -3669,7 +3743,8 @@
 				{
 					"fileName": "hydrogen/src/weaverse-client.ts",
 					"line": 168,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L168"
 				}
 			]
 		},
@@ -3708,7 +3783,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 597,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L597"
 						}
 					],
 					"type": {
@@ -3738,7 +3814,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 608,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L608"
 						}
 					],
 					"type": {
@@ -3766,7 +3843,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 599,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L599"
 						}
 					],
 					"type": {
@@ -3798,7 +3876,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 605,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L605"
 										}
 									],
 									"type": {
@@ -3826,7 +3905,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 603,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L603"
 										}
 									],
 									"type": {
@@ -3854,7 +3934,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 601,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L601"
 										}
 									],
 									"type": {
@@ -3896,7 +3977,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 593,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L593"
 						}
 					],
 					"type": {
@@ -3922,7 +4004,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 595,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L595"
 						}
 					],
 					"type": {
@@ -3947,7 +4030,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 591,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L591"
 				}
 			]
 		},
@@ -4000,7 +4084,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 604,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L604"
 						}
 					],
 					"type": {
@@ -4026,7 +4111,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 606,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L606"
 						}
 					],
 					"type": {
@@ -4057,7 +4143,8 @@
 				{
 					"fileName": "schema/src/validation.ts",
 					"line": 602,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L602"
 				}
 			]
 		},
@@ -4119,7 +4206,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1329,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1329"
 						}
 					],
 					"type": {
@@ -4147,7 +4235,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1318,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1318"
 						}
 					],
 					"type": {
@@ -4187,7 +4276,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1371,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1371"
 						}
 					],
 					"type": {
@@ -4215,7 +4305,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1339,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1339"
 						}
 					],
 					"type": {
@@ -4260,7 +4351,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 1310,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1310"
 						}
 					],
 					"type": {
@@ -4287,7 +4379,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 1301,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L1301"
 				}
 			]
 		},
@@ -4324,7 +4417,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 366,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L366"
 						}
 					],
 					"type": {
@@ -4350,7 +4444,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 368,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L368"
 						}
 					],
 					"type": {
@@ -4372,7 +4467,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 364,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L364"
 				}
 			]
 		},
@@ -4433,7 +4529,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 114,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L114"
 						}
 					],
 					"type": {
@@ -4483,7 +4580,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 106,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L106"
 				}
 			],
 			"extendedTypes": [
@@ -4641,7 +4739,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 661,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L661"
 						}
 					],
 					"type": {
@@ -4672,7 +4771,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 663,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L663"
 						}
 					],
 					"type": {
@@ -4741,7 +4841,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 670,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L670"
 						}
 					],
 					"type": {
@@ -4773,7 +4874,8 @@
 										{
 											"fileName": "schema/src/validation.ts",
 											"line": 674,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L674"
 										}
 									],
 									"type": {
@@ -4819,7 +4921,8 @@
 										{
 											"fileName": "schema/src/validation.ts",
 											"line": 672,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L672"
 										}
 									],
 									"type": {
@@ -4884,7 +4987,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 680,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L680"
 						}
 					],
 					"type": {
@@ -4917,7 +5021,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 696,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L696"
 						}
 					],
 					"type": {
@@ -4945,7 +5050,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 698,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L698"
 						}
 					],
 					"type": {
@@ -4977,7 +5083,8 @@
 										{
 											"fileName": "schema/src/validation.ts",
 											"line": 700,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L700"
 										}
 									],
 									"type": {
@@ -5060,7 +5167,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 706,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L706"
 						}
 					],
 					"type": {
@@ -5091,7 +5199,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 708,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L708"
 						}
 					],
 					"type": {
@@ -5117,7 +5226,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 710,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L710"
 						}
 					],
 					"type": {
@@ -5137,7 +5247,8 @@
 						{
 							"fileName": "schema/src/validation.ts",
 							"line": 694,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L694"
 						}
 					],
 					"signatures": [
@@ -5178,7 +5289,8 @@
 								{
 									"fileName": "schema/src/validation.ts",
 									"line": 694,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L694"
 								}
 							],
 							"parameters": [
@@ -5257,7 +5369,8 @@
 				{
 					"fileName": "schema/src/validation.ts",
 					"line": 659,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L659"
 				}
 			]
 		},
@@ -5302,7 +5415,8 @@
 						{
 							"fileName": "react/src/studio-selection.ts",
 							"line": 7,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/studio-selection.ts#L7"
 						}
 					],
 					"type": {
@@ -5353,7 +5467,8 @@
 						{
 							"fileName": "react/src/studio-selection.ts",
 							"line": 12,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/studio-selection.ts#L12"
 						}
 					],
 					"type": {
@@ -5384,7 +5499,8 @@
 				{
 					"fileName": "react/src/studio-selection.ts",
 					"line": 5,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/studio-selection.ts#L5"
 				}
 			]
 		},
@@ -5431,7 +5547,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 69,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L69"
 						}
 					],
 					"type": {
@@ -5466,7 +5583,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 52,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L52"
 						}
 					],
 					"type": {
@@ -5508,7 +5626,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 50,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L50"
 						}
 					],
 					"type": {
@@ -5552,7 +5671,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 59,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L59"
 						}
 					],
 					"type": {
@@ -5606,7 +5726,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 67,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L67"
 						}
 					],
 					"type": {
@@ -5645,7 +5766,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 61,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L61"
 						}
 					],
 					"type": {
@@ -5682,7 +5804,8 @@
 				{
 					"fileName": "hydrogen/src/hooks/translation-context.tsx",
 					"line": 48,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L48"
 				}
 			]
 		},
@@ -5719,7 +5842,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 41,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L41"
 						}
 					],
 					"type": {
@@ -5821,7 +5945,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 32,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L32"
 						}
 					],
 					"type": {
@@ -5865,7 +5990,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 39,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L39"
 						}
 					],
 					"type": {
@@ -5902,7 +6028,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 34,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L34"
 						}
 					],
 					"type": {
@@ -5937,7 +6064,8 @@
 				{
 					"fileName": "hydrogen/src/hooks/translation-context.tsx",
 					"line": 18,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L18"
 				}
 			]
 		},
@@ -5974,7 +6102,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 125,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L125"
 						}
 					],
 					"type": {
@@ -5995,7 +6124,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 123,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L123"
 				}
 			]
 		},
@@ -6083,7 +6213,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 760,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L760"
 						}
 					],
 					"type": {
@@ -6115,7 +6246,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 742,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L742"
 						}
 					],
 					"type": {
@@ -6154,7 +6286,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 736,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L736"
 						}
 					],
 					"type": {
@@ -6188,7 +6321,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 727,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L727"
 						}
 					],
 					"type": {
@@ -6238,7 +6372,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 802,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L802"
 						}
 					],
 					"type": {
@@ -6325,7 +6460,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 724,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L724"
 						}
 					],
 					"type": {
@@ -6437,7 +6573,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 786,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L786"
 						}
 					],
 					"type": {
@@ -6465,7 +6602,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 754,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L754"
 						}
 					],
 					"type": {
@@ -6523,7 +6661,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 712,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L712"
 						}
 					],
 					"type": {
@@ -6551,7 +6690,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 748,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L748"
 						}
 					],
 					"type": {
@@ -6642,7 +6782,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 816,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L816"
 						}
 					],
 					"type": {
@@ -6670,7 +6811,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 730,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L730"
 						}
 					],
 					"type": {
@@ -6746,7 +6888,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 706,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L706"
 				}
 			]
 		},
@@ -6854,7 +6997,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 340,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L340"
 						}
 					],
 					"type": {
@@ -6951,7 +7095,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 344,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L344"
 						}
 					],
 					"type": {
@@ -7023,7 +7168,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 342,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L342"
 						}
 					],
 					"type": {
@@ -7048,7 +7194,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 338,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L338"
 				}
 			],
 			"typeParameters": [
@@ -7106,7 +7253,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 131,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L131"
 						}
 					],
 					"type": {
@@ -7139,7 +7287,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 133,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L133"
 						}
 					],
 					"type": {
@@ -7167,7 +7316,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 135,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L135"
 						}
 					],
 					"type": {
@@ -7238,7 +7388,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 137,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L137"
 						}
 					],
 					"type": {
@@ -7264,7 +7415,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 139,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L139"
 						}
 					],
 					"type": {
@@ -7295,7 +7447,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 141,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L141"
 						}
 					],
 					"type": {
@@ -7328,7 +7481,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 143,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L143"
 						}
 					],
 					"type": {
@@ -7355,7 +7509,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 129,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L129"
 				}
 			],
 			"indexSignatures": [
@@ -7377,7 +7532,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 129,
-							"character": 17
+							"character": 17,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L129"
 						}
 					],
 					"parameters": [
@@ -7456,7 +7612,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 88,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L88"
 						}
 					],
 					"type": {
@@ -7486,7 +7643,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 90,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L90"
 						}
 					],
 					"type": {
@@ -7510,7 +7668,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 86,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L86"
 				}
 			],
 			"typeParameters": [
@@ -7584,7 +7743,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 198,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L198"
 						}
 					],
 					"type": {
@@ -7622,7 +7782,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 200,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L200"
 						}
 					],
 					"type": {
@@ -7650,7 +7811,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 151,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L151"
 						}
 					],
 					"type": {
@@ -7696,7 +7858,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 155,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L155"
 						}
 					],
 					"type": {
@@ -7729,7 +7892,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 157,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L157"
 						}
 					],
 					"type": {
@@ -7762,7 +7926,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 202,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L202"
 						}
 					],
 					"type": {
@@ -7794,7 +7959,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 153,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L153"
 						}
 					],
 					"type": {
@@ -7826,7 +7992,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 196,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L196"
 				}
 			],
 			"typeParameters": [
@@ -7953,7 +8120,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 861,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L861"
 						}
 					],
 					"type": {
@@ -7981,7 +8149,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 863,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L863"
 						}
 					],
 					"type": {
@@ -8009,7 +8178,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 868,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L868"
 						}
 					],
 					"type": {
@@ -8045,7 +8215,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 870,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L870"
 						}
 					],
 					"type": {
@@ -8073,7 +8244,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 872,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L872"
 						}
 					],
 					"type": {
@@ -8101,7 +8273,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 874,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L874"
 						}
 					],
 					"type": {
@@ -8127,7 +8300,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 859,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L859"
 				}
 			],
 			"indexSignatures": [
@@ -8149,7 +8323,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 876,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L876"
 						}
 					],
 					"parameters": [
@@ -8226,7 +8401,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 162,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L162"
 						}
 					],
 					"type": {
@@ -8256,7 +8432,8 @@
 						{
 							"fileName": "hydrogen/src/weaverse-client.ts",
 							"line": 164,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L164"
 						}
 					],
 					"type": {
@@ -8284,7 +8461,8 @@
 				{
 					"fileName": "hydrogen/src/weaverse-client.ts",
 					"line": 160,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L160"
 				}
 			],
 			"extendedTypes": [
@@ -8333,7 +8511,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 492,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L492"
 						}
 					],
 					"type": {
@@ -8354,7 +8533,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 490,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L490"
 				}
 			]
 		},
@@ -8401,7 +8581,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 498,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L498"
 						}
 					],
 					"type": {
@@ -8480,7 +8661,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 508,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L508"
 						}
 					],
 					"type": {
@@ -8510,7 +8692,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 510,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L510"
 						}
 					],
 					"type": {
@@ -8548,7 +8731,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 496,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L496"
 				}
 			]
 		},
@@ -8587,7 +8771,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 461,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L461"
 						}
 					],
 					"type": {
@@ -8615,7 +8800,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 463,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L463"
 						}
 					],
 					"type": {
@@ -8637,7 +8823,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 459,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L459"
 				}
 			],
 			"indexSignatures": [
@@ -8659,7 +8846,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 465,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L465"
 						}
 					],
 					"parameters": [
@@ -8727,7 +8915,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 88,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L88"
 						}
 					],
 					"type": {
@@ -8755,7 +8944,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 100,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L100"
 						}
 					],
 					"type": {
@@ -8785,7 +8975,8 @@
 										{
 											"fileName": "core/src/types.ts",
 											"line": 102,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L102"
 										}
 									],
 									"type": {
@@ -8811,7 +9002,8 @@
 										{
 											"fileName": "core/src/types.ts",
 											"line": 104,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L104"
 										}
 									],
 									"type": {
@@ -8850,7 +9042,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 92,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L92"
 						}
 					],
 					"type": {
@@ -8876,7 +9069,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 84,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L84"
 						}
 					],
 					"type": {
@@ -8902,7 +9096,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 94,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L94"
 						}
 					],
 					"type": {
@@ -8928,7 +9123,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 86,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L86"
 						}
 					],
 					"type": {
@@ -8954,7 +9150,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 90,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L90"
 						}
 					],
 					"type": {
@@ -8981,7 +9178,8 @@
 				{
 					"fileName": "core/src/types.ts",
 					"line": 82,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L82"
 				}
 			]
 		},
@@ -9026,7 +9224,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 419,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L419"
 						}
 					],
 					"type": {
@@ -9081,7 +9280,8 @@
 												{
 													"fileName": "hydrogen/src/types.ts",
 													"line": 421,
-													"character": 4
+													"character": 4,
+													"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L421"
 												}
 											],
 											"type": {
@@ -9137,7 +9337,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 434,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L434"
 						}
 					],
 					"type": {
@@ -9163,7 +9364,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 424,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L424"
 						}
 					],
 					"type": {
@@ -9193,7 +9395,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 428,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L428"
 						}
 					],
 					"type": {
@@ -9221,7 +9424,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 426,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L426"
 						}
 					],
 					"type": {
@@ -9248,7 +9452,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 417,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L417"
 				}
 			]
 		},
@@ -9285,7 +9490,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 217,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L217"
 						}
 					],
 					"type": {
@@ -9313,7 +9519,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 210,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L210"
 						}
 					],
 					"type": {
@@ -9339,7 +9546,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 212,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L212"
 						}
 					],
 					"type": {
@@ -9414,7 +9622,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 208,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L208"
 						}
 					],
 					"type": {
@@ -9438,7 +9647,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 206,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L206"
 				}
 			]
 		},
@@ -9475,7 +9685,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 402,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L402"
 						}
 					],
 					"type": {
@@ -9501,7 +9712,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 404,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L404"
 						}
 					],
 					"type": {
@@ -9529,7 +9741,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 406,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L406"
 						}
 					],
 					"type": {
@@ -9559,7 +9772,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 412,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L412"
 										}
 									],
 									"type": {
@@ -9585,7 +9799,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 408,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L408"
 										}
 									],
 									"type": {
@@ -9611,7 +9826,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 410,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L410"
 										}
 									],
 									"type": {
@@ -9651,7 +9867,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 398,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L398"
 						}
 					],
 					"type": {
@@ -9677,7 +9894,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 400,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L400"
 						}
 					],
 					"type": {
@@ -9704,7 +9922,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 396,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L396"
 				}
 			]
 		},
@@ -9743,7 +9962,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 440,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L440"
 						}
 					],
 					"type": {
@@ -9769,7 +9989,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 442,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L442"
 						}
 					],
 					"type": {
@@ -9800,7 +10021,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 444,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L444"
 						}
 					],
 					"type": {
@@ -9836,7 +10058,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 446,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L446"
 						}
 					],
 					"type": {
@@ -9864,7 +10087,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 188,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L188"
 						}
 					],
 					"type": {
@@ -9913,7 +10137,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 453,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L453"
 						}
 					],
 					"type": {
@@ -9954,7 +10179,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 438,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L438"
 				}
 			],
 			"indexSignatures": [
@@ -9976,7 +10202,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 455,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L455"
 						}
 					],
 					"parameters": [
@@ -10046,7 +10273,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 384,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L384"
 						}
 					],
 					"type": {
@@ -10074,7 +10302,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 386,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L386"
 						}
 					],
 					"type": {
@@ -10102,7 +10331,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 388,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L388"
 						}
 					],
 					"type": {
@@ -10128,7 +10358,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 374,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L374"
 						}
 					],
 					"type": {
@@ -10156,7 +10387,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 392,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L392"
 						}
 					],
 					"type": {
@@ -10186,7 +10418,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 390,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L390"
 						}
 					],
 					"type": {
@@ -10212,7 +10445,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 378,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L378"
 						}
 					],
 					"type": {
@@ -10238,7 +10472,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 376,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L376"
 						}
 					],
 					"type": {
@@ -10266,7 +10501,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 380,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L380"
 						}
 					],
 					"type": {
@@ -10294,7 +10530,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 382,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L382"
 						}
 					],
 					"type": {
@@ -10324,7 +10561,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 372,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L372"
 				}
 			]
 		},
@@ -10361,7 +10599,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 229,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L229"
 						}
 					],
 					"type": {
@@ -10387,7 +10626,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 233,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L233"
 						}
 					],
 					"type": {
@@ -10413,7 +10653,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 231,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L231"
 						}
 					],
 					"type": {
@@ -10436,7 +10677,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 227,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L227"
 				}
 			],
 			"indexSignatures": [
@@ -10458,7 +10700,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 235,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L235"
 						}
 					],
 					"parameters": [
@@ -10530,7 +10773,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 102,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L102"
 						}
 					],
 					"type": {
@@ -10558,7 +10802,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 100,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L100"
 				}
 			],
 			"extendedTypes": [
@@ -10610,7 +10855,8 @@
 						{
 							"fileName": "hydrogen/src/seo.ts",
 							"line": 8,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/seo.ts#L8"
 						}
 					],
 					"type": {
@@ -10642,7 +10888,8 @@
 				{
 					"fileName": "hydrogen/src/seo.ts",
 					"line": 6,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/seo.ts#L6"
 				}
 			]
 		},
@@ -10681,7 +10928,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 828,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L828"
 						}
 					],
 					"type": {
@@ -10708,7 +10956,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 826,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L826"
 				}
 			]
 		},
@@ -10763,7 +11012,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 11,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L11"
 						}
 					],
 					"type": {
@@ -10794,7 +11044,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 13,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L13"
 						}
 					],
 					"type": {
@@ -10825,7 +11076,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 15,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L15"
 						}
 					],
 					"type": {
@@ -10856,7 +11108,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 17,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L17"
 						}
 					],
 					"type": {
@@ -10895,7 +11148,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 19,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L19"
 						}
 					],
 					"type": {
@@ -10926,7 +11180,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 21,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L21"
 						}
 					],
 					"type": {
@@ -10955,7 +11210,8 @@
 				{
 					"fileName": "hydrogen/src/utils/studio-csp.ts",
 					"line": 9,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L9"
 				}
 			]
 		},
@@ -11125,7 +11381,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 576,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L576"
 						}
 					],
 					"type": {
@@ -11155,7 +11412,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 580,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L580"
 										}
 									],
 									"type": {
@@ -11183,7 +11441,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 582,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L582"
 										}
 									],
 									"type": {
@@ -11216,7 +11475,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 584,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L584"
 										}
 									],
 									"type": {
@@ -11260,7 +11520,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 586,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L586"
 										}
 									],
 									"type": {
@@ -11286,7 +11547,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 578,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L578"
 										}
 									],
 									"type": {
@@ -11341,7 +11603,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 510,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L510"
 						}
 					],
 					"type": {
@@ -11371,7 +11634,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 516,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L516"
 										}
 									],
 									"type": {
@@ -11397,7 +11661,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 518,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L518"
 										}
 									],
 									"type": {
@@ -11423,7 +11688,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 520,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L520"
 										}
 									],
 									"type": {
@@ -11449,7 +11715,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 512,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L512"
 										}
 									],
 									"type": {
@@ -11475,7 +11742,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 522,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L522"
 										}
 									],
 									"type": {
@@ -11501,7 +11769,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 514,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L514"
 										}
 									],
 									"type": {
@@ -11552,7 +11821,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 525,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L525"
 						}
 					],
 					"type": {
@@ -11649,7 +11919,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 539,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L539"
 						}
 					],
 					"type": {
@@ -11681,7 +11952,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 541,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L541"
 										}
 									],
 									"type": {
@@ -11712,7 +11984,8 @@
 										{
 											"fileName": "hydrogen/src/types.ts",
 											"line": 543,
-											"character": 4
+											"character": 4,
+											"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L543"
 										}
 									],
 									"type": {
@@ -11828,7 +12101,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 574,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L574"
 						}
 					],
 					"type": {
@@ -11886,7 +12160,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 553,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L553"
 						}
 					],
 					"type": {
@@ -11948,7 +12223,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 546,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L546"
 						}
 					],
 					"type": {
@@ -11980,7 +12256,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 508,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L508"
 				}
 			]
 		},
@@ -12019,7 +12296,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 911,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L911"
 						}
 					],
 					"type": {
@@ -12047,7 +12325,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 913,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L913"
 						}
 					],
 					"type": {
@@ -12075,7 +12354,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 909,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L909"
 						}
 					],
 					"type": {
@@ -12119,7 +12399,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 905,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L905"
 						}
 					],
 					"type": {
@@ -12149,7 +12430,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 903,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L903"
 						}
 					],
 					"type": {
@@ -12187,7 +12469,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 907,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L907"
 						}
 					],
 					"type": {
@@ -12231,7 +12514,8 @@
 						{
 							"fileName": "hydrogen/src/types.ts",
 							"line": 901,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L901"
 						}
 					],
 					"type": {
@@ -12260,7 +12544,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 899,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L899"
 				}
 			]
 		},
@@ -12297,7 +12582,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 115,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L115"
 						}
 					],
 					"type": {
@@ -12323,7 +12609,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 119,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L119"
 						}
 					],
 					"type": {
@@ -12349,7 +12636,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 111,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L111"
 						}
 					],
 					"type": {
@@ -12375,7 +12663,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 121,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L121"
 						}
 					],
 					"type": {
@@ -12401,7 +12690,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 113,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L113"
 						}
 					],
 					"type": {
@@ -12427,7 +12717,8 @@
 						{
 							"fileName": "core/src/types.ts",
 							"line": 117,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L117"
 						}
 					],
 					"type": {
@@ -12453,7 +12744,8 @@
 				{
 					"fileName": "core/src/types.ts",
 					"line": 109,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/types.ts#L109"
 				}
 			]
 		},
@@ -12516,7 +12808,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 636,
-							"character": 2
+							"character": 2,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L636"
 						}
 					],
 					"type": {
@@ -12539,7 +12832,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 630,
-					"character": 17
+					"character": 17,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L630"
 				}
 			]
 		},
@@ -12561,7 +12855,8 @@
 				{
 					"fileName": "hydrogen/src/weaverse-client.ts",
 					"line": 153,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/weaverse-client.ts#L153"
 				}
 			],
 			"type": {
@@ -12604,7 +12899,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 120,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L120"
 				}
 			],
 			"type": {
@@ -12651,7 +12947,8 @@
 				{
 					"fileName": "schema/src/validation.ts",
 					"line": 610,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/validation.ts#L610"
 				}
 			],
 			"type": {
@@ -12738,7 +13035,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 648,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L648"
 				}
 			],
 			"type": {
@@ -12827,7 +13125,8 @@
 				{
 					"fileName": "hydrogen/src/utils/translate.ts",
 					"line": 40,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/translate.ts#L40"
 				}
 			],
 			"type": {
@@ -12923,7 +13222,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 884,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L884"
 				}
 			],
 			"type": {
@@ -12955,7 +13255,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 882,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L882"
 				}
 			],
 			"type": {
@@ -13046,7 +13347,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 169,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L169"
 				}
 			],
 			"type": {
@@ -13084,7 +13386,8 @@
 				{
 					"fileName": "hydrogen/src/utils/pick-weaverse-data.ts",
 					"line": 8,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/pick-weaverse-data.ts#L8"
 				}
 			],
 			"type": {
@@ -13203,7 +13506,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 982,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L982"
 				}
 			],
 			"type": {
@@ -13242,7 +13546,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 888,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L888"
 				}
 			],
 			"type": {
@@ -13274,7 +13579,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 880,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L880"
 				}
 			],
 			"type": {
@@ -13316,7 +13622,8 @@
 				{
 					"fileName": "hydrogen/src/seo.ts",
 					"line": 12,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/seo.ts#L12"
 				}
 			],
 			"type": {
@@ -13385,7 +13692,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 832,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L832"
 				}
 			],
 			"type": {
@@ -13425,7 +13733,8 @@
 				{
 					"fileName": "hydrogen/src/types.ts",
 					"line": 221,
-					"character": 12
+					"character": 12,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/types.ts#L221"
 				}
 			],
 			"type": {
@@ -13597,7 +13906,8 @@
 				{
 					"fileName": "schema/src/images-placeholders.ts",
 					"line": 25,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L25"
 				}
 			],
 			"type": {
@@ -13627,7 +13937,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 36,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L36"
 								}
 							],
 							"type": {
@@ -13654,7 +13965,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 39,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L39"
 								}
 							],
 							"type": {
@@ -13681,7 +13993,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 42,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L42"
 								}
 							],
 							"type": {
@@ -13708,7 +14021,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 45,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L45"
 								}
 							],
 							"type": {
@@ -13735,7 +14049,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 48,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L48"
 								}
 							],
 							"type": {
@@ -13762,7 +14077,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 51,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L51"
 								}
 							],
 							"type": {
@@ -13789,7 +14105,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 54,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L54"
 								}
 							],
 							"type": {
@@ -13816,7 +14133,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 57,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L57"
 								}
 							],
 							"type": {
@@ -13843,7 +14161,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 33,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L33"
 								}
 							],
 							"type": {
@@ -13870,7 +14189,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 30,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L30"
 								}
 							],
 							"type": {
@@ -13897,7 +14217,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 27,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L27"
 								}
 							],
 							"type": {
@@ -13924,7 +14245,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 60,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L60"
 								}
 							],
 							"type": {
@@ -13951,7 +14273,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 87,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L87"
 								}
 							],
 							"type": {
@@ -13978,7 +14301,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 90,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L90"
 								}
 							],
 							"type": {
@@ -14005,7 +14329,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 93,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L93"
 								}
 							],
 							"type": {
@@ -14032,7 +14357,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 96,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L96"
 								}
 							],
 							"type": {
@@ -14059,7 +14385,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 99,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L99"
 								}
 							],
 							"type": {
@@ -14086,7 +14413,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 102,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L102"
 								}
 							],
 							"type": {
@@ -14113,7 +14441,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 105,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L105"
 								}
 							],
 							"type": {
@@ -14140,7 +14469,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 108,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L108"
 								}
 							],
 							"type": {
@@ -14167,7 +14497,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 111,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L111"
 								}
 							],
 							"type": {
@@ -14194,7 +14525,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 63,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L63"
 								}
 							],
 							"type": {
@@ -14221,7 +14553,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 66,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L66"
 								}
 							],
 							"type": {
@@ -14248,7 +14581,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 69,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L69"
 								}
 							],
 							"type": {
@@ -14275,7 +14609,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 72,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L72"
 								}
 							],
 							"type": {
@@ -14302,7 +14637,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 75,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L75"
 								}
 							],
 							"type": {
@@ -14329,7 +14665,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 78,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L78"
 								}
 							],
 							"type": {
@@ -14356,7 +14693,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 81,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L81"
 								}
 							],
 							"type": {
@@ -14383,7 +14721,8 @@
 								{
 									"fileName": "schema/src/images-placeholders.ts",
 									"line": 84,
-									"character": 2
+									"character": 2,
+									"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/images-placeholders.ts#L84"
 								}
 							],
 							"type": {
@@ -14462,7 +14801,8 @@
 				{
 					"fileName": "core/src/utils/index.ts",
 					"line": 10,
-					"character": 11
+					"character": 11,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/utils/index.ts#L10"
 				}
 			],
 			"type": {
@@ -14500,7 +14840,8 @@
 				{
 					"fileName": "core/src/utils/index.ts",
 					"line": 17,
-					"character": 11
+					"character": 11,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/core/src/utils/index.ts#L17"
 				}
 			],
 			"type": {
@@ -14639,7 +14980,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 552,
-					"character": 13
+					"character": 13,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L552"
 				}
 			],
 			"type": {
@@ -14721,7 +15063,8 @@
 				{
 					"fileName": "schema/src/index.ts",
 					"line": 102,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/index.ts#L102"
 				}
 			],
 			"signatures": [
@@ -14779,7 +15122,8 @@
 						{
 							"fileName": "schema/src/index.ts",
 							"line": 102,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/schema/src/index.ts#L102"
 						}
 					],
 					"parameters": [
@@ -14816,7 +15160,8 @@
 				{
 					"fileName": "hydrogen/src/utils/index.ts",
 					"line": 192,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/index.ts#L192"
 				}
 			],
 			"signatures": [
@@ -14858,7 +15203,8 @@
 						{
 							"fileName": "hydrogen/src/utils/index.ts",
 							"line": 192,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/index.ts#L192"
 						}
 					],
 					"parameters": [
@@ -14928,7 +15274,8 @@
 				{
 					"fileName": "hydrogen/src/utils/nested-key.ts",
 					"line": 10,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/nested-key.ts#L10"
 				}
 			],
 			"signatures": [
@@ -14970,7 +15317,8 @@
 						{
 							"fileName": "hydrogen/src/utils/nested-key.ts",
 							"line": 10,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/nested-key.ts#L10"
 						}
 					],
 					"parameters": [
@@ -15052,7 +15400,8 @@
 				{
 					"fileName": "hydrogen/src/utils/product-options.ts",
 					"line": 38,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/product-options.ts#L38"
 				}
 			],
 			"signatures": [
@@ -15143,7 +15492,8 @@
 						{
 							"fileName": "hydrogen/src/utils/product-options.ts",
 							"line": 38,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/product-options.ts#L38"
 						}
 					],
 					"parameters": [
@@ -15199,7 +15549,8 @@
 				{
 					"fileName": "hydrogen/src/seo.ts",
 					"line": 119,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/seo.ts#L119"
 				}
 			],
 			"signatures": [
@@ -15273,7 +15624,8 @@
 						{
 							"fileName": "hydrogen/src/seo.ts",
 							"line": 119,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/seo.ts#L119"
 						}
 					],
 					"parameters": [
@@ -15317,7 +15669,8 @@
 				{
 					"fileName": "hydrogen/src/utils/studio-csp.ts",
 					"line": 75,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L75"
 				}
 			],
 			"signatures": [
@@ -15495,7 +15848,8 @@
 						{
 							"fileName": "hydrogen/src/utils/studio-csp.ts",
 							"line": 75,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/utils/studio-csp.ts#L75"
 						}
 					],
 					"parameters": [
@@ -15555,7 +15909,8 @@
 				{
 					"fileName": "hydrogen/src/hooks/translation-context.tsx",
 					"line": 102,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L102"
 				}
 			],
 			"signatures": [
@@ -15653,7 +16008,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 102,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L102"
 						}
 					],
 					"parameters": [
@@ -15695,7 +16051,8 @@
 				{
 					"fileName": "react/src/hooks.ts",
 					"line": 221,
-					"character": 11
+					"character": 11,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L221"
 				}
 			],
 			"signatures": [
@@ -15766,7 +16123,8 @@
 						{
 							"fileName": "react/src/hooks.ts",
 							"line": 221,
-							"character": 31
+							"character": 31,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L221"
 						}
 					],
 					"parameters": [
@@ -15818,7 +16176,8 @@
 				{
 					"fileName": "react/src/hooks.ts",
 					"line": 133,
-					"character": 11
+					"character": 11,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L133"
 				}
 			],
 			"signatures": [
@@ -15961,7 +16320,8 @@
 						{
 							"fileName": "react/src/hooks.ts",
 							"line": 133,
-							"character": 29
+							"character": 29,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L133"
 						}
 					],
 					"parameters": [
@@ -16019,7 +16379,8 @@
 				{
 					"fileName": "react/src/hooks.ts",
 					"line": 170,
-					"character": 11
+					"character": 11,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L170"
 				}
 			],
 			"signatures": [
@@ -16082,7 +16443,8 @@
 						{
 							"fileName": "react/src/hooks.ts",
 							"line": 170,
-							"character": 31
+							"character": 31,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L170"
 						}
 					],
 					"type": {
@@ -16117,7 +16479,8 @@
 				{
 					"fileName": "react/src/studio-selection.ts",
 					"line": 108,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/studio-selection.ts#L108"
 				}
 			],
 			"signatures": [
@@ -16200,7 +16563,8 @@
 						{
 							"fileName": "react/src/studio-selection.ts",
 							"line": 108,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/studio-selection.ts#L108"
 						}
 					],
 					"type": {
@@ -16222,7 +16586,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 774,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L774"
 				}
 			],
 			"signatures": [
@@ -16291,7 +16656,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 774,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L774"
 						}
 					],
 					"typeParameters": [
@@ -16347,7 +16713,8 @@
 				{
 					"fileName": "hydrogen/src/hooks/translation-context.tsx",
 					"line": 178,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L178"
 				}
 			],
 			"signatures": [
@@ -16557,7 +16924,8 @@
 						{
 							"fileName": "hydrogen/src/hooks/translation-context.tsx",
 							"line": 178,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/hooks/translation-context.tsx#L178"
 						}
 					],
 					"type": {
@@ -16579,7 +16947,8 @@
 				{
 					"fileName": "react/src/hooks.ts",
 					"line": 60,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L60"
 				}
 			],
 			"signatures": [
@@ -16721,7 +17090,8 @@
 						{
 							"fileName": "react/src/hooks.ts",
 							"line": 60,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/react/src/hooks.ts#L60"
 						}
 					],
 					"typeParameters": [
@@ -16771,7 +17141,8 @@
 				{
 					"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 					"line": 691,
-					"character": 16
+					"character": 16,
+					"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L691"
 				}
 			],
 			"signatures": [
@@ -16938,7 +17309,8 @@
 						{
 							"fileName": "hydrogen/src/WeaverseHydrogenRoot.tsx",
 							"line": 691,
-							"character": 16
+							"character": 16,
+							"url": "https://github.com/Weaverse/weaverse/blob/d7dc56ce43f966741dcebcc0ebbaa65eb3884913/packages/hydrogen/src/WeaverseHydrogenRoot.tsx#L691"
 						}
 					],
 					"parameters": [
@@ -20200,7 +20572,7 @@
 	"files": {
 		"entries": {
 			"1": "packages/hydrogen/src/react-router.ts",
-			"2": "packages/hydrogen/README.md",
+			"2": "packages/hydrogen/readme.md",
 			"3": "packages/hydrogen"
 		},
 		"reflections": {
