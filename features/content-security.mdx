@@ -103,7 +103,7 @@ Hydrogen 2026.10 has no `HydrogenRouterContextProvider`: the context is React Ro
 
 ## Sources Weaverse Studio Requires
 
-[`getWeaverseStudioCspDirectives(request)`](/api-reference/get-weaverse-studio-csp-directives) from `@weaverse/hydrogen/react-router` returns the sources Studio needs for the request being rendered:
+[`getWeaverseStudioCspDirectives(request)`](/api-reference/functions/getWeaverseStudioCspDirectives) from `@weaverse/hydrogen/react-router` returns the sources Studio needs for the request being rendered:
 
 - **Normal visitors**: `{}`. Outside Studio the browser never contacts Weaverse, so your policy needs nothing extra.
 - **Inside Studio** (design mode, section preview or revision preview): the Studio origin in `frameAncestors`, `scriptSrc`, `connectSrc`, `styleSrc`, `fontSrc` and `imgSrc`. Design mode also adds `'unsafe-eval'` to `scriptSrc`, because the Studio bridge rebuilds schema `condition` functions from strings.
@@ -243,5 +243,5 @@ Not every red line is a CSP problem in your policy:
 ## Further Reading
 
 - [MDN: Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-- [`getWeaverseStudioCspDirectives` reference](/api-reference/get-weaverse-studio-csp-directives)
+- [`getWeaverseStudioCspDirectives` reference](/api-reference/functions/getWeaverseStudioCspDirectives)
 - [Next.js: Content Security Policy](/nextjs/studio#content-security-policy)

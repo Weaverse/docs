@@ -205,34 +205,12 @@
                     ]
                   },
                   {
-                    "group": "Hooks",
-                    "pages": [
-                      "api-reference/use-weaverse",
-                      "api-reference/use-item-instance",
-                      "api-reference/use-parent-instance",
-                      "api-reference/use-child-instances",
-                      "api-reference/use-theme-settings",
-                      "api-reference/use-studio-selection",
-                      "api-reference/use-translation"
-                    ]
-                  },
-                  {
-                    "group": "Components",
-                    "pages": [
-                      "api-reference/weaverse-root",
-                      "api-reference/weaverse-client",
-                      "api-reference/with-weaverse"
-                    ]
-                  },
-                  {
-                    "group": "Utilities & Types",
-                    "pages": [
-                      "api-reference/get-selected-product-options",
-                      "api-reference/images-placeholders",
-                      "api-reference/types",
-                      "api-reference/get-weaverse-studio-csp-directives",
-                      "api-reference/weaverse-load-error"
-                    ]
+                    "group": "Reference",
+                    "sdk": {
+                      "format": "typedoc",
+                      "source": "sdk-artifacts/react-router.json",
+                      "directory": "api-reference"
+                    }
                   }
                 ]
               },
@@ -247,14 +225,12 @@
                     ]
                   },
                   {
-                    "group": "Hooks",
-                    "pages": [
-                      "nextjs/api/use-weaverse",
-                      "nextjs/api/use-item-instance",
-                      "nextjs/api/use-parent-instance",
-                      "nextjs/api/use-child-instances",
-                      "nextjs/api/use-theme-settings"
-                    ]
+                    "group": "Reference",
+                    "sdk": {
+                      "format": "typedoc",
+                      "source": "sdk-artifacts/next.json",
+                      "directory": "nextjs/api"
+                    }
                   }
                 ]
               }
@@ -579,6 +555,86 @@
     {
       "source": "/community/index",
       "destination": "/community/community"
+    },
+    {
+      "source": "/api-reference/use-weaverse",
+      "destination": "/api-reference/functions/useWeaverse"
+    },
+    {
+      "source": "/api-reference/use-item-instance",
+      "destination": "/api-reference/functions/useItemInstance"
+    },
+    {
+      "source": "/api-reference/use-parent-instance",
+      "destination": "/api-reference/functions/useParentInstance"
+    },
+    {
+      "source": "/api-reference/use-child-instances",
+      "destination": "/api-reference/functions/useChildInstances"
+    },
+    {
+      "source": "/api-reference/use-theme-settings",
+      "destination": "/api-reference/functions/useThemeSettings"
+    },
+    {
+      "source": "/api-reference/use-studio-selection",
+      "destination": "/api-reference/functions/useStudioSelection"
+    },
+    {
+      "source": "/api-reference/use-translation",
+      "destination": "/api-reference/functions/useTranslation"
+    },
+    {
+      "source": "/api-reference/weaverse-root",
+      "destination": "/api-reference/variables/WeaverseHydrogenRoot"
+    },
+    {
+      "source": "/api-reference/weaverse-client",
+      "destination": "/api-reference/classes/WeaverseClient"
+    },
+    {
+      "source": "/api-reference/with-weaverse",
+      "destination": "/api-reference/functions/withWeaverse"
+    },
+    {
+      "source": "/api-reference/get-selected-product-options",
+      "destination": "/api-reference/functions/getSelectedProductOptions"
+    },
+    {
+      "source": "/api-reference/images-placeholders",
+      "destination": "/api-reference/variables/IMAGES_PLACEHOLDERS"
+    },
+    {
+      "source": "/api-reference/types",
+      "destination": "/api-reference/interfaces/WeaverseComponent"
+    },
+    {
+      "source": "/api-reference/get-weaverse-studio-csp-directives",
+      "destination": "/api-reference/functions/getWeaverseStudioCspDirectives"
+    },
+    {
+      "source": "/api-reference/weaverse-load-error",
+      "destination": "/api-reference/classes/WeaverseLoadError"
+    },
+    {
+      "source": "/nextjs/api/use-weaverse",
+      "destination": "/nextjs/api/next/functions/useWeaverse"
+    },
+    {
+      "source": "/nextjs/api/use-item-instance",
+      "destination": "/nextjs/api/next/functions/useItemInstance"
+    },
+    {
+      "source": "/nextjs/api/use-parent-instance",
+      "destination": "/nextjs/api/next/functions/useParentInstance"
+    },
+    {
+      "source": "/nextjs/api/use-child-instances",
+      "destination": "/nextjs/api/next/functions/useChildInstances"
+    },
+    {
+      "source": "/nextjs/api/use-theme-settings",
+      "destination": "/nextjs/api/next/functions/useThemeSettings"
     }
   ],
   "footer": {

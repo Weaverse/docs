@@ -81,7 +81,12 @@ For example, Studio opens collection `summer` at `/shop/summer` and article `hel
 
 ### Supported Keys and Patterns
 
-The supported keys are `INDEX`, `PRODUCT`, `ALL_PRODUCTS`, `COLLECTION`, `COLLECTION_LIST`, `PAGE`, `BLOG`, and `ARTICLE`. `CUSTOM` pages already carry their own path, and `*` is not a route key. See the [shared route types](/api-reference/types#themeroutes-and-themeroutepagetype).
+The supported keys are `INDEX`, `PRODUCT`, `ALL_PRODUCTS`, `COLLECTION`, `COLLECTION_LIST`, `PAGE`, `BLOG`, and `ARTICLE`. `CUSTOM` pages already carry their own path, and `*` is not a route key. TypeScript checks the keys, while pattern values remain strings. The route types are exported by `@weaverse/schema` 0.18.0+; `@weaverse/hydrogen` 6 doesn't re-export them from any entry, so import them from `@weaverse/schema`:
+
+```typescript
+type ThemeRoutePageType = Exclude<PageType, '*' | 'CUSTOM'>
+type ThemeRoutes = Partial<Record<ThemeRoutePageType, string>>
+```
 
 Use paths beginning with `/`, containing static segments and these whole-segment parameters:
 
@@ -231,7 +236,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 -   **Explicit `type: "PRODUCT"`:** This is critical. It tells Weaverse to load the content configured for a product page, even though the URL is `/shop/...`.
 -   **Extract `productHandle`:** Get the handle from `params`.
 -   **Fetch Shopify Data:** You still need to fetch the corresponding Shopify product data for SEO, potentially for component data binding (though Weaverse handles much of this), and analytics. Use `Promise.all` for efficiency.
--   **Missing page vs. failed load:** a route with no assigned page resolves to a fallback page, not `null`. By default a load failure (network error, error response, invalid per-call `projectId`) is logged and resolves to `null`, so branch on the result or hand it to `validateWeaverseData`. With `throwPageLoadFailures: true` on the `WeaverseClient` (Pilot sets it), a failure rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) instead, so the route can answer 503 rather than 404. A 404 from the Weaverse API still resolves to `null`.
+-   **Missing page vs. failed load:** a route with no assigned page resolves to a fallback page, not `null`. By default a load failure (network error, error response, invalid per-call `projectId`) is logged and resolves to `null`, so branch on the result or hand it to `validateWeaverseData`. With `throwPageLoadFailures: true` on the `WeaverseClient` (Pilot sets it), a failure rejects with a [`WeaverseLoadError`](/api-reference/classes/WeaverseLoadError) instead, so the route can answer 503 rather than 404. A 404 from the Weaverse API still resolves to `null`.
 
 <Warning>
 If your theme renders a fallback layout when Weaverse has no page for the resource, replace `validateWeaverseData(weaverseData)` with your own branch instead of throwing — but do check for `null` and for `weaverseData.isFallback` (6.5.0+; on earlier versions, a `page.id` starting with `fallback_page_`). Passing a missing page straight to `<WeaverseContent />` renders the error component.

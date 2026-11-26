@@ -132,7 +132,7 @@ Answer "no page" with `notFound()`. Do not substitute a hard-coded composition: 
 
 ### Outages are not 404s
 
-With the default, an outage looks like a missing page, so `loadWeaversePage` answers it with a 404. From 6.5.0, set `throwPageLoadFailures: true` on the server client to tell them apart: a failed load then rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) whose `kind` is `unavailable` (timeout, network error, 408, 425, 429 or 5xx), `invalid-response` (error body, non-JSON body, or a body that isn't a page envelope) or `configuration` (no project ID, or another refusal such as 401 or 403). A 404 from the Weaverse API still resolves to `null`, and an unassigned route still resolves to the placeholder page.
+With the default, an outage looks like a missing page, so `loadWeaversePage` answers it with a 404. From 6.5.0, set `throwPageLoadFailures: true` on the server client to tell them apart: a failed load then rejects with a [`WeaverseLoadError`](/nextjs/api/next/classes/WeaverseLoadError) whose `kind` is `unavailable` (timeout, network error, 408, 425, 429 or 5xx), `invalid-response` (error body, non-JSON body, or a body that isn't a page envelope) or `configuration` (no project ID, or another refusal such as 401 or 403). A 404 from the Weaverse API still resolves to `null`, and an unassigned route still resolves to the placeholder page.
 
 ```ts
 // weaverse/server.ts

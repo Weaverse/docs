@@ -149,7 +149,7 @@ export default function Component() {
 #### How it works:
 - The loader fetches the custom page matching the current request URL.
 - When no page is assigned to the URL, `loadPage()` resolves to a fallback page with `isFallback: true` (6.5.0+), not `null`. `validateWeaverseData()` throws a 404 for `null` and for that fallback page outside design mode, where Studio needs it so the merchant can add sections.
-- A load failure resolves to `null` by default. Pilot's client sets `throwPageLoadFailures: true`, so a failure rejects with a [`WeaverseLoadError`](/api-reference/weaverse-load-error) and the route answers 503 or 500 instead of 404.
+- A load failure resolves to `null` by default. Pilot's client sets `throwPageLoadFailures: true`, so a failure rejects with a [`WeaverseLoadError`](/api-reference/classes/WeaverseLoadError) and the route answers 503 or 500 instead of 404.
 - `getWeaverseSeoMeta()` renders the SEO fields you configured on the page in Studio. Pilot's `withWeaverseSeo()` (in `app/utils/seo.ts`) merges them with the market's canonical and hreflang tags from the root route.
 - `<WeaverseContent />` renders the sections.
 
@@ -191,7 +191,7 @@ Root-level custom pages need no extra route — Pilot's home/catch-all routing a
 `context.weaverse.fetchCustomPages()` returns the route metadata (`path`, `lastModified`, `changeFrequency`, `priority`) of every custom page assigned in the project, paginating for you. Pilot already uses it: `app/routes/seo/sitemap-weaverse.xml.ts` serves `/sitemap-weaverse.xml`, and the sitemap index in `app/routes/seo/sitemap.ts` links to it. Other themes add a similar route.
 
 <Warning>
-  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages) and [`fetchCustomPages`](/api-reference/weaverse-client#fetchcustompages).
+  The list is not filtered by publication state, so an entry is not proof that the page is published. Apply your own publication policy before you add a route to a public sitemap. See [List Public Custom Pages](/content-api/public-custom-pages) and [`fetchCustomPages`](/api-reference/classes/WeaverseClient#fetchcustompages).
 </Warning>
 
 ---

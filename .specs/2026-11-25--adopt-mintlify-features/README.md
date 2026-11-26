@@ -7,7 +7,7 @@
 | **Issue**        | [#80](https://github.com/Weaverse/docs/issues/80)       |
 | **Branch**       | `docs/adopt-mintlify-features`                          |
 | **Created**      | 2026-10-19                                              |
-| **Last Updated** | 2026-10-21                                              |
+| **Last Updated** | 2026-11-25                                              |
 
 ## Original Prompt
 

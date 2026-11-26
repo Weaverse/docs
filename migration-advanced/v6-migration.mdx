@@ -262,9 +262,9 @@ Use `--dir` to run it on another project folder. The codemod only touches files 
 
 | Entry | Contents |
 | --- | --- |
-| `@weaverse/hydrogen/react-router` | Everything a Hydrogen theme uses: `WeaverseClient`, `withWeaverse`, `WeaverseHydrogenRoot`, `useThemeSettings`, [`useTranslation`, `TranslationProvider`](/api-reference/use-translation), `getSelectedProductOptions`, `getWeaverseSeoMeta`, `createSchema`, the hooks and the types |
-| `@weaverse/hydrogen` | Schemas, data helpers and types, without React or a router, including [`getWeaverseStudioCspDirectives`](/api-reference/get-weaverse-studio-csp-directives) (6.3.0+), [`WeaverseError` and `WeaverseLoadError`](/api-reference/weaverse-load-error) and `getNestedKey` |
-| `@weaverse/hydrogen/react` | Framework-free React hooks: `useWeaverse`, `useItemInstance`, `useParentInstance`, `useChildInstances`, [`useStudioSelection`](/api-reference/use-studio-selection) |
+| `@weaverse/hydrogen/react-router` | Everything a Hydrogen theme uses: `WeaverseClient`, `withWeaverse`, `WeaverseHydrogenRoot`, `useThemeSettings`, [`useTranslation`, `TranslationProvider`](/api-reference/functions/useTranslation), `getSelectedProductOptions`, `getWeaverseSeoMeta`, `createSchema`, the hooks and the types |
+| `@weaverse/hydrogen` | Schemas, data helpers and types, without React or a router, including [`getWeaverseStudioCspDirectives`](/api-reference/functions/getWeaverseStudioCspDirectives) (6.3.0+), [`WeaverseError` and `WeaverseLoadError`](/api-reference/classes/WeaverseLoadError) and `getNestedKey` |
+| `@weaverse/hydrogen/react` | Framework-free React hooks: `useWeaverse`, `useItemInstance`, `useParentInstance`, `useChildInstances`, [`useStudioSelection`](/api-reference/functions/useStudioSelection) |
 | `@weaverse/hydrogen/next`, `@weaverse/hydrogen/next/server` | The Next.js SDK. Up to 6.1 also published as `@weaverse/next` 1.1.x, now deprecated |
 
 **Renamed types** (applied by the codemod):
@@ -289,7 +289,7 @@ Use `--dir` to run it on another project folder. The codemod only touches files 
 - `useThemeText`, `ThemeTextProvider` and `ThemeTextStore`, the deprecated aliases: use `useTranslation`, `TranslationProvider` and `TranslationStore`.
 - `interpolate`, `createWeaverseDataContext`, `useWeaverseDataContext` and `WeaverseArticle` (`WeaverseArticle` had the same resource-picker shape as `WeaverseBlog`).
 - `CachingStrategy`: import it from `@shopify/hydrogen`.
-- `WeaverseHydrogen`, the runtime class. `useWeaverse()` still returns the runtime: type it with what you read, for example `useWeaverse<{ data: WeaversePageData }>()` (see [useWeaverse](/api-reference/use-weaverse)). `@weaverse/hydrogen/react-router` exports `WeaverseHydrogenRoot` and `withWeaverse`, which don't change.
+- `WeaverseHydrogen`, the runtime class. `useWeaverse()` still returns the runtime: type it with what you read, for example `useWeaverse<{ data: WeaversePageData }>()` (see [useWeaverse](/api-reference/functions/useWeaverse)). `@weaverse/hydrogen/react-router` exports `WeaverseHydrogenRoot` and `withWeaverse`, which don't change.
 - `WeaverseClient.withCache`, the classic Hydrogen `createWithCache()` instance. Call `weaverse.fetchWithCache()` instead: it fetches through Hydrogen's subrequest cache and returns the parsed JSON body.
 
   ```typescript
