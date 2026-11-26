@@ -606,7 +606,7 @@
     },
     {
       "source": "/api-reference/types",
-      "destination": "/api-reference/types/WeaverseComponent"
+      "destination": "/api-reference/interfaces/WeaverseComponent"
     },
     {
       "source": "/api-reference/get-weaverse-studio-csp-directives",
