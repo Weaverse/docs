@@ -168,16 +168,9 @@ Some errors add a `details` object, for example the conflicting handles of a `40
 
 ## Usage tracking & billing
 
-Every authenticated API request counts toward your plan's usage quota. API hits share the same billing pool as storefront page views:
+Each metered, authenticated request uses one view credit from your plan. Weaverse tracks these requests in the background. You can check usage by project in the billing dashboard. The public `/openapi.json` endpoint is not metered.
 
-- **1 API request = 1 page view hit**
-- Usage is tracked per project and appears in your billing dashboard
-- Tracking is non-blocking — it never slows down API responses
-- The `/openapi.json` endpoint is public and **not** tracked
-
-<Tip>
-  Monitor your API usage in the Weaverse Studio billing dashboard to avoid unexpected overages.
-</Tip>
+See [how Weaverse counts views](/resources/faq#how-weaverse-counts-views) to compare API usage, storefront views and GA4 events.
 
 ## Quick start
 
