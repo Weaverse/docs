@@ -1,0 +1,123 @@
+---
+title: Set Up Themivo Wishlist & Alerts in Aspen
+description: Connect Themivo to Aspen, customize the wishlist in Studio, and route alert emails to your Hydrogen storefront.
+published: true
+---
+
+This guide covers the Themivo integration that ships with **Aspen** on
+Hydrogen 2026.10 and Weaverse 6. Aspen's existing wishlist buttons use Themivo
+through a server-side integration. To add it to another theme, follow the
+[Aspen cookbook](https://github.com/Weaverse/aspen/blob/main/guides/themivo-wishlist-cookbook-recipe.md#recipes).
+For source reference, see the [Aspen implementation](https://github.com/Weaverse/aspen/tree/9bbdc25a7f0bf1333c5b2f3024ec7730dbee4526).
+
+## Connect Themivo
+
+<Steps>
+  <Step title="Install the App">
+    Install [Themivo Wishlist & Alerts](https://apps.shopify.com/themivo-wishlist-alerts)
+    on the Shopify store connected to Aspen. Confirm with Themivo that your
+    plan includes API access.
+  </Step>
+
+  <Step title="Create an API Key">
+    In Themivo, open **Developers → API keys** and create a key with
+    **Read** and **Write** scopes. Copy it when it appears. Themivo shows it
+    only once.
+  </Step>
+
+  <Step title="Set the Server Secret">
+    In your local Aspen checkout, add this variable to your untracked
+    `.env` file and restart the dev server:
+
+    ```dotenv
+    WISHLIST_API_KEY="<themivo-read-write-key>"
+    ```
+
+    For a deployed storefront, add the variable to each intended
+    [Oxygen environment](https://shopify.dev/docs/storefronts/hydrogen/deploy/oxygen/environments)
+    and redeploy. The key can access every shopper's wishlist in the store.
+    Keep it on the server and out of browser code and Studio settings.
+  </Step>
+
+  <Step title="Allow Your Storefront Origins">
+    In **Developers → Headless storefront → Allowed origins**, add each
+    storefront origin on its own line. Include the port for local testing and
+    omit paths. Replace the example HTTPS origin with your storefront:
+
+    ```text
+    http://localhost:3456
+    https://shop.example.com
+    ```
+
+    Aspen uses these origins to read public Appearance settings. The
+    server-side wishlist integration works without the Themivo storefront script.
+  </Step>
+
+  <Step title="Enable Wishlist Features">
+    In Themivo **Settings → Features**, turn on the options you want to offer,
+    such as **Save for later**. Set up
+    [Shopify Customer Account login](https://github.com/Weaverse/aspen/blob/9bbdc25a7f0bf1333c5b2f3024ec7730dbee4526/docs/setup.md#customer-account-api-during-local-development)
+    before enabling features that require signed-in shoppers.
+  </Step>
+</Steps>
+
+## Choose Wishlist Appearance
+
+In Studio, open **Theme settings → Product cards → Wishlist appearance**.
+Choose **Aspen** for the theme's default button styling and placement, or
+**Themivo** to follow the supported button styling and placement settings
+from the app. Both options use the same Themivo wishlist data.
+
+In Themivo **Appearance**, select **Drawer**, **Popup**, or **Page** for the
+wishlist, then choose **Grid** or **List** for saved items. Aspen renders its
+own header icon and follows **Show item count**. The app's **Header icon**
+toggle controls automatic insertion on Shopify Online Store themes.
+Set product visibility and wishlist translations in **Hide Rules** and
+**Translations**.
+
+## Save for Later
+
+When **Save for later** is enabled, shoppers can move eligible items from the
+cart page to their saved list and restore them from the cart page or drawer.
+Subscription items and items with unsupported custom attributes stay in the
+cart. If a transfer is interrupted, check the cart and saved list before
+trying again.
+
+## Configure Email Links
+
+Enable the alerts you want in Themivo **Notifications**. Check the app's
+sign-in and marketing-consent requirements for each alert.
+
+Themivo sends product links using your Shopify store's primary domain. If Aspen
+uses a different domain, configure the site on the primary domain to redirect
+`/products/{handle}` to the same path on Aspen, preserving the query string.
+Open a link from an actual test email to verify the product, selected variant,
+and purchase destination.
+
+## Switch Back to Aspen's Native Wishlist
+
+Remove `WISHLIST_API_KEY` and restart or redeploy. Aspen resumes using the
+[Customer Account wishlist metafield](https://github.com/Weaverse/aspen/blob/9bbdc25a7f0bf1333c5b2f3024ec7730dbee4526/docs/customer-wishlist-setup.md)
+for signed-in shoppers. Set up the metafield before relying on this fallback.
+
+Themivo saves stay in Themivo. Aspen's native wishlist does not import them
+or serve the `/wishlist` page. Remove merchant navigation links to that page
+if you disable the integration.
+
+## Troubleshooting
+
+- **Appearance settings are stale.** Confirm you saved changes in the right
+  Shopify store and allowed the exact storefront origin. Give the app a
+  minute to apply the update, then reload.
+- **The storefront still uses the native wishlist.** Check that the target
+  environment has `WISHLIST_API_KEY` and that you redeployed it.
+- **Wishlist actions are denied.** Check the API key's Read and Write scopes
+  and whether the action requires a signed-in customer.
+- **An alert opens a different storefront.** Check the Shopify primary domain
+  and follow the product link through the redirect.
+
+## Related Resources
+
+- [Themivo Headless Guide](https://wishlist.themivo.com/docs/headless)
+- [Themivo REST API](https://wishlist.themivo.com/docs/rest-api)
+- [Third-Party Integrations](/features/third-party-integrations)
